@@ -7,11 +7,11 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack } from 'lucide-react';
 import { BRAND, FONT_SANS } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import { NARRATION } from './data/narrationText';
-import CadenceWave, { TONES } from './CadenceWave';
+import CadenceWave, { TONES, type ScrubInfo } from './CadenceWave';
 
 interface Voice { voice_id: string; name: string; gender?: string; age?: string; accent?: string; use_case?: string; description?: string; }
 interface SourceFile { id: string; label: string; text: string; sub?: string }
@@ -58,6 +58,8 @@ export default function VoiceStudio() {
   const [url, setUrl] = useState<string | null>(null);
   const [peaks, setPeaks] = useState<number[] | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);           // avance de reproducción (0..1) para el playhead
+  const [pick, setPick] = useState<ScrubInfo | null>(null); // punto marcado en la onda sintética
   const [track, setTrack] = useState<string | null>(null);
   const [musicVol, setMusicVol] = useState(0.7);
   const [musicOn, setMusicOn] = useState(false);
@@ -71,7 +73,7 @@ export default function VoiceStudio() {
 
   const isOpen = (id: string) => open[id] !== false;
   const tg = (id: string) => setOpen((o) => ({ ...o, [id]: o[id] === false }));
-  const applyText = (t: string) => { setText(t); setPeaks(null); };
+  const applyText = (t: string) => { setText(t); setPeaks(null); setProgress(0); };
 
   useEffect(() => { fetch(`${TTS_SERVICE_URL}/voices`).then((r) => r.json()).then((d) => setVoices(d.voices || [])).catch(() => {}); }, []);
 
@@ -92,24 +94,46 @@ export default function VoiceStudio() {
   }, []);
 
   const loadFile = (f: SourceFile) => {
-    setActiveFile(f.id); applyText(f.text);
+    setActiveFile(f.id); applyText(f.text); setPick(null);
     // avisar al host (ej. Munify) para que sincronice su canvas/preview.
     try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'mediastudio:file', id: f.id }, '*'); } catch { /* noop */ }
   };
 
-  const insertAtCursor = (before: string) => {
-    const ta = taRef.current; if (!ta) { applyText(text + before); return; }
+  // Inserta un marker. Si hay un punto marcado en la onda (pick) inserta ahí;
+  // si no, en el cursor del textarea.
+  const insertMarker = (str: string) => {
+    if (pick && pick.we != null) {
+      const we = pick.we;
+      applyText(text.slice(0, we) + str + text.slice(we));
+      setPick({ frac: pick.frac, ws: pick.ws, we: we + str.length });
+      return;
+    }
+    const ta = taRef.current; if (!ta) { applyText(text + str); return; }
     const s = ta.selectionStart ?? text.length, e = ta.selectionEnd ?? text.length;
-    applyText(text.slice(0, s) + before + text.slice(e));
-    requestAnimationFrame(() => { ta.focus(); const p = s + before.length; ta.setSelectionRange(p, p); });
+    applyText(text.slice(0, s) + str + text.slice(e));
+    requestAnimationFrame(() => { ta.focus(); const p = s + str.length; ta.setSelectionRange(p, p); });
   };
+  // Énfasis: sobre la selección del textarea, o sobre la palabra marcada en la onda.
   const emphasize = () => {
-    const ta = taRef.current; if (!ta) return;
-    const s = ta.selectionStart ?? 0, e = ta.selectionEnd ?? 0; if (s === e) return;
-    applyText(text.slice(0, s) + text.slice(s, e).toUpperCase() + text.slice(e));
-    requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(s, e); });
+    const ta = taRef.current;
+    const s = ta?.selectionStart ?? 0, e = ta?.selectionEnd ?? 0;
+    if (ta && s !== e) {
+      applyText(text.slice(0, s) + text.slice(s, e).toUpperCase() + text.slice(e));
+      requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(s, e); });
+      return;
+    }
+    if (pick && pick.ws != null && pick.we != null && pick.we > pick.ws) {
+      const { ws, we } = pick;
+      applyText(text.slice(0, ws) + text.slice(ws, we).toUpperCase() + text.slice(we));
+    }
   };
-  const reset = () => { applyText(DEFAULT_TEXT); setStability(0.4); setSimilarity(0.8); setStyle(0.5); setSpeed(1.0); setBoost(true); setUrl(null); };
+  // Scrub del playhead: en audio real hace seek; en sintético marca el punto.
+  const onScrub = (info: ScrubInfo) => {
+    if (peaks) { const a = audioRef.current; if (a && a.duration) { a.currentTime = info.frac * a.duration; setProgress(info.frac); } }
+    else setPick(info);
+  };
+  const rewind = () => { const a = audioRef.current; if (a) { a.currentTime = 0; setProgress(0); if (a.paused) { /* deja en 0 */ } } };
+  const reset = () => { applyText(DEFAULT_TEXT); setPick(null); setStability(0.4); setSimilarity(0.8); setStyle(0.5); setSpeed(1.0); setBoost(true); setUrl(null); };
 
   const pickTrack = (t: Track) => {
     const m = musicRef.current; if (!m) return;
@@ -121,7 +145,7 @@ export default function VoiceStudio() {
 
   const generate = async () => {
     if (!text.trim() || !voiceId) return;
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); setProgress(0);
     try {
       const r = await fetch(`${TTS_SERVICE_URL}/generate`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -298,7 +322,7 @@ export default function VoiceStudio() {
         {/* TEXTO */}
         <div style={{ ...card, flex: `0 0 ${textoW}px`, minWidth: 0 }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', color: '#fff', marginBottom: 9 }}>TEXTO</div>
-          <textarea ref={taRef} value={text} onChange={(e) => applyText(e.target.value)} spellCheck={false}
+          <textarea ref={taRef} value={text} onChange={(e) => { applyText(e.target.value); setPick(null); }} spellCheck={false}
             style={{ flex: 1, minHeight: 100, resize: 'none', borderRadius: 12, padding: 13, fontSize: 14.5, lineHeight: 1.7, fontFamily: FONT_SANS, color: '#fff', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.12)', outline: 'none' }} />
           <div style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.4)', marginTop: 6, lineHeight: 1.4 }}>La puntuación (, . ? !) ya moldea la cadencia. Marcá más desde la onda →</div>
         </div>
@@ -313,32 +337,30 @@ export default function VoiceStudio() {
         <div style={{ ...card, flex: '1 1 0', minWidth: 0 }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', color: BRAND.gold, marginBottom: 9 }}>WAVEFORM</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-            <button onClick={emphasize} style={{ ...mk, color: BRAND.ink, background: BRAND.gold, border: 'none', fontWeight: 800 }} title="Seleccioná texto y marcá énfasis (MAYÚS)">ÉNFASIS</button>
-            <button onClick={() => insertAtCursor(' — ')} style={mk}>Pausa</button>
-            <button onClick={() => insertAtCursor(' … ')} style={mk}>Pausa larga</button>
-            <button onClick={() => insertAtCursor('?')} style={{ ...mk, color: '#22D3EE', borderColor: '#22D3EE66' }}>?</button>
-            <button onClick={() => insertAtCursor('!')} style={{ ...mk, color: '#EC4899', borderColor: '#EC489966' }}>!</button>
-            {TONES.map((t) => (<button key={t.tag} onClick={() => insertAtCursor(' ' + t.tag + ' ')} style={{ ...mk, borderColor: `${t.color}66`, color: t.color }}>{t.label}</button>))}
+            <button onClick={emphasize} style={{ ...mk, color: BRAND.ink, background: BRAND.gold, border: 'none', fontWeight: 800 }} title="Marcá un punto/palabra en la onda (o seleccioná texto) y dale énfasis">ÉNFASIS</button>
+            <button onClick={() => insertMarker(' — ')} style={mk}>Pausa</button>
+            <button onClick={() => insertMarker(' … ')} style={mk}>Pausa larga</button>
+            <button onClick={() => insertMarker('?')} style={{ ...mk, color: '#22D3EE', borderColor: '#22D3EE66' }}>?</button>
+            <button onClick={() => insertMarker('!')} style={{ ...mk, color: '#EC4899', borderColor: '#EC489966' }}>!</button>
+            {TONES.map((t) => (<button key={t.tag} onClick={() => insertMarker(' ' + t.tag + ' ')} style={{ ...mk, borderColor: `${t.color}66`, color: t.color }}>{t.label}</button>))}
             <button onClick={reset} title="Reiniciar" style={{ ...mk, marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}><RotateCcw size={12} /></button>
           </div>
           <div style={{ flex: 1, minHeight: 130, borderRadius: 12, padding: '10px 8px', background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-            <CadenceWave text={text} peaks={peaks} />
+            <CadenceWave text={text} peaks={peaks} playhead={peaks ? progress : (pick ? pick.frac : null)} onScrub={onScrub} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 10, minHeight: 44 }}>
-            {url ? (
-              <>
-                <button onClick={toggle} style={{ cursor: 'pointer', width: 44, height: 44, borderRadius: 12, border: 'none', background: BRAND.gold, color: BRAND.ink, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{playing ? <Pause size={18} /> : <Play size={18} />}</button>
-                <span style={{ fontSize: 11.5, color: peaks ? '#34d399' : 'rgba(255,255,255,0.5)', fontWeight: 700 }}>{peaks ? 'audio real generado' : 'editaste — regenerá'}</span>
-                <a href={url} download="voz.mp3" style={{ marginLeft: 'auto', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 7, padding: '11px 16px', borderRadius: 12, background: BRAND.azure, color: '#fff', fontWeight: 800, fontSize: 13 }}><Download size={15} /> Exportar mp3</a>
-              </>
-            ) : (
-              <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>Onda de cadencia en vivo. Apretá «Generar voz» para el audio real.</span>
-            )}
+          {/* botonera: rebobinar · play/pausa + estado + export */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, minHeight: 44 }}>
+            <button onClick={rewind} disabled={!url} title="Rebobinar" style={{ cursor: url ? 'pointer' : 'default', width: 40, height: 40, borderRadius: 11, border: '1px solid rgba(255,255,255,0.14)', background: 'rgba(255,255,255,0.06)', color: url ? '#fff' : 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><SkipBack size={16} /></button>
+            <button onClick={toggle} disabled={!url} title={playing ? 'Pausa' : 'Play'} style={{ cursor: url ? 'pointer' : 'default', width: 44, height: 44, borderRadius: 12, border: 'none', background: url ? BRAND.gold : 'rgba(255,255,255,0.1)', color: url ? BRAND.ink : 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{playing ? <Pause size={18} /> : <Play size={18} />}</button>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: !url ? 'rgba(255,255,255,0.4)' : peaks ? '#34d399' : 'rgba(255,255,255,0.5)' }}>
+              {!url ? 'Deslizá el playhead y marcá pausas/acentos. «Generar voz» para el audio real.' : peaks ? 'audio real — deslizá para hacer seek' : 'editaste — regenerá'}
+            </span>
+            {url && <a href={url} download="voz.mp3" style={{ marginLeft: 'auto', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 7, padding: '11px 16px', borderRadius: 12, background: BRAND.azure, color: '#fff', fontWeight: 800, fontSize: 13 }}><Download size={15} /> Exportar mp3</a>}
           </div>
         </div>
       </div>
 
-      <audio ref={audioRef} onPlay={() => { setPlaying(true); duck(true); }} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); duck(false); }} />
+      <audio ref={audioRef} onPlay={() => { setPlaying(true); duck(true); }} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); duck(false); }} onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setProgress(a.currentTime / a.duration); }} />
       <audio ref={musicRef} />
     </div>
   );
