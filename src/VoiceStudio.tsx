@@ -91,7 +91,11 @@ export default function VoiceStudio() {
     return () => window.removeEventListener('message', onMsg);
   }, []);
 
-  const loadFile = (f: SourceFile) => { setActiveFile(f.id); applyText(f.text); };
+  const loadFile = (f: SourceFile) => {
+    setActiveFile(f.id); applyText(f.text);
+    // avisar al host (ej. Munify) para que sincronice su canvas/preview.
+    try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'mediastudio:file', id: f.id }, '*'); } catch { /* noop */ }
+  };
 
   const insertAtCursor = (before: string) => {
     const ta = taRef.current; if (!ta) { applyText(text + before); return; }
