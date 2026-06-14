@@ -1,0 +1,115 @@
+/* Sidebar colapsable — tokens en styles/tokens.css */
+.ms-side {
+  flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-2);
+  border-right: 1px solid var(--bd);
+  padding: 14px 10px;
+  gap: 6px;
+  overflow-y: auto;
+  transition: flex-basis 160ms ease;
+}
+.ms-side--collapsed { flex-basis: 60px; }
+
+.ms-side-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 4px 10px;
+  border-bottom: 1px solid var(--bd);
+  margin-bottom: 6px;
+}
+.ms-side-mark { color: var(--gold); flex: 0 0 auto; }
+.ms-side-brand {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.ms-side-toggle {
+  margin-left: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--bd-3);
+  background: var(--surface-3);
+  color: var(--txt-70);
+}
+.ms-side--collapsed .ms-side-toggle { margin-left: 0; }
+
+.ms-side-nav { display: flex; flex-direction: column; gap: 3px; }
+
+.ms-side-link {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--txt-70);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  white-space: nowrap;
+}
+.ms-side-link:hover { background: var(--surface); color: var(--txt); }
+.ms-side-link--on { background: color-mix(in srgb, var(--gold) 16%, transparent); color: var(--gold); }
+.ms-side--collapsed .ms-side-link { justify-content: center; gap: 0; }
+
+.ms-side-project {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--txt-40);
+  padding: 12px 11px 4px;
+}
+
+.ms-side-reels { margin-top: 8px; border-top: 1px solid var(--bd); padding-top: 8px; }
+.ms-side-reels-head {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--cyan);
+  background: none;
+  border: none;
+  padding: 4px 11px;
+}
+.ms-side-reel {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt-70);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 6px 11px 6px 26px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-side-reel:hover { background: var(--surface); color: var(--txt); }
+
+@media (max-width: 860px) {
+  .ms-side { flex-basis: 56px; }
+  .ms-side .ms-side-brand, .ms-side .ms-side-project, .ms-side .ms-side-reels { display: none; }
+  .ms-side-link { justify-content: center; gap: 0; }
+  .ms-side-link span { display: none; }
+}

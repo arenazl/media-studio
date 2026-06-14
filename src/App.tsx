@@ -1,19 +1,11 @@
 import { useState } from 'react';
-import { Mic, Film, Video, Layers, Download, AudioLines } from 'lucide-react';
 import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
 import StageTab from './StageTab';
+import Sidebar, { type Section } from './Sidebar';
+import ProjectsABM from './ProjectsABM';
+import type { Project } from './lib/projects';
 import './App.css';
-
-type TabId = 'audio' | 'reel' | 'videos' | 'montaje' | 'export';
-
-const TABS: { id: TabId; label: string; Icon: typeof Mic; color: string }[] = [
-  { id: 'audio', label: 'Audio', Icon: Mic, color: 'var(--gold)' },
-  { id: 'reel', label: 'Reel', Icon: Film, color: 'var(--amber)' },
-  { id: 'videos', label: 'Videos', Icon: Video, color: 'var(--cyan)' },
-  { id: 'montaje', label: 'Montaje', Icon: Layers, color: 'var(--violet)' },
-  { id: 'export', label: 'Export', Icon: Download, color: 'var(--green)' },
-];
 
 export default function App() {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -28,51 +20,52 @@ export default function App() {
     );
   }
 
-  const initial = (params.get('tab') as TabId) || 'audio';
-  const [tab, setTab] = useState<TabId>(TABS.some((t) => t.id === initial) ? initial : 'audio');
+  const [collapsed, setCollapsed] = useState(false);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [section, setSection] = useState<Section>('audio');
 
   return (
-    <div className="ms-app">
-      <header className="ms-header">
-        <AudioLines size={28} className="ms-brand-mark" />
-        <div className="ms-brand">
-          <h1 className="ms-brand-title">Media Studio</h1>
-          <p className="ms-brand-sub">Pipeline local de reels · audio · video · montaje (Claude headless)</p>
-        </div>
-        <nav className="ms-tabs">
-          {TABS.map((t, i) => {
-            const on = tab === t.id;
-            return (
-              <button key={t.id} onClick={() => setTab(t.id)} className={on ? 'ms-tab ms-tab--on' : 'ms-tab'} style={{ ['--accent']: t.color } as React.CSSProperties}>
-                <span className="ms-tab-idx">{i + 1}</span><t.Icon size={14} /> {t.label}
-              </button>
-            );
-          })}
-        </nav>
-      </header>
+    <div className="ms-shell">
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((c) => !c)}
+        activeProject={activeProject}
+        section={section}
+        onHome={() => setActiveProject(null)}
+        onSection={setSection}
+        onOpenReel={() => setSection('audio')}
+      />
 
-      <div className="ms-content">
-        {tab === 'audio' && <VoiceStudio />}
-        {tab === 'reel' && (
-          <StageTab title="REEL — slides animados (resolución Instagram 1080×1920)" color="var(--amber)"
-            description="Pegá el prompt + el MD de contexto del reel. Lo genero como recorrido/mockups (como los que ya hicimos) y lo combino con el audio de la solapa Audio."
-            placeholder="Ej: Reel 9:16 para Munify. Tour de la app, 6 escenas, estética dark + naranja. (pegá acá tu MD de contexto / guion)"
-            hint={<>Se une con el <b>audio</b> generado en la solapa Audio. El reel queda en la carpeta del proyecto.</>} />
+      <main className="ms-main">
+        {!activeProject ? (
+          <ProjectsABM onOpen={(p) => { setActiveProject(p); setSection('audio'); }} />
+        ) : (
+          <SectionView section={section} projectName={activeProject.name} />
         )}
-        {tab === 'videos' && <VideosTab />}
-        {tab === 'montaje' && (
-          <StageTab title="MONTAJE — intercalar slides + videos" color="var(--violet)"
-            description="Decime cómo mechar los slides del reel con los videos de Flow. Armo el corte y te muestro ~10 frames del resultado para que elijas y ajustes."
-            placeholder="Ej: arrancá con el slide 1, meté bache.mp4 en el segundo 3, volvé a slides en el 6, cerrá con cuadrilla.mp4…"
-            hint={<>Los videos salen de la carpeta local (solapa <b>Videos</b>). Te devuelvo frames para revisar.</>} />
-        )}
-        {tab === 'export' && (
-          <StageTab title="EXPORT — reel final" color="var(--green)"
-            description="Unifico todo (slides + audios + videos) en el reel final, vía Claude headless local. Decime el corte definitivo y los niveles."
-            placeholder="Ej: unificá todo, música Funk al 70% con ducking, voz Lucía, salida 1080×1920 mp4 a 30fps."
-            hint={<>Corre por <b>Claude headless</b> local; el mp4 final queda en la carpeta del proyecto.</>} />
-        )}
-      </div>
+      </main>
     </div>
+  );
+}
+
+function SectionView({ section, projectName }: { section: Section; projectName: string }) {
+  if (section === 'audio') return <VoiceStudio />;
+  if (section === 'videos') return <VideosTab />;
+  if (section === 'reel') return (
+    <StageTab title={`REEL — ${projectName} · slides 1080×1920`} color="var(--amber)"
+      description="Pegá el prompt + el MD de contexto del reel. Lo genero como recorrido/mockups y lo combino con el audio de la sección Audio."
+      placeholder="Ej: Reel 9:16. Tour de la app, 6 escenas, estética dark + naranja. (pegá tu MD de contexto / guion)"
+      hint={<>Se une con el <b>audio</b> de la sección Audio. El reel queda en los assets del proyecto.</>} />
+  );
+  if (section === 'montaje') return (
+    <StageTab title={`MONTAJE — ${projectName}`} color="var(--violet)"
+      description="Decime cómo mechar los slides del reel con los videos de la biblioteca. Armo el corte y te muestro ~10 frames para que elijas."
+      placeholder="Ej: arrancá con el slide 1, meté bache.mp4 en el segundo 3, volvé a slides en el 6, cerrá con cuadrilla.mp4…"
+      hint={<>Los videos salen de la <b>biblioteca</b> (sección Videos). Te devuelvo frames para revisar.</>} />
+  );
+  return (
+    <StageTab title={`EXPORT — ${projectName}`} color="var(--green)"
+      description="Unifico todo (slides + audios + videos) en el reel final. Decime el corte definitivo y los niveles."
+      placeholder="Ej: unificá todo, música Funk al 70% con ducking, voz Lucía, salida 1080×1920 mp4 a 30fps."
+      hint={<>El mp4 final queda en los assets del proyecto.</>} />
   );
 }

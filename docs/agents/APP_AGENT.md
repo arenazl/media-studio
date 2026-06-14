@@ -147,6 +147,7 @@ La fuente editable de los reels de Munify vive en el repo `sugerenciasMun`:
 
 | Fecha | Cambio | Archivos tocados |
 |-------|--------|-----------------|
+| 2026-06-14 | **Multi-tenant paso 1+2:** **sidebar colapsable** + **ABM de Proyectos** (1ª pantalla) con **Munify precargado** + sus reels base como **menú colapsable** en el sidebar. Crear/editar (panel lateral, opción "adjuntar reels base de Munify") + borrar (confirm). Dentro del proyecto: secciones Audio/Reel/Videos/Montaje/Export. Store **localStorage-first** (`lib/projects.ts`) hasta que INFRA defina el esquema por-proyecto en `/api/projects`. Falta: botón **Grabar** (settings por reel) + tab **Preview** en TEXTO. | `App.tsx/.css`, `Sidebar.tsx/.css`, `ProjectsABM.tsx/.css`, `lib/projects.ts` |
 | 2026-06-14 | **Editor de voz — modelo markers como CAPA** sobre la waveform (el texto queda INTACTO, solo guión + `, ? !`). Colocar por click/arrastre, borrar (×), Undo, Limpiar. Pausas escritas en el texto (`...` / espacios) → `<break>` exacto al generar. | `CadenceWave.tsx/.css`, `VoiceStudio.tsx` |
 | 2026-06-14 | **Refactor a CSS con tokens** (cero estilos inline; solo CSS vars + clases + media queries). Layout **fluido/responsive**: desktop llena viewport sin scroll, mobile apila (bp 860). | `styles/tokens.css`, `App.css`, `VoiceStudio.css`, `CadenceWave.css`, `StageTab.css`, `VideosTab.css` |
 | 2026-06-14 | **VoiceStudio extras:** 4 presets de voz, sample al clickear voz (`preview_url`), botonera rebobinar/play/**stop**, **Enter** = play/pausa fuera del textarea. | `VoiceStudio.tsx/.css` |
