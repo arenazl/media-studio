@@ -4,20 +4,23 @@
 //   IS_PROD=true            → Gemini para pipelines AI, videos en Cloudinary
 //
 // Endpoints:
-//   GET  /api/health
-//   POST /api/claude            → AI pipeline (Claude local / Gemini prod)
-//   GET  /api/videos            → lista videos locales (dev)
-//   GET  /api/videos/file/<n>  → stream video local
-//   GET  /api/cloud-videos      → lista videos en Cloudinary / DB
-//   POST /api/cloud-videos/upload → sube a Cloudinary, persiste en DB
-//   DELETE /api/cloud-videos/<id> → elimina de Cloudinary + DB
-//   GET  /api/projects          → lista proyectos SQLite
-//   POST /api/projects
-//   GET  /api/projects/<id>
+//   GET    /api/health
+//   POST   /api/claude                    → AI pipeline (Claude local / Gemini prod)
+//   GET    /api/videos                    → lista videos locales (dev)
+//   GET    /api/videos/file/<n>           → stream video local
+//   GET    /api/cloud-videos              → lista videos en Cloudinary / DB
+//   POST   /api/cloud-videos/upload       → sube a Cloudinary, persiste en DB
+//   DELETE /api/cloud-videos/<id>         → elimina de Cloudinary + DB
+//   GET    /api/projects                  → lista proyectos SQLite
+//   POST   /api/projects                  → crear proyecto
+//   GET    /api/projects/<id>             → detalle con data JSON
+//   POST   /api/projects/<id>             → actualizar proyecto (name + data)
 //   DELETE /api/projects/<id>
-//   GET  /api/apps              → lista app_configs
-//   GET  /api/apps/<id>         → config de voz de una app
-//   POST /api/apps/<id>         → guardar config de voz
+//   GET    /api/projects/<id>/assets      → lista assets del proyecto (de data.assets)
+//   POST   /api/projects/<id>/assets      → sube asset a Cloudinary en carpeta del proyecto
+//   GET    /api/apps                      → lista app_configs
+//   GET    /api/apps/<id>                 → config de voz de una app
+//   POST   /api/apps/<id>                 → guardar config de voz
 //   DELETE /api/apps/<id>
 
 import http from 'node:http';
@@ -132,13 +135,11 @@ function streamVideo(req, res, name) {
 }
 
 // ── Cloudinary upload ────────────────────────────────────────────────────────
-async function uploadToCloudinary(buffer, filename) {
+async function uploadToCloudinary(buffer, filename, folder = CLD_FOLDER) {
   if (!CLD_CLOUD || !CLD_KEY || !CLD_SECRET) throw new Error('Cloudinary no configurado (faltan CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET)');
 
-  // Firma (sin SDK, usando la REST API)
-  const { createHmac, createHash } = await import('node:crypto');
+  const { createHash } = await import('node:crypto');
   const timestamp = Math.floor(Date.now() / 1000);
-  const folder    = CLD_FOLDER;
   const params    = { folder, timestamp };
   const sigStr    = Object.keys(params).sort().map((k) => `${k}=${params[k]}`).join('&') + CLD_SECRET;
   const signature = createHash('sha1').update(sigStr).digest('hex');
@@ -252,6 +253,56 @@ const server = http.createServer(async (req, res) => {
       const body = JSON.parse((await readBody(req)) || '{}');
       return json(res, 200, { project: saveProject({ id: body.id, name: body.name, data: body.data }) });
     }
+
+    // assets por proyecto — MÁS ESPECÍFICO que /{id}, va primero
+    if (p.match(/^\/api\/projects\/[^/]+\/assets$/) && req.method === 'GET') {
+      const projId = decodeURIComponent(p.replace(/^\/api\/projects\//, '').replace(/\/assets$/, ''));
+      const proj = getProject(projId);
+      if (!proj) return json(res, 404, { error: 'proyecto no existe' });
+      return json(res, 200, { assets: proj.data.assets || [] });
+    }
+
+    if (p.match(/^\/api\/projects\/[^/]+\/assets$/) && req.method === 'POST') {
+      const projId = decodeURIComponent(p.replace(/^\/api\/projects\//, '').replace(/\/assets$/, ''));
+      const proj = getProject(projId);
+      if (!proj) return json(res, 404, { error: 'proyecto no existe' });
+
+      const chunks = [];
+      await new Promise((resolve) => { req.on('data', (c) => chunks.push(c)); req.on('end', resolve); });
+      const raw = Buffer.concat(chunks);
+      const contentType = req.headers['content-type'] || '';
+      const boundary = contentType.split('boundary=')[1];
+      let filename = 'asset'; let fileBuffer = raw;
+      if (boundary) {
+        const m = raw.toString('latin1').match(/filename="([^"]+)"/);
+        if (m) filename = m[1];
+        const parts = raw.toString('latin1').split(`--${boundary}`);
+        for (const part of parts) {
+          if (part.includes('Content-Disposition') && part.includes('name="file"')) {
+            const idx = part.indexOf('\r\n\r\n');
+            if (idx !== -1) fileBuffer = Buffer.from(part.slice(idx + 4, -2), 'latin1');
+          }
+        }
+      }
+      const ext = path.extname(filename).toLowerCase();
+      const tipo = ['.mp3', '.wav', '.ogg', '.m4a'].includes(ext) ? 'audio' : ['.jpg', '.jpeg', '.png', '.webp'].includes(ext) ? 'image' : 'video';
+      const folder = `${CLD_FOLDER}/${projId}`;
+      const cldRes = await uploadToCloudinary(fileBuffer, filename, folder);
+      const asset = { tipo, name: filename, cloudinaryUrl: cldRes.secure_url, createdAt: Date.now() };
+      const assets = [...(proj.data.assets || []), asset];
+      saveProject({ id: projId, name: proj.name, data: { ...proj.data, assets } });
+      return json(res, 200, { asset });
+    }
+
+    // actualizar proyecto por id
+    if (p.startsWith('/api/projects/') && req.method === 'POST') {
+      const id = decodeURIComponent(p.slice('/api/projects/'.length));
+      const existing = getProject(id);
+      if (!existing) return json(res, 404, { error: 'proyecto no existe' });
+      const body = JSON.parse((await readBody(req)) || '{}');
+      return json(res, 200, { project: saveProject({ id, name: body.name ?? existing.name, data: body.data !== undefined ? body.data : existing.data }) });
+    }
+
     if (p.startsWith('/api/projects/') && req.method === 'GET') {
       const proj = getProject(decodeURIComponent(p.slice('/api/projects/'.length)));
       return proj ? json(res, 200, { project: proj }) : json(res, 404, { error: 'no existe' });

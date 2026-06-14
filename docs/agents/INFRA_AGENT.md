@@ -57,20 +57,23 @@ prod (Cloud Run + Netlify)
 ## Backend — endpoints completos
 
 ```
-GET  /api/health
-POST /api/claude                      → AI pipeline (Claude / Gemini según IS_PROD)
-GET  /api/videos                      → videos locales (solo dev)
-GET  /api/videos/file/{name}         → stream con Range headers
-GET  /api/cloud-videos                → galería Cloudinary (de DB)
-POST /api/cloud-videos/upload         → sube mp4 a Cloudinary
+GET    /api/health
+POST   /api/claude                    → AI pipeline (Claude / Gemini según IS_PROD)
+GET    /api/videos                    → videos locales (solo dev)
+GET    /api/videos/file/{name}        → stream con Range headers
+GET    /api/cloud-videos              → galería Cloudinary (de DB)
+POST   /api/cloud-videos/upload       → sube mp4 a Cloudinary
 DELETE /api/cloud-videos/{id}
-GET  /api/projects
-POST /api/projects
-GET  /api/projects/{id}
+GET    /api/projects                  → lista proyectos
+POST   /api/projects                  → crear proyecto
+GET    /api/projects/{id}             → detalle con data JSON
+POST   /api/projects/{id}             → actualizar proyecto (name + data)
 DELETE /api/projects/{id}
-GET  /api/apps                        → lista configs de voz por app
-GET  /api/apps/{app_id}              → config de voz de una app
-POST /api/apps/{app_id}              → guardar config de voz
+GET    /api/projects/{id}/assets      → lista assets del proyecto
+POST   /api/projects/{id}/assets      → sube asset a Cloudinary carpeta del proyecto
+GET    /api/apps                      → lista configs de voz por app
+GET    /api/apps/{app_id}             → config de voz de una app
+POST   /api/apps/{app_id}             → guardar config de voz
 DELETE /api/apps/{app_id}
 ```
 
@@ -138,22 +141,117 @@ gcloud run deploy media-studio-api `
 
 ---
 
-## Pendientes de infra
+## Respuestas a pedidos del agente APP
 
-- [ ] **Activar Gemini** — el secret existe en munify-api pero no se adjuntó. Correr:
-  ```bash
-  gcloud run services update media-studio-api \
-    --set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest \
+### Source-of-truth de videos (pedido 2026-06-14)
+
+**Decisión: manifest = durable, DB = vivos nuevos. Merge en cliente. No hay que seedear.**
+
+- La DB de Cloud Run es efímera — un restart la borra. Seedear los 31 ahí no resuelve nada durable.
+- El manifest `public/cloud-videos.json` es estático en Netlify → sobrevive siempre. Es la fuente de los 31 videos existentes.
+- El agente APP ya implementó el merge por URL en `VideosTab.tsx`.
+- **Pendiente real:** migrar `cloud_videos` a Aiven MySQL para durabilidad real.
+
+### Heads-up tts-service (informativo 2026-06-14)
+
+Recibido. Documentado: `GET /voices` ahora devuelve `preview_url` en cada voz.
+
+### Multi-tenant por proyecto (pedido 2026-06-14)
+
+Respuestas a los 4 puntos:
+
+**(1) Schema `projects.data` — CONFIRMADO con ajuste de nomenclatura:**
+```json
+{
+  "tipo": "Municipal (SaaS)",
+  "reels": [{
+    "id": "tour",
+    "nombre": "Tour general",
+    "frases": 5,
+    "slidesRef": null,
+    "voiceConfig": {
+      "voice_id": "",
+      "stability": 0.7,
+      "similarity": 0.75,
+      "style": 0,
+      "speed": 1,
+      "model": "eleven_multilingual_v2",
+      "markers": [],
+      "text_ref": null
+    },
+    "audioRef": null,
+    "videoRefs": []
+  }],
+  "assets": [{
+    "tipo": "audio",
+    "name": "tour_voz_lucia.mp3",
+    "cloudinaryUrl": "https://...",
+    "createdAt": 1718399999000
+  }]
+}
+```
+El campo `data` en la tabla `projects` ya es un JSON blob — no cambio schema de DB.
+
+**(2) Assets por proyecto — IMPLEMENTADO:**
+- Convención Cloudinary: `media-studio/<projectId>/<filename>` (carpeta dinámica por proyecto).
+- Nuevos endpoints ya en `server/index.mjs`:
+  - `GET  /api/projects/{id}/assets` → devuelve `data.assets[]`
+  - `POST /api/projects/{id}/assets` → sube a Cloudinary en `media-studio/<id>/`, persiste en `data.assets` del proyecto
+- También agregué `POST /api/projects/{id}` para que puedas actualizar name + data de un proyecto ya existente.
+
+**(3) Settings por reel — CONFIRMADO: dentro del proyecto.**
+Guardá en `data.reels[].voiceConfig`. No necesitás tabla ni endpoint aparte.
+`POST /api/projects/{id}` con el `data` actualizado es suficiente.
+
+**(4) Merge de universos — SIN BLOCKER AHORA.**
+El texto de los reels de Munify ya vive en `src/data/narrationText.ts` que ya importás en `lib/projects.ts`. Para los componentes visuales (`ReelStage`, `ReelMockups`, `reelBrand.ts`): el tab Reel sigue siendo un StageTab placeholder, así que no hay blocker. Cuando llegue el momento de renderizar slides en media-studio, copiamos esos `.tsx` a `src/munify-reels/`. No hay que decidir esto ahora.
+
+---
+
+## Próximos cambios de infra (priorizados, sin romper la app viva)
+
+### SAFE — no requieren redeploy
+
+- [ ] **Activar Gemini** (1 comando, no toca código ni config de front):
+  ```powershell
+  gcloud run services update media-studio-api `
+    --update-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest `
     --region=southamerica-east1 --project=munify-api
   ```
-- [ ] **Persistencia real de DB** — migrar `cloud_videos` y `app_configs` a Aiven MySQL
-  para que sobrevivan restarts de Cloud Run.
-- [ ] **Webhook Netlify↔GitHub** — verificar que el auto-deploy esté activo en
-  https://app.netlify.com/projects/media-studio-arenazl
-- [ ] **Contrato Salesbot** — crear `d:\Code\salesbot\mediastudio\SPEC.md` con los
-  endpoints que Salesbot tiene que implementar para conectarse a Media Studio.
-- [ ] **completar `server/env.yaml`** — poner los valores reales de CLOUDINARY_CLOUD_NAME y
-  CLOUDINARY_API_KEY (sacarlos de `.env.master` de APP_GUIDE).
+  Verificar después: `curl .../api/health` → `gemini: true`.
+
+### ADITIVOS — redeploy backend necesario, pero no rompen nada existente
+
+- [ ] **Endpoint `POST /api/cloud-videos/seed`** — recibe array de videos (formato del manifest) y hace bulk-insert en DB. Útil para repoblar después de un restart de Cloud Run sin re-uploadear desde Cloudinary.
+  ```json
+  // body: { "videos": [{ "public_id", "name", "url", "thumbnail", "duration_sec", "size_bytes" }] }
+  // response: { "inserted": N, "skipped": N }
+  ```
+- [ ] **Fix videosDir en health** — `D:/Code/...` es el default Windows hardcodeado. En prod debería mostrar `n/a (IS_PROD=true)`. Cambio cosmético en `server/index.mjs`.
+
+### PENDIENTE MAYOR — no arrancar sin planificación previa
+
+- [ ] **Migrar `cloud_videos` y `app_configs` a Aiven MySQL** — la DB SQLite de Cloud Run se borra en cada restart. Alta prioridad para `app_configs` (voice settings que el user configura). Coordinación con Munify: reusar la conexión Aiven existente o crear una tabla nueva en el mismo host. Hablar con el owner antes de ejecutar.
+- [ ] **Script de sync manifest** — leer la DB (o Cloudinary API directamente) y actualizar `public/cloud-videos.json`. Correr cuando haya uploads acumulados y commitear para mantener el fallback estático actualizado.
+
+### BAJA PRIORIDAD
+
+- [ ] **Completar `server/env.yaml`** — poner valores reales de `CLOUDINARY_CLOUD_NAME` y `CLOUDINARY_API_KEY` (en `d:\Code\APP_GUIDE\.env.master`). Hoy funcionan porque están en Secret Manager pero la referencia en env.yaml está como placeholder.
+- [ ] **Verificar webhook Netlify↔GitHub** — confirmar auto-deploy activo en https://app.netlify.com/projects/media-studio-arenazl
+- [ ] **Contrato Salesbot** — crear `d:\Code\salesbot\mediastudio\SPEC.md` con los endpoints que Salesbot implementa para conectarse a Media Studio (GET context, GET/POST voice-config).
+
+---
+
+## TTS Service — schema externo (referencia)
+
+URL: `https://tts-service-1060106389361.southamerica-east1.run.app`
+
+```
+GET  /voices          → [{ voice_id, name, gender, age, accent, use_case, preview_url }]
+POST /tts             → { text, voice_id, stability, similarity_boost, style, speed, model_id } → MP3 binario
+```
+
+`preview_url` agregado por el agente APP en 2026-06-14 — sample mp3 para previsualizar voz sin generar TTS completo.
 
 ---
 
@@ -165,3 +263,5 @@ gcloud run deploy media-studio-api `
 | 2026-06-14 | Backend: endpoints cloud-videos, app-configs, Cloudinary upload, Gemini routing | `server/index.mjs` |
 | 2026-06-14 | DB: tablas cloud_videos y app_configs | `server/db.mjs` |
 | 2026-06-14 | Frontend: API_BASE dinámico por env var | `src/config.ts` |
+| 2026-06-14 | Respondí pedido APP: source-of-truth de videos → manifest durable + DB vivo, merge en cliente | `INFRA_AGENT.md` |
+| 2026-06-14 | Respondí pedido APP multi-tenant: confirmé schema projects.data, implementé POST /api/projects/{id} y GET/POST /api/projects/{id}/assets (Cloudinary por proyecto), clarificé merge de universos y settings por reel | `server/index.mjs`, `INFRA_AGENT.md` |

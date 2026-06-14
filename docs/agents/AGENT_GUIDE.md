@@ -38,9 +38,12 @@ El otro agente lee esa sección antes de arrancar y responde ahí.
 
 ### Qué falta
 
-- Settings UI para configurar apps conectadas (panel de config de voz por app)
-- Gemini no activo en prod todavía (pendiente de infra)
-- Tabs Reel / Montaje / Export son placeholders
+- **Settings UI** para configurar apps conectadas (panel de config de voz por app) — backend `/api/apps/*` listo
+- **Gemini** no activo en prod (pendiente de infra — `gcloud run services update ... --update-secrets`)
+- Tabs **Reel / Montaje / Export** son StageTab placeholders
+- **DB ephemeral** en Cloud Run — migrar a Aiven para persistir `app_configs` y `cloud_videos`
+- **Botón "Grabar"** en VoiceStudio (settings por reel → `data.reels[].voiceConfig`)
+- **Settings de apps** (Settings UI para `/api/apps/*`)
 
 ---
 
@@ -64,7 +67,24 @@ Frontend:  React 18 + Vite + TypeScript — src/
 Backend:   Node.js 22, HTTP nativo, SQLite — server/
 Estilos:   CSS co-localizado + tokens en src/styles/tokens.css
 Deploy:    Netlify (front) + Cloud Run munify-api (back)
-TTS:       ElevenLabs vía tts-service (Cloud Run externo)
-Videos:    Cloudinary (prod) / carpeta local (dev)
-AI:        Claude CLI headless (dev) / Gemini 2.0 Flash (prod)
+TTS:       ElevenLabs vía tts-service (Cloud Run externo, GET /voices devuelve preview_url)
+Videos:    Cloudinary (prod) / carpeta local (dev) — manifest public/cloud-videos.json como fallback estático
+AI:        Claude CLI headless (dev) / Gemini 2.0 Flash (prod — pendiente activar secret)
 ```
+
+---
+
+## Log de decisiones
+
+| Fecha | Decisión | Motivo |
+|-------|----------|--------|
+| 2026-06-14 | Backend en Cloud Run (Node 22, no FastAPI) | Node nativo para SQLite y Claude headless sin overhead Python |
+| 2026-06-14 | Frontend en Netlify, backend en Cloud Run separados | Front estático; back necesita procesos largos |
+| 2026-06-14 | App configs en SQLite por ahora | Simple para arrancar; migrar a Aiven cuando la efimeriedad sea un problema |
+| 2026-06-14 | Media Studio NO hace de proxy TTS | Sin latencia extra; las apps fetchean config una vez y llaman a ElevenLabs directo |
+| 2026-06-14 | AI routing por IS_PROD env var | Mismo código, distinto comportamiento por entorno — sin feature flags |
+| 2026-06-14 | Source-of-truth videos: manifest durable + DB viva, merge por URL en cliente | DB Cloud Run efímera; manifest en Netlify siempre disponible. Sync periódico vía commit |
+| 2026-06-14 | Shell multi-tenant: sidebar colapsable + ABM de proyectos como pantalla inicial | Norte nuevo — la app se organiza por proyecto, no por tabs sueltos |
+| 2026-06-14 | Store de proyectos en localStorage (frontend-first) | Funciona sin backend; migrar a /api/projects cuando se necesite persistencia en cloud |
+| 2026-06-14 | Assets por proyecto en Cloudinary carpeta media-studio/{id}/ | Cada proyecto tiene su namespace propio en Cloudinary |
+| 2026-06-14 | VoiceConfig por reel dentro de projects.data.reels[].voiceConfig | No se necesita tabla aparte; POST /api/projects/{id} actualiza el JSON completo |
