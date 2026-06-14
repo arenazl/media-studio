@@ -1,0 +1,283 @@
+/* Estilos co-localizados del VideoPromptBuilder (generador de prompts Flow/Veo).
+   Colores/medidas vienen de styles/tokens.css. El único inline permitido es la
+   custom property --accent en los chips (color de acento dinámico). */
+
+/* ---- wrapper de secciones ---- */
+.vpb-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vpb-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vpb-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--txt-70);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+}
+
+.vpb-section-toggle--static {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ---- templates grid ---- */
+.vpb-tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.vpb-tpl-card {
+  border-radius: var(--r);
+  border: 1px solid var(--bd-2);
+  background: var(--surface);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vpb-tpl-header {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vpb-tpl-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--txt);
+  line-height: 1.3;
+}
+
+.vpb-tpl-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.vpb-tpl-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--txt-40);
+  background: var(--surface-3);
+  border-radius: var(--pill);
+  padding: 2px 7px;
+  text-transform: lowercase;
+}
+
+.vpb-tpl-preview {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--txt-40);
+  margin: 0;
+  flex: 1;
+}
+
+.vpb-tpl-copy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1.5px solid var(--gold);
+  color: var(--gold);
+  background: none;
+  border-radius: var(--r);
+  padding: 6px 10px;
+  align-self: flex-start;
+  transition: background 0.15s;
+}
+
+.vpb-tpl-copy--done {
+  background: color-mix(in srgb, var(--gold) 15%, transparent);
+}
+
+/* ---- layout raíz: form a la izquierda, panel de salida sticky a la derecha ---- */
+.vpb-root {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  gap: 28px;
+  align-items: start;
+  font-family: var(--font-sans);
+  color: var(--txt);
+}
+
+/* ---- FORM ---- */
+.vpb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vpb-presets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vpb-presets-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+
+.vpb-preset-btn {
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--txt);
+  background: var(--surface-2);
+  border: 1px solid var(--bd-3);
+  border-radius: var(--pill);
+  padding: 5px 11px;
+}
+
+.vpb-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--azure);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.vpb-textarea {
+  width: 100%;
+  resize: vertical;
+  border-radius: var(--r);
+  padding: 11px 13px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: var(--font-sans);
+  color: var(--txt);
+  background: var(--surface);
+  border: 1px solid var(--bd-2);
+  outline: none;
+}
+
+.vpb-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.vpb-chip {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--txt);
+  border-radius: var(--pill);
+  padding: 6px 13px;
+  background: var(--surface-3);
+  border: 1.5px solid var(--bd-2);
+}
+
+.vpb-chip--on {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: var(--accent);
+}
+
+.vpb-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 13.5px;
+}
+
+.vpb-checkbox {
+  accent-color: var(--gold);
+  width: 16px;
+  height: 16px;
+}
+
+/* ---- OUTPUT (panel sticky con el prompt) ---- */
+.vpb-output {
+  position: sticky;
+  top: 18px;
+  border-radius: var(--r-xl);
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+}
+
+.vpb-output-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.vpb-output-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+
+.vpb-output-body {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--txt-70);
+  background: var(--field);
+  border-radius: var(--r);
+  padding: 14px;
+  min-height: 220px;
+  white-space: pre-wrap;
+}
+
+.vpb-copy-btn {
+  margin-top: 12px;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 13px;
+  border-radius: var(--r);
+  border: none;
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.vpb-copy-btn--copied {
+  background: var(--azure);
+}
+
+.vpb-hint {
+  font-size: 11px;
+  color: var(--txt-40);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+/* ---- responsive: apilar y desactivar sticky en mobile ---- */
+@media (max-width: 860px) {
+  .vpb-root {
+    grid-template-columns: 1fr;
+  }
+  .vpb-output {
+    position: static;
+  }
+}

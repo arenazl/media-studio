@@ -1,0 +1,30 @@
+/* Shell del media-studio: header + tabs + contenido. Responsive: desktop llena
+   el viewport (sin scroll de página); mobile apila y deja scrollear. */
+.ms-embed { height: 100vh; padding: 16px; }
+.ms-embed-inner { max-width: 1180px; height: 100%; margin: 0 auto; }
+
+.ms-app { height: 100dvh; display: flex; flex-direction: column; padding: 14px 16px; }
+
+.ms-header { flex: 0 0 auto; display: flex; align-items: center; gap: 14px; width: 100%; margin: 0 0 14px; flex-wrap: wrap; }
+.ms-brand-mark { flex: 0 0 auto; color: var(--gold); }
+.ms-brand { min-width: 180px; }
+.ms-brand-title { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: 25px; margin: 0; letter-spacing: -0.02em; }
+.ms-brand-sub { margin: 0; font-size: 12.5px; color: var(--txt-50); }
+
+.ms-tabs { display: flex; gap: 5px; background: var(--surface); border-radius: var(--r); padding: 5px; margin-left: auto; max-width: 100%; overflow-x: auto; }
+.ms-tab { cursor: pointer; display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--txt); background: transparent; border: none; border-radius: 9px; padding: 8px 13px; white-space: nowrap; }
+.ms-tab--on { background: var(--accent); color: var(--ink); }
+.ms-tab-idx { font-size: 10.5px; font-weight: 800; opacity: 0.4; }
+.ms-tab--on .ms-tab-idx { opacity: 0.6; }
+
+.ms-content { flex: 1; min-height: 0; width: 100%; overflow-y: auto; }
+
+@media (max-width: 860px) {
+  .ms-app { height: auto; min-height: 100dvh; padding: 12px 12px 28px; }
+  .ms-header { margin-bottom: 12px; gap: 10px; }
+  .ms-brand-title { font-size: 21px; }
+  .ms-tabs { width: 100%; margin-left: 0; }
+  .ms-content { overflow: visible; }
+  .ms-embed { height: auto; min-height: 100vh; padding: 10px; }
+  .ms-embed-inner { height: auto; }
+}

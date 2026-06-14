@@ -1,0 +1,132 @@
+/* Estilos co-localizados de StageTab. Colores/fuentes/radios desde tokens.css.
+   El color de acento por etapa entra como custom property --accent en la raíz
+   (style={{ ['--accent']: color }}) y se consume con var(--accent). */
+
+.stage-root {
+  font-family: var(--font-sans);
+  color: var(--txt);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 860px;
+}
+
+.stage-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.stage-description {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--txt-55);
+  line-height: 1.5;
+}
+
+.stage-panel {
+  border-radius: var(--r-lg);
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--bd);
+}
+
+.stage-panel-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--txt-55);
+}
+
+.stage-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 150px;
+  resize: vertical;
+  border-radius: var(--r);
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: var(--font-sans);
+  color: var(--txt);
+  background: var(--field);
+  border: 1px solid var(--bd-2);
+  outline: none;
+}
+
+.stage-hint {
+  font-size: 11px;
+  color: var(--txt-40);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.stage-run-btn {
+  margin-top: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 11px;
+  border: none;
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.stage-run-btn:disabled {
+  cursor: default;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--txt);
+}
+
+.stage-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.stage-result {
+  border-radius: var(--r-lg);
+  padding: 16px;
+  background: var(--field);
+  /* borde tenue del color de acento (sufijo 40 ~= 25% alpha en hex) */
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.stage-result-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.stage-result-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-sans);
+}
+
+@media (max-width: 860px) {
+  .stage-panel {
+    padding: 12px;
+  }
+  .stage-result {
+    padding: 12px;
+  }
+  .stage-textarea {
+    padding: 12px;
+  }
+}

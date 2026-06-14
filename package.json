@@ -6,6 +6,8 @@
   "description": "Estudio de voz y video — UI standalone del media-service (TTS + video). Reusable entre apps.",
   "scripts": {
     "dev": "vite",
+    "server": "node --experimental-sqlite server/index.mjs",
+    "studio": "concurrently -k -n FRONT,BACK -c cyan,magenta \"vite\" \"node --experimental-sqlite server/index.mjs\"",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -18,6 +20,7 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^10.0.3",
     "typescript": "^5.6.3",
     "vite": "^6.0.7"
   }

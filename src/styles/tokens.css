@@ -1,0 +1,70 @@
+/* Design tokens del media-studio — fuente única de estilo. NUNCA hex/medidas
+   inline en componentes: usar var(--token) o pasar valores dinámicos como
+   custom properties (ej. style={{ ['--accent']: color }}) y consumir con var(). */
+:root {
+  /* marca */
+  --ink: #0E1830;
+  --ink-2: #1A2647;
+  --navy: #103070;
+  --azure: #4070C0;
+  --gold: #C8A24E;
+  --gold-soft: #EAD08A;
+  --cream: #F1EAD8;
+
+  /* acentos por etapa / estado */
+  --amber: #F5A623;
+  --cyan: #22D3EE;
+  --violet: #8B5CF6;
+  --pink: #EC4899;
+  --green: #34d399;
+  --danger: #ef4444;
+
+  /* texto */
+  --txt: #ffffff;
+  --txt-70: rgba(255, 255, 255, 0.7);
+  --txt-55: rgba(255, 255, 255, 0.55);
+  --txt-50: rgba(255, 255, 255, 0.5);
+  --txt-40: rgba(255, 255, 255, 0.4);
+
+  /* superficies y bordes */
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --surface-3: rgba(255, 255, 255, 0.05);
+  --field: rgba(0, 0, 0, 0.22);
+  --bd: rgba(255, 255, 255, 0.1);
+  --bd-2: rgba(255, 255, 255, 0.12);
+  --bd-3: rgba(255, 255, 255, 0.14);
+
+  /* radios */
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 14px;
+  --r-xl: 16px;
+  --pill: 999px;
+
+  /* tipografía */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* espaciado / layout — FLUIDO (no fijo a una resolución) */
+  --gap: clamp(8px, 0.9vw, 14px);
+  --panel-min: 230px;                          /* base de panel: reflowa (wrap) por debajo */
+  --panel-max-h: clamp(240px, 38vh, 400px);    /* alto de la fila de paneles, escala con el viewport */
+  --bp-mobile: 860px;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--txt);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* scrollbars discretos (la lista de voces y el contenido mobile) */
+* { scrollbar-width: thin; scrollbar-color: var(--bd-3) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--bd-3); border-radius: var(--pill); }
+*::-webkit-scrollbar-track { background: transparent; }

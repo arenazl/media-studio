@@ -1,0 +1,84 @@
+/* Estilos co-localizados de CadenceWave. Colores/medidas vienen de tokens.css.
+   Los valores dinámicos (posición de markers/playhead, color por-marker y
+   color del playhead real/sintético) entran como custom properties:
+   --x (left), --c (color del marker), --ph (color del playhead). */
+
+.cw-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  touch-action: none;
+}
+.cw-root--scrub { cursor: ew-resize; }
+.cw-root--static { cursor: default; }
+
+.cw-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cw-marker {
+  position: absolute;
+  left: var(--x);
+  top: 2px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.cw-marker-label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--c);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid color-mix(in srgb, var(--c) 33%, transparent);
+  border-radius: 5px;
+  padding: 2px 5px;
+  white-space: nowrap;
+}
+
+/* marcador borrable (tono/pausa): clickeable para eliminarlo */
+.cw-marker-label--rm {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.cw-marker-label--rm:hover {
+  background: color-mix(in srgb, var(--c) 22%, rgba(0, 0, 0, 0.45));
+}
+
+.cw-marker-stem {
+  width: 1px;
+  height: 10px;
+  background: color-mix(in srgb, var(--c) 40%, transparent);
+}
+
+.cw-playhead {
+  position: absolute;
+  left: var(--x);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ph);
+  pointer-events: none;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+.cw-playhead-cap {
+  position: absolute;
+  top: -1px;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--ph);
+}

@@ -1,0 +1,613 @@
+/* VoiceStudio — estilos co-locados. Tokens en styles/tokens.css.
+   Reglas duras: NUNCA hex/medidas inline aquí ni en el componente. Los únicos
+   inline permitidos en el TSX son custom properties dinámicas en runtime
+   (--accent, --grow, --texto-w), que se consumen acá con var(). */
+
+/* ===== layout raíz ===== */
+.vs-root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  height: 100%;
+  min-height: 0;
+  font-family: var(--font-sans);
+  color: var(--txt);
+}
+
+/* ===== FILA 1: paneles de control — fluida: wrap + base mínima, reflowa sola ===== */
+.vs-row1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--gap);
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.vs-panel {
+  flex: var(--grow, 1) 1 var(--panel-min);
+  min-width: 0;
+  max-height: var(--panel-max-h);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-lg);
+  padding: 13px;
+  background: var(--surface);
+  border: 1px solid var(--bd);
+}
+
+/* tira colapsada (panel cerrado) */
+.vs-strip {
+  flex: 0 0 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+  padding: 12px 0;
+  cursor: pointer;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--bd);
+  color: var(--txt);
+}
+.vs-strip-chevron {
+  color: var(--accent);
+}
+.vs-strip-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* cabecera de panel */
+.vs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.vs-head-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.vs-collapse-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--bd-3);
+  background: var(--surface-3);
+  color: var(--txt-70);
+}
+
+/* ===== panel GUIONES (lista de fuentes) ===== */
+.vs-files {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.vs-file {
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--txt);
+  border-radius: var(--r-sm);
+  padding: 7px 10px;
+  background: var(--surface-3);
+  border: 1.5px solid var(--bd);
+}
+.vs-file--on {
+  background: color-mix(in srgb, var(--gold) 13%, transparent);
+  border-color: var(--gold);
+}
+.vs-file-sub {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--txt-40);
+}
+
+/* ===== panel VOCES ===== */
+.vs-search {
+  position: relative;
+  margin-bottom: 8px;
+}
+.vs-search-icon {
+  position: absolute;
+  left: 9px;
+  top: 7px;
+}
+.vs-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 10px 5px 27px;
+  font-size: 11.5px;
+  border-radius: var(--r-sm);
+  color: var(--txt);
+  background: var(--field);
+  border: 1px solid var(--bd-2);
+  outline: none;
+}
+.vs-voices {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+.vs-voices-group {
+  margin-bottom: 7px;
+}
+.vs-voices-gender {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+.vs-voices-age {
+  margin-bottom: 4px;
+}
+.vs-voices-age-label {
+  font-size: 8px;
+  color: var(--txt-40);
+  margin-bottom: 2px;
+}
+.vs-voices-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.vs-voice {
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--txt);
+  border-radius: var(--pill);
+  padding: 3px 8px;
+  background: var(--surface-3);
+  border: 1.5px solid var(--bd-2);
+}
+.vs-voice--on {
+  background: color-mix(in srgb, var(--accent) 19%, transparent);
+  border-color: var(--accent);
+}
+.vs-empty {
+  font-size: 11px;
+  color: var(--txt-40);
+}
+
+/* ===== panel MÚSICA ===== */
+.vs-tracks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.vs-track {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--txt);
+  border-radius: var(--pill);
+  padding: 4px 9px;
+  background: var(--surface-3);
+  border: 1.5px solid var(--bd-2);
+}
+.vs-track--on {
+  background: color-mix(in srgb, var(--accent) 19%, transparent);
+  border-color: var(--accent);
+}
+.vs-music-vol {
+  margin-top: auto;
+}
+.vs-music-vol-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.vs-music-vol-label {
+  font-size: 11px;
+  font-weight: 700;
+}
+.vs-music-vol-val {
+  font-size: 10.5px;
+  color: var(--cyan);
+  font-weight: 700;
+}
+.vs-range-cyan {
+  accent-color: var(--cyan);
+  width: 100%;
+}
+.vs-music-vol-hint {
+  font-size: 9px;
+  color: var(--txt-40);
+  margin-top: 2px;
+}
+
+/* ===== panel SOUND SETTINGS ===== */
+.vs-sound {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 0;
+  flex: 1;
+}
+.vs-sound-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  flex: 1;
+}
+/* presets de voz */
+.vs-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.vs-preset {
+  cursor: pointer;
+  flex: 1 1 auto;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--gold);
+  border-radius: var(--pill);
+  padding: 5px 9px;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.vs-preset:hover {
+  background: color-mix(in srgb, var(--gold) 22%, transparent);
+}
+
+.vs-models {
+  display: flex;
+  gap: 5px;
+}
+.vs-model {
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--txt);
+  border-radius: var(--r-sm);
+  padding: 5px 7px;
+  flex: 1;
+  background: var(--surface-3);
+  border: 1.5px solid var(--bd-2);
+}
+.vs-model--on {
+  background: color-mix(in srgb, var(--gold) 13%, transparent);
+  border-color: var(--gold);
+}
+
+/* slider genérico */
+.vs-slider-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.vs-slider-label {
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.vs-slider-val {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.vs-range-gold {
+  accent-color: var(--gold);
+  width: 100%;
+}
+.vs-slider-hint {
+  font-size: 9px;
+  color: var(--txt-40);
+}
+
+.vs-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.vs-check-box {
+  accent-color: var(--gold);
+  width: 14px;
+  height: 14px;
+}
+
+.vs-generate {
+  flex: 0 0 auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px;
+  border-radius: var(--r);
+  border: none;
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 14px;
+}
+.vs-generate:disabled {
+  cursor: default;
+  background: var(--bd-3);
+  color: var(--txt);
+}
+.vs-error {
+  font-size: 10.5px;
+  color: var(--danger);
+}
+
+/* ===== FILA 2: texto + waveform ===== */
+.vs-row2 {
+  display: flex;
+  flex: 1 1 0;
+  min-height: clamp(240px, 34vh, 460px);
+}
+
+/* la card base se reutiliza para TEXTO y WAVEFORM */
+.vs-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: var(--r-lg);
+  padding: 13px;
+  background: var(--surface);
+  border: 1px solid var(--bd);
+}
+
+.vs-texto {
+  flex: 0 0 clamp(220px, var(--texto-w), 42%);
+  min-width: 0;
+}
+.vs-section-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--txt);
+  margin-bottom: 9px;
+}
+.vs-section-title--gold {
+  color: var(--gold);
+}
+.vs-textarea {
+  flex: 1;
+  min-height: 100px;
+  resize: none;
+  border-radius: var(--r);
+  padding: 13px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  font-family: var(--font-sans);
+  color: var(--txt);
+  background: var(--field);
+  border: 1px solid var(--bd-2);
+  outline: none;
+}
+.vs-texto-hint {
+  font-size: 9.5px;
+  color: var(--txt-40);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* divisor arrastrable */
+.vs-divider {
+  flex: 0 0 12px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vs-divider-grip {
+  width: 4px;
+  height: 46px;
+  border-radius: var(--pill);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* WAVEFORM */
+.vs-wave {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.vs-marks {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.vs-mk {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--txt);
+  background: var(--surface-2);
+  border: 1px solid var(--bd-3);
+  border-radius: 7px;
+  padding: 5px 9px;
+}
+/* marcador con acento dinámico (color de texto + borde) */
+.vs-mk--accent {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+/* ÉNFASIS: relleno gold */
+.vs-mk--emphasis {
+  color: var(--ink);
+  background: var(--gold);
+  border: none;
+  font-weight: 800;
+}
+.vs-mk--reset {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vs-wave-area {
+  flex: 1;
+  min-height: 130px;
+  border-radius: var(--r);
+  padding: 10px 8px;
+  background: var(--field);
+  border: 1px solid var(--bd);
+  overflow: hidden;
+}
+
+/* transporte: rebobinar · play/pausa + estado + export */
+.vs-transport {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  min-height: 44px;
+}
+.vs-rewind {
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r);
+  border: 1px solid var(--bd-3);
+  background: var(--surface-2);
+  color: var(--txt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vs-rewind:disabled {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.3);
+}
+.vs-play {
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r);
+  border: none;
+  background: var(--gold);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vs-play:disabled {
+  cursor: default;
+  background: var(--bd);
+  color: rgba(255, 255, 255, 0.3);
+}
+.vs-stop {
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r);
+  border: 1px solid var(--bd-3);
+  background: var(--surface-2);
+  color: var(--txt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vs-stop:disabled {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.3);
+}
+.vs-status {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--txt-50);
+}
+.vs-status--idle {
+  color: var(--txt-40);
+}
+.vs-status--real {
+  color: var(--green);
+}
+.vs-export {
+  margin-left: auto;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 16px;
+  border-radius: var(--r);
+  background: var(--azure);
+  color: var(--txt);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 860px) {
+  .vs-root {
+    height: auto;
+  }
+  /* en mobile la página scrollea: el panel muestra todo su contenido (sin scroll anidado) */
+  .vs-panel {
+    max-height: none;
+  }
+  .vs-voices {
+    max-height: 240px;
+  }
+
+  /* tira colapsada → barra horizontal full-width */
+  .vs-strip {
+    flex: 1 1 100%;
+    width: 100%;
+    flex-direction: row;
+    height: auto;
+    gap: 8px;
+    padding: 10px 12px;
+    justify-content: flex-start;
+  }
+  .vs-strip-label {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+
+  .vs-row2 {
+    flex-direction: column;
+    flex: 0 0 auto;
+  }
+  .vs-texto {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 160px;
+  }
+  .vs-divider {
+    display: none;
+  }
+  .vs-wave {
+    width: 100%;
+    min-height: 320px;
+  }
+}
