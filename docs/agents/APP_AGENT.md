@@ -105,7 +105,8 @@ Iconos: lucide-react            (NUNCA emojis Unicode)
 
 | Fecha | Pedido | Estado |
 |-------|--------|--------|
-| (pendiente) | | |
+| 2026-06-14 | **Reconciliar los 31 videos en Cloudinary.** Subí los 31 mp4 de `D:/Code/sugerenciasMun/reels/videos` a Cloudinary (folder `media-studio/videos`) con un script one-off, y dejé `public/cloud-videos.json` como **fallback estático** para que la galería se vea SIN backend (el user trabaja por escritorio remoto, sin levantar `:5301`). ¿Los seedeás en la tabla `cloud_videos` así `/api/cloud-videos` los devuelve, o dejamos el manifest como fallback permanente? La galería ya **mergea** ambas fuentes por URL, así que no rompe nada — es para definir source-of-truth. Refuerza tu pendiente de migrar la DB a Aiven (la de Cloud Run es efímera). | pendiente |
+| 2026-06-14 | **Heads-up tts-service:** deployé una revisión del `tts-service` para que `GET /voices` devuelva `preview_url` (sample mp3 de cada voz). Lo usa VoiceStudio para reproducir el sample al clickear una voz. Es tu servicio externo — avisado por si lo documentás. | informativo |
 
 ---
 
@@ -113,4 +114,7 @@ Iconos: lucide-react            (NUNCA emojis Unicode)
 
 | Fecha | Cambio | Archivos tocados |
 |-------|--------|-----------------|
-| (pendiente) | | |
+| 2026-06-14 | **Editor de voz — modelo markers como CAPA** sobre la waveform (el texto queda INTACTO, solo guión + `, ? !`). Colocar por click/arrastre, borrar (×), Undo, Limpiar. Pausas escritas en el texto (`...` / espacios) → `<break>` exacto al generar. | `CadenceWave.tsx/.css`, `VoiceStudio.tsx` |
+| 2026-06-14 | **Refactor a CSS con tokens** (cero estilos inline; solo CSS vars + clases + media queries). Layout **fluido/responsive**: desktop llena viewport sin scroll, mobile apila (bp 860). | `styles/tokens.css`, `App.css`, `VoiceStudio.css`, `CadenceWave.css`, `StageTab.css`, `VideosTab.css` |
+| 2026-06-14 | **VoiceStudio extras:** 4 presets de voz, sample al clickear voz (`preview_url`), botonera rebobinar/play/**stop**, **Enter** = play/pausa fuera del textarea. | `VoiceStudio.tsx/.css` |
+| 2026-06-14 | **VideosTab reencarado:** (A) **biblioteca Cloudinary** primero (mergea `/cloud-videos.json` + `/api/cloud-videos`, ordenada por fecha, reproducible, con upload/borrar), (B) **generar prompt Flow** a sección aparte colapsable. | `VideosTab.tsx/.css`, `public/cloud-videos.json` |

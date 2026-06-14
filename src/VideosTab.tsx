@@ -1,55 +1,64 @@
-// Solapa VIDEOS — lista local (dev) + galería Cloudinary (prod + dev) + upload.
+// Solapa VIDEOS — DOS partes separadas:
+//  (A) BIBLIOTECA: videos en Cloudinary (subidos desde la carpeta local),
+//      ordenados por fecha. El user los ve acá y (próximo paso) los inserta en
+//      el editor/montaje donde quiera. Fuente: manifest /cloud-videos.json +
+//      backend /api/cloud-videos (mergeados) → se ven con o sin backend local.
+//  (B) GENERAR PROMPT para Flow — sección aparte, colapsable.
 import { useEffect, useRef, useState } from 'react';
-import { RefreshCw, FolderOpen, Film, Upload, Trash2, Cloud } from 'lucide-react';
+import { RefreshCw, FolderOpen, Film, Upload, Trash2, Cloud, Wand2, ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import VideoPromptBuilder from './VideoPromptBuilder';
 import { API_BASE } from './config';
 import './VideosTab.css';
 
-interface LocalVid  { name: string; size: number; url: string }
-interface CloudVid  { id: string; name: string; url: string; thumbnail: string | null; duration_sec: number | null; size_bytes: number | null }
+interface LocalVid { name: string; size: number; url: string }
+interface CloudVid { id: string; name: string; url: string; thumbnail: string | null; duration_sec: number | null; size_bytes: number | null; created_at?: number }
 
 const api = (path: string) => `${API_BASE}${path}`;
+const normalize = (v: Record<string, unknown>): CloudVid => ({
+  id: String(v.id ?? v.public_id ?? v.name ?? ''),
+  name: String(v.name ?? ''),
+  url: String(v.url ?? ''),
+  thumbnail: v.thumbnail ? String(v.thumbnail) : null,
+  duration_sec: typeof v.duration_sec === 'number' ? v.duration_sec : null,
+  size_bytes: typeof v.size_bytes === 'number' ? v.size_bytes : (typeof v.bytes === 'number' ? v.bytes : null),
+  created_at: typeof v.created_at === 'number' ? v.created_at : undefined,
+});
+const pretty = (n: string) => n.replace(/_\d{8,}.*$/, '').replace(/\.(mp4|mov|webm|m4v)$/i, '').replace(/_/g, ' ').trim() || n;
+const fmtDate = (ms?: number) => (ms ? new Date(ms).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '');
 
 export default function VideosTab() {
-  // locales (dev)
-  const [localVids, setLocalVids] = useState<LocalVid[]>([]);
-  const [localDir,  setLocalDir]  = useState('');
-  const [localErr,  setLocalErr]  = useState<string | null>(null);
-
-  // cloudinary
-  const [cloudVids,    setCloudVids]    = useState<CloudVid[]>([]);
+  const [cloudVids, setCloudVids] = useState<CloudVid[]>([]);
   const [cloudLoading, setCloudLoading] = useState(false);
-  const [cloudErr,     setCloudErr]     = useState<string | null>(null);
-  const [uploading,    setUploading]    = useState(false);
-
+  const [cloudErr, setCloudErr] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [localVids, setLocalVids] = useState<LocalVid[]>([]);
+  const [localDir, setLocalDir] = useState('');
+  const [showPrompt, setShowPrompt] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const loadCloud = async () => {
+    setCloudLoading(true); setCloudErr(null);
+    try {
+      const byUrl = new Map<string, CloudVid>();
+      // manifest estático (los ya subidos; se ve sin backend)
+      try { const r = await fetch('/cloud-videos.json', { cache: 'no-store' }); if (r.ok) { const d = await r.json(); (d.videos || []).map(normalize).forEach((v: CloudVid) => v.url && byUrl.set(v.url, v)); } } catch { /* noop */ }
+      // backend dinámico (uploads nuevos)
+      try { const r = await fetch(api('/api/cloud-videos')); if (r.ok) { const d = await r.json(); (d.videos || []).map(normalize).forEach((v: CloudVid) => v.url && byUrl.set(v.url, v)); } } catch { /* sin backend */ }
+      const list = Array.from(byUrl.values()).sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+      setCloudVids(list);
+      if (!list.length) setCloudErr('No hay videos en la biblioteca todavía.');
+    } catch { setCloudErr('No se pudo cargar la biblioteca.'); } finally { setCloudLoading(false); }
+  };
 
   const loadLocal = async () => {
     try {
       const r = await fetch(api('/api/videos'));
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
-      setLocalVids(d.videos || []);
-      setLocalDir(d.dir || '');
-      setLocalErr(null);
-    } catch (e) {
-      setLocalErr(e instanceof Error ? e.message : 'error — ¿backend local corriendo?');
-    }
+      if (r.ok) { setLocalVids(d.videos || []); setLocalDir(d.dir || ''); }
+    } catch { /* sin backend local */ }
   };
 
-  const loadCloud = async () => {
-    setCloudLoading(true); setCloudErr(null);
-    try {
-      const r = await fetch(api('/api/cloud-videos'));
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
-      setCloudVids(d.videos || []);
-    } catch (e) {
-      setCloudErr(e instanceof Error ? e.message : 'error cargando videos cloud');
-    } finally { setCloudLoading(false); }
-  };
-
-  useEffect(() => { loadLocal(); loadCloud(); }, []);
+  useEffect(() => { loadCloud(); loadLocal(); }, []);
 
   const handleUpload = async (file: File) => {
     setUploading(true); setCloudErr(null);
@@ -60,95 +69,69 @@ export default function VideosTab() {
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
       await loadCloud();
-    } catch (e) {
-      setCloudErr(e instanceof Error ? e.message : 'error al subir');
-    } finally { setUploading(false); }
+    } catch (e) { setCloudErr(e instanceof Error ? e.message : 'error al subir (¿backend local corriendo?)'); } finally { setUploading(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar este video de Cloudinary?')) return;
-    try {
-      await fetch(api(`/api/cloud-videos/${id}`), { method: 'DELETE' });
-      setCloudVids((vs) => vs.filter((v) => v.id !== id));
-    } catch { /* ignore */ }
+    try { await fetch(api(`/api/cloud-videos/${id}`), { method: 'DELETE' }); setCloudVids((vs) => vs.filter((v) => v.id !== id)); } catch { /* ignore */ }
   };
 
   return (
     <div className="vids-root">
-      <VideoPromptBuilder />
-
-      {/* ── CLOUD VIDEOS ──────────────────────────────────────────────── */}
+      {/* (A) BIBLIOTECA CLOUDINARY */}
       <div className="vids-panel">
         <div className="vids-head">
-          <span className="vids-title"><Cloud size={14} /> VIDEOS EN CLOUDINARY ({cloudVids.length})</span>
+          <span className="vids-title"><Film size={14} /> BIBLIOTECA DE VIDEOS ({cloudVids.length})</span>
           <div className="vids-head-actions">
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="vids-upload-btn"
-            >
-              <Upload size={12} /> {uploading ? 'Subiendo…' : 'Subir video'}
-            </button>
-            <button onClick={loadCloud} disabled={cloudLoading} className="vids-refresh">
-              <RefreshCw size={12} /> Actualizar
-            </button>
+            <button onClick={() => fileRef.current?.click()} disabled={uploading} className="vids-upload-btn"><Upload size={12} /> {uploading ? 'Subiendo…' : 'Subir'}</button>
+            <button onClick={loadCloud} disabled={cloudLoading} className="vids-refresh"><RefreshCw size={12} /> Actualizar</button>
           </div>
         </div>
-
-        <input
-          ref={fileRef}
-          type="file"
-          accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
-          style={{ display: 'none' }}
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }}
-        />
-
+        <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="vids-hidden-input" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }} />
+        <div className="vids-dir"><Cloud size={12} /> Cloudinary · ordenados por fecha (más nuevos primero)</div>
         {cloudErr && <div className="vids-error">{cloudErr}</div>}
-        {!cloudErr && !cloudVids.length && (
-          <div className="vids-empty">Subí un video con el botón de arriba — quedará en Cloudinary y disponible en todos los entornos.</div>
-        )}
         <div className="vids-grid">
           {cloudVids.map((v) => (
             <div key={v.id} className="vids-card">
-              {v.thumbnail
-                ? <img src={v.thumbnail} className="vids-thumb" alt={v.name} />
-                : <video src={v.url} preload="metadata" className="vids-video" />
-              }
+              <video className="vids-video" src={v.url} poster={v.thumbnail || undefined} controls preload="none" playsInline />
               <div className="vids-meta">
-                <span className="vids-name">{v.name}</span>
-                <span className="vids-size">{v.size_bytes ? (v.size_bytes / 1e6).toFixed(1) + ' MB' : ''}</span>
+                <span className="vids-name" title={v.name}>{pretty(v.name)}</span>
+                <span className="vids-size">{v.duration_sec ? `${Math.round(v.duration_sec)}s` : (v.size_bytes ? `${(v.size_bytes / 1e6).toFixed(1)}MB` : '')}</span>
               </div>
               <div className="vids-card-actions">
-                <a href={v.url} target="_blank" rel="noopener" className="vids-link">Ver</a>
-                <button onClick={() => handleDelete(v.id)} className="vids-del"><Trash2 size={12} /> Eliminar</button>
+                <span className="vids-date"><Clock size={11} /> {fmtDate(v.created_at)}</span>
+                <a href={v.url} target="_blank" rel="noreferrer" className="vids-link">abrir ↗</a>
+                <button onClick={() => handleDelete(v.id)} className="vids-del" title="Eliminar de Cloudinary"><Trash2 size={11} /></button>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── VIDEOS LOCALES (dev) ───────────────────────────────────────── */}
-      {(localVids.length > 0 || localErr) && (
+      {/* VIDEOS LOCALES (solo dev, si el backend está corriendo) */}
+      {localVids.length > 0 && (
         <div className="vids-panel">
-          <div className="vids-head">
-            <span className="vids-title"><Film size={14} /> VIDEOS LOCALES ({localVids.length})</span>
-            <button onClick={loadLocal} className="vids-refresh"><RefreshCw size={12} /> Actualizar</button>
-          </div>
-          {localDir && <div className="vids-dir"><FolderOpen size={12} /> {localDir}</div>}
-          {localErr && <div className="vids-error">error: {localErr}</div>}
+          <div className="vids-head"><span className="vids-title"><FolderOpen size={14} /> EN LA CARPETA LOCAL ({localVids.length})</span></div>
+          {localDir && <div className="vids-dir"><FolderOpen size={12} /> {localDir} — subí estos a Cloudinary con «Subir»</div>}
           <div className="vids-grid">
             {localVids.map((v) => (
               <div key={v.name} className="vids-card">
-                <video src={v.url} controls preload="metadata" className="vids-video" />
-                <div className="vids-meta">
-                  <span className="vids-name">{v.name}</span>
-                  <span className="vids-size">{(v.size / 1e6).toFixed(1)} MB</span>
-                </div>
+                <video src={api(v.url)} controls preload="none" className="vids-video" />
+                <div className="vids-meta"><span className="vids-name" title={v.name}>{pretty(v.name)}</span><span className="vids-size">{(v.size / 1e6).toFixed(1)}MB</span></div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* (B) GENERAR PROMPT PARA FLOW — sección aparte */}
+      <div className="vids-panel">
+        <button onClick={() => setShowPrompt((s) => !s)} className="vids-section-toggle">
+          {showPrompt ? <ChevronDown size={15} /> : <ChevronRight size={15} />}<Wand2 size={14} /> GENERAR PROMPT PARA FLOW
+        </button>
+        {showPrompt && <div className="vids-prompt-wrap"><VideoPromptBuilder /></div>}
+      </div>
     </div>
   );
 }
