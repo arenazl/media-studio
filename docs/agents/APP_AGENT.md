@@ -98,6 +98,38 @@ Iconos: lucide-react            (NUNCA emojis Unicode)
 
 ---
 
+## Plan: estructura multi-tenant por PROYECTO (2026-06-14)
+
+> Norte nuevo del user: la app deja de ser tabs sueltos y se organiza **por proyecto**
+> (multi-tenant). Proyecto de arranque = **Munify**. Esto manda sobre todo lo demás.
+
+### Modelo
+- **Sidebar colapsable** con los links de cada sección.
+- **1ª pantalla = ABM de Proyectos**, reusando el patrón ABMPage (Table + Sheet/SideModal + ConfirmModal).
+- **Proyecto** = `{ id, nombre, tipo, reels[], voiceConfigs[], assets[] }`. Persiste en `/api/projects` (campo `data` JSON).
+- **Crear proyecto:** opción de **adjuntar reels base**. **Munify** viene **precargado** con sus reels iniciales; otros arrancan de cero (el user deja los archivos del media-studio).
+- Los **reels base / pre-templates** del proyecto aparecen como **menú colapsable** en el sidebar (el primer colapsable).
+
+### Archivos que necesito para editar (el mp4 NO sirve — es el render)
+La fuente editable de los reels de Munify vive en el repo `sugerenciasMun`:
+- `frontend/src/components/reels/`: `reelScripts.tsx` (guiones/escenas), `ReelStage.tsx` (motor de slides), `ReelMockups.tsx`, `reelBrand.ts`, `narrationText.ts`.
+- referencia/boceto: `design/reels/*.mp4` (slides renderizados) + voces mp3.
+- pipeline de captura: `frontend/_capture.mjs`.
+
+**Assets por proyecto:** carpeta/variable configurable `PROJECT_ASSETS`. Lo **media** (mp3/mp4/img) → Cloudinary (INFRA). La **estructura** (reels, configs, refs) → DB. El **código fuente** del motor de reels (.tsx) NO va a Cloudinary → hay que resolver cómo media-studio accede al motor de reels de Munify ("merge de universos", ver pedido a INFRA).
+
+### Features nuevas del editor (VoiceStudio)
+- **Botón "Grabar"** — persiste un **settings por reel**: voz + cadencia + pausas + markers + a qué texto está asociado. El user lo sigue editando. (vía `/api/projects` o `/api/apps`).
+- **Preview como tab en el panel TEXTO** — si el proyecto ya tiene boceto, un tab en el mismo lugar de TEXTO muestra el **preview** (modal que aparece/desaparece).
+
+### Orden de construcción (APP)
+1. Sidebar colapsable + **ABM de Proyectos** (Munify precargado + reels base listados).
+2. Crear proyecto + "adjuntar reels base".
+3. Botón **Grabar** (settings por reel).
+4. Tab **Preview** en TEXTO.
+
+---
+
 ## Pedidos al agente INFRA
 
 > Usá esta sección para pedir endpoints, cambios de schema o ajustes de deploy.
@@ -105,6 +137,7 @@ Iconos: lucide-react            (NUNCA emojis Unicode)
 
 | Fecha | Pedido | Estado |
 |-------|--------|--------|
+| 2026-06-14 | **MULTI-TENANT POR PROYECTO — esto es lo que tenés que tocar vos** (contexto completo en la sección "Plan: estructura multi-tenant por PROYECTO"). Lo que necesito de INFRA: **(1) Esquema `projects.data`** — definí/confirmá el JSON del proyecto, propongo: `{ tipo, reels: [{ id, nombre, slidesRef, voiceConfig, audioRef, videoRefs[], settings }], assets: [{ tipo, name, cloudinaryUrl, createdAt }] }`. **(2) Assets por proyecto en Cloudinary** — convención de carpeta `media-studio/<projectId>/...` + endpoints `GET/POST /api/projects/{id}/assets` (subir/listar media de UN proyecto). Hoy `/api/cloud-videos` es **global**; necesito poder filtrar/asociar **por proyecto**. **(3) Settings por reel (botón "Grabar")** — ¿lo guardo dentro de `projects.data.reels[].settings` (no necesito endpoint nuevo, me alcanza `POST /api/projects/{id}`) o querés tabla/endpoint aparte? Confirmame. **(4) Merge de universos** — decidir cómo media-studio accede a la FUENTE de reels de Munify (`sugerenciasMun/frontend/src/components/reels/` + `design/reels/*.mp4` + voces mp3): ¿copiamos ese subsistema al repo media-studio, o lo servís por bucket/endpoint? Para el "Munify precargado" necesito esos archivos accesibles desde acá. | pendiente |
 | 2026-06-14 | **Reconciliar los 31 videos en Cloudinary.** Subí los 31 mp4 de `D:/Code/sugerenciasMun/reels/videos` a Cloudinary (folder `media-studio/videos`) con un script one-off, y dejé `public/cloud-videos.json` como **fallback estático** para que la galería se vea SIN backend (el user trabaja por escritorio remoto, sin levantar `:5301`). ¿Los seedeás en la tabla `cloud_videos` así `/api/cloud-videos` los devuelve, o dejamos el manifest como fallback permanente? La galería ya **mergea** ambas fuentes por URL, así que no rompe nada — es para definir source-of-truth. Refuerza tu pendiente de migrar la DB a Aiven (la de Cloud Run es efímera). | pendiente |
 | 2026-06-14 | **Heads-up tts-service:** deployé una revisión del `tts-service` para que `GET /voices` devuelva `preview_url` (sample mp3 de cada voz). Lo usa VoiceStudio para reproducir el sample al clickear una voz. Es tu servicio externo — avisado por si lo documentás. | informativo |
 
