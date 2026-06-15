@@ -288,15 +288,28 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
 
   const GENDERS: [string, string][] = [['female', 'Femeninas'], ['male', 'Masculinas'], ['', 'Otras']];
   const AGES: [string, string][] = [['young', 'Joven'], ['middle_aged', 'Adulta'], ['old', 'Mayor'], ['', '—']];
-  // opciones de idioma/región derivadas de las voces (accent), para el filtro.
-  const LANGS = Array.from(new Set(voices.map((v) => (v.accent || '').trim()).filter(Boolean))).sort();
+  // Agrupa el accent crudo en una REGIÓN lógica para el filtro, así "Latinoamericano"
+  // suma argentine + latin american + etc. (antes el match exacto dejaba a Tomás
+  // afuera de "latin american" por tener accent "argentine"). Desconocido → queda igual.
+  const langGroup = (accent?: string): string => {
+    const a = (accent || '').toLowerCase().trim(); if (!a) return '';
+    if (/(argentin|urugua|latin|mexic|colomb|chil|peru|spanish|español|castell)/.test(a)) return 'Latinoamericano';
+    if (/brazil|portug/.test(a)) return 'Brasileño';
+    if (/british|^uk|england/.test(a)) return 'Inglés (UK)';
+    if (/australian|aussie/.test(a)) return 'Inglés (AU)';
+    if (/american|^us|united states/.test(a)) return 'Inglés (US)';
+    if (/irish|scott|welsh/.test(a)) return 'Inglés (UK)';
+    return accent || '';
+  };
+  // opciones de idioma/región (agrupadas) derivadas de las voces, para el filtro.
+  const LANGS = Array.from(new Set(voices.map((v) => langGroup(v.accent)).filter(Boolean))).sort();
   // estilos de música presentes (para el filtro de arriba de MÚSICA).
   const musicCats = Array.from(new Set(cfg.tracks.map((t) => t.cat).filter(Boolean)));
   // lista filtrada por género + edad + idioma + búsqueda.
   const fil = voices.filter((v) =>
     (!fGender || (v.gender || '') === fGender) &&
     (!fAge || (v.age || '') === fAge) &&
-    (!fLang || (v.accent || '') === fLang) &&
+    (!fLang || langGroup(v.accent) === fLang) &&
     `${v.name} ${v.accent || ''} ${v.use_case || ''} ${v.description || ''}`.toLowerCase().includes(qv.toLowerCase())
   );
 
