@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
+import ReelTab from './ReelTab';
 import StageTab from './StageTab';
 import Sidebar, { defaultSection, type Section } from './Sidebar';
 import ProjectsABM from './ProjectsABM';
@@ -66,12 +67,7 @@ function SectionView({ section, project, onGrabar }: { section: Section; project
     />
   );
   if (section === 'videos') return <VideosTab />;
-  if (section === 'reel') return (
-    <StageTab title={`REEL — ${projectName} · slides 1080×1920`} color="var(--amber)"
-      description="Pegá el prompt + el MD de contexto del reel. Lo genero como recorrido/mockups y lo combino con el audio de la sección Audio."
-      placeholder="Ej: Reel 9:16. Tour de la app, 6 escenas, estética dark + naranja. (pegá tu MD de contexto / guion)"
-      hint={<>Se une con el <b>audio</b> de la sección Audio. El reel queda en los assets del proyecto.</>} />
-  );
+  if (section === 'reel') return <ReelTab project={project} />;
   if (section === 'montaje') return (
     <StageTab title={`MONTAJE — ${projectName}`} color="var(--violet)"
       description="Decime cómo mechar los slides del reel con los videos de la biblioteca. Armo el corte y te muestro ~10 frames para que elijas."

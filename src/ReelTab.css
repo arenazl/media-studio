@@ -1,0 +1,62 @@
+/* Solapa REEL — 2 tabs + editor de slides con timelines. Tokens en tokens.css. */
+.rt-root { display: flex; flex-direction: column; height: 100%; min-height: 0; gap: 14px; }
+
+/* sub-tabs */
+.rt-tabs { display: flex; gap: 6px; flex: 0 0 auto; }
+.rt-tab {
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 700; color: var(--txt-55);
+  background: var(--surface); border: 1px solid var(--bd-2);
+  border-radius: var(--r); padding: 9px 16px;
+}
+.rt-tab--on { color: var(--ink); background: var(--gold); border-color: var(--gold); }
+
+.rt-prompt { flex: 1; min-height: 0; overflow-y: auto; }
+
+/* ── editor de slides ─────────────────────────────────────────────────────── */
+.rt-editor { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+
+.rt-reelbar { display: flex; gap: 7px; flex-wrap: wrap; }
+.rt-reelchip {
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; color: var(--txt-70);
+  background: var(--surface-2); border: 1px solid var(--bd-3);
+  border-radius: var(--pill); padding: 6px 12px;
+}
+.rt-reelchip--on { color: var(--txt); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.rt-reelchip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* frames strip */
+.rt-frames-wrap { flex: 0 0 auto; }
+.rt-frames-head { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--txt-50); margin-bottom: 8px; }
+.rt-frames { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.rt-frame { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.rt-frame-thumb {
+  width: 84px; height: 150px;     /* 9:16 */
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r); color: var(--txt-40);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--azure) 22%, var(--ink)), var(--ink-2));
+  border: 1px solid var(--bd-2);
+}
+.rt-frame-lbl { font-size: 10.5px; font-weight: 700; color: var(--txt-55); }
+.rt-empty, .rt-lane-empty { font-size: 12.5px; color: var(--txt-40); padding: 14px 4px; }
+
+/* timeline */
+.rt-timeline { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; background: var(--ink-2); border: 1px solid var(--bd); border-radius: var(--r-lg); padding: 12px; }
+.rt-track { display: flex; align-items: stretch; gap: 10px; }
+.rt-track-name { flex: 0 0 70px; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--txt-55); }
+.rt-lane { flex: 1; min-width: 0; display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: var(--r-sm); padding: 5px; min-height: 42px; }
+.rt-lane-empty { padding: 8px 10px; }
+
+.rt-clip {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden;
+  border-radius: var(--r-sm); padding: 0 8px; cursor: grab; user-select: none;
+}
+.rt-clip--slide { color: var(--ink); background: color-mix(in srgb, var(--azure) 80%, white); }
+.rt-clip--audio { color: var(--ink); background: var(--gold); }
+.rt-clip-grip { opacity: 0.6; }
+.rt-clip-cut { opacity: 0.7; }
+
+.rt-hint { font-size: 10.5px; color: var(--txt-40); line-height: 1.4; padding-top: 2px; }
