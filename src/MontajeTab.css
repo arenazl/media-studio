@@ -1,60 +1,15 @@
-/* Solapa MONTAJE — paneles + timeline 3 tracks. Tokens en tokens.css. */
-.mt-root { display: flex; flex-direction: column; height: 100%; min-height: 0; gap: 14px; overflow-y: auto; }
+/* Solapa MONTAJE — ajustes finales (placeholder por ahora). Tokens en tokens.css. */
+.mt-root { display: flex; flex-direction: column; height: 100%; min-height: 0; gap: 16px; overflow-y: auto; }
+.mt-head { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-style: italic; font-size: 19px; color: var(--txt); }
 
-/* panel colapsable de videos */
-.mt-panel { flex: 0 0 auto; background: var(--ink-2); border: 1px solid var(--bd); border-radius: var(--r-lg); padding: 10px 12px; }
-.mt-panel-head { display: flex; align-items: center; gap: 10px; }
-.mt-panel-toggle {
-  cursor: pointer; display: flex; align-items: center; gap: 7px;
-  font-size: 12px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase;
-  color: var(--txt-60); background: transparent; border: none; padding: 0;
+.mt-final { max-width: 720px; display: flex; flex-direction: column; gap: 16px; }
+.mt-final-lead { font-size: 13.5px; line-height: 1.6; color: var(--txt-70); margin: 0; }
+.mt-final-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.mt-final-card {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 16px; border-radius: var(--r-lg);
+  background: var(--ink-2); border: 1px solid var(--bd); color: var(--gold);
 }
-.mt-count { color: var(--txt-40); font-weight: 700; }
-.mt-upload {
-  cursor: pointer; margin-left: auto; display: flex; align-items: center; gap: 6px;
-  font-size: 11.5px; font-weight: 700; color: var(--txt-70);
-  background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: 7px; padding: 5px 10px;
-}
-.mt-upload:hover { color: var(--txt); border-color: var(--gold); }
-
-/* miniaturas chiquitas (no galería gigante) */
-.mt-lib { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.mt-thumb {
-  width: 58px; cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 3px;
-}
-.mt-thumb-img {
-  width: 58px; height: 102px;   /* 9:16 chiquito */
-  object-fit: cover; border-radius: var(--r-sm);
-  background: var(--surface-3); border: 1px solid var(--bd-2);
-}
-.mt-thumb-img--broken { visibility: hidden; }
-.mt-thumb-name { font-size: 8.5px; color: var(--txt-40); max-width: 58px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mt-empty { font-size: 12px; color: var(--txt-40); padding: 8px 2px; }
-.mt-err { font-size: 11px; color: var(--danger); margin-top: 8px; }
-
-/* selector de reel */
-.mt-reelbar { flex: 0 0 auto; display: flex; gap: 7px; flex-wrap: wrap; }
-.mt-reelchip {
-  cursor: pointer; font-size: 12px; font-weight: 700; color: var(--txt-70);
-  background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--pill); padding: 6px 12px;
-}
-.mt-reelchip--on { color: var(--txt); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
-
-/* timeline */
-.mt-timeline { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; background: var(--ink-2); border: 1px solid var(--bd); border-radius: var(--r-lg); padding: 12px; }
-.mt-track { display: flex; align-items: stretch; gap: 10px; }
-.mt-track-name { flex: 0 0 64px; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--txt-55); }
-.mt-lane { flex: 1; min-width: 0; display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: var(--r-sm); padding: 5px; min-height: 42px; }
-.mt-lane--drop { border: 1px dashed var(--bd-3); }
-.mt-lane-empty { font-size: 11px; color: var(--txt-40); padding: 8px 10px; align-self: center; }
-
-.mt-clip {
-  flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px;
-  font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden;
-  border-radius: var(--r-sm); padding: 0 8px; cursor: grab; user-select: none;
-}
-.mt-clip--slide { color: var(--ink); background: color-mix(in srgb, var(--azure) 80%, white); }
-.mt-clip--audio { color: var(--ink); background: var(--gold); }
-.mt-clip-grip { opacity: 0.6; }
-
-.mt-hint { font-size: 10.5px; color: var(--txt-40); line-height: 1.4; padding-top: 2px; }
+.mt-final-t { font-size: 14px; font-weight: 800; color: var(--txt); }
+.mt-final-d { font-size: 12px; color: var(--txt-50); line-height: 1.4; }
+.mt-final-note { font-size: 12px; color: var(--txt-40); margin: 0; }
