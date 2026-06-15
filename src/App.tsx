@@ -2,6 +2,7 @@ import { useState } from 'react';
 import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
+import MontajeTab from './MontajeTab';
 import StageTab from './StageTab';
 import Sidebar, { defaultSection, type Section } from './Sidebar';
 import ProjectsABM from './ProjectsABM';
@@ -68,12 +69,7 @@ function SectionView({ section, project, onGrabar }: { section: Section; project
   );
   if (section === 'videos') return <VideosTab />;
   if (section === 'reel') return <ReelTab project={project} />;
-  if (section === 'montaje') return (
-    <StageTab title={`MONTAJE — ${projectName}`} color="var(--violet)"
-      description="Decime cómo mechar los slides del reel con los videos de la biblioteca. Armo el corte y te muestro ~10 frames para que elijas."
-      placeholder="Ej: arrancá con el slide 1, meté bache.mp4 en el segundo 3, volvé a slides en el 6, cerrá con cuadrilla.mp4…"
-      hint={<>Los videos salen de la <b>biblioteca</b> (sección Videos). Te devuelvo frames para revisar.</>} />
-  );
+  if (section === 'montaje') return <MontajeTab project={project} />;
   return (
     <StageTab title={`EXPORT — ${projectName}`} color="var(--green)"
       description="Unifico todo (slides + audios + videos) en el reel final. Decime el corte definitivo y los niveles."

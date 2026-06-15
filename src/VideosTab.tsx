@@ -8,23 +8,12 @@ import { useEffect, useRef, useState } from 'react';
 import { RefreshCw, FolderOpen, Film, Upload, Trash2, Cloud, Wand2, ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import VideoPromptBuilder from './VideoPromptBuilder';
 import { API_BASE } from './config';
+import { fetchCloudVideos, prettyVid as pretty, fmtVidDate as fmtDate, type CloudVid } from './lib/cloudVideos';
 import './VideosTab.css';
 
 interface LocalVid { name: string; size: number; url: string }
-interface CloudVid { id: string; name: string; url: string; thumbnail: string | null; duration_sec: number | null; size_bytes: number | null; created_at?: number }
 
 const api = (path: string) => `${API_BASE}${path}`;
-const normalize = (v: Record<string, unknown>): CloudVid => ({
-  id: String(v.id ?? v.public_id ?? v.name ?? ''),
-  name: String(v.name ?? ''),
-  url: String(v.url ?? ''),
-  thumbnail: v.thumbnail ? String(v.thumbnail) : null,
-  duration_sec: typeof v.duration_sec === 'number' ? v.duration_sec : null,
-  size_bytes: typeof v.size_bytes === 'number' ? v.size_bytes : (typeof v.bytes === 'number' ? v.bytes : null),
-  created_at: typeof v.created_at === 'number' ? v.created_at : undefined,
-});
-const pretty = (n: string) => n.replace(/_\d{8,}.*$/, '').replace(/\.(mp4|mov|webm|m4v)$/i, '').replace(/_/g, ' ').trim() || n;
-const fmtDate = (ms?: number) => (ms ? new Date(ms).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '');
 
 export default function VideosTab() {
   const [cloudVids, setCloudVids] = useState<CloudVid[]>([]);
@@ -39,12 +28,7 @@ export default function VideosTab() {
   const loadCloud = async () => {
     setCloudLoading(true); setCloudErr(null);
     try {
-      const byUrl = new Map<string, CloudVid>();
-      // manifest estático (los ya subidos; se ve sin backend)
-      try { const r = await fetch('/cloud-videos.json', { cache: 'no-store' }); if (r.ok) { const d = await r.json(); (d.videos || []).map(normalize).forEach((v: CloudVid) => v.url && byUrl.set(v.url, v)); } } catch { /* noop */ }
-      // backend dinámico (uploads nuevos)
-      try { const r = await fetch(api('/api/cloud-videos')); if (r.ok) { const d = await r.json(); (d.videos || []).map(normalize).forEach((v: CloudVid) => v.url && byUrl.set(v.url, v)); } } catch { /* sin backend */ }
-      const list = Array.from(byUrl.values()).sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+      const list = await fetchCloudVideos(API_BASE);
       setCloudVids(list);
       if (!list.length) setCloudErr('No hay videos en la biblioteca todavía.');
     } catch { setCloudErr('No se pudo cargar la biblioteca.'); } finally { setCloudLoading(false); }
