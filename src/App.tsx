@@ -2,7 +2,7 @@ import { useState } from 'react';
 import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
 import StageTab from './StageTab';
-import Sidebar, { type Section } from './Sidebar';
+import Sidebar, { defaultSection, type Section } from './Sidebar';
 import ProjectsABM from './ProjectsABM';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
 import './App.css';
@@ -48,7 +48,7 @@ export default function App() {
 
       <main className="ms-main">
         {!activeProject ? (
-          <ProjectsABM onOpen={(p) => { setActiveProject(p); setSection('audio'); }} />
+          <ProjectsABM onOpen={(p) => { setActiveProject(p); setSection(defaultSection(p)); }} />
         ) : (
           <SectionView section={section} project={activeProject} onGrabar={grabarReel} />
         )}
