@@ -5,7 +5,7 @@
 //      backend /api/cloud-videos (mergeados) → se ven con o sin backend local.
 //  (B) GENERAR PROMPT para Flow — sección aparte, colapsable.
 import { useEffect, useRef, useState } from 'react';
-import { RefreshCw, FolderOpen, Film, Upload, Trash2, Cloud, Wand2, ChevronDown, ChevronRight, Clock } from 'lucide-react';
+import { RefreshCw, FolderOpen, Film, Upload, Trash2, Cloud, Wand2, Clock } from 'lucide-react';
 import VideoPromptBuilder from './VideoPromptBuilder';
 import { API_BASE } from './config';
 import { fetchCloudVideos, prettyVid as pretty, fmtVidDate as fmtDate, type CloudVid } from './lib/cloudVideos';
@@ -22,7 +22,7 @@ export default function VideosTab() {
   const [uploading, setUploading] = useState(false);
   const [localVids, setLocalVids] = useState<LocalVid[]>([]);
   const [localDir, setLocalDir] = useState('');
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [vtab, setVtab] = useState<'biblioteca' | 'prompt'>('biblioteca');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const loadCloud = async () => {
@@ -63,6 +63,16 @@ export default function VideosTab() {
 
   return (
     <div className="vids-root">
+      {/* sub-tabs: Biblioteca (subir/ver videos) | Prompt Flow (generar el video) */}
+      <div className="vids-tabs">
+        <button className={vtab === 'biblioteca' ? 'vids-tab vids-tab--on' : 'vids-tab'} onClick={() => setVtab('biblioteca')}><Film size={14} /> Biblioteca</button>
+        <button className={vtab === 'prompt' ? 'vids-tab vids-tab--on' : 'vids-tab'} onClick={() => setVtab('prompt')}><Wand2 size={14} /> Prompt Flow</button>
+      </div>
+
+      {vtab === 'prompt' ? (
+        <div className="vids-prompt-wrap"><VideoPromptBuilder /></div>
+      ) : (
+      <>
       {/* (A) BIBLIOTECA CLOUDINARY */}
       <div className="vids-panel">
         <div className="vids-head">
@@ -109,13 +119,8 @@ export default function VideosTab() {
         </div>
       )}
 
-      {/* (B) GENERAR PROMPT PARA FLOW — sección aparte */}
-      <div className="vids-panel">
-        <button onClick={() => setShowPrompt((s) => !s)} className="vids-section-toggle">
-          {showPrompt ? <ChevronDown size={15} /> : <ChevronRight size={15} />}<Wand2 size={14} /> GENERAR PROMPT PARA FLOW
-        </button>
-        {showPrompt && <div className="vids-prompt-wrap"><VideoPromptBuilder /></div>}
-      </div>
+      </>
+      )}
     </div>
   );
 }

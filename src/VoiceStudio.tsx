@@ -13,6 +13,7 @@ import { TTS_SERVICE_URL } from './config';
 import { NARRATION } from './data/narrationText';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
 import ScriptText from './ScriptText';
+import { MUSIC_TRACKS, type MusicTrack } from './lib/music';
 
 // rango en construcción: 1er toque fija el inicio (frac del slider), 2º toque cierra.
 interface Pending { frac: number; kind: 'emphasis' | 'tone'; tag?: string; label: string; color: string }
@@ -27,16 +28,12 @@ interface VoiceStudioProps {
 
 interface Voice { voice_id: string; name: string; gender?: string; age?: string; accent?: string; use_case?: string; description?: string; preview_url?: string; }
 interface SourceFile { id: string; label: string; text: string; sub?: string }
-interface Track { id: string; label: string; url: string }
+type Track = MusicTrack;
 interface StudioConfig { sourceTitle: string; files: SourceFile[]; tracks: Track[]; text?: string }
 
 // Defaults (caso Munify / standalone). Otra app los sobreescribe por config.
 const REEL_LABELS: Record<string, string> = { tour: 'Tour general', vecino: 'Vecino', intendente: 'Intendente', tesoreria: 'Tesorería', ia: 'IA / WhatsApp' };
-const MUSIC_BASE = 'https://app.munify.com.ar/reels-audio';
-const DEFAULT_TRACKS: Track[] = [
-  ['pop', 'Pop'], ['electro', 'Electrónica'], ['funk', 'Funk'], ['inspiradora', 'Inspiradora'],
-  ['calida', 'Cálida'], ['indie', 'Indie'], ['cine', 'Cine'], ['epica', 'Épica'],
-].map(([id, label]) => ({ id, label, url: `${MUSIC_BASE}/${id}.mp3` }));
+const DEFAULT_TRACKS: Track[] = MUSIC_TRACKS;
 const DEFAULT_CONFIG: StudioConfig = {
   sourceTitle: 'GUIONES',
   files: Object.keys(NARRATION).map((id) => ({ id, label: REEL_LABELS[id] || id, text: NARRATION[id].join('\n'), sub: `${NARRATION[id].length} frases` })),

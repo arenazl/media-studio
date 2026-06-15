@@ -9,6 +9,16 @@
   gap: 18px;
 }
 
+/* sub-tabs Biblioteca | Prompt Flow */
+.vids-tabs { display: flex; gap: 6px; }
+.vids-tab {
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 700; color: var(--txt-55);
+  background: var(--surface); border: 1px solid var(--bd-2);
+  border-radius: var(--r); padding: 9px 16px;
+}
+.vids-tab--on { color: var(--ink); background: var(--gold); border-color: var(--gold); }
+
 .vids-panel {
   border-radius: var(--r-lg);
   padding: 16px;
