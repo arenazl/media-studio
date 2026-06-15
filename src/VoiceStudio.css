@@ -122,6 +122,15 @@
 }
 
 /* ===== panel VOCES ===== */
+/* filtros (clonado en VOCES y MÚSICA): filas de chips arriba */
+.vs-filters { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.vs-filter-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.vs-fchip {
+  cursor: pointer; font-size: 10.5px; font-weight: 700; color: var(--txt-60);
+  background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--pill); padding: 3px 9px;
+}
+.vs-fchip--on { color: var(--ink); background: var(--azure); border-color: var(--azure); }
+
 .vs-search {
   position: relative;
   margin-bottom: 8px;
@@ -234,6 +243,10 @@
 }
 .vs-range-cyan {
   accent-color: var(--cyan);
+  width: 100%;
+}
+.vs-range-azure {
+  accent-color: var(--azure);
   width: 100%;
 }
 .vs-music-vol-hint {

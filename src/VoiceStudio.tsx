@@ -66,6 +66,11 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
   const [voices, setVoices] = useState<Voice[]>([]);
   const [voiceId, setVoiceId] = useState('yA5jrK1S9cpCAojBYyMu');
   const [qv, setQv] = useState('');
+  const [fGender, setFGender] = useState('');   // filtro voces: género
+  const [fAge, setFAge] = useState('');         // filtro voces: edad
+  const [fLang, setFLang] = useState('');       // filtro voces: idioma/región (accent)
+  const [sampleVol, setSampleVol] = useState(0.9); // volumen del preview de voz
+  const [fMusicCat, setFMusicCat] = useState(''); // filtro música: estilo
   const [model, setModel] = useState('eleven_v3');
   const [stability, setStability] = useState(0.4);
   const [similarity, setSimilarity] = useState(0.8);
@@ -93,6 +98,7 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
   const audioRef = useRef<HTMLAudioElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
   const sampleRef = useRef<HTMLAudioElement>(null);      // preview de voz (como la música)
+  const sampleChain = useRef<{ gain: GainNode } | null>(null); // compresor+gain del preview (normaliza loudness)
   const fila2Ref = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -183,10 +189,27 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
     out = out.replace(/[ \t]{2,}/g, (m) => ` <break time="${Math.min(0.25 + (m.length - 1) * 0.1, 1.2).toFixed(2)}s"/> `);
     return out.replace(/[ \t]{2,}/g, ' ').trim();
   };
-  // Sample de la voz (como la música): reproduce el preview de ElevenLabs.
+  // Sample de la voz: reproduce el preview de ElevenLabs. Los samples NO vienen
+  // normalizados (unos suenan fuerte, otros bajo) → lo ruteo por un compresor +
+  // gain (Web Audio) para emparejar el volumen y respetar la barra de volumen.
+  const setupSampleChain = () => {
+    const s = sampleRef.current; if (!s || sampleChain.current) return;
+    try {
+      const ctx = audioCtx();
+      const src = ctx.createMediaElementSource(s);
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -28; comp.knee.value = 26; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.25;
+      const gain = ctx.createGain(); gain.gain.value = sampleVol * 1.6; // makeup gain
+      src.connect(comp); comp.connect(gain); gain.connect(ctx.destination);
+      sampleChain.current = { gain };
+    } catch { /* createMediaElementSource ya usado o sin soporte */ }
+  };
   const previewVoice = (v: Voice) => {
     setVoiceId(v.voice_id);
     const s = sampleRef.current; if (!s || !v.preview_url) return;
+    setupSampleChain();
+    audioCtx().resume().catch(() => {});
+    if (sampleChain.current) sampleChain.current.gain.gain.value = sampleVol * 1.6;
     s.src = v.preview_url; s.currentTime = 0; duck(true);
     s.play().then(() => setSampling(true)).catch(() => setSampling(false));
   };
@@ -265,7 +288,17 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
 
   const GENDERS: [string, string][] = [['female', 'Femeninas'], ['male', 'Masculinas'], ['', 'Otras']];
   const AGES: [string, string][] = [['young', 'Joven'], ['middle_aged', 'Adulta'], ['old', 'Mayor'], ['', '—']];
-  const fil = voices.filter((v) => `${v.name} ${v.accent || ''} ${v.use_case || ''}`.toLowerCase().includes(qv.toLowerCase()));
+  // opciones de idioma/región derivadas de las voces (accent), para el filtro.
+  const LANGS = Array.from(new Set(voices.map((v) => (v.accent || '').trim()).filter(Boolean))).sort();
+  // estilos de música presentes (para el filtro de arriba de MÚSICA).
+  const musicCats = Array.from(new Set(cfg.tracks.map((t) => t.cat).filter(Boolean)));
+  // lista filtrada por género + edad + idioma + búsqueda.
+  const fil = voices.filter((v) =>
+    (!fGender || (v.gender || '') === fGender) &&
+    (!fAge || (v.age || '') === fAge) &&
+    (!fLang || (v.accent || '') === fLang) &&
+    `${v.name} ${v.accent || ''} ${v.use_case || ''} ${v.description || ''}`.toLowerCase().includes(qv.toLowerCase())
+  );
 
   // ---- render helpers (estilos en VoiceStudio.css) ----
   // cabecera de panel: el título toma el color de acento del panel vía --accent.
@@ -308,34 +341,40 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
     id: 'voces', title: `VOCES (${voices.length})`, color: BRAND.azure, icon: <Mic size={13} />, width: 282,
     body: (
       <>
+        {/* filtros: género · edad · idioma/región (para que no sea un quilombo) */}
+        <div className="vs-filters">
+          <div className="vs-filter-row">
+            <button className={!fGender ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFGender('')}>Todas</button>
+            {GENDERS.filter(([g]) => g).map(([g, gl]) => <button key={g} className={fGender === g ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFGender(g)}>{gl}</button>)}
+          </div>
+          <div className="vs-filter-row">
+            <button className={!fAge ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFAge('')}>Toda edad</button>
+            {AGES.filter(([a]) => a).map(([a, al]) => <button key={a} className={fAge === a ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFAge(a)}>{al}</button>)}
+          </div>
+          {LANGS.length > 0 && (
+            <div className="vs-filter-row">
+              <button className={!fLang ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFLang('')}>Todo idioma</button>
+              {LANGS.map((l) => <button key={l} className={fLang === l ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFLang(l)}>{l}</button>)}
+            </div>
+          )}
+        </div>
         <div className="vs-search">
           <Search size={12} color="rgba(255,255,255,0.4)" className="vs-search-icon" />
           <input value={qv} onChange={(e) => setQv(e.target.value)} placeholder="buscar…" className="vs-search-input" />
         </div>
         <div className="vs-voices">
-          {GENDERS.map(([g, gl]) => {
-            const inG = fil.filter((v) => (v.gender || '') === g); if (!inG.length) return null;
-            return (
-              <div key={g || 'x'} className="vs-voices-group">
-                <div className="vs-voices-gender">{gl}</div>
-                {AGES.map(([a, al]) => {
-                  const inA = inG.filter((v) => (v.age || '') === a); if (!inA.length) return null;
-                  return (
-                    <div key={a || 'x'} className="vs-voices-age">
-                      <div className="vs-voices-age-label">{al}</div>
-                      <div className="vs-voices-chips">
-                        {inA.map((v) => {
-                          const on = voiceId === v.voice_id;
-                          return (<button key={v.voice_id} onClick={() => previewVoice(v)} title={`${v.accent || ''} · ${v.description || ''} — click: escuchar sample`} className={on ? 'vs-voice vs-voice--on' : 'vs-voice'} style={{ ['--accent']: BRAND.azure } as React.CSSProperties}>{v.name}</button>);
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-          {!voices.length && <div className="vs-empty">cargando…</div>}
+          <div className="vs-voices-chips">
+            {fil.map((v) => {
+              const on = voiceId === v.voice_id;
+              return (<button key={v.voice_id} onClick={() => previewVoice(v)} title={`${v.accent || ''} · ${v.age || ''} · ${v.description || ''} — click: escuchar`} className={on ? 'vs-voice vs-voice--on' : 'vs-voice'} style={{ ['--accent']: BRAND.azure } as React.CSSProperties}>{v.name}</button>);
+            })}
+          </div>
+          {!fil.length && <div className="vs-empty">{voices.length ? 'sin voces con esos filtros' : 'cargando…'}</div>}
+        </div>
+        <div className="vs-music-vol">
+          <div className="vs-music-vol-row"><span className="vs-music-vol-label">Volumen</span><span className="vs-music-vol-val">{Math.round(sampleVol * 100)}%</span></div>
+          <input type="range" min={0} max={1} step={0.05} value={sampleVol} onChange={(e) => { const v = Number(e.target.value); setSampleVol(v); if (sampleChain.current) sampleChain.current.gain.gain.value = v * 1.6; const s = sampleRef.current; if (s) s.volume = v; }} className="vs-range-azure" />
+          <div className="vs-music-vol-hint">samples emparejados (compresor) para que no suenen disparejos</div>
         </div>
       </>
     ),
@@ -344,8 +383,15 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
     id: 'musica', title: 'MÚSICA', color: '#22D3EE', icon: <Music2 size={13} />, width: 232,
     body: (
       <>
+        {/* filtro por estilo de sonido */}
+        <div className="vs-filters">
+          <div className="vs-filter-row">
+            <button className={!fMusicCat ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFMusicCat('')}>Todos</button>
+            {musicCats.map((c) => <button key={c} className={fMusicCat === c ? 'vs-fchip vs-fchip--on' : 'vs-fchip'} onClick={() => setFMusicCat(c)}>{c}</button>)}
+          </div>
+        </div>
         <div className="vs-tracks" style={{ ['--accent']: '#22D3EE' } as React.CSSProperties}>
-          {cfg.tracks.map((t) => {
+          {cfg.tracks.filter((t) => !fMusicCat || t.cat === fMusicCat).map((t) => {
             const on = track === t.id && musicOn;
             return (<button key={t.id} onClick={() => pickTrack(t)} className={on ? 'vs-track vs-track--on' : 'vs-track'}>{on ? <Pause size={10} /> : <Play size={10} />}{t.label}</button>);
           })}
