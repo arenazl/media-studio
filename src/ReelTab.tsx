@@ -3,8 +3,8 @@
 // reales del boceto + chips de música), después la WAVEFORM del audio, y abajo
 // 3 LÍNEAS DE TIEMPO (Slides · Música · Audio). Arrastrás slides y música a sus
 // tracks; el Audio viene de la narración partida en frases. (Cortar/transiciones = next.)
-import { useEffect, useState } from 'react';
-import { Film, AudioLines, Music2, GripVertical, X, Clapperboard } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Film, AudioLines, Music2, GripVertical, X, Clapperboard, Play, Pause, SkipBack } from 'lucide-react';
 import CadenceWave from './CadenceWave';
 import { extractFrames } from './lib/videoFrames';
 import { MUSIC_TRACKS } from './lib/music';
@@ -18,6 +18,11 @@ export default function ReelTab({ project }: { project: Project }) {
   const [slideTrack, setSlideTrack] = useState<number[]>([]); // slides colocados en el track
   const [musicTrack, setMusicTrack] = useState<string[]>([]); // música colocada en el track
   const [over, setOver] = useState<string | null>(null);      // track resaltado al arrastrar
+  const [playing, setPlaying] = useState(false);
+  const [playFrac, setPlayFrac] = useState(0);                // playhead 0..1
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef(0);
+  const musicAudioRef = useRef<HTMLAudioElement>(null);
 
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
   const n = reel?.frases ?? 0;
@@ -25,13 +30,39 @@ export default function ReelTab({ project }: { project: Project }) {
   const phrases: string[] = (reel && NARRATION[reel.id]) || [];
   const waveText = phrases.length ? phrases.join('  ') : '';
 
+  // duración estimada del reel (sin mp3 real todavía): ~2.5s por slide.
+  const SLIDE_SEC = 2.5;
+  const totalMs = Math.max(1, slideTrack.length) * SLIDE_SEC * 1000;
+  const activeSlide = playing || playFrac > 0 ? Math.min(slideTrack.length - 1, Math.floor(playFrac * slideTrack.length)) : -1;
+
   // frames reales del boceto + arranca el track de slides con todos en orden.
   useEffect(() => {
-    let alive = true; setFrames([]); setSlideTrack(slides); setMusicTrack([]);
+    let alive = true; setFrames([]); setSlideTrack(slides); setMusicTrack([]); stopPlay();
     if (reel?.slidesRef && n > 0) extractFrames(reel.slidesRef, n).then((f) => { if (alive) setFrames(f); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reel?.slidesRef, n]);
+
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+
+  // ── transporte (play/pausa/rebobinar) ─────────────────────────────────────
+  const tick = () => {
+    const f = Math.min(1, (performance.now() - startRef.current) / totalMs);
+    setPlayFrac(f);
+    if (f >= 1) { setPlaying(false); musicAudioRef.current?.pause(); return; }
+    rafRef.current = requestAnimationFrame(tick);
+  };
+  const play = () => {
+    if (playing || !slideTrack.length) return;
+    startRef.current = performance.now() - (playFrac >= 1 ? 0 : playFrac) * totalMs;
+    if (playFrac >= 1) setPlayFrac(0);
+    setPlaying(true);
+    rafRef.current = requestAnimationFrame(tick);
+    const m = musicAudioRef.current; const url = MUSIC_TRACKS.find((t) => t.id === musicTrack[0])?.url;
+    if (m && url) { if (m.src !== url) m.src = url; m.loop = true; m.play().catch(() => {}); }
+  };
+  const pause = () => { setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); musicAudioRef.current?.pause(); };
+  function stopPlay() { setPlaying(false); setPlayFrac(0); if (rafRef.current) cancelAnimationFrame(rafRef.current); const m = musicAudioRef.current; if (m) { m.pause(); m.currentTime = 0; } }
 
   // ── drag & drop (HTML5) ───────────────────────────────────────────────────
   const setPayload = (e: React.DragEvent, v: string) => { e.dataTransfer.setData('text/plain', v); e.dataTransfer.effectAllowed = 'copyMove'; };
@@ -90,11 +121,25 @@ export default function ReelTab({ project }: { project: Project }) {
             </div>
           </div>
 
-          {/* WAVEFORM del audio (cadencia de la narración) */}
-          <div className="rt-wave">
-            <div className="rt-palette-head"><AudioLines size={12} /> Audio del reel</div>
-            <div className="rt-wave-box">
-              {waveText ? <CadenceWave text={waveText} peaks={null} cursor={0} /> : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>}
+          {/* preview + WAVEFORM del audio (cadencia de la narración) con playhead */}
+          <div className="rt-stage">
+            <div className="rt-preview">
+              {activeSlide >= 0 && frames[slideTrack[activeSlide]]
+                ? <img src={frames[slideTrack[activeSlide]]} alt="" className="rt-preview-img" />
+                : <div className="rt-preview-ph"><Film size={22} /></div>}
+            </div>
+            <div className="rt-wave">
+              <div className="rt-palette-head"><AudioLines size={12} /> Audio del reel</div>
+              <div className="rt-wave-box">
+                {waveText ? <CadenceWave text={waveText} peaks={null} cursor={playFrac} /> : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>}
+              </div>
+              {/* transporte */}
+              <div className="rt-transport">
+                <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar"><SkipBack size={15} /></button>
+                <button className="rt-tbtn rt-tbtn--play" onClick={() => (playing ? pause() : play())} disabled={!slideTrack.length} title={playing ? 'Pausa' : 'Play'}>{playing ? <Pause size={16} /> : <Play size={16} />}</button>
+                <span className="rt-time">{(playFrac * totalMs / 1000).toFixed(1)}s / {(totalMs / 1000).toFixed(1)}s</span>
+                <span className="rt-transport-note">la voz suena cuando se persista el mp3; por ahora suena la música + avanza el slide</span>
+              </div>
             </div>
           </div>
 
@@ -104,7 +149,7 @@ export default function ReelTab({ project }: { project: Project }) {
               <span className="rt-track-name"><Film size={12} /> Slides</span>
               <div className={over === 'slides' ? 'rt-lane rt-lane--over' : 'rt-lane'} onDragOver={(e) => allow(e, 'slides')} onDragLeave={() => setOver(null)} onDrop={dropSlide}>
                 {slideTrack.length ? slideTrack.map((s, k) => (
-                  <div key={k} className="rt-clip rt-clip--slide">
+                  <div key={k} className={k === activeSlide ? 'rt-clip rt-clip--slide rt-clip--active' : 'rt-clip rt-clip--slide'}>
                     {frames[s] && <img src={frames[s]} alt="" className="rt-clip-thumb" />} S{s + 1}
                     <button className="rt-clip-x" onClick={() => setSlideTrack((t) => t.filter((_, j) => j !== k))}><X size={10} /></button>
                   </div>
@@ -136,6 +181,7 @@ export default function ReelTab({ project }: { project: Project }) {
           </div>
         </div>
       )}
+      <audio ref={musicAudioRef} />
     </div>
   );
 }
