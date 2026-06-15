@@ -25,6 +25,9 @@ export default function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [section, setSection] = useState<Section>('audio');
+  // audio generado por reel (objectURL del mp3) — se comparte entre solapas para
+  // que el editor del Reel pueda reproducir la voz sin re-llamar al TTS.
+  const [audioByReel, setAudioByReel] = useState<Record<string, string>>({});
 
   // "Grabar" desde el editor: persiste el settings de voz del reel y refresca el proyecto.
   const grabarReel = (reelId: string, vc: VoiceConfig) => {
@@ -34,6 +37,10 @@ export default function App() {
       id: activeProject.id, name: activeProject.name, type: activeProject.type,
       preloaded: activeProject.preloaded, reels,
     }));
+  };
+  // VoiceStudio avisa cuando generó el mp3 → lo guardamos por reel (revoca el viejo).
+  const onAudio = (reelId: string, blob: Blob) => {
+    setAudioByReel((m) => { if (m[reelId]) URL.revokeObjectURL(m[reelId]); return { ...m, [reelId]: URL.createObjectURL(blob) }; });
   };
 
   return (
@@ -52,23 +59,24 @@ export default function App() {
         {!activeProject ? (
           <ProjectsABM onOpen={(p) => { setActiveProject(p); setSection(defaultSection(p)); }} />
         ) : (
-          <SectionView section={section} project={activeProject} onGrabar={grabarReel} />
+          <SectionView section={section} project={activeProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
         )}
       </main>
     </div>
   );
 }
 
-function SectionView({ section, project, onGrabar }: { section: Section; project: Project; onGrabar: (reelId: string, vc: VoiceConfig) => void }) {
+function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { section: Section; project: Project; onGrabar: (reelId: string, vc: VoiceConfig) => void; onAudio: (reelId: string, blob: Blob) => void; audioByReel: Record<string, string> }) {
   const projectName = project.name;
   if (section === 'audio') return (
     <VoiceStudio
       reelConfig={Object.fromEntries(project.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }]))}
       onGrabar={onGrabar}
+      onAudio={onAudio}
     />
   );
   if (section === 'videos') return <VideosTab />;
-  if (section === 'reel') return <ReelTab project={project} />;
+  if (section === 'reel') return <ReelTab project={project} audioByReel={audioByReel} />;
   if (section === 'montaje') return <MontajeTab project={project} />;
   return (
     <StageTab title={`EXPORT — ${projectName}`} color="var(--green)"

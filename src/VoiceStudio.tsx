@@ -24,6 +24,7 @@ interface ReelCfg { slidesRef?: string | null; voiceConfig?: VoiceConfig | null 
 interface VoiceStudioProps {
   reelConfig?: Record<string, ReelCfg>;                 // por reelId: boceto + settings guardados
   onGrabar?: (reelId: string, vc: VoiceConfig) => void; // persiste el settings del reel
+  onAudio?: (reelId: string, blob: Blob) => void;       // comparte el mp3 generado (lo usa el editor del Reel)
 }
 
 interface Voice { voice_id: string; name: string; gender?: string; age?: string; accent?: string; use_case?: string; description?: string; preview_url?: string; }
@@ -53,7 +54,7 @@ const VOICE_PRESETS = [
 let _actx: AudioContext | null = null;
 const audioCtx = () => (_actx ||= new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
 
-export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps = {}) {
+export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStudioProps = {}) {
   const initialText = (() => {
     if (typeof window === 'undefined') return DEFAULT_TEXT;
     const t = new URLSearchParams(window.location.search).get('text');
@@ -223,6 +224,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
       const blob = await r.blob();
       if (url) URL.revokeObjectURL(url);
       const u = URL.createObjectURL(blob); setUrl(u);
+      if (activeFile && onAudio) onAudio(activeFile, blob); // compartir el mp3 con el editor del Reel
       try {
         const ctx = audioCtx(); await ctx.resume();
         const buf = await ctx.decodeAudioData(await blob.arrayBuffer());

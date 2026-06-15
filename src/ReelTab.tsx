@@ -12,7 +12,7 @@ import { NARRATION } from './data/narrationText';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
 
-export default function ReelTab({ project }: { project: Project }) {
+export default function ReelTab({ project, audioByReel = {} }: { project: Project; audioByReel?: Record<string, string> }) {
   const [reelId, setReelId] = useState<string | null>(project.reels[0]?.id ?? null);
   const [frames, setFrames] = useState<string[]>([]);       // thumbnails reales del boceto
   const [slideTrack, setSlideTrack] = useState<number[]>([]); // slides colocados en el track
@@ -21,17 +21,21 @@ export default function ReelTab({ project }: { project: Project }) {
   const [over, setOver] = useState<string | null>(null);      // track resaltado al arrastrar
   const [playing, setPlaying] = useState(false);
   const [playFrac, setPlayFrac] = useState(0);                // playhead 0..1
+  const [voiceDur, setVoiceDur] = useState(0);                // duración real del mp3 de voz
   const rafRef = useRef<number | null>(null);
   const startRef = useRef(0);
   const musicAudioRef = useRef<HTMLAudioElement>(null);
+  const voiceRef = useRef<HTMLAudioElement>(null);
 
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
   const n = reel?.frases ?? 0;
   const slides = Array.from({ length: n }, (_, i) => i);
   const phrases: string[] = (reel && NARRATION[reel.id]) || [];
   const waveText = phrases.length ? phrases.join('  ') : '';
+  const voiceUrl = reel ? audioByReel[reel.id] : undefined;   // mp3 generado en la solapa Audio
+  const hasVoice = !!voiceUrl;
 
-  // duración estimada del reel (sin mp3 real todavía): ~2.5s por slide.
+  // duración: real si hay voz; si no, estimada ~2.5s por slide.
   const SLIDE_SEC = 2.5;
   const totalMs = Math.max(1, slideTrack.length) * SLIDE_SEC * 1000;
   const activeSlide = playing || playFrac > 0 ? Math.min(slideTrack.length - 1, Math.floor(playFrac * slideTrack.length)) : -1;
@@ -47,23 +51,39 @@ export default function ReelTab({ project }: { project: Project }) {
   useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
   // ── transporte (play/pausa/rebobinar) ─────────────────────────────────────
+  // si hay VOZ generada, ese audio es el reloj (playhead = currentTime/duration);
+  // si no, un timer estimado (~2.5s por slide) + la música del track.
   const tick = () => {
     const f = Math.min(1, (performance.now() - startRef.current) / totalMs);
     setPlayFrac(f);
     if (f >= 1) { setPlaying(false); musicAudioRef.current?.pause(); return; }
     rafRef.current = requestAnimationFrame(tick);
   };
+  const startMusic = () => {
+    const m = musicAudioRef.current; const url = MUSIC_TRACKS.find((t) => t.id === musicTrack[0])?.url;
+    if (m && url) { if (m.src !== url) m.src = url; m.loop = true; m.volume = hasVoice ? 0.35 : 0.7; m.play().catch(() => {}); }
+  };
   const play = () => {
     if (playing || !slideTrack.length) return;
-    startRef.current = performance.now() - (playFrac >= 1 ? 0 : playFrac) * totalMs;
-    if (playFrac >= 1) setPlayFrac(0);
     setPlaying(true);
-    rafRef.current = requestAnimationFrame(tick);
-    const m = musicAudioRef.current; const url = MUSIC_TRACKS.find((t) => t.id === musicTrack[0])?.url;
-    if (m && url) { if (m.src !== url) m.src = url; m.loop = true; m.play().catch(() => {}); }
+    startMusic();
+    const v = voiceRef.current;
+    if (hasVoice && v) {
+      if (v.src !== voiceUrl) v.src = voiceUrl!;
+      if (playFrac >= 1) { v.currentTime = 0; setPlayFrac(0); }
+      v.play().catch(() => {});
+    } else {
+      startRef.current = performance.now() - (playFrac >= 1 ? 0 : playFrac) * totalMs;
+      if (playFrac >= 1) setPlayFrac(0);
+      rafRef.current = requestAnimationFrame(tick);
+    }
   };
-  const pause = () => { setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); musicAudioRef.current?.pause(); };
-  function stopPlay() { setPlaying(false); setPlayFrac(0); if (rafRef.current) cancelAnimationFrame(rafRef.current); const m = musicAudioRef.current; if (m) { m.pause(); m.currentTime = 0; } }
+  const pause = () => { setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); musicAudioRef.current?.pause(); voiceRef.current?.pause(); };
+  function stopPlay() {
+    setPlaying(false); setPlayFrac(0); if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    const m = musicAudioRef.current; if (m) { m.pause(); m.currentTime = 0; }
+    const v = voiceRef.current; if (v) { v.pause(); v.currentTime = 0; }
+  }
 
   // agregar al track (TAP — anda en touch y mouse). El drag es bonus en desktop.
   const addSlide = (i: number) => setSlideTrack((t) => [...t, i]);
@@ -152,8 +172,8 @@ export default function ReelTab({ project }: { project: Project }) {
               <div className="rt-transport">
                 <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar"><SkipBack size={15} /></button>
                 <button className="rt-tbtn rt-tbtn--play" onClick={() => (playing ? pause() : play())} disabled={!slideTrack.length} title={playing ? 'Pausa' : 'Play'}>{playing ? <Pause size={16} /> : <Play size={16} />}</button>
-                <span className="rt-time">{(playFrac * totalMs / 1000).toFixed(1)}s / {(totalMs / 1000).toFixed(1)}s</span>
-                <span className="rt-transport-note">la voz suena cuando se persista el mp3; por ahora suena la música + avanza el slide</span>
+                <span className="rt-time">{(playFrac * (hasVoice && voiceDur ? voiceDur : totalMs / 1000)).toFixed(1)}s / {(hasVoice && voiceDur ? voiceDur : totalMs / 1000).toFixed(1)}s</span>
+                <span className="rt-transport-note">{hasVoice ? 'suena la voz generada + música del track' : 'generá el audio en la solapa «Audio» para que suene la voz; por ahora música + visual'}</span>
               </div>
             </div>
           </div>
@@ -199,6 +219,10 @@ export default function ReelTab({ project }: { project: Project }) {
         </div>
       )}
       <audio ref={musicAudioRef} />
+      <audio ref={voiceRef}
+        onLoadedMetadata={(e) => setVoiceDur(e.currentTarget.duration || 0)}
+        onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setPlayFrac(a.currentTime / a.duration); }}
+        onEnded={() => { setPlaying(false); musicAudioRef.current?.pause(); }} />
     </div>
   );
 }
