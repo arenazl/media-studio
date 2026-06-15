@@ -10,17 +10,43 @@
 }
 
 /* ── Hero ─────────────────────────────────────────────────────────────────── */
-.abm-hero { padding: 0 0 28px; }
+.abm-hero { padding: 0 0 24px; }
+.abm-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
 .abm-hero-title {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 500;
   color: var(--txt);
-  margin: 0 0 6px;
+  margin: 0 0 14px;
   letter-spacing: -0.02em;
 }
-.abm-hero-sub { font-size: 13px; color: var(--txt-40); margin: 0; line-height: 1.5; }
+.abm-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.abm-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--txt-55);
+}
+.abm-stat-pill strong { color: var(--txt-70); font-weight: 700; }
+.abm-stat-pill--green strong { color: var(--green); }
+.abm-stat-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--bd-3); }
 
 /* ── Toolbar ──────────────────────────────────────────────────────────────── */
 .abm-toolbar {
@@ -69,6 +95,26 @@
 }
 .abm-new:hover { opacity: 0.9; transform: translateY(-1px); }
 
+/* ── Skeleton ─────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+.abm-skeleton {
+  border-radius: var(--r-xl);
+  height: 210px;
+  background: linear-gradient(
+    90deg,
+    var(--ink-2) 25%,
+    rgba(255,255,255,0.05) 50%,
+    var(--ink-2) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite ease-in-out, card-in 0.35s ease both;
+  animation-delay: var(--sk-delay, 0ms), var(--sk-delay, 0ms);
+  border: 1px solid var(--bd);
+}
+
 /* ── Grid de cards ────────────────────────────────────────────────────────── */
 .abm-grid {
   display: grid;
@@ -107,14 +153,32 @@
 }
 .abm-card:focus-visible { box-shadow: 0 0 0 2px var(--gold); }
 
+@keyframes card-open {
+  0%   { transform: scale(1); opacity: 1; }
+  60%  { transform: scale(1.03); opacity: 0.9; }
+  100% { transform: scale(0.96); opacity: 0; }
+}
+.abm-card--opening {
+  animation: card-open 0.32s ease forwards;
+  pointer-events: none;
+}
+
 /* Cover */
 .abm-card-cover {
-  height: 108px;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--card-accent) 28%, var(--ink)) 0%,
-    color-mix(in srgb, var(--card-accent) 8%, var(--ink-2)) 100%
-  );
+  height: 116px;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 18px,
+      color-mix(in srgb, var(--card-accent) 5%, transparent) 18px,
+      color-mix(in srgb, var(--card-accent) 5%, transparent) 19px
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--card-accent) 32%, var(--ink)) 0%,
+      color-mix(in srgb, var(--card-accent) 10%, var(--ink-2)) 100%
+    );
   position: relative;
   overflow: hidden;
   display: flex;

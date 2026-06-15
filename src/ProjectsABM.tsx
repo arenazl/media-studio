@@ -1,8 +1,9 @@
 // ABM de PROYECTOS — primera pantalla (multi-tenant). Grilla visual con covers
-// por tipo + crear/editar (panel lateral) + borrar (confirm). Estilos en ProjectsABM.css.
-import { useState } from 'react';
-import { Plus, Search, Trash2, Pencil, FolderKanban, Film, Clock, X, Sparkles } from 'lucide-react';
+// por tipo + wizard de creación + editar (sheet lateral) + borrar (confirm). Estilos en ProjectsABM.css.
+import { useState, useEffect } from 'react';
+import { Plus, Search, Trash2, Pencil, FolderKanban, Film, Clock, X, Sparkles, Mic } from 'lucide-react';
 import { listProjects, saveProject, deleteProject, munifyBaseReels, type Project } from './lib/projects';
+import NewProjectWizard from './NewProjectWizard';
 import './ProjectsABM.css';
 
 interface Props { onOpen: (p: Project) => void }
@@ -28,47 +29,72 @@ const reelsGrabados = (p: Project) => p.reels.filter((r) => r.voiceConfig?.voice
 export default function ProjectsABM({ onOpen }: Props) {
   const [projects, setProjects] = useState<Project[]>(() => listProjects());
   const [q, setQ] = useState('');
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
-  const [isNew, setIsNew] = useState(false);
   const [confirmDel, setConfirmDel] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [opening, setOpening] = useState<string | null>(null);
+
+  useEffect(() => { const t = setTimeout(() => setLoading(false), 420); return () => clearTimeout(t); }, []);
 
   const refresh = () => setProjects(listProjects());
   const fil = projects.filter((p) => `${p.name} ${p.type}`.toLowerCase().includes(q.toLowerCase()));
 
-  const openNew = () => { setIsNew(true); setEditing({ id: '', name: '', type: '', reels: [], created_at: 0, updated_at: 0 }); };
-  const openEdit = (p: Project) => { setIsNew(false); setEditing(p); };
+  const totalReels = projects.reduce((s, p) => s + p.reels.length, 0);
+  const totalGrabados = projects.reduce((s, p) => s + reelsGrabados(p), 0);
+
+  const handleOpen = (p: Project) => {
+    setOpening(p.id);
+    setTimeout(() => { setOpening(null); onOpen(p); }, 320);
+  };
+
+  const openEdit = (p: Project) => setEditing(p);
 
   return (
     <div className="abm">
       {/* Hero */}
       <div className="abm-hero">
+        <div className="abm-hero-eyebrow"><Mic size={13} /> Media Studio</div>
         <h1 className="abm-hero-title">Proyectos</h1>
-        <p className="abm-hero-sub">Seleccioná un proyecto para empezar a editar audio, reels y videos.</p>
+        {!loading && projects.length > 0 && (
+          <div className="abm-stats-bar">
+            <span className="abm-stat-pill"><strong>{projects.length}</strong> proyectos</span>
+            <span className="abm-stat-sep" />
+            <span className="abm-stat-pill"><Film size={11} /> <strong>{totalReels}</strong> reels</span>
+            {totalGrabados > 0 && (
+              <><span className="abm-stat-sep" /><span className="abm-stat-pill abm-stat-pill--green"><Mic size={11} /> <strong>{totalGrabados}</strong> grabados</span></>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Toolbar */}
       <div className="abm-toolbar">
         <div className="abm-search">
           <Search size={13} className="abm-search-icon" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar…" className="abm-search-input" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar proyecto…" className="abm-search-input" />
         </div>
-        <button className="abm-new" onClick={openNew}><Plus size={14} /> Nuevo proyecto</button>
+        <button className="abm-new" onClick={() => setWizardOpen(true)}><Plus size={14} /> Nuevo</button>
       </div>
 
       {/* Grid */}
       <div className="abm-grid">
-        {fil.map((p, i) => {
+        {loading && Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="abm-skeleton" style={{ '--sk-delay': `${i * 80}ms` } as React.CSSProperties} />
+        ))}
+
+        {!loading && fil.map((p, i) => {
           const accent = cardAccent(p);
           const grabados = reelsGrabados(p);
           return (
             <div
               key={p.id}
-              className="abm-card"
+              className={`abm-card${opening === p.id ? ' abm-card--opening' : ''}`}
               role="button"
               tabIndex={0}
               style={{ '--card-accent': accent, '--card-delay': `${i * 55}ms` } as React.CSSProperties}
-              onClick={() => onOpen(p)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(p); } }}
+              onClick={() => handleOpen(p)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(p); } }}
             >
               {/* Cover */}
               <div className="abm-card-cover">
@@ -110,7 +136,7 @@ export default function ProjectsABM({ onOpen }: Props) {
         })}
 
         {/* Empty state */}
-        {!fil.length && (
+        {!loading && !fil.length && (
           <div className="abm-empty-state">
             <FolderKanban size={40} className="abm-empty-icon" />
             <div className="abm-empty-title">{q ? 'Sin resultados' : 'Todavía no hay proyectos'}</div>
@@ -119,16 +145,22 @@ export default function ProjectsABM({ onOpen }: Props) {
                 ? `Nada coincide con «${q}». Probá con otro término.`
                 : 'Creá tu primer proyecto con el botón «Nuevo proyecto» y cargá tus reels, audio y videos.'}
             </p>
-            {!q && <button className="abm-empty-cta" onClick={openNew}><Plus size={14} /> Crear primer proyecto</button>}
+            {!q && <button className="abm-empty-cta" onClick={() => setWizardOpen(true)}><Plus size={14} /> Crear primer proyecto</button>}
           </div>
         )}
       </div>
 
-      {/* Sheet crear/editar */}
+      {/* Wizard nuevo proyecto */}
+      <NewProjectWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onCreated={(proj) => { refresh(); onOpen(proj); }}
+      />
+
+      {/* Sheet editar proyecto existente */}
       {editing && (
         <ProjectSheet
           project={editing}
-          isNew={isNew}
           onClose={() => setEditing(null)}
           onSaved={() => { refresh(); setEditing(null); }}
         />
@@ -151,7 +183,7 @@ export default function ProjectsABM({ onOpen }: Props) {
   );
 }
 
-function ProjectSheet({ project, isNew, onClose, onSaved }: { project: Project; isNew: boolean; onClose: () => void; onSaved: () => void }) {
+function ProjectSheet({ project, onClose, onSaved }: { project: Project; onClose: () => void; onSaved: () => void }) {
   const [name, setName] = useState(project.name);
   const [type, setType] = useState(project.type);
   const [withBase, setWithBase] = useState(project.preloaded ?? false);
@@ -167,7 +199,7 @@ function ProjectSheet({ project, isNew, onClose, onSaved }: { project: Project; 
     <div className="abm-overlay" onClick={onClose}>
       <div className="abm-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="abm-sheet-head">
-          <span className="abm-sheet-title">{isNew ? 'Nuevo proyecto' : 'Editar proyecto'}</span>
+          <span className="abm-sheet-title">Editar proyecto</span>
           <button className="abm-icon-btn" onClick={onClose}><X size={15} /></button>
         </div>
         <div className="abm-sheet-body">
@@ -187,7 +219,7 @@ function ProjectSheet({ project, isNew, onClose, onSaved }: { project: Project; 
         </div>
         <div className="abm-sheet-foot">
           <button className="abm-btn-ghost" onClick={onClose}>Cancelar</button>
-          <button className="abm-btn-primary" onClick={save} disabled={!name.trim()}>{isNew ? 'Crear proyecto' : 'Guardar'}</button>
+          <button className="abm-btn-primary" onClick={save} disabled={!name.trim()}>Guardar</button>
         </div>
       </div>
     </div>

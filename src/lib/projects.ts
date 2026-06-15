@@ -3,6 +3,7 @@
 // por-proyecto los define INFRA (ver APP_AGENT.md → Pedidos). Cuando esté, se
 // migra este store a leer/escribir contra /api/projects.
 import { NARRATION } from '../data/narrationText';
+import type { ContentType } from '../NewProjectWizard';
 
 // settings de voz por reel (lo que persiste el botón "Grabar").
 // Esquema confirmado por INFRA: va dentro de data.reels[].voiceConfig.
@@ -28,6 +29,7 @@ export interface Project {
   name: string;
   type: string;
   preloaded?: boolean;        // viene con reels base (ej. Munify)
+  contentType?: ContentType;  // configura el layout: reels | video | audio | combinado
   reels: ProjectReel[];
   created_at: number;
   updated_at: number;
@@ -60,7 +62,7 @@ export function listProjects(): Project[] {
 export function getProject(id: string): Project | undefined {
   return load().find((p) => p.id === id);
 }
-export function saveProject(input: { id?: string; name: string; type?: string; preloaded?: boolean; reels?: ProjectReel[] }): Project {
+export function saveProject(input: { id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType; reels?: ProjectReel[] }): Project {
   const ps = load();
   const id = input.id || `${slug(input.name) || 'proj'}-${Date.now().toString(36).slice(-4)}`;
   const existing = ps.find((p) => p.id === id);
@@ -68,6 +70,7 @@ export function saveProject(input: { id?: string; name: string; type?: string; p
   const proj: Project = {
     id, name: input.name.trim() || 'Proyecto sin nombre', type: (input.type || '').trim(),
     preloaded: input.preloaded ?? existing?.preloaded ?? false,
+    contentType: input.contentType ?? existing?.contentType,
     reels: input.reels ?? existing?.reels ?? [],
     created_at: existing?.created_at ?? now, updated_at: now,
   };
