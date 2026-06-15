@@ -22,6 +22,23 @@ export const TONES = [
 
 export interface PlacedMarker { id: string; kind: 'pause' | 'pauseLong' | 'emphasis' | 'tone'; tag?: string; label: string; color: string; start: number; end: number }
 
+// Tokeniza el texto para renderizarlo palabra por palabra (karaoke / aplicar
+// markers desde el texto). Usa el MISMO TOKEN que la onda → los índices [ws,we)
+// de cada palabra coinciden con los de buildWave (alineación exacta).
+export interface RenderTok { raw: string; ws: number; we: number; word: boolean }
+export function renderTokens(text: string): RenderTok[] {
+  const out: RenderTok[] = [];
+  let last = 0;
+  for (const m of text.matchAll(TOKEN)) {
+    const at = m.index ?? 0; const tk = m[0];
+    if (at > last) out.push({ raw: text.slice(last, at), ws: last, we: at, word: false });
+    out.push({ raw: tk, ws: at, we: at + tk.length, word: /[A-Za-zÀ-ÿ0-9'’]/.test(tk[0]) });
+    last = at + tk.length;
+  }
+  if (last < text.length) out.push({ raw: text.slice(last), ws: last, we: text.length, word: false });
+  return out;
+}
+
 interface Bar { x: number; w: number; h: number }
 interface Word { x0: number; x1: number; ws: number; we: number }
 interface WaveData { bars: Bar[]; gaps: number[]; words: Word[]; width: number }

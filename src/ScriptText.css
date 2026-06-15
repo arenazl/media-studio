@@ -1,0 +1,33 @@
+/* Guión tokenizado (karaoke + markers). Tokens en tokens.css.
+   --mk = color del marker de rango que cubre la palabra (valor runtime). */
+.st-root {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--txt-70);
+  padding: 4px 2px;
+}
+
+.st-w {
+  border-radius: 4px;
+  transition: background 120ms, color 120ms;
+}
+
+/* palabra que está sonando ahora (karaoke) */
+.st-w--on {
+  color: var(--ink);
+  background: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+/* palabra dentro de un marker de rango (énfasis/tono): subrayado del color */
+.st-w--mk {
+  text-decoration: underline;
+  text-decoration-color: var(--mk);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}

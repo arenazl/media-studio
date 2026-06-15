@@ -415,6 +415,24 @@
   margin-top: 6px;
   line-height: 1.4;
 }
+/* botón "Editar guión" bajo el guión karaoke (solo aparece con audio generado) */
+.vs-texto-edit {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--txt-55);
+  background: var(--surface-2);
+  border: 1px solid var(--bd-3);
+  border-radius: 7px;
+  padding: 5px 10px;
+}
+.vs-texto-edit:hover { color: var(--txt); border-color: var(--gold); }
 
 /* divisor arrastrable */
 .vs-divider {

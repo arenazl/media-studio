@@ -7,11 +7,12 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Save } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Save, Pencil } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import { NARRATION } from './data/narrationText';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
+import ScriptText from './ScriptText';
 
 // rango en construcción: 1er toque fija el inicio (frac del slider), 2º toque cierra.
 interface Pending { frac: number; kind: 'emphasis' | 'tone'; tag?: string; label: string; color: string }
@@ -90,7 +91,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   const [mHist, setMHist] = useState<PlacedMarker[][]>([]);   // historial de markers para Undo
   const [sampling, setSampling] = useState(false);       // sonando el sample de una voz
   const [saved, setSaved] = useState(false);             // toast tras Grabar
-  const [textoTab, setTextoTab] = useState<'texto' | 'preview'>('texto');
+  const [editingText, setEditingText] = useState(false); // editar el guión (textarea) vs verlo pintarse (karaoke)
   const taRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
@@ -125,7 +126,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   }, []);
 
   const loadFile = (f: SourceFile) => {
-    setActiveFile(f.id); setCursor(0); setPending(null); setMHist([]); setSaved(false); setTextoTab('texto');
+    setActiveFile(f.id); setCursor(0); setPending(null); setMHist([]); setSaved(false); setEditingText(false);
     // si el reel ya tiene settings guardado (Grabar), lo restauro; si no, arranca del guión.
     const vc = reelConfig?.[f.id]?.voiceConfig;
     if (vc) {
@@ -146,8 +147,6 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
     onGrabar(activeFile, { voice_id: voiceId, stability, similarity, style, speed, model, markers, text });
     setSaved(true); window.setTimeout(() => setSaved(false), 1800);
   };
-  const boceto = activeFile ? (reelConfig?.[activeFile]?.slidesRef ?? null) : null;
-
   // Mover el SLIDER: en audio real hace seek; siempre actualiza la posición del cursor.
   const onCursor = (frac: number) => {
     setCursor(frac);
@@ -219,7 +218,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
 
   const generate = async () => {
     if (!text.trim() || !voiceId) return;
-    setBusy(true); setErr(null); setCursor(0);
+    setBusy(true); setErr(null); setCursor(0); setEditingText(false);
     // el texto queda intacto en el editor; acá lo combino con los markers de la onda.
     const ttsText = buildTtsText();
     try {
@@ -423,18 +422,21 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
 
       {/* ===== FILA 2: texto + waveform con divisor arrastrable ===== */}
       <div ref={fila2Ref} className="vs-row2">
-        {/* TEXTO / PREVIEW (el preview aparece como tab si el reel tiene boceto) */}
+        {/* GUIÓN — texto editable; con audio generado se pinta palabra por palabra (karaoke) */}
         <div className="vs-card vs-texto" style={{ ['--texto-w']: textoW + 'px' } as React.CSSProperties}>
           <div className="vs-texto-tabs">
-            <button className={textoTab === 'texto' ? 'vs-texto-tab vs-texto-tab--on' : 'vs-texto-tab'} onClick={() => setTextoTab('texto')}>TEXTO</button>
-            {boceto && <button className={textoTab === 'preview' ? 'vs-texto-tab vs-texto-tab--on' : 'vs-texto-tab'} onClick={() => setTextoTab('preview')}>PREVIEW</button>}
+            <button className="vs-texto-tab vs-texto-tab--on">GUIÓN</button>
           </div>
-          {textoTab === 'preview' && boceto ? (
-            <div className="vs-preview"><video src={boceto} controls playsInline className="vs-preview-video" /></div>
+          {(peaks && !editingText) ? (
+            // hay audio → el guión se PINTA palabra por palabra a medida que avanza (karaoke)
+            <>
+              <ScriptText text={text} markers={markers} activeRange={resolveRange(text, cursor, cursor)} />
+              <button className="vs-texto-edit" onClick={() => setEditingText(true)}><Pencil size={12} /> Editar guión</button>
+            </>
           ) : (
             <>
               <textarea ref={taRef} value={text} onChange={(e) => applyText(e.target.value)} spellCheck={false} className="vs-textarea" />
-              <div className="vs-texto-hint">Solo el guión + puntuación (, ? !). La entonación, énfasis y pausas se marcan en la onda →</div>
+              <div className="vs-texto-hint">Solo el guión + puntuación (, ? !). La entonación, énfasis y pausas se marcan en la onda →{peaks ? ' · al generar/play se pinta solo.' : ''}</div>
             </>
           )}
         </div>
