@@ -11,7 +11,10 @@ import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLef
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import { NARRATION } from './data/narrationText';
-import CadenceWave, { TONES, resolveRange, type ScrubInfo, type PlacedMarker } from './CadenceWave';
+import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
+
+// rango en construcción: 1er toque fija el inicio (frac del slider), 2º toque cierra.
+interface Pending { frac: number; kind: 'emphasis' | 'tone'; tag?: string; label: string; color: string }
 import type { VoiceConfig } from './lib/projects';
 import './VoiceStudio.css';
 
@@ -75,8 +78,8 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   const [url, setUrl] = useState<string | null>(null);
   const [peaks, setPeaks] = useState<number[] | null>(null);
   const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);           // avance de reproducción (0..1) para el playhead
-  const [pick, setPick] = useState<ScrubInfo | null>(null); // punto marcado en la onda sintética
+  const [cursor, setCursor] = useState(0);               // SLIDER único (0..1): edición + playhead. Lo arrastrás vos.
+  const [pending, setPending] = useState<Pending | null>(null); // rango inicio→fin en construcción
   const [voiceVol, setVoiceVol] = useState(1.0);
   const [track, setTrack] = useState<string | null>(null);
   const [musicVol, setMusicVol] = useState(0.7);
@@ -98,7 +101,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   const isOpen = (id: string) => open[id] !== false;
   const tg = (id: string) => setOpen((o) => ({ ...o, [id]: o[id] === false }));
   // el texto es solo referencia; editarlo invalida el audio y recorta markers fuera de rango.
-  const applyText = (t: string) => { setText(t); setPeaks(null); setProgress(0); setMarkers((ms) => ms.filter((m) => m.end <= t.length)); };
+  const applyText = (t: string) => { setText(t); setPeaks(null); setCursor(0); setPending(null); setMarkers((ms) => ms.filter((m) => m.end <= t.length)); };
   // markers = capa propia; mutación con historial para Undo.
   const mutate = (next: PlacedMarker[]) => { setMHist((h) => [...h.slice(-49), markers]); setMarkers(next); };
   const undo = () => { setMHist((h) => { if (!h.length) return h; setMarkers(h[h.length - 1]); return h.slice(0, -1); }); };
@@ -122,11 +125,11 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   }, []);
 
   const loadFile = (f: SourceFile) => {
-    setActiveFile(f.id); setPick(null); setMHist([]); setSaved(false); setTextoTab('texto');
+    setActiveFile(f.id); setCursor(0); setPending(null); setMHist([]); setSaved(false); setTextoTab('texto');
     // si el reel ya tiene settings guardado (Grabar), lo restauro; si no, arranca del guión.
     const vc = reelConfig?.[f.id]?.voiceConfig;
     if (vc) {
-      setText(vc.text ?? f.text); setPeaks(null); setProgress(0);
+      setText(vc.text ?? f.text); setPeaks(null); setCursor(0);
       setMarkers((vc.markers as PlacedMarker[]) ?? []);
       if (vc.voice_id) setVoiceId(vc.voice_id);
       if (vc.model) setModel(vc.model);
@@ -145,24 +148,29 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   };
   const boceto = activeFile ? (reelConfig?.[activeFile]?.slidesRef ?? null) : null;
 
-  // Scrub: en audio real hace seek; en sintético deja el punto/sector activo (pick).
-  const onScrub = (info: ScrubInfo) => {
-    if (peaks) { const a = audioRef.current; if (a && a.duration) { a.currentTime = info.frac * a.duration; setProgress(info.frac); } }
-    else setPick(info);
+  // Mover el SLIDER: en audio real hace seek; siempre actualiza la posición del cursor.
+  const onCursor = (frac: number) => {
+    setCursor(frac);
+    if (peaks) { const a = audioRef.current; if (a && a.duration) a.currentTime = frac * a.duration; }
   };
-  // Coloca un MARKER sobre la onda en el punto/sector activo. NO toca el texto.
-  // pausa/larga = punto (palabra del playhead); énfasis/tono = rango seleccionado.
   const uid = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : 'm' + Date.now() + Math.round(Math.random() * 1e6));
-  const addMarker = (kind: PlacedMarker['kind'], info: { tag?: string; label: string; color: string }) => {
-    if (!pick) return; // primero marcá un punto/sector en la onda
-    const r = resolveRange(text, pick.fracStart, pick.frac);
+  // PAUSA (puntual): en la palabra donde está el slider. Un solo toque.
+  const applyPause = (kind: 'pause' | 'pauseLong', info: { label: string; color: string }) => {
+    const r = resolveRange(text, cursor, cursor);
     if (!r) return;
-    const isRange = kind === 'emphasis' || kind === 'tone';
-    mutate([...markers, { id: uid(), kind, tag: info.tag, label: info.label, color: info.color, start: isRange ? r.ws : r.we, end: isRange ? r.we : r.we }]);
-    setPick((p) => (p ? { frac: p.frac, fracStart: p.frac, ws: null, we: null } : p)); // limpia el rect, deja el playhead
+    mutate([...markers, { id: uid(), kind, label: info.label, color: info.color, start: r.we, end: r.we }]);
+  };
+  // ÉNFASIS / TONO (rango): 1er toque fija el inicio en el slider; 2º toque (cualquier
+  // botón de rango) cierra con el tipo que armaste, desde el inicio hasta el slider.
+  const applyRange = (kind: 'emphasis' | 'tone', info: { tag?: string; label: string; color: string }) => {
+    if (!pending) { setPending({ frac: cursor, kind, tag: info.tag, label: info.label, color: info.color }); return; }
+    const r = resolveRange(text, pending.frac, cursor);
+    const p = pending; setPending(null);
+    if (!r || r.we <= r.ws) return; // rango vacío (mismo punto) → cancela el armado
+    mutate([...markers, { id: uid(), kind: p.kind, tag: p.tag, label: p.label, color: p.color, start: r.ws, end: r.we }]);
   };
   const removeMarker = (id: string) => mutate(markers.filter((m) => m.id !== id));
-  const clearMarkers = () => mutate([]);
+  const clearMarkers = () => { setPending(null); mutate([]); };
   // Combina guión + markers para el TTS (el texto del editor queda INTACTO).
   const buildTtsText = () => {
     type Op = { at: number; end?: number; t: 'emph' | 'tone' | 'pause' | 'pauseLong'; tag?: string };
@@ -192,14 +200,14 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   const applyPreset = (p: { stability: number; similarity: number; style: number; speed: number }) => {
     setStability(p.stability); setSimilarity(p.similarity); setStyle(p.style); setSpeed(p.speed);
   };
-  const rewind = () => { const a = audioRef.current; if (!a) return; a.currentTime = 0; setProgress(0); a.play().then(() => setPlaying(true)).catch(() => {}); };
+  const rewind = () => { const a = audioRef.current; if (!a) return; a.currentTime = 0; setCursor(0); a.play().then(() => setPlaying(true)).catch(() => {}); };
   const stopMusic = () => { const m = musicRef.current; if (m) m.pause(); setMusicOn(false); setTrack(null); };
   const stopAll = () => {
     const a = audioRef.current; if (a) { a.pause(); a.currentTime = 0; }
     const s = sampleRef.current; if (s) s.pause();
-    stopMusic(); setPlaying(false); setSampling(false); setProgress(0);
+    stopMusic(); setPlaying(false); setSampling(false); setCursor(0);
   };
-  const reset = () => { applyText(DEFAULT_TEXT); setPick(null); setMarkers([]); setMHist([]); setStability(0.4); setSimilarity(0.8); setStyle(0.5); setSpeed(1.0); setBoost(true); setUrl(null); };
+  const reset = () => { applyText(DEFAULT_TEXT); setPending(null); setMarkers([]); setMHist([]); setStability(0.4); setSimilarity(0.8); setStyle(0.5); setSpeed(1.0); setBoost(true); setUrl(null); };
 
   const pickTrack = (t: Track) => {
     const m = musicRef.current; if (!m) return;
@@ -211,7 +219,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
 
   const generate = async () => {
     if (!text.trim() || !voiceId) return;
-    setBusy(true); setErr(null); setProgress(0);
+    setBusy(true); setErr(null); setCursor(0);
     // el texto queda intacto en el editor; acá lo combino con los markers de la onda.
     const ttsText = buildTtsText();
     try {
@@ -236,19 +244,20 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   };
   const toggle = () => { const a = audioRef.current; if (!a || !url) return; if (a.paused) { a.play(); setPlaying(true); } else { a.pause(); setPlaying(false); } };
 
-  // Enter = play/pausa (salvo cuando estás escribiendo en un input/textarea).
+  // Enter = play/pausa · Escape = cancela el rango armado (salvo escribiendo).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Enter' || !url) return;
       const el = document.activeElement as HTMLElement | null;
       const tag = el?.tagName;
-      if (tag === 'TEXTAREA' || tag === 'INPUT' || el?.isContentEditable) return;
+      const typing = tag === 'TEXTAREA' || tag === 'INPUT' || el?.isContentEditable;
+      if (e.key === 'Escape' && pending) { setPending(null); return; }
+      if (e.key !== 'Enter' || !url || typing) return;
       e.preventDefault(); toggle();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url]);
+  }, [url, pending]);
 
   // Resize de la columna de texto (divisor arrastrable).
   const onDragStart = (e: React.PointerEvent) => { dragging.current = true; (e.target as Element).setPointerCapture(e.pointerId); };
@@ -424,7 +433,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
             <div className="vs-preview"><video src={boceto} controls playsInline className="vs-preview-video" /></div>
           ) : (
             <>
-              <textarea ref={taRef} value={text} onChange={(e) => { applyText(e.target.value); setPick(null); }} spellCheck={false} className="vs-textarea" />
+              <textarea ref={taRef} value={text} onChange={(e) => applyText(e.target.value)} spellCheck={false} className="vs-textarea" />
               <div className="vs-texto-hint">Solo el guión + puntuación (, ? !). La entonación, énfasis y pausas se marcan en la onda →</div>
             </>
           )}
@@ -440,31 +449,33 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
         <div className="vs-card vs-wave">
           <div className="vs-section-title vs-section-title--gold">WAVEFORM</div>
           <div className="vs-marks">
-            <button onClick={() => addMarker('emphasis', { label: 'énfasis', color: BRAND.gold })} className="vs-mk vs-mk--emphasis" title="Clickeá/arrastrá un sector en la onda y aplicá énfasis">ÉNFASIS</button>
-            <button onClick={() => addMarker('pause', { label: 'pausa', color: BRAND.gold })} className="vs-mk">Pausa</button>
-            <button onClick={() => addMarker('pauseLong', { label: 'larga', color: BRAND.gold })} className="vs-mk">Pausa larga</button>
-            {TONES.map((t) => (<button key={t.tag} onClick={() => addMarker('tone', { tag: t.tag, label: t.label, color: t.color })} title="Marcá un punto/sector en la onda y aplicá el tono" className="vs-mk vs-mk--accent" style={{ ['--accent']: t.color } as React.CSSProperties}>{t.label}</button>))}
+            <button onClick={() => applyRange('emphasis', { label: 'énfasis', color: BRAND.gold })} className={pending?.kind === 'emphasis' ? 'vs-mk vs-mk--emphasis vs-mk--armed' : 'vs-mk vs-mk--emphasis'} title="Parate en el inicio, tocá ÉNFASIS, movés el slider y volvés a tocar para cerrar el rango">ÉNFASIS</button>
+            <button onClick={() => applyPause('pause', { label: 'pausa', color: BRAND.gold })} className="vs-mk" title="Pausa en la posición del slider">Pausa</button>
+            <button onClick={() => applyPause('pauseLong', { label: 'larga', color: BRAND.gold })} className="vs-mk" title="Pausa larga en la posición del slider">Pausa larga</button>
+            {TONES.map((t) => (<button key={t.tag} onClick={() => applyRange('tone', { tag: t.tag, label: t.label, color: t.color })} title="Parate en el inicio, tocá el tono, movés el slider y volvés a tocar para cerrar el rango" className={pending?.tag === t.tag ? 'vs-mk vs-mk--accent vs-mk--armed' : 'vs-mk vs-mk--accent'} style={{ ['--accent']: t.color } as React.CSSProperties}>{t.label}</button>))}
             <button onClick={undo} disabled={!mHist.length} title="Deshacer (Undo)" className="vs-mk vs-mk--reset"><Undo2 size={12} /></button>
-            <button onClick={clearMarkers} disabled={!markers.length} title="Limpiar markers (deja el texto)" className="vs-mk"><Eraser size={12} /></button>
+            <button onClick={clearMarkers} disabled={!markers.length && !pending} title="Limpiar markers (deja el texto)" className="vs-mk"><Eraser size={12} /></button>
             <button onClick={reset} title="Reiniciar todo" className="vs-mk"><RotateCcw size={12} /></button>
           </div>
           <div className="vs-wave-area">
-            <CadenceWave text={text} peaks={peaks} playhead={peaks ? progress : (pick ? pick.frac : null)} sel={pick} markers={markers} onScrub={onScrub} onRemoveMarker={removeMarker} />
+            <CadenceWave text={text} peaks={peaks} cursor={cursor} pendingStart={pending ? pending.frac : null} pendingColor={pending?.color} markers={markers} onCursor={onCursor} onRemoveMarker={removeMarker} />
           </div>
           {/* botonera: rebobinar · play/pausa · stop + estado + export */}
           <div className="vs-transport">
             <button onClick={rewind} disabled={!url} title="Rebobinar" className="vs-rewind"><SkipBack size={16} /></button>
             <button onClick={toggle} disabled={!url} title={playing ? 'Pausa' : 'Play'} className="vs-play">{playing ? <Pause size={18} /> : <Play size={18} />}</button>
             <button onClick={stopAll} disabled={!url && !musicOn && !sampling} title="Stop — apaga voz, música, sample y vuelve a 0" className="vs-stop"><Square size={15} /></button>
-            <span className={!url ? 'vs-status vs-status--idle' : peaks ? 'vs-status vs-status--real' : 'vs-status'}>
-              {!url ? 'Deslizá el playhead y marcá pausas/acentos. «Generar voz» para el audio real.' : peaks ? 'audio real — deslizá para hacer seek' : 'editaste — regenerá'}
+            <span className={pending ? 'vs-status vs-status--armed' : !url ? 'vs-status vs-status--idle' : peaks ? 'vs-status vs-status--real' : 'vs-status'}>
+              {pending
+                ? `${pending.label} — movés el slider al final y volvés a tocar para cerrar (Esc cancela)`
+                : !url ? 'Posicioná el slider y tocá un marker. «Generar voz» para el audio real.' : peaks ? 'audio real — deslizá para hacer seek' : 'editaste — regenerá la voz'}
             </span>
             {url && <a href={url} download="voz.mp3" className="vs-export"><Download size={15} /> Exportar mp3</a>}
           </div>
         </div>
       </div>
 
-      <audio ref={audioRef} onPlay={() => { setPlaying(true); duck(true); }} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); duck(false); }} onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setProgress(a.currentTime / a.duration); }} />
+      <audio ref={audioRef} onPlay={() => { setPlaying(true); duck(true); }} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); duck(false); }} onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setCursor(a.currentTime / a.duration); }} />
       <audio ref={musicRef} />
       <audio ref={sampleRef} onEnded={() => { setSampling(false); duck(false); }} />
     </div>

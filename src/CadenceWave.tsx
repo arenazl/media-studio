@@ -1,9 +1,13 @@
 // Waveform de CADENCIA — el LIENZO de edición (como un editor de sonido).
 //  · El TEXTO es solo el guión de referencia: palabras + , ? ! le dan la cadencia
 //    base a la onda. El texto NUNCA se modifica con los markers.
-//  · Los MARKERS (pausa, énfasis, tono/entonación) son una CAPA aparte que se
-//    coloca SOBRE la onda (click = punto, arrastrar = rango). Borrables con click.
-//  · Al generar, el host combina guión + markers para el TTS.
+//  · UN SOLO cursor: el SLIDER. Lo arrastrás por la onda. Donde lo dejás, ahí
+//    se aplica el marker que toques arriba.
+//      - Pausa / Pausa larga = puntual (en la posición del slider).
+//      - Énfasis / Tono = rango: 1er toque marca INICIO, movés el slider, 2º
+//        toque marca FIN. Quedan los topes de inicio y fin + la banda.
+//  · Los markers son una CAPA aparte (borrables con click). Al generar, el host
+//    combina guión + markers para el TTS.
 import { useMemo, useRef } from 'react';
 import { Pause } from 'lucide-react';
 import './CadenceWave.css';
@@ -16,7 +20,6 @@ export const TONES = [
   { tag: '[sighs]', label: 'Suspiro', color: '#EC4899' },
 ] as const;
 
-export interface ScrubInfo { frac: number; fracStart: number; ws: number | null; we: number | null }
 export interface PlacedMarker { id: string; kind: 'pause' | 'pauseLong' | 'emphasis' | 'tone'; tag?: string; label: string; color: string; start: number; end: number }
 
 interface Bar { x: number; w: number; h: number }
@@ -84,7 +87,7 @@ function nearestWord(words: Word[], xUnits: number): Word | null {
   }
   return best;
 }
-// fracción 0..1 → rango de chars [ws,we) (para colocar un marker desde la onda).
+// fracción 0..1 → rango de chars [ws,we) entre dos posiciones del slider.
 export function resolveRange(text: string, fracA: number, fracB: number): { ws: number; we: number } | null {
   const d = buildWave(text);
   if (!d.words.length) return null;
@@ -104,51 +107,53 @@ function charToX(words: Word[], c: number): number {
 
 const H = 120, CY = 60;
 
-export default function CadenceWave({ text, peaks, playhead = null, sel = null, markers = [], onScrub, onRemoveMarker }: {
-  text: string; peaks: number[] | null; playhead?: number | null; sel?: ScrubInfo | null; markers?: PlacedMarker[];
-  onScrub?: (info: ScrubInfo) => void; onRemoveMarker?: (id: string) => void;
+export default function CadenceWave({ text, peaks, cursor = 0, pendingStart = null, pendingColor = '#C8A24E', markers = [], onCursor, onRemoveMarker }: {
+  text: string; peaks: number[] | null; cursor?: number; pendingStart?: number | null; pendingColor?: string; markers?: PlacedMarker[];
+  onCursor?: (frac: number) => void; onRemoveMarker?: (id: string) => void;
 }) {
   const data = useMemo(() => buildWave(text), [text]);
   const ref = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
-  const anchor = useRef<Word | null>(null);
-  const anchorFrac = useRef(0);
   const real = !!(peaks && peaks.length);
 
-  const emit = (e: React.PointerEvent, isDown: boolean) => {
-    const rect = ref.current?.getBoundingClientRect(); if (!rect || !onScrub) return;
-    const frac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    if (real) { onScrub({ frac, fracStart: frac, ws: null, we: null }); return; }
-    const w = nearestWord(data.words, frac * data.width);
-    if (isDown) { anchor.current = w; anchorFrac.current = frac; }
-    const a = anchor.current;
-    if (a && w) onScrub({ frac, fracStart: anchorFrac.current, ws: Math.min(a.ws, w.ws), we: Math.max(a.we, w.we) });
-    else onScrub({ frac, fracStart: frac, ws: w ? w.ws : null, we: w ? w.we : null });
+  const emit = (e: React.PointerEvent) => {
+    const rect = ref.current?.getBoundingClientRect(); if (!rect || !onCursor) return;
+    onCursor(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
   };
-  const onDown = (e: React.PointerEvent) => { dragging.current = true; try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch { /* noop */ } emit(e, true); };
-  const onMove = (e: React.PointerEvent) => { if (dragging.current) emit(e, false); };
+  const onDown = (e: React.PointerEvent) => { dragging.current = true; try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch { /* noop */ } emit(e); };
+  const onMove = (e: React.PointerEvent) => { if (dragging.current) emit(e); };
   const onUp = (e: React.PointerEvent) => { dragging.current = false; try { (e.currentTarget as Element).releasePointerCapture(e.pointerId); } catch { /* noop */ } };
 
-  // rectángulo de la selección activa (lo que vas a marcar)
-  let selX: { x0: number; x1: number } | null = null;
-  if (!real && sel && sel.ws != null && sel.we != null && sel.we > sel.ws) {
-    selX = { x0: charToX(data.words, sel.ws), x1: charToX(data.words, sel.we) };
-  }
   const W = data.width;
+  // banda del rango que estás armando (inicio fijo → posición actual del slider)
+  const pendBand = !real && pendingStart != null
+    ? { a: Math.min(pendingStart, cursor) * (real ? 1000 : W), b: Math.max(pendingStart, cursor) * (real ? 1000 : W) }
+    : null;
 
   return (
     <div ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
-      className={`cw-root ${onScrub ? 'cw-root--scrub' : 'cw-root--static'}`}>
+      className={`cw-root ${onCursor ? 'cw-root--scrub' : 'cw-root--static'}`}>
       {real ? (
         <svg viewBox={`0 0 1000 ${H}`} preserveAspectRatio="none" className="cw-svg">
-          {peaks!.map((p, i) => { const h = Math.max(3, p * 112); const px = i * (1000 / peaks!.length); const passed = playhead != null && px / 1000 <= playhead; return <rect key={i} x={px} y={(H - h) / 2} width={Math.max(1, 1000 / peaks!.length - 1.2)} height={h} rx={1} fill="#C8A24E" opacity={passed ? 0.95 : 0.45} />; })}
+          {peaks!.map((p, i) => { const h = Math.max(3, p * 112); const px = i * (1000 / peaks!.length); const passed = px / 1000 <= cursor; return <rect key={i} x={px} y={(H - h) / 2} width={Math.max(1, 1000 / peaks!.length - 1.2)} height={h} rx={1} fill="#C8A24E" opacity={passed ? 0.95 : 0.45} />; })}
         </svg>
       ) : (
         <>
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="cw-svg">
-            {/* bandas de los markers de rango (énfasis/tono) */}
-            {markers.filter((m) => m.end > m.start).map((m) => { const a = charToX(data.words, m.start), b = charToX(data.words, m.end); return <rect key={`b${m.id}`} x={Math.min(a, b)} y={6} width={Math.max(1, Math.abs(b - a))} height={H - 12} fill={m.color} opacity={0.16} rx={3} />; })}
-            {selX && <rect x={Math.min(selX.x0, selX.x1)} y={2} width={Math.max(2, Math.abs(selX.x1 - selX.x0))} height={H - 4} fill="#ffffff" opacity={0.12} rx={2} />}
+            {/* bandas de los markers de rango (énfasis/tono) con topes de inicio y fin */}
+            {markers.filter((m) => m.end > m.start).map((m) => {
+              const a = charToX(data.words, m.start), b = charToX(data.words, m.end);
+              return (
+                <g key={`b${m.id}`}>
+                  <rect x={Math.min(a, b)} y={6} width={Math.max(1, Math.abs(b - a))} height={H - 12} fill={m.color} opacity={0.16} rx={3} />
+                  <rect x={Math.min(a, b) - 0.6} y={6} width={1.6} height={H - 12} fill={m.color} opacity={0.85} />
+                  <rect x={Math.max(a, b) - 1} y={6} width={1.6} height={H - 12} fill={m.color} opacity={0.85} />
+                </g>
+              );
+            })}
+            {/* banda del rango en construcción */}
+            {pendBand && <rect x={pendBand.a} y={4} width={Math.max(1.5, pendBand.b - pendBand.a)} height={H - 8} fill={pendingColor} opacity={0.18} rx={2} />}
+            {pendingStart != null && !real && <rect x={pendingStart * W - 0.8} y={4} width={1.8} height={H - 8} fill={pendingColor} opacity={0.95} />}
             <line x1={0} x2={W} y1={CY} y2={CY} stroke="rgba(255,255,255,0.07)" strokeWidth={0.6} />
             {data.gaps.map((g, i) => <line key={`g${i}`} x1={g} x2={g} y1={CY - 6} y2={CY + 6} stroke="rgba(255,255,255,0.28)" strokeWidth={0.8} />)}
             {data.bars.map((b, i) => <rect key={i} x={b.x} y={CY - b.h / 2} width={b.w} height={b.h} rx={1} fill="#C8A24E" opacity={0.74} />)}
@@ -166,11 +171,10 @@ export default function CadenceWave({ text, peaks, playhead = null, sel = null, 
           ))}
         </>
       )}
-      {playhead != null && (
-        <div className="cw-playhead" style={{ ['--x']: `${playhead * 100}%`, ['--ph']: real ? '#34d399' : '#C8A24E' } as React.CSSProperties}>
-          <div className="cw-playhead-cap" />
-        </div>
-      )}
+      {/* SLIDER único: arrastrable, con manija arriba. En audio real es el playhead. */}
+      <div className="cw-cursor" style={{ ['--x']: `${cursor * 100}%`, ['--ph']: real ? '#34d399' : '#C8A24E' } as React.CSSProperties}>
+        <div className="cw-cursor-grip" />
+      </div>
     </div>
   );
 }

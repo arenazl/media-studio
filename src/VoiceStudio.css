@@ -473,6 +473,15 @@
   align-items: center;
   gap: 4px;
 }
+/* botón con rango ARMADO (esperando que marques el fin): pulso para que se note */
+.vs-mk--armed {
+  box-shadow: 0 0 0 2px var(--gold), 0 0 10px color-mix(in srgb, var(--gold) 60%, transparent);
+  animation: vs-armed-pulse 1s ease-in-out infinite;
+}
+@keyframes vs-armed-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--gold), 0 0 6px color-mix(in srgb, var(--gold) 40%, transparent); }
+  50%      { box-shadow: 0 0 0 2px var(--gold), 0 0 14px color-mix(in srgb, var(--gold) 75%, transparent); }
+}
 
 .vs-wave-area {
   flex: 1;
@@ -551,6 +560,9 @@
 }
 .vs-status--real {
   color: var(--green);
+}
+.vs-status--armed {
+  color: var(--gold);
 }
 .vs-export {
   margin-left: auto;

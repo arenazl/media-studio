@@ -60,7 +60,9 @@
   background: color-mix(in srgb, var(--c) 40%, transparent);
 }
 
-.cw-playhead {
+/* SLIDER único (cursor de edición / playhead). Arrastrable: la manija de arriba
+   lo hace leer como control. La línea cruza toda la onda. */
+.cw-cursor {
   position: absolute;
   left: var(--x);
   top: 0;
@@ -69,16 +71,31 @@
   margin-left: -1px;
   background: var(--ph);
   pointer-events: none;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ph) 45%, transparent);
+  z-index: 3;
 }
 
-.cw-playhead-cap {
+.cw-cursor-grip {
   position: absolute;
-  top: -1px;
-  left: -4px;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--ph);
+  border: 2px solid var(--ink, #0E1830);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.cw-cursor-grip::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid var(--ph);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--ph);
 }
