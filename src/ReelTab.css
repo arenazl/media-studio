@@ -38,6 +38,7 @@
   background: linear-gradient(160deg, color-mix(in srgb, var(--azure) 22%, var(--ink)), var(--ink-2));
   border: 1px solid var(--bd-2);
 }
+.rt-frame-img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--r); display: block; }
 .rt-frame-lbl { font-size: 10.5px; font-weight: 700; color: var(--txt-55); }
 .rt-empty, .rt-lane-empty { font-size: 12.5px; color: var(--txt-40); padding: 14px 4px; }
 

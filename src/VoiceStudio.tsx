@@ -7,7 +7,7 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Save, Pencil } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import { NARRATION } from './data/narrationText';
@@ -90,7 +90,6 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   const [markers, setMarkers] = useState<PlacedMarker[]>([]); // CAPA de markers sobre la onda (NO toca el texto)
   const [mHist, setMHist] = useState<PlacedMarker[][]>([]);   // historial de markers para Undo
   const [sampling, setSampling] = useState(false);       // sonando el sample de una voz
-  const [saved, setSaved] = useState(false);             // toast tras Grabar
   const [editingText, setEditingText] = useState(false); // editar el guión (textarea) vs verlo pintarse (karaoke)
   const taRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -126,7 +125,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   }, []);
 
   const loadFile = (f: SourceFile) => {
-    setActiveFile(f.id); setCursor(0); setPending(null); setMHist([]); setSaved(false); setEditingText(false);
+    setActiveFile(f.id); setCursor(0); setPending(null); setMHist([]); setEditingText(false);
     // si el reel ya tiene settings guardado (Grabar), lo restauro; si no, arranca del guión.
     const vc = reelConfig?.[f.id]?.voiceConfig;
     if (vc) {
@@ -141,12 +140,9 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
     // avisar al host (ej. Munify) para que sincronice su canvas/preview.
     try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'mediastudio:file', id: f.id }, '*'); } catch { /* noop */ }
   };
-  // GRABAR: persiste el settings del reel activo (voz + cadencia + pausas + markers + texto).
-  const grabar = () => {
-    if (!activeFile || !onGrabar) return;
-    onGrabar(activeFile, { voice_id: voiceId, stability, similarity, style, speed, model, markers, text });
-    setSaved(true); window.setTimeout(() => setSaved(false), 1800);
-  };
+  // Auto-guarda el settings del reel (voz + cadencia + pausas + markers + texto) al
+  // generar — sin botón. Lo usa la solapa Reel para saber qué reel ya tiene audio.
+  const autosave = () => { if (activeFile && onGrabar) onGrabar(activeFile, { voice_id: voiceId, stability, similarity, style, speed, model, markers, text }); };
   // Mover el SLIDER: en audio real hace seek; siempre actualiza la posición del cursor.
   const onCursor = (frac: number) => {
     setCursor(frac);
@@ -239,6 +235,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
         const mx = Math.max(...pk, 0.001); setPeaks(pk.map((v) => v / mx));
       } catch { setPeaks(null); }
       const a = audioRef.current; if (a) { a.src = u; a.volume = voiceVol; a.currentTime = 0; a.play().then(() => setPlaying(true)).catch(() => {}); }
+      autosave(); // guarda el settings del reel (lo lee la solapa Reel)
     } catch (e) { setErr(e instanceof Error ? e.message : 'error'); } finally { setBusy(false); }
   };
   const toggle = () => { const a = audioRef.current; if (!a || !url) return; if (a.paused) { a.play(); setPlaying(true); } else { a.pause(); setPlaying(false); } };
@@ -391,11 +388,6 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
         <button onClick={generate} disabled={busy} className="vs-generate">
           <Mic size={15} /> {busy ? 'Generando…' : 'Generar voz'}
         </button>
-        {onGrabar && (
-          <button onClick={grabar} disabled={!activeFile} className={saved ? 'vs-grabar vs-grabar--saved' : 'vs-grabar'} title="Guardar el settings de este reel (voz + cadencia + pausas + markers + texto)">
-            <Save size={14} /> {saved ? 'Guardado ✓' : 'Grabar reel'}
-          </button>
-        )}
         {err && <span className="vs-error">error: {err}</span>}
       </div>
     ),

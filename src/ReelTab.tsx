@@ -4,19 +4,29 @@
 //    en 2 líneas de tiempo (track Slides + track Audio). Cada slide se alinea
 //    con su frase de audio → acá empieza el montaje de slides. (El cortar/
 //    arrastrar los clips es el próximo paso; por ahora el layout.)
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Wand2, Clapperboard, Film, AudioLines, Scissors, GripVertical } from 'lucide-react';
 import VideoPromptBuilder from './VideoPromptBuilder';
+import { extractFrames } from './lib/videoFrames';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
 
 export default function ReelTab({ project }: { project: Project }) {
   const [tab, setTab] = useState<'prompt' | 'editar'>('prompt');
   const [reelId, setReelId] = useState<string | null>(project.reels[0]?.id ?? null);
+  const [frames, setFrames] = useState<string[]>([]);   // thumbnails reales del boceto
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
   const grabado = !!reel?.voiceConfig?.voice_id;       // ya tiene audio de la solapa Audio
   const n = reel?.frases ?? 0;
   const slides = Array.from({ length: n }, (_, i) => i);
+
+  // saca N frames del boceto (slidesRef) para mostrar los slides reales como imágenes.
+  useEffect(() => {
+    let alive = true;
+    setFrames([]);
+    if (reel?.slidesRef && n > 0) extractFrames(reel.slidesRef, n).then((f) => { if (alive) setFrames(f); });
+    return () => { alive = false; };
+  }, [reel?.slidesRef, n]);
 
   return (
     <div className="rt-root">
@@ -47,7 +57,9 @@ export default function ReelTab({ project }: { project: Project }) {
             <div className="rt-frames">
               {slides.map((i) => (
                 <div key={i} className="rt-frame">
-                  <div className="rt-frame-thumb"><Film size={20} /></div>
+                  <div className="rt-frame-thumb">
+                    {frames[i] ? <img src={frames[i]} alt={`Slide ${i + 1}`} className="rt-frame-img" /> : <Film size={20} />}
+                  </div>
                   <span className="rt-frame-lbl">Slide {i + 1}</span>
                 </div>
               ))}
