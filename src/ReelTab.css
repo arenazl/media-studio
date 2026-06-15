@@ -125,13 +125,21 @@
 .rt-lane-empty { font-size: 11px; color: var(--txt-40); padding: 12px 10px; }
 
 .rt-clip {
-  position: absolute; left: var(--x, 0); top: 4px; width: 112px; height: 34px;
+  position: absolute; left: var(--x, 0); top: 4px; width: var(--w, 112px); height: 34px;
   display: flex; align-items: center; gap: 5px;
   font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden;
-  border-radius: var(--r-sm); padding: 0 5px 0 8px; user-select: none;
+  border-radius: var(--r-sm); padding: 0 9px; user-select: none;
   cursor: grab; touch-action: none;       /* pointer-drag sin scrollear en touch */
 }
 .rt-clip:active { cursor: grabbing; }
+/* handles de resize: barritas en inicio (izq) y fin (der) */
+.rt-clip-h {
+  position: absolute; top: 0; bottom: 0; width: 9px; cursor: ew-resize; touch-action: none; z-index: 3;
+}
+.rt-clip-h::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 14px; border-radius: 2px; background: rgba(0,0,0,0.35); }
+.rt-clip--video .rt-clip-h::after { background: rgba(255,255,255,0.5); }
+.rt-clip-h--l { left: 0; }
+.rt-clip-h--r { right: 0; }
 .rt-clip--slide { color: var(--ink); background: color-mix(in srgb, var(--azure) 80%, white); }
 .rt-clip--active { box-shadow: 0 0 0 2px var(--gold), 0 0 10px color-mix(in srgb, var(--gold) 55%, transparent); z-index: 2; }
 .rt-clip--music { color: var(--ink); background: color-mix(in srgb, var(--violet) 78%, white); }

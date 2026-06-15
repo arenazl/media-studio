@@ -13,11 +13,12 @@ import { prettyVid, thumbOf, type CloudVid } from './lib/cloudVideos';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
 
-const CLIP_W = 112, GAP = 6;   // ancho del clip + separación inicial
+const CLIP_W = 112, GAP = 6, MIN_W = 36;   // ancho inicial + separación + ancho mínimo
 type TrackKind = 'slide' | 'video' | 'music' | 'audio';
-interface SlideClip { s: number; x: number }
-interface RefClip { id: string; x: number }
-interface PhraseClip { p: number; x: number }
+type DragMode = 'move' | 'l' | 'r';        // mover · resize inicio · resize fin
+interface SlideClip { s: number; x: number; w: number }
+interface RefClip { id: string; x: number; w: number }
+interface PhraseClip { p: number; x: number; w: number }
 
 export default function ReelEditor({ project, audioByReel = {}, videos, videosLoading = false }: {
   project: Project; audioByReel?: Record<string, string>; videos?: CloudVid[]; videosLoading?: boolean;
@@ -38,7 +39,7 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
   const startRef = useRef(0);
   const musicAudioRef = useRef<HTMLAudioElement>(null);
   const voiceRef = useRef<HTMLAudioElement>(null);
-  const drag = useRef<{ kind: TrackKind; idx: number; grabDX: number; laneLeft: number; laneW: number; clipW: number } | null>(null);
+  const drag = useRef<{ kind: TrackKind; idx: number; mode: DragMode; startX: number; laneW: number; x0: number; w0: number } | null>(null);
 
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
   const n = reel?.frases ?? 0;
@@ -58,8 +59,8 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
 
   useEffect(() => {
     let alive = true; setFrames([]);
-    setSlideTrack(slides.map((s, i) => ({ s, x: i * (CLIP_W + GAP) })));
-    setAudioTrack(phrases.map((_, i) => ({ p: i, x: i * (CLIP_W + GAP) })));
+    setSlideTrack(slides.map((s, i) => ({ s, x: i * (CLIP_W + GAP), w: CLIP_W })));
+    setAudioTrack(phrases.map((_, i) => ({ p: i, x: i * (CLIP_W + GAP), w: CLIP_W })));
     setMusicTrack([]); setVideoTrack([]); stopPlay();
     if (reel?.slidesRef && n > 0) extractFrames(reel.slidesRef, n).then((f) => { if (alive) setFrames(f); });
     return () => { alive = false; };
@@ -102,34 +103,45 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
 
   // ── agregar al track (TAP) — el nuevo clip se ubica al final de su track ────
   const nextX = (len: number) => len * (CLIP_W + GAP);
-  const addSlide = (i: number) => setSlideTrack((t) => [...t, { s: i, x: nextX(t.length) }]);
-  const addPhrase = (i: number) => setAudioTrack((t) => [...t, { p: i, x: nextX(t.length) }]);
-  const addMusic = (id: string) => setMusicTrack((t) => [...t, { id, x: nextX(t.length) }]);
-  const addVideo = (id: string) => setVideoTrack((t) => [...t, { id, x: nextX(t.length) }]);
-  const addSelected = () => { setVideoTrack((t) => [...t, ...Array.from(selVids).map((id, k) => ({ id, x: nextX(t.length + k) }))]); setSelVids(new Set()); };
+  const addSlide = (i: number) => setSlideTrack((t) => [...t, { s: i, x: nextX(t.length), w: CLIP_W }]);
+  const addPhrase = (i: number) => setAudioTrack((t) => [...t, { p: i, x: nextX(t.length), w: CLIP_W }]);
+  const addMusic = (id: string) => setMusicTrack((t) => [...t, { id, x: nextX(t.length), w: CLIP_W }]);
+  const addVideo = (id: string) => setVideoTrack((t) => [...t, { id, x: nextX(t.length), w: CLIP_W }]);
+  const addSelected = () => { setVideoTrack((t) => [...t, ...Array.from(selVids).map((id, k) => ({ id, x: nextX(t.length + k), w: CLIP_W }))]); setSelVids(new Set()); };
 
   const removeAt = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>, k: number) => setter((arr) => arr.filter((_, j) => j !== k));
 
-  // ── mover LIBRE en horizontal (pointer events → touch + mouse) ─────────────
-  const onClipDown = (e: React.PointerEvent, kind: TrackKind, idx: number) => {
-    const clip = e.currentTarget as HTMLElement;
-    const lane = clip.parentElement as HTMLElement;
-    const laneRect = lane.getBoundingClientRect();
-    const clipRect = clip.getBoundingClientRect();
-    drag.current = { kind, idx, grabDX: e.clientX - clipRect.left, laneLeft: laneRect.left, laneW: laneRect.width, clipW: clipRect.width };
-    try { clip.setPointerCapture(e.pointerId); } catch { /* noop */ }
+  // ── mover LIBRE + RESIZE (inicio/fin) con pointer events (touch + mouse) ────
+  const setClip = (kind: TrackKind, idx: number, x: number, w: number) => {
+    const upd = <T extends { x: number; w: number }>(arr: T[]) => arr.map((c, i) => (i === idx ? { ...c, x, w } : c));
+    if (kind === 'slide') setSlideTrack(upd); else if (kind === 'video') setVideoTrack(upd);
+    else if (kind === 'music') setMusicTrack(upd); else setAudioTrack(upd);
   };
-  const onClipMove = (e: React.PointerEvent) => {
+  const onPtrDown = (e: React.PointerEvent, kind: TrackKind, idx: number, mode: DragMode, x0: number, w0: number) => {
+    e.stopPropagation();
+    const el = e.currentTarget as HTMLElement;
+    const lane = el.closest('.rt-lane') as HTMLElement;
+    drag.current = { kind, idx, mode, startX: e.clientX, laneW: lane?.getBoundingClientRect().width ?? 0, x0, w0 };
+    try { el.setPointerCapture(e.pointerId); } catch { /* noop */ }
+  };
+  const onPtrMove = (e: React.PointerEvent) => {
     const d = drag.current; if (!d) return;
-    const x = Math.max(0, Math.min(Math.max(0, d.laneW - d.clipW), e.clientX - d.laneLeft - d.grabDX));
-    const upd = <T extends { x: number }>(arr: T[]) => arr.map((c, i) => (i === d.idx ? { ...c, x } : c));
-    if (d.kind === 'slide') setSlideTrack(upd); else if (d.kind === 'video') setVideoTrack(upd);
-    else if (d.kind === 'music') setMusicTrack(upd); else setAudioTrack(upd);
+    const dx = e.clientX - d.startX;
+    let x = d.x0, w = d.w0;
+    if (d.mode === 'move') x = Math.max(0, Math.min(d.laneW - d.w0, d.x0 + dx));
+    else if (d.mode === 'r') w = Math.max(MIN_W, Math.min(d.laneW - d.x0, d.w0 + dx));   // fin
+    else { const right = d.x0 + d.w0; x = Math.max(0, Math.min(right - MIN_W, d.x0 + dx)); w = right - x; } // inicio
+    setClip(d.kind, d.idx, x, w);
   };
-  const onClipUp = (e: React.PointerEvent) => { drag.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* noop */ } };
+  const onPtrUp = (e: React.PointerEvent) => { drag.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* noop */ } };
   const labelOf = (id: string) => MUSIC_TRACKS.find((m) => m.id === id)?.label || id;
-  const xStyle = (x: number) => ({ ['--x']: `${x}px` } as React.CSSProperties);
+  const xwStyle = (x: number, w: number) => ({ ['--x']: `${x}px`, ['--w']: `${w}px` } as React.CSSProperties);
   const stopPd = (e: React.PointerEvent) => e.stopPropagation();
+  // handles de resize (inicio/fin) — se renderizan dentro de cada clip.
+  const handles = (kind: TrackKind, idx: number, x: number, w: number) => (<>
+    <span className="rt-clip-h rt-clip-h--l" onPointerDown={(e) => onPtrDown(e, kind, idx, 'l', x, w)} onPointerMove={onPtrMove} onPointerUp={onPtrUp} />
+    <span className="rt-clip-h rt-clip-h--r" onPointerDown={(e) => onPtrDown(e, kind, idx, 'r', x, w)} onPointerMove={onPtrMove} onPointerUp={onPtrUp} />
+  </>);
 
   return (
     <div className="rt-shell">
@@ -238,8 +250,9 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
               <span className="rt-track-name"><Film size={12} /> Slides</span>
               <div className="rt-lane rt-lane--free">
                 {slideTrack.length ? slideTrack.map((c, k) => (
-                  <div key={k} className={c.s === activeS ? 'rt-clip rt-clip--slide rt-clip--active' : 'rt-clip rt-clip--slide'} style={xStyle(c.x)}
-                    onPointerDown={(e) => onClipDown(e, 'slide', k)} onPointerMove={onClipMove} onPointerUp={onClipUp}>
+                  <div key={k} className={c.s === activeS ? 'rt-clip rt-clip--slide rt-clip--active' : 'rt-clip rt-clip--slide'} style={xwStyle(c.x, c.w)}
+                    onPointerDown={(e) => onPtrDown(e, 'slide', k, 'move', c.x, c.w)} onPointerMove={onPtrMove} onPointerUp={onPtrUp}>
+                    {handles('slide', k, c.x, c.w)}
                     {frames[c.s] && <img src={frames[c.s]} alt="" className="rt-clip-thumb" />} S{c.s + 1}
                     <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setSlideTrack, k)}><X size={10} /></button>
                   </div>
@@ -254,8 +267,9 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
                   {videoTrack.length ? videoTrack.map((c, k) => {
                     const v = vidById(c.id);
                     return (
-                      <div key={k} className="rt-clip rt-clip--video" style={xStyle(c.x)}
-                        onPointerDown={(e) => onClipDown(e, 'video', k)} onPointerMove={onClipMove} onPointerUp={onClipUp}>
+                      <div key={k} className="rt-clip rt-clip--video" style={xwStyle(c.x, c.w)}
+                        onPointerDown={(e) => onPtrDown(e, 'video', k, 'move', c.x, c.w)} onPointerMove={onPtrMove} onPointerUp={onPtrUp}>
+                        {handles('video', k, c.x, c.w)}
                         {v && <img src={thumbOf(v)} alt="" className="rt-clip-thumb" onError={(e) => e.currentTarget.classList.add('rt-gal-img--broken')} />}
                         {v ? prettyVid(v.name).slice(0, 9) : 'video'}
                         <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setVideoTrack, k)}><X size={10} /></button>
@@ -270,8 +284,9 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
               <span className="rt-track-name"><Music2 size={12} /> Música</span>
               <div className="rt-lane rt-lane--free">
                 {musicTrack.length ? musicTrack.map((c, k) => (
-                  <div key={k} className="rt-clip rt-clip--music" style={xStyle(c.x)}
-                    onPointerDown={(e) => onClipDown(e, 'music', k)} onPointerMove={onClipMove} onPointerUp={onClipUp}>
+                  <div key={k} className="rt-clip rt-clip--music" style={xwStyle(c.x, c.w)}
+                    onPointerDown={(e) => onPtrDown(e, 'music', k, 'move', c.x, c.w)} onPointerMove={onPtrMove} onPointerUp={onPtrUp}>
+                    {handles('music', k, c.x, c.w)}
                     {labelOf(c.id)}
                     <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setMusicTrack, k)}><X size={10} /></button>
                   </div>
@@ -283,8 +298,9 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
               <span className="rt-track-name"><AudioLines size={12} /> Audio</span>
               <div className="rt-lane rt-lane--free">
                 {audioTrack.length ? audioTrack.map((c, k) => (
-                  <div key={k} className="rt-clip rt-clip--audio" style={xStyle(c.x)} title={phrases[c.p]}
-                    onPointerDown={(e) => onClipDown(e, 'audio', k)} onPointerMove={onClipMove} onPointerUp={onClipUp}>
+                  <div key={k} className="rt-clip rt-clip--audio" style={xwStyle(c.x, c.w)} title={phrases[c.p]}
+                    onPointerDown={(e) => onPtrDown(e, 'audio', k, 'move', c.x, c.w)} onPointerMove={onPtrMove} onPointerUp={onPtrUp}>
+                    {handles('audio', k, c.x, c.w)}
                     frase {c.p + 1}
                     <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setAudioTrack, k)}><X size={10} /></button>
                   </div>
