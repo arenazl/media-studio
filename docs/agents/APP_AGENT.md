@@ -122,11 +122,15 @@ La fuente editable de los reels de Munify vive en el repo `sugerenciasMun`:
 - **Botón "Grabar"** — persiste un **settings por reel**: voz + cadencia + pausas + markers + a qué texto está asociado. El user lo sigue editando. (vía `/api/projects` o `/api/apps`).
 - **Preview como tab en el panel TEXTO** — si el proyecto ya tiene boceto, un tab en el mismo lugar de TEXTO muestra el **preview** (modal que aparece/desaparece).
 
-### Orden de construcción (APP)
-1. Sidebar colapsable + **ABM de Proyectos** (Munify precargado + reels base listados).
-2. Crear proyecto + "adjuntar reels base".
-3. Botón **Grabar** (settings por reel).
-4. Tab **Preview** en TEXTO.
+### Orden de construcción (APP) — COMPLETO ✅
+1. ✅ Sidebar colapsable + **ABM de Proyectos** (Munify precargado + reels base listados).
+2. ✅ Crear proyecto + "adjuntar reels base".
+3. ✅ Botón **Grabar** (settings por reel) — persiste en `data.reels[].voiceConfig` (localStorage-first).
+4. ✅ Tab **Preview** en TEXTO — reproduce el boceto `slidesRef` del reel.
+
+> Próximo (cuando INFRA confirme `/api/projects` vivo): migrar el store
+> localStorage-first a leer/escribir contra el backend, y traer los bocetos/assets
+> desde Cloudinary (`media-studio/{projId}/`) en vez de `public/bocetos/`.
 
 ---
 
@@ -147,7 +151,8 @@ La fuente editable de los reels de Munify vive en el repo `sugerenciasMun`:
 
 | Fecha | Cambio | Archivos tocados |
 |-------|--------|-----------------|
-| 2026-06-14 | **Multi-tenant paso 1+2:** **sidebar colapsable** + **ABM de Proyectos** (1ª pantalla) con **Munify precargado** + sus reels base como **menú colapsable** en el sidebar. Crear/editar (panel lateral, opción "adjuntar reels base de Munify") + borrar (confirm). Dentro del proyecto: secciones Audio/Reel/Videos/Montaje/Export. Store **localStorage-first** (`lib/projects.ts`) hasta que INFRA defina el esquema por-proyecto en `/api/projects`. Falta: botón **Grabar** (settings por reel) + tab **Preview** en TEXTO. | `App.tsx/.css`, `Sidebar.tsx/.css`, `ProjectsABM.tsx/.css`, `lib/projects.ts` |
+| 2026-06-14 | **Multi-tenant paso 3+4 (cierra el plan):** botón **Grabar reel** (persiste settings por reel = voz+cadencia+pausas+markers+texto en `data.reels[].voiceConfig`, store localStorage-first; al recargar el reel `loadFile` restaura el settings) + tab **PREVIEW** en el panel TEXTO (reproduce el boceto `slidesRef` del reel). `App.tsx` cablea `reelConfig`+`onGrabar` a `VoiceStudio` vía `saveProject`. Bonus: card de `ProjectsABM` pasa de `<button>` a `<div role=button>` (saca warning DOM nesting) + focus-visible. 5 bocetos de Munify en `public/bocetos/`. **Verificado con Playwright** (Grabar→"Guardado", PREVIEW reproduce el slide). | `App.tsx`, `VoiceStudio.tsx/.css`, `ProjectsABM.tsx/.css`, `lib/projects.ts`, `public/bocetos/*.mp4` |
+| 2026-06-14 | **Multi-tenant paso 1+2:** **sidebar colapsable** + **ABM de Proyectos** (1ª pantalla) con **Munify precargado** + sus reels base como **menú colapsable** en el sidebar. Crear/editar (panel lateral, opción "adjuntar reels base de Munify") + borrar (confirm). Dentro del proyecto: secciones Audio/Reel/Videos/Montaje/Export. Store **localStorage-first** (`lib/projects.ts`) hasta que INFRA defina el esquema por-proyecto en `/api/projects`. | `App.tsx/.css`, `Sidebar.tsx/.css`, `ProjectsABM.tsx/.css`, `lib/projects.ts` |
 | 2026-06-14 | **Editor de voz — modelo markers como CAPA** sobre la waveform (el texto queda INTACTO, solo guión + `, ? !`). Colocar por click/arrastre, borrar (×), Undo, Limpiar. Pausas escritas en el texto (`...` / espacios) → `<break>` exacto al generar. | `CadenceWave.tsx/.css`, `VoiceStudio.tsx` |
 | 2026-06-14 | **Refactor a CSS con tokens** (cero estilos inline; solo CSS vars + clases + media queries). Layout **fluido/responsive**: desktop llena viewport sin scroll, mobile apila (bp 860). | `styles/tokens.css`, `App.css`, `VoiceStudio.css`, `CadenceWave.css`, `StageTab.css`, `VideosTab.css` |
 | 2026-06-14 | **VoiceStudio extras:** 4 presets de voz, sample al clickear voz (`preview_url`), botonera rebobinar/play/**stop**, **Enter** = play/pausa fuera del textarea. | `VoiceStudio.tsx/.css` |
