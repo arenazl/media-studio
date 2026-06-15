@@ -16,6 +16,7 @@ export default function ReelTab({ project }: { project: Project }) {
   const [reelId, setReelId] = useState<string | null>(project.reels[0]?.id ?? null);
   const [frames, setFrames] = useState<string[]>([]);       // thumbnails reales del boceto
   const [slideTrack, setSlideTrack] = useState<number[]>([]); // slides colocados en el track
+  const [audioTrack, setAudioTrack] = useState<number[]>([]); // frases colocadas en el track
   const [musicTrack, setMusicTrack] = useState<string[]>([]); // música colocada en el track
   const [over, setOver] = useState<string | null>(null);      // track resaltado al arrastrar
   const [playing, setPlaying] = useState(false);
@@ -35,9 +36,9 @@ export default function ReelTab({ project }: { project: Project }) {
   const totalMs = Math.max(1, slideTrack.length) * SLIDE_SEC * 1000;
   const activeSlide = playing || playFrac > 0 ? Math.min(slideTrack.length - 1, Math.floor(playFrac * slideTrack.length)) : -1;
 
-  // frames reales del boceto + arranca el track de slides con todos en orden.
+  // frames reales del boceto + arranca los tracks con el reel armado (slides + frases en orden).
   useEffect(() => {
-    let alive = true; setFrames([]); setSlideTrack(slides); setMusicTrack([]); stopPlay();
+    let alive = true; setFrames([]); setSlideTrack(slides); setAudioTrack(phrases.map((_, i) => i)); setMusicTrack([]); stopPlay();
     if (reel?.slidesRef && n > 0) extractFrames(reel.slidesRef, n).then((f) => { if (alive) setFrames(f); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,18 +65,20 @@ export default function ReelTab({ project }: { project: Project }) {
   const pause = () => { setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); musicAudioRef.current?.pause(); };
   function stopPlay() { setPlaying(false); setPlayFrac(0); if (rafRef.current) cancelAnimationFrame(rafRef.current); const m = musicAudioRef.current; if (m) { m.pause(); m.currentTime = 0; } }
 
-  // ── drag & drop (HTML5) ───────────────────────────────────────────────────
+  // agregar al track (TAP — anda en touch y mouse). El drag es bonus en desktop.
+  const addSlide = (i: number) => setSlideTrack((t) => [...t, i]);
+  const addPhrase = (i: number) => setAudioTrack((t) => [...t, i]);
+  const addMusic = (id: string) => setMusicTrack((t) => (t.includes(id) ? t : [...t, id]));
+
+  // ── drag & drop (HTML5, solo desktop) — el camino confiable es el TAP de arriba ──
   const setPayload = (e: React.DragEvent, v: string) => { e.dataTransfer.setData('text/plain', v); e.dataTransfer.effectAllowed = 'copyMove'; };
   const allow = (e: React.DragEvent, track: string) => { e.preventDefault(); setOver(track); };
-  const dropSlide = (e: React.DragEvent) => {
+  const onDrop = (e: React.DragEvent) => {
     e.preventDefault(); setOver(null);
     const d = e.dataTransfer.getData('text/plain');
-    if (d.startsWith('slide:')) setSlideTrack((t) => [...t, Number(d.slice(6))]);
-  };
-  const dropMusic = (e: React.DragEvent) => {
-    e.preventDefault(); setOver(null);
-    const d = e.dataTransfer.getData('text/plain');
-    if (d.startsWith('music:')) { const id = d.slice(6); setMusicTrack((t) => (t.includes(id) ? t : [...t, id])); }
+    if (d.startsWith('slide:')) addSlide(Number(d.slice(6)));
+    else if (d.startsWith('phrase:')) addPhrase(Number(d.slice(7)));
+    else if (d.startsWith('music:')) addMusic(d.slice(6));
   };
   const labelOf = (id: string) => MUSIC_TRACKS.find((m) => m.id === id)?.label || id;
 
@@ -98,25 +101,37 @@ export default function ReelTab({ project }: { project: Project }) {
         <div className="rt-empty">Este reel todavía no tiene slides. Cargalos/generalos y aparecen acá para editar.</div>
       ) : (
         <div className="rt-editor">
-          {/* PALETA: slides reales (arrastrables) */}
+          {/* PALETA: slides reales (tocá para agregar; arrastrar = bonus desktop) */}
           <div className="rt-palette">
-            <div className="rt-palette-head"><Film size={12} /> Slides — arrastralos a la línea de tiempo</div>
+            <div className="rt-palette-head"><Film size={12} /> Slides — tocá uno para sumarlo al track (o arrastralo)</div>
             <div className="rt-frames">
               {slides.map((i) => (
-                <div key={i} className="rt-frame" draggable onDragStart={(e) => setPayload(e, `slide:${i}`)}>
+                <button key={i} type="button" className="rt-frame" draggable onClick={() => addSlide(i)} onDragStart={(e) => setPayload(e, `slide:${i}`)}>
                   <div className="rt-frame-thumb">{frames[i] ? <img src={frames[i]} alt={`Slide ${i + 1}`} className="rt-frame-img" /> : <Film size={18} />}</div>
                   <span className="rt-frame-lbl">Slide {i + 1}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* PALETA: música (chips arrastrables) */}
+          {/* PALETA: narración (frases) — tocá para sumar al track Audio */}
+          {phrases.length > 0 && (
+            <div className="rt-palette">
+              <div className="rt-palette-head"><AudioLines size={12} /> Narración — tocá una frase para sumarla al track Audio</div>
+              <div className="rt-music-chips">
+                {phrases.map((p, i) => (
+                  <button key={i} type="button" className="rt-pchip" draggable title={p} onClick={() => addPhrase(i)} onDragStart={(e) => setPayload(e, `phrase:${i}`)}>frase {i + 1}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* PALETA: música — tocá para sumar al track Música */}
           <div className="rt-palette">
-            <div className="rt-palette-head"><Music2 size={12} /> Música — arrastrala al track de música</div>
+            <div className="rt-palette-head"><Music2 size={12} /> Música — tocá una para sumarla al track</div>
             <div className="rt-music-chips">
               {MUSIC_TRACKS.map((m) => (
-                <div key={m.id} className="rt-mchip" draggable onDragStart={(e) => setPayload(e, `music:${m.id}`)}><GripVertical size={10} /> {m.label}</div>
+                <button key={m.id} type="button" className="rt-mchip" draggable onClick={() => addMusic(m.id)} onDragStart={(e) => setPayload(e, `music:${m.id}`)}><GripVertical size={10} /> {m.label}</button>
               ))}
             </div>
           </div>
@@ -147,37 +162,39 @@ export default function ReelTab({ project }: { project: Project }) {
           <div className="rt-timeline">
             <div className="rt-track">
               <span className="rt-track-name"><Film size={12} /> Slides</span>
-              <div className={over === 'slides' ? 'rt-lane rt-lane--over' : 'rt-lane'} onDragOver={(e) => allow(e, 'slides')} onDragLeave={() => setOver(null)} onDrop={dropSlide}>
+              <div className={over === 'slides' ? 'rt-lane rt-lane--over' : 'rt-lane'} onDragOver={(e) => allow(e, 'slides')} onDragLeave={() => setOver(null)} onDrop={onDrop}>
                 {slideTrack.length ? slideTrack.map((s, k) => (
                   <div key={k} className={k === activeSlide ? 'rt-clip rt-clip--slide rt-clip--active' : 'rt-clip rt-clip--slide'}>
                     {frames[s] && <img src={frames[s]} alt="" className="rt-clip-thumb" />} S{s + 1}
                     <button className="rt-clip-x" onClick={() => setSlideTrack((t) => t.filter((_, j) => j !== k))}><X size={10} /></button>
                   </div>
-                )) : <div className="rt-lane-empty">Arrastrá slides acá.</div>}
+                )) : <div className="rt-lane-empty">Tocá un slide de arriba para sumarlo.</div>}
               </div>
             </div>
 
             <div className="rt-track">
               <span className="rt-track-name"><Music2 size={12} /> Música</span>
-              <div className={over === 'music' ? 'rt-lane rt-lane--over' : 'rt-lane'} onDragOver={(e) => allow(e, 'music')} onDragLeave={() => setOver(null)} onDrop={dropMusic}>
+              <div className={over === 'music' ? 'rt-lane rt-lane--over' : 'rt-lane'} onDragOver={(e) => allow(e, 'music')} onDragLeave={() => setOver(null)} onDrop={onDrop}>
                 {musicTrack.length ? musicTrack.map((id, k) => (
                   <div key={k} className="rt-clip rt-clip--music">{labelOf(id)}
                     <button className="rt-clip-x" onClick={() => setMusicTrack((t) => t.filter((_, j) => j !== k))}><X size={10} /></button>
                   </div>
-                )) : <div className="rt-lane-empty">Arrastrá una música acá.</div>}
+                )) : <div className="rt-lane-empty">Tocá una música de arriba para sumarla.</div>}
               </div>
             </div>
 
             <div className="rt-track">
               <span className="rt-track-name"><AudioLines size={12} /> Audio</span>
-              <div className="rt-lane">
-                {phrases.length ? phrases.map((p, i) => (
-                  <div key={i} className="rt-clip rt-clip--audio" title={p}>frase {i + 1}</div>
-                )) : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>}
+              <div className={over === 'audio' ? 'rt-lane rt-lane--over' : 'rt-lane'} onDragOver={(e) => allow(e, 'audio')} onDragLeave={() => setOver(null)} onDrop={onDrop}>
+                {audioTrack.length ? audioTrack.map((p, k) => (
+                  <div key={k} className="rt-clip rt-clip--audio" title={phrases[p]}>frase {p + 1}
+                    <button className="rt-clip-x" onClick={() => setAudioTrack((t) => t.filter((_, j) => j !== k))}><X size={10} /></button>
+                  </div>
+                )) : <div className="rt-lane-empty">Tocá una frase de arriba para sumarla.</div>}
               </div>
             </div>
 
-            <div className="rt-hint">Arrastrás slides y música a sus tracks; el audio sale de la narración. Próximo: cortar/alinear los clips + transiciones.</div>
+            <div className="rt-hint">Tocá un slide, frase o música para sumarlo a su track (en desktop también podés arrastrar). La × saca el clip. Próximo: cortar/alinear + transiciones.</div>
           </div>
         </div>
       )}

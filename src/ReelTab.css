@@ -22,8 +22,8 @@
 .rt-palette-head { display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--txt-50); }
 
 .rt-frames { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
-.rt-frame { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: grab; }
-.rt-frame:active { cursor: grabbing; }
+.rt-frame { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; background: none; border: none; padding: 0; font: inherit; color: inherit; }
+.rt-frame:hover .rt-frame-thumb { border-color: var(--gold); }
 .rt-frame-thumb {
   width: 72px; height: 128px;   /* 9:16 */
   display: flex; align-items: center; justify-content: center;
@@ -34,15 +34,22 @@
 .rt-frame-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rt-frame-lbl { font-size: 10px; font-weight: 700; color: var(--txt-55); }
 
-/* chips de música */
+/* chips de música + narración (paletas) */
 .rt-music-chips { display: flex; gap: 7px; flex-wrap: wrap; }
 .rt-mchip {
-  cursor: grab; display: flex; align-items: center; gap: 4px;
+  cursor: pointer; display: flex; align-items: center; gap: 4px; font: inherit;
   font-size: 11.5px; font-weight: 700; color: var(--txt-70);
   background: color-mix(in srgb, var(--violet) 16%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--violet) 32%, transparent);
   border-radius: var(--pill); padding: 5px 11px;
 }
-.rt-mchip:active { cursor: grabbing; }
+.rt-mchip:hover { border-color: var(--violet); color: var(--txt); }
+.rt-pchip {
+  cursor: pointer; display: flex; align-items: center; gap: 4px; font: inherit;
+  font-size: 11.5px; font-weight: 700; color: var(--txt-70);
+  background: color-mix(in srgb, var(--gold) 14%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--gold) 34%, transparent);
+  border-radius: var(--pill); padding: 5px 11px;
+}
+.rt-pchip:hover { border-color: var(--gold); color: var(--txt); }
 
 /* stage: preview del slide activo + waveform/transporte */
 .rt-stage { display: flex; gap: 12px; align-items: stretch; }
