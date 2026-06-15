@@ -77,6 +77,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);           // avance de reproducción (0..1) para el playhead
   const [pick, setPick] = useState<ScrubInfo | null>(null); // punto marcado en la onda sintética
+  const [voiceVol, setVoiceVol] = useState(1.0);
   const [track, setTrack] = useState<string | null>(null);
   const [musicVol, setMusicVol] = useState(0.7);
   const [musicOn, setMusicOn] = useState(false);
@@ -230,7 +231,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
         for (let i = 0; i < N; i++) { let m = 0; for (let j = 0; j < step; j++) { const v = Math.abs(ch[i * step + j] || 0); if (v > m) m = v; } pk.push(m); }
         const mx = Math.max(...pk, 0.001); setPeaks(pk.map((v) => v / mx));
       } catch { setPeaks(null); }
-      const a = audioRef.current; if (a) { a.src = u; a.currentTime = 0; a.play().then(() => setPlaying(true)).catch(() => {}); }
+      const a = audioRef.current; if (a) { a.src = u; a.volume = voiceVol; a.currentTime = 0; a.play().then(() => setPlaying(true)).catch(() => {}); }
     } catch (e) { setErr(e instanceof Error ? e.message : 'error'); } finally { setBusy(false); }
   };
   const toggle = () => { const a = audioRef.current; if (!a || !url) return; if (a.paused) { a.play(); setPlaying(true); } else { a.pause(); setPlaying(false); } };
@@ -374,6 +375,7 @@ export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps =
           <Slider label="Similitud" val={similarity} set={setSimilarity} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
           <Slider label="Estilo" val={style} set={setStyle} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
           <Slider label="Cadencia" val={speed} set={setSpeed} min={0.7} max={1.2} step={0.05} hint="0.7 lento — 1.2 rápido" fmt={(v) => `${v.toFixed(2)}×`} />
+          <Slider label="Volumen voz" val={voiceVol} set={(v) => { setVoiceVol(v); const a = audioRef.current; if (a) a.volume = v; }} min={0} max={1} step={0.05} hint="volumen de reproducción local" fmt={(v) => `${Math.round(v * 100)}%`} />
           <label className="vs-check">
             <input type="checkbox" checked={boost} onChange={(e) => setBoost(e.target.checked)} className="vs-check-box" /> Speaker boost
           </label>

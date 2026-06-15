@@ -1,35 +1,44 @@
 /* Sidebar colapsable — tokens en styles/tokens.css */
+
 .ms-side {
   flex: 0 0 220px;
   display: flex;
   flex-direction: column;
-  background: var(--ink-2);
-  border-right: 1px solid var(--bd);
-  padding: 14px 10px;
-  gap: 6px;
+  background: linear-gradient(180deg, #19233d 0%, #111929 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0;
   overflow-y: auto;
-  transition: flex-basis 160ms ease;
+  overflow-x: hidden;
+  transition: flex-basis 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
 }
-.ms-side--collapsed { flex-basis: 60px; }
+.ms-side--collapsed { flex-basis: 58px; }
 
+/* Top: brand */
 .ms-side-top {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 2px 4px 10px;
-  border-bottom: 1px solid var(--bd);
-  margin-bottom: 6px;
+  padding: 18px 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .ms-side-mark { color: var(--gold); flex: 0 0 auto; }
 .ms-side-brand {
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 17px;
   letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #fff 0%, var(--gold-soft) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
 }
+
 .ms-side-toggle {
   margin-left: auto;
+  flex-shrink: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -37,13 +46,22 @@
   width: 22px;
   height: 22px;
   border-radius: var(--r-sm);
-  border: 1px solid var(--bd-3);
-  background: var(--surface-3);
-  color: var(--txt-70);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--txt-40);
+  transition: color 120ms, background 120ms;
 }
+.ms-side-toggle:hover { color: var(--txt-70); background: rgba(255, 255, 255, 0.08); }
 .ms-side--collapsed .ms-side-toggle { margin-left: 0; }
 
-.ms-side-nav { display: flex; flex-direction: column; gap: 3px; }
+/* Nav */
+.ms-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  flex: 1;
+}
 
 .ms-side-link {
   cursor: pointer;
@@ -52,64 +70,100 @@
   gap: 10px;
   width: 100%;
   text-align: left;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--txt-70);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt-50);
   background: none;
   border: none;
-  border-radius: var(--r-sm);
+  border-radius: var(--r);
   padding: 9px 11px;
   white-space: nowrap;
+  transition: background 120ms, color 120ms;
+  position: relative;
+  border-left: 3px solid transparent;
 }
-.ms-side-link:hover { background: var(--surface); color: var(--txt); }
-.ms-side-link--on { background: color-mix(in srgb, var(--gold) 16%, transparent); color: var(--gold); }
-.ms-side--collapsed .ms-side-link { justify-content: center; gap: 0; }
+.ms-side-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--txt-70);
+}
+.ms-side-link--on {
+  background: color-mix(in srgb, var(--gold) 11%, transparent);
+  color: var(--gold);
+  font-weight: 700;
+  border-left-color: var(--gold);
+}
+.ms-side--collapsed .ms-side-link {
+  justify-content: center;
+  gap: 0;
+  padding: 10px;
+  border-left: 3px solid transparent;
+}
+.ms-side--collapsed .ms-side-link--on {
+  border-left-color: var(--gold);
+}
 
+/* Nombre del proyecto activo */
 .ms-side-project {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--txt-40);
-  padding: 12px 11px 4px;
+  padding: 14px 14px 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.ms-side-reels { margin-top: 8px; border-top: 1px solid var(--bd); padding-top: 8px; }
+/* Reels colapsables */
+.ms-side-reels {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
 .ms-side-reels-head {
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
   width: 100%;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--cyan);
   background: none;
   border: none;
-  padding: 4px 11px;
+  padding: 5px 14px;
+  opacity: 0.7;
+  transition: opacity 120ms;
 }
+.ms-side-reels-head:hover { opacity: 1; }
 .ms-side-reel {
   cursor: pointer;
   display: block;
   width: 100%;
   text-align: left;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--txt-70);
+  font-weight: 500;
+  color: var(--txt-55);
   background: none;
   border: none;
   border-radius: var(--r-sm);
-  padding: 6px 11px 6px 26px;
+  padding: 6px 14px 6px 28px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: background 100ms, color 100ms;
 }
-.ms-side-reel:hover { background: var(--surface); color: var(--txt); }
+.ms-side-reel:hover { background: rgba(255, 255, 255, 0.04); color: var(--txt-70); }
 
+/* Mobile: sidebar siempre colapsado */
 @media (max-width: 860px) {
   .ms-side { flex-basis: 56px; }
-  .ms-side .ms-side-brand, .ms-side .ms-side-project, .ms-side .ms-side-reels { display: none; }
-  .ms-side-link { justify-content: center; gap: 0; }
+  .ms-side-brand,
+  .ms-side-project,
+  .ms-side-reels { display: none; }
+  .ms-side-link { justify-content: center; gap: 0; padding: 10px; }
   .ms-side-link span { display: none; }
 }

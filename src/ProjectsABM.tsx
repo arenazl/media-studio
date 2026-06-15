@@ -1,17 +1,34 @@
-// ABM de PROYECTOS — primera pantalla (multi-tenant). Grilla + crear/editar
-// (panel lateral) + borrar (confirm). Header al patrón ABM: input full-width,
-// botón "Nuevo" dockeado a la derecha. Estilos en ProjectsABM.css (tokens).
+// ABM de PROYECTOS — primera pantalla (multi-tenant). Grilla visual con covers
+// por tipo + crear/editar (panel lateral) + borrar (confirm). Estilos en ProjectsABM.css.
 import { useState } from 'react';
-import { Plus, Search, Trash2, Pencil, FolderKanban, Film, X } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil, FolderKanban, Film, Clock, X, Sparkles } from 'lucide-react';
 import { listProjects, saveProject, deleteProject, munifyBaseReels, type Project } from './lib/projects';
 import './ProjectsABM.css';
 
 interface Props { onOpen: (p: Project) => void }
 
+// Acento de color por tipo de proyecto (consistente via hash del id como fallback)
+const ACCENT_VARS = ['var(--azure)', 'var(--violet)', 'var(--amber)', 'var(--cyan)', 'var(--green)', 'var(--pink)'];
+function cardAccent(p: Project): string {
+  const t = (p.type || '').toLowerCase();
+  if (t.includes('municipal') || t.includes('gobier') || t.includes('saas')) return 'var(--azure)';
+  if (t.includes('market') || t.includes('ventas') || t.includes('comercial')) return 'var(--violet)';
+  if (t.includes('educa') || t.includes('aprend')) return 'var(--cyan)';
+  if (t.includes('salud') || t.includes('clinic')) return 'var(--green)';
+  const hash = p.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  return ACCENT_VARS[hash % ACCENT_VARS.length];
+}
+
+const fmtDate = (ms: number) =>
+  ms ? new Date(ms).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '';
+
+// Cuenta reels que ya tienen voiceConfig guardado
+const reelsGrabados = (p: Project) => p.reels.filter((r) => r.voiceConfig?.voice_id).length;
+
 export default function ProjectsABM({ onOpen }: Props) {
   const [projects, setProjects] = useState<Project[]>(() => listProjects());
   const [q, setQ] = useState('');
-  const [editing, setEditing] = useState<Project | null>(null);   // proyecto en edición (o nuevo)
+  const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [confirmDel, setConfirmDel] = useState<Project | null>(null);
 
@@ -23,36 +40,91 @@ export default function ProjectsABM({ onOpen }: Props) {
 
   return (
     <div className="abm">
-      <div className="abm-header">
-        <span className="abm-title"><FolderKanban size={18} /> Proyectos</span>
+      {/* Hero */}
+      <div className="abm-hero">
+        <h1 className="abm-hero-title">Proyectos</h1>
+        <p className="abm-hero-sub">Seleccioná un proyecto para empezar a editar audio, reels y videos.</p>
+      </div>
+
+      {/* Toolbar */}
+      <div className="abm-toolbar">
         <div className="abm-search">
-          <Search size={14} className="abm-search-icon" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar proyecto…" className="abm-search-input" />
+          <Search size={13} className="abm-search-icon" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar…" className="abm-search-input" />
         </div>
-        <button className="abm-new" onClick={openNew}><Plus size={15} /> Nuevo</button>
+        <button className="abm-new" onClick={openNew}><Plus size={14} /> Nuevo proyecto</button>
       </div>
 
+      {/* Grid */}
       <div className="abm-grid">
-        {fil.map((p) => (
-          <div key={p.id} className="abm-card" role="button" tabIndex={0} onClick={() => onOpen(p)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(p); } }}>
-            <div className="abm-card-top">
-              <span className="abm-card-name">{p.name}</span>
-              {p.preloaded && <span className="abm-badge">precargado</span>}
+        {fil.map((p, i) => {
+          const accent = cardAccent(p);
+          const grabados = reelsGrabados(p);
+          return (
+            <div
+              key={p.id}
+              className="abm-card"
+              role="button"
+              tabIndex={0}
+              style={{ '--card-accent': accent, '--card-delay': `${i * 55}ms` } as React.CSSProperties}
+              onClick={() => onOpen(p)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(p); } }}
+            >
+              {/* Cover */}
+              <div className="abm-card-cover">
+                <span className="abm-card-initial">{p.name[0]}</span>
+                <div className="abm-card-cover-bg" />
+                <div className="abm-cover-actions" onClick={(e) => e.stopPropagation()}>
+                  <button className="abm-icon-btn" title="Editar" onClick={(e) => { e.stopPropagation(); openEdit(p); }}>
+                    <Pencil size={12} />
+                  </button>
+                  <button className="abm-icon-btn abm-icon-btn--danger" title="Eliminar" onClick={(e) => { e.stopPropagation(); setConfirmDel(p); }}>
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="abm-card-body">
+                <div className="abm-card-name-row">
+                  <span className="abm-card-name">{p.name}</span>
+                  {p.preloaded && <span className="abm-badge"><Sparkles size={9} /> precargado</span>}
+                </div>
+                <div className="abm-card-type">{p.type || <span className="abm-card-type--empty">Sin tipo</span>}</div>
+              </div>
+
+              {/* Footer */}
+              <div className="abm-card-foot">
+                <span className="abm-card-stat">
+                  <Film size={11} />
+                  {p.reels.length} reels
+                  {grabados > 0 && <span className="abm-card-stat-chip">{grabados} grabados</span>}
+                </span>
+                <span className="abm-card-stat abm-card-stat--right">
+                  <Clock size={11} />
+                  {fmtDate(p.updated_at)}
+                </span>
+              </div>
             </div>
-            <div className="abm-card-type">{p.type || '—'}</div>
-            <div className="abm-card-foot">
-              <span className="abm-card-meta"><Film size={12} /> {p.reels.length} reels</span>
-              <span className="abm-card-actions" onClick={(e) => e.stopPropagation()}>
-                <button className="abm-icon-btn" title="Editar" onClick={(e) => { e.stopPropagation(); openEdit(p); }}><Pencil size={13} /></button>
-                <button className="abm-icon-btn abm-icon-btn--danger" title="Eliminar" onClick={(e) => { e.stopPropagation(); setConfirmDel(p); }}><Trash2 size={13} /></button>
-              </span>
-            </div>
+          );
+        })}
+
+        {/* Empty state */}
+        {!fil.length && (
+          <div className="abm-empty-state">
+            <FolderKanban size={40} className="abm-empty-icon" />
+            <div className="abm-empty-title">{q ? 'Sin resultados' : 'Todavía no hay proyectos'}</div>
+            <p className="abm-empty-sub">
+              {q
+                ? `Nada coincide con «${q}». Probá con otro término.`
+                : 'Creá tu primer proyecto con el botón «Nuevo proyecto» y cargá tus reels, audio y videos.'}
+            </p>
+            {!q && <button className="abm-empty-cta" onClick={openNew}><Plus size={14} /> Crear primer proyecto</button>}
           </div>
-        ))}
-        {!fil.length && <div className="abm-empty">No hay proyectos. Creá uno con «Nuevo».</div>}
+        )}
       </div>
 
+      {/* Sheet crear/editar */}
       {editing && (
         <ProjectSheet
           project={editing}
@@ -62,6 +134,7 @@ export default function ProjectsABM({ onOpen }: Props) {
         />
       )}
 
+      {/* Confirm eliminar */}
       {confirmDel && (
         <div className="abm-overlay" onClick={() => setConfirmDel(null)}>
           <div className="abm-confirm" onClick={(e) => e.stopPropagation()}>
@@ -110,7 +183,7 @@ function ProjectSheet({ project, isNew, onClose, onSaved }: { project: Project; 
             <input type="checkbox" checked={withBase} onChange={(e) => setWithBase(e.target.checked)} className="abm-check-box" />
             <span>Arrancar con los <b>reels base de Munify</b> ({munifyBaseReels().length})</span>
           </label>
-          <p className="abm-hint">Si lo activás, el proyecto arranca con los guiones/slides ya hechos para seguir editándolos. Si no, arranca de cero.</p>
+          <p className="abm-hint">Si lo activás, el proyecto arranca con los guiones/slides ya hechos. Si no, arranca de cero.</p>
         </div>
         <div className="abm-sheet-foot">
           <button className="abm-btn-ghost" onClick={onClose}>Cancelar</button>
