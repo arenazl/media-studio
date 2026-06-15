@@ -7,12 +7,19 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Save } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import { NARRATION } from './data/narrationText';
 import CadenceWave, { TONES, resolveRange, type ScrubInfo, type PlacedMarker } from './CadenceWave';
+import type { VoiceConfig } from './lib/projects';
 import './VoiceStudio.css';
+
+interface ReelCfg { slidesRef?: string | null; voiceConfig?: VoiceConfig | null }
+interface VoiceStudioProps {
+  reelConfig?: Record<string, ReelCfg>;                 // por reelId: boceto + settings guardados
+  onGrabar?: (reelId: string, vc: VoiceConfig) => void; // persiste el settings del reel
+}
 
 interface Voice { voice_id: string; name: string; gender?: string; age?: string; accent?: string; use_case?: string; description?: string; preview_url?: string; }
 interface SourceFile { id: string; label: string; text: string; sub?: string }
@@ -45,7 +52,7 @@ const VOICE_PRESETS = [
 let _actx: AudioContext | null = null;
 const audioCtx = () => (_actx ||= new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
 
-export default function VoiceStudio() {
+export default function VoiceStudio({ reelConfig, onGrabar }: VoiceStudioProps = {}) {
   const initialText = (() => {
     if (typeof window === 'undefined') return DEFAULT_TEXT;
     const t = new URLSearchParams(window.location.search).get('text');
@@ -78,6 +85,8 @@ export default function VoiceStudio() {
   const [markers, setMarkers] = useState<PlacedMarker[]>([]); // CAPA de markers sobre la onda (NO toca el texto)
   const [mHist, setMHist] = useState<PlacedMarker[][]>([]);   // historial de markers para Undo
   const [sampling, setSampling] = useState(false);       // sonando el sample de una voz
+  const [saved, setSaved] = useState(false);             // toast tras Grabar
+  const [textoTab, setTextoTab] = useState<'texto' | 'preview'>('texto');
   const taRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
@@ -112,10 +121,28 @@ export default function VoiceStudio() {
   }, []);
 
   const loadFile = (f: SourceFile) => {
-    setActiveFile(f.id); applyText(f.text); setPick(null); setMarkers([]); setMHist([]);
+    setActiveFile(f.id); setPick(null); setMHist([]); setSaved(false); setTextoTab('texto');
+    // si el reel ya tiene settings guardado (Grabar), lo restauro; si no, arranca del guión.
+    const vc = reelConfig?.[f.id]?.voiceConfig;
+    if (vc) {
+      setText(vc.text ?? f.text); setPeaks(null); setProgress(0);
+      setMarkers((vc.markers as PlacedMarker[]) ?? []);
+      if (vc.voice_id) setVoiceId(vc.voice_id);
+      if (vc.model) setModel(vc.model);
+      setStability(vc.stability); setSimilarity(vc.similarity); setStyle(vc.style); setSpeed(vc.speed);
+    } else {
+      applyText(f.text); setMarkers([]);
+    }
     // avisar al host (ej. Munify) para que sincronice su canvas/preview.
     try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'mediastudio:file', id: f.id }, '*'); } catch { /* noop */ }
   };
+  // GRABAR: persiste el settings del reel activo (voz + cadencia + pausas + markers + texto).
+  const grabar = () => {
+    if (!activeFile || !onGrabar) return;
+    onGrabar(activeFile, { voice_id: voiceId, stability, similarity, style, speed, model, markers, text });
+    setSaved(true); window.setTimeout(() => setSaved(false), 1800);
+  };
+  const boceto = activeFile ? (reelConfig?.[activeFile]?.slidesRef ?? null) : null;
 
   // Scrub: en audio real hace seek; en sintético deja el punto/sector activo (pick).
   const onScrub = (info: ScrubInfo) => {
@@ -354,6 +381,11 @@ export default function VoiceStudio() {
         <button onClick={generate} disabled={busy} className="vs-generate">
           <Mic size={15} /> {busy ? 'Generando…' : 'Generar voz'}
         </button>
+        {onGrabar && (
+          <button onClick={grabar} disabled={!activeFile} className={saved ? 'vs-grabar vs-grabar--saved' : 'vs-grabar'} title="Guardar el settings de este reel (voz + cadencia + pausas + markers + texto)">
+            <Save size={14} /> {saved ? 'Guardado ✓' : 'Grabar reel'}
+          </button>
+        )}
         {err && <span className="vs-error">error: {err}</span>}
       </div>
     ),
@@ -380,12 +412,20 @@ export default function VoiceStudio() {
 
       {/* ===== FILA 2: texto + waveform con divisor arrastrable ===== */}
       <div ref={fila2Ref} className="vs-row2">
-        {/* TEXTO */}
+        {/* TEXTO / PREVIEW (el preview aparece como tab si el reel tiene boceto) */}
         <div className="vs-card vs-texto" style={{ ['--texto-w']: textoW + 'px' } as React.CSSProperties}>
-          <div className="vs-section-title">TEXTO</div>
-          <textarea ref={taRef} value={text} onChange={(e) => { applyText(e.target.value); setPick(null); }} spellCheck={false}
-            className="vs-textarea" />
-          <div className="vs-texto-hint">Solo el guión + puntuación (, ? !). La entonación, énfasis y pausas se marcan en la onda →</div>
+          <div className="vs-texto-tabs">
+            <button className={textoTab === 'texto' ? 'vs-texto-tab vs-texto-tab--on' : 'vs-texto-tab'} onClick={() => setTextoTab('texto')}>TEXTO</button>
+            {boceto && <button className={textoTab === 'preview' ? 'vs-texto-tab vs-texto-tab--on' : 'vs-texto-tab'} onClick={() => setTextoTab('preview')}>PREVIEW</button>}
+          </div>
+          {textoTab === 'preview' && boceto ? (
+            <div className="vs-preview"><video src={boceto} controls playsInline className="vs-preview-video" /></div>
+          ) : (
+            <>
+              <textarea ref={taRef} value={text} onChange={(e) => { applyText(e.target.value); setPick(null); }} spellCheck={false} className="vs-textarea" />
+              <div className="vs-texto-hint">Solo el guión + puntuación (, ? !). La entonación, énfasis y pausas se marcan en la onda →</div>
+            </>
+          )}
         </div>
 
         {/* Divisor arrastrable */}

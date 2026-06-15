@@ -4,7 +4,25 @@
 // migra este store a leer/escribir contra /api/projects.
 import { NARRATION } from '../data/narrationText';
 
-export interface ProjectReel { id: string; nombre: string; frases: number }
+// settings de voz por reel (lo que persiste el botón "Grabar").
+// Esquema confirmado por INFRA: va dentro de data.reels[].voiceConfig.
+export interface VoiceConfig {
+  voice_id: string;
+  stability: number;
+  similarity: number;
+  style: number;
+  speed: number;
+  model: string;
+  markers?: unknown[];   // PlacedMarker[] del editor
+  text?: string;         // texto asociado (el guión editado)
+}
+export interface ProjectReel {
+  id: string;
+  nombre: string;
+  frases: number;
+  slidesRef?: string | null;     // boceto del reel (video) para el preview
+  voiceConfig?: VoiceConfig | null;
+}
 export interface Project {
   id: string;
   name: string;
@@ -19,7 +37,7 @@ const LS_KEY = 'ms.projects.v1';
 const REEL_LABELS: Record<string, string> = { tour: 'Tour general', vecino: 'Para el vecino', intendente: 'Para el intendente', tesoreria: 'Tesorería', ia: 'Atención con IA' };
 
 export const munifyBaseReels = (): ProjectReel[] =>
-  Object.keys(NARRATION).map((id) => ({ id, nombre: REEL_LABELS[id] || id, frases: NARRATION[id].length }));
+  Object.keys(NARRATION).map((id) => ({ id, nombre: REEL_LABELS[id] || id, frases: NARRATION[id].length, slidesRef: `/bocetos/${id}.mp4`, voiceConfig: null }));
 
 const munifySeed = (): Project => {
   const t = Date.now();

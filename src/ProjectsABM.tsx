@@ -34,7 +34,8 @@ export default function ProjectsABM({ onOpen }: Props) {
 
       <div className="abm-grid">
         {fil.map((p) => (
-          <button key={p.id} className="abm-card" onClick={() => onOpen(p)}>
+          <div key={p.id} className="abm-card" role="button" tabIndex={0} onClick={() => onOpen(p)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(p); } }}>
             <div className="abm-card-top">
               <span className="abm-card-name">{p.name}</span>
               {p.preloaded && <span className="abm-badge">precargado</span>}
@@ -47,7 +48,7 @@ export default function ProjectsABM({ onOpen }: Props) {
                 <button className="abm-icon-btn abm-icon-btn--danger" title="Eliminar" onClick={(e) => { e.stopPropagation(); setConfirmDel(p); }}><Trash2 size={13} /></button>
               </span>
             </div>
-          </button>
+          </div>
         ))}
         {!fil.length && <div className="abm-empty">No hay proyectos. Creá uno con «Nuevo».</div>}
       </div>
