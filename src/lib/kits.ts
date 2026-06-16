@@ -9,6 +9,7 @@ export interface Kit {
   model: string;         // eleven_v3 | eleven_turbo_v2_5 | eleven_multilingual_v2
   stability: number; similarity: number; style: number; speed: number;
   tags: string[];        // tags_permitidos: ['[whispers]','[curious]']
+  max_chars: number;     // tope de largo de respuesta (la cadencia va con el largo)
   prompt: string;        // expression_prompt (compacto) — editable
   version: number;       // kit_version (bump → las apps re-sincronizan)
   updated_at: number;
@@ -33,17 +34,20 @@ export function kitJson(k: Kit) {
     model_id: k.model,
     voice_settings: { stability: k.stability, similarity_boost: k.similarity, style: k.style, use_speaker_boost: true, speed: k.speed },
     tags_permitidos: k.tags,
+    max_chars: k.max_chars,
     expression_prompt: k.prompt,
   };
 }
 
 // Seed: las 5 familias de SalesBot con los presets que confirmamos en el doc.
 const SEED: Omit<Kit, 'prompt' | 'version' | 'updated_at'>[] = [
-  { id: 'levante', nombre: 'Levante / Picante', estilo: 'pausado, sensual, énfasis en palabras', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.35, similarity: 0.85, style: 0.55, speed: 0.90, tags: ['[whispers]', '[curious]'] },
-  { id: 'ventas', nombre: 'Ventas', estilo: 'enérgico, entusiasta', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.30, similarity: 0.80, style: 0.60, speed: 1.05, tags: ['[excited]', '[curious]'] },
-  { id: 'soporte', nombre: 'Soporte', estilo: 'directo, claro, plano', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.50, similarity: 0.80, style: 0.25, speed: 1.0, tags: [] },
-  { id: 'cobranza', nombre: 'Cobranza', estilo: 'firme, serio, formal', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.60, similarity: 0.85, style: 0.20, speed: 1.0, tags: ['[serious]'] },
-  { id: 'joda', nombre: 'Joda / Humor', estilo: 'exagerado, expresivo', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.30, similarity: 0.80, style: 0.65, speed: 1.05, tags: ['[excited]', '[laughs]', '[curious]'] },
+  { id: 'levante', nombre: 'Levante / Picante', estilo: 'pausado, sensual, énfasis en palabras', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.35, similarity: 0.85, style: 0.55, speed: 0.90, tags: ['[whispers]', '[curious]'], max_chars: 250 },
+  { id: 'ventas', nombre: 'Ventas', estilo: 'enérgico, entusiasta', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.30, similarity: 0.80, style: 0.60, speed: 1.05, tags: ['[excited]', '[curious]'], max_chars: 500 },
+  { id: 'soporte', nombre: 'Soporte', estilo: 'directo, claro, plano', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.50, similarity: 0.80, style: 0.25, speed: 1.0, tags: [], max_chars: 400 },
+  { id: 'cobranza', nombre: 'Cobranza', estilo: 'firme, serio, formal', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.60, similarity: 0.85, style: 0.20, speed: 1.0, tags: ['[serious]'], max_chars: 350 },
+  { id: 'joda', nombre: 'Joda / Humor', estilo: 'exagerado, expresivo', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.30, similarity: 0.80, style: 0.65, speed: 1.05, tags: ['[excited]', '[laughs]', '[curious]'], max_chars: 300 },
+  { id: 'formal', nombre: 'Formal / Legal', estilo: 'serio, neutral, claro (laboral, legal, RRHH, vecindad)', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.55, similarity: 0.85, style: 0.20, speed: 0.98, tags: ['[serious]'], max_chars: 320 },
+  { id: 'personal', nombre: 'Familia / Personal', estilo: 'cálido, cercano, natural', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.45, similarity: 0.80, style: 0.40, speed: 1.0, tags: ['[curious]', '[sighs]'], max_chars: 300 },
 ];
 
 function seed(): Kit[] {
@@ -51,8 +55,15 @@ function seed(): Kit[] {
   return SEED.map((s) => ({ ...s, prompt: buildPrompt(s), version: 1, updated_at: t }));
 }
 function load(): Kit[] {
-  try { const raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw) as Kit[]; } catch { /* noop */ }
-  const s = seed(); persist(s); return s;
+  let ks: Kit[] | null = null;
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) ks = JSON.parse(raw) as Kit[]; } catch { /* noop */ }
+  if (!ks) { const s = seed(); persist(s); return s; }
+  // merge: agrega familias del seed que falten (ej. nuevas) sin pisar lo ya editado.
+  const have = new Set(ks.map((k) => k.id));
+  const t = Date.now();
+  const missing = SEED.filter((s) => !have.has(s.id)).map((s) => ({ ...s, prompt: buildPrompt(s), version: 1, updated_at: t }));
+  if (missing.length) { ks = [...ks, ...missing]; persist(ks); }
+  return ks;
 }
 function persist(ks: Kit[]) { try { localStorage.setItem(LS_KEY, JSON.stringify(ks)); } catch { /* noop */ } }
 const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

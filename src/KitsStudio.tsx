@@ -43,7 +43,7 @@ export default function KitsStudio() {
   const voiceName = (id: string) => voices.find((v) => v.voice_id === id)?.name || id.slice(0, 8);
 
   const nuevo = () => {
-    const k: Kit = { id: '', nombre: 'Nuevo kit', estilo: '', voice_id: voices[0]?.voice_id || 'yA5jrK1S9cpCAojBYyMu', model: 'eleven_v3', stability: 0.4, similarity: 0.8, style: 0.4, speed: 1.0, tags: [], prompt: '', version: 1, updated_at: 0 };
+    const k: Kit = { id: '', nombre: 'Nuevo kit', estilo: '', voice_id: voices[0]?.voice_id || 'yA5jrK1S9cpCAojBYyMu', model: 'eleven_v3', stability: 0.4, similarity: 0.8, style: 0.4, speed: 1.0, tags: [], max_chars: 400, prompt: '', version: 1, updated_at: 0 };
     k.prompt = buildPrompt(k); setDraft(k); setSel(null); setUrl(null);
   };
   const guardar = () => {
@@ -105,6 +105,9 @@ export default function KitsStudio() {
             <Slider label="Cadencia" val={draft.speed} set={(v) => upd({ speed: v })} min={0.7} max={1.2} step={0.05} fmt={(v) => `${v.toFixed(2)}×`} />
             <div className="ks-field"><span className="ks-label">Tags permitidos</span>
               <div className="ks-chiprow">{ALL_TAGS.map(([t, l]) => <button key={t} className={draft.tags.includes(t) ? 'ks-mini ks-mini--on' : 'ks-mini'} onClick={() => toggleTag(t)}>{l}</button>)}</div>
+            </div>
+            <div className="ks-field"><span className="ks-label">Largo máx. de respuesta (chars)</span>
+              <input type="number" min={80} max={1000} step={10} value={draft.max_chars} onChange={(e) => upd({ max_chars: Number(e.target.value) })} className="ks-input ks-input--num" />
             </div>
           </div>
 

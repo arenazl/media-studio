@@ -20,6 +20,7 @@
 .ks-input { box-sizing: border-box; width: 100%; padding: 8px 11px; font-size: 13px; color: var(--txt); background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r); outline: none; }
 .ks-input:focus { border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
 .ks-input--search { padding-left: 30px; }
+.ks-input--num { width: 110px; }
 
 .ks-chiprow { display: flex; flex-wrap: wrap; gap: 5px; }
 .ks-mini { cursor: pointer; font-size: 11px; font-weight: 700; color: var(--txt-60); background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--pill); padding: 4px 10px; }
