@@ -2,7 +2,7 @@
 // base (menú colapsable). Las secciones visibles se filtran según project.contentType
 // (configurado por el wizard de creación). Estilos en Sidebar.css.
 import { useState } from 'react';
-import { Mic, Film, Video, Layers, Download, FolderKanban, ChevronLeft, ChevronRight, ChevronDown, AudioLines } from 'lucide-react';
+import { Mic, Film, Video, Layers, Download, FolderKanban, ChevronLeft, ChevronRight, ChevronDown, AudioLines, Boxes } from 'lucide-react';
 import type { Project, ProjectReel } from './lib/projects';
 import type { ContentType } from './NewProjectWizard';
 import './Sidebar.css';
@@ -39,12 +39,14 @@ interface Props {
   onToggle: () => void;
   activeProject: Project | null;
   section: Section;
+  kitsActive?: boolean;
   onHome: () => void;
+  onKits?: () => void;
   onSection: (s: Section) => void;
   onOpenReel?: (r: ProjectReel) => void;
 }
 
-export default function Sidebar({ collapsed, onToggle, activeProject, section, onHome, onSection, onOpenReel }: Props) {
+export default function Sidebar({ collapsed, onToggle, activeProject, section, kitsActive, onHome, onKits, onSection, onOpenReel }: Props) {
   const [reelsOpen, setReelsOpen] = useState(true);
   const sections = sectionsFor(activeProject);
 
@@ -59,11 +61,14 @@ export default function Sidebar({ collapsed, onToggle, activeProject, section, o
       </div>
 
       <nav className="ms-side-nav">
-        <button className={!activeProject ? 'ms-side-link ms-side-link--on' : 'ms-side-link'} onClick={onHome} title="Proyectos">
+        <button className={!activeProject && !kitsActive ? 'ms-side-link ms-side-link--on' : 'ms-side-link'} onClick={onHome} title="Proyectos">
           <FolderKanban size={16} />{!collapsed && <span>Proyectos</span>}
         </button>
+        <button className={kitsActive ? 'ms-side-link ms-side-link--on' : 'ms-side-link'} onClick={onKits} title="Kits de voz">
+          <Boxes size={16} />{!collapsed && <span>Kits</span>}
+        </button>
 
-        {activeProject && (
+        {activeProject && !kitsActive && (
           <>
             {!collapsed && <div className="ms-side-project" title={activeProject.name}>{activeProject.name}</div>}
             {sections.map((s) => (

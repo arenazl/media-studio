@@ -3,6 +3,7 @@ import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
 import MontajeTab from './MontajeTab';
+import KitsStudio from './KitsStudio';
 import StageTab from './StageTab';
 import Sidebar, { defaultSection, type Section } from './Sidebar';
 import ProjectsABM from './ProjectsABM';
@@ -25,6 +26,7 @@ export default function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [section, setSection] = useState<Section>('audio');
+  const [topView, setTopView] = useState<'projects' | 'kits'>('projects');
   // audio generado por reel (objectURL del mp3) — se comparte entre solapas para
   // que el editor del Reel pueda reproducir la voz sin re-llamar al TTS.
   const [audioByReel, setAudioByReel] = useState<Record<string, string>>({});
@@ -50,14 +52,18 @@ export default function App() {
         onToggle={() => setCollapsed((c) => !c)}
         activeProject={activeProject}
         section={section}
-        onHome={() => setActiveProject(null)}
+        kitsActive={topView === 'kits'}
+        onHome={() => { setTopView('projects'); setActiveProject(null); }}
+        onKits={() => { setTopView('kits'); setActiveProject(null); }}
         onSection={setSection}
         onOpenReel={() => setSection('audio')}
       />
 
       <main className="ms-main">
-        {!activeProject ? (
-          <ProjectsABM onOpen={(p) => { setActiveProject(p); setSection(defaultSection(p)); }} />
+        {topView === 'kits' ? (
+          <KitsStudio />
+        ) : !activeProject ? (
+          <ProjectsABM onOpen={(p) => { setTopView('projects'); setActiveProject(p); setSection(defaultSection(p)); }} />
         ) : (
           <SectionView section={section} project={activeProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
         )}

@@ -1,0 +1,55 @@
+/* Pantalla Kits de voz — tokens en styles/tokens.css. */
+.ks-root { display: flex; flex-direction: column; height: 100%; min-height: 0; gap: 14px; overflow-y: auto; }
+.ks-head { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-style: italic; font-size: 20px; color: var(--txt); }
+.ks-head-sub { font-family: var(--font-sans); font-style: normal; font-size: 12px; color: var(--txt-50); }
+
+.ks-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.ks-chip { cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--txt-70); background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--pill); padding: 6px 13px; }
+.ks-chip--on { color: var(--txt); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.ks-chip--new { color: var(--gold); }
+.ks-chip-v { font-size: 9.5px; font-weight: 800; opacity: 0.5; }
+
+.ks-empty { font-size: 13px; color: var(--txt-40); padding: 20px 4px; }
+
+.ks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 860px) { .ks-grid { grid-template-columns: 1fr; } }
+.ks-card { background: var(--ink-2); border: 1px solid var(--bd); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+.ks-field { display: flex; flex-direction: column; gap: 5px; }
+.ks-label { font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--txt-50); display: flex; align-items: center; gap: 8px; }
+.ks-input { box-sizing: border-box; width: 100%; padding: 8px 11px; font-size: 13px; color: var(--txt); background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r); outline: none; }
+.ks-input:focus { border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
+.ks-input--search { padding-left: 30px; }
+
+.ks-chiprow { display: flex; flex-wrap: wrap; gap: 5px; }
+.ks-mini { cursor: pointer; font-size: 11px; font-weight: 700; color: var(--txt-60); background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--pill); padding: 4px 10px; }
+.ks-mini--on { color: var(--ink); background: var(--azure); border-color: var(--azure); }
+
+.ks-slider { display: flex; flex-direction: column; gap: 3px; }
+.ks-slider-top { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--txt-60); }
+.ks-slider-val { color: var(--gold); font-variant-numeric: tabular-nums; }
+.ks-range { width: 100%; accent-color: var(--azure); }
+
+.ks-search { position: relative; }
+.ks-search-ic { position: absolute; left: 9px; top: 9px; color: var(--txt-40); }
+.ks-voices { display: flex; flex-wrap: wrap; gap: 4px; max-height: 132px; overflow-y: auto; padding: 4px; background: rgba(0,0,0,0.2); border-radius: var(--r-sm); }
+.ks-voice { cursor: pointer; font-size: 11px; font-weight: 700; color: var(--txt-70); background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: 6px; padding: 4px 9px; }
+.ks-voice--on { color: var(--ink); background: var(--azure); border-color: var(--azure); }
+.ks-muted { font-size: 11px; color: var(--txt-40); }
+
+.ks-textarea { box-sizing: border-box; width: 100%; resize: vertical; padding: 9px 11px; font-size: 12.5px; line-height: 1.5; font-family: var(--font-sans); color: var(--txt); background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r); outline: none; }
+.ks-textarea--prompt { font-size: 11.5px; color: var(--txt-70); }
+
+.ks-preview-row { display: flex; align-items: center; gap: 10px; }
+.ks-listen { cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--ink); background: var(--gold); border: none; border-radius: var(--r); padding: 7px 14px; }
+.ks-listen:disabled { opacity: 0.6; cursor: default; }
+.ks-err { font-size: 11px; color: var(--danger); }
+.ks-regen { cursor: pointer; font-size: 9.5px; font-weight: 700; color: var(--azure); background: none; border: none; padding: 0; text-transform: none; letter-spacing: 0; }
+
+.ks-foot { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+.ks-foot-v { font-size: 11px; color: var(--txt-40); font-variant-numeric: tabular-nums; }
+.ks-btn { cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--txt); background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--r); padding: 7px 12px; }
+.ks-btn:hover { border-color: var(--gold); }
+.ks-btn--danger { color: var(--danger); }
+.ks-btn--primary { color: var(--ink); background: var(--gold); border-color: var(--gold); margin-left: auto; }
+.ks-btn--ok { background: var(--green); border-color: var(--green); }
