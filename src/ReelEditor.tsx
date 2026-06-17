@@ -33,16 +33,16 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
   const [galOpen, setGalOpen] = useState(false);   // galería colapsada por defecto → el timeline queda a la vista
   const [selVids, setSelVids] = useState<Set<string>>(new Set());
   const [playing, setPlaying] = useState(false);
-  const [playFrac, setPlayFrac] = useState(0);   // 0-1 sobre los chunks seleccionados
-  const [waveCursor, setWaveCursor] = useState(0); // 0-1 posición en el waveform por frase
+  const [playFrac, setPlayFrac] = useState(0);   // 0-1 sobre los chunks seleccionados (también el cursor del waveform)
   const [voiceDur, setVoiceDur] = useState(0);
   const rafRef = useRef<number | null>(null);
   const startRef = useRef(0);
   const musicAudioRef = useRef<HTMLAudioElement>(null);
   const voiceRef = useRef<HTMLAudioElement>(null);
-  // Chunk playback: segmentos ordenados por posición x en la timeline
+  // Chunk playback
   const segIdxRef = useRef(0);
   const segsRef = useRef<Array<{ phraseIdx: number; start: number; end: number }>>([]);
+  const pendingPlayRef = useRef(false); // play() fue llamado antes de que el audio cargara
 
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
   const n = reel?.frases ?? 0;
@@ -97,13 +97,24 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
   // ── transporte ────────────────────────────────────────────────────────────
   const tick = () => {
     const f = Math.min(1, (performance.now() - startRef.current) / totalMs);
-    setPlayFrac(f); setWaveCursor(f);
+    setPlayFrac(f);
     if (f >= 1) { setPlaying(false); musicAudioRef.current?.pause(); return; }
     rafRef.current = requestAnimationFrame(tick);
   };
   const startMusic = () => {
     const m = musicAudioRef.current; const url = MUSIC_TRACKS.find((t) => t.id === musicTrack[0]?.id)?.url;
     if (m && url) { if (m.src !== url) m.src = url; m.loop = true; m.volume = hasVoice ? 0.35 : 0.7; m.play().catch(() => {}); }
+  };
+  const startChunkPlay = (v: HTMLAudioElement, dur: number) => {
+    const segs = buildSegs(dur);
+    segsRef.current = segs;
+    segIdxRef.current = 0;
+    if (segs.length > 0) {
+      v.currentTime = segs[0].start;
+    } else {
+      v.currentTime = 0; setPlayFrac(0);
+    }
+    v.play().catch(() => {});
   };
   const play = () => {
     if (playing || !slideTrack.length) return;
@@ -112,25 +123,18 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
     if (hasVoice && v) {
       if (v.src !== voiceUrl) v.src = voiceUrl!;
       const dur = v.duration || voiceDur;
-      const segs = buildSegs(dur);
-      segsRef.current = segs;
-      segIdxRef.current = 0;
-      if (segs.length > 0) {
-        v.currentTime = segs[0].start;
-      } else if (playFrac >= 1) {
-        v.currentTime = 0; setPlayFrac(0); setWaveCursor(0);
-      }
-      v.play().catch(() => {});
+      if (!dur) { pendingPlayRef.current = true; return; } // espera loadedmetadata
+      startChunkPlay(v, dur);
     } else {
       startRef.current = performance.now() - (playFrac >= 1 ? 0 : playFrac) * totalMs;
-      if (playFrac >= 1) { setPlayFrac(0); setWaveCursor(0); }
+      if (playFrac >= 1) setPlayFrac(0);
       rafRef.current = requestAnimationFrame(tick);
     }
   };
   const pause = () => { setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); musicAudioRef.current?.pause(); voiceRef.current?.pause(); };
   function stopPlay() {
-    setPlaying(false); setPlayFrac(0); setWaveCursor(0);
-    segIdxRef.current = 0; segsRef.current = [];
+    setPlaying(false); setPlayFrac(0);
+    pendingPlayRef.current = false; segIdxRef.current = 0; segsRef.current = [];
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     const m = musicAudioRef.current; if (m) { m.pause(); m.currentTime = 0; }
     const v = voiceRef.current; if (v) { v.pause(); v.currentTime = 0; }
@@ -142,10 +146,9 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
     if (!a.duration) return;
     const segs = segsRef.current;
 
-    // Sin chunks → reproducir mp3 completo (fallback legacy)
+    // Sin chunks → reproducir mp3 completo (fallback si audioTrack está vacío)
     if (!segs.length) {
-      const f = a.currentTime / a.duration;
-      setPlayFrac(f); setWaveCursor(f);
+      setPlayFrac(a.currentTime / a.duration);
       return;
     }
 
@@ -156,30 +159,23 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
     // ¿Llegamos al fin del chunk actual?
     if (a.currentTime >= seg.end - 0.05) {
       if (idx < segs.length - 1) {
-        // Saltar al siguiente chunk
         segIdxRef.current = idx + 1;
         a.currentTime = segs[idx + 1].start;
         return;
       } else {
-        // Fin de todos los chunks
         a.pause();
         setPlaying(false);
         musicAudioRef.current?.pause();
         setPlayFrac(1);
-        setWaveCursor(Math.min(1, (seg.phraseIdx + 1) / n));
         return;
       }
     }
 
-    // Progreso dentro del chunk actual sobre el total seleccionado
+    // playFrac = progreso 0-1 sobre el total de chunks seleccionados
     const doneTime = segs.slice(0, idx).reduce((s, sg) => s + (sg.end - sg.start), 0);
     const inSeg = a.currentTime - seg.start;
     const totalSel = segs.reduce((s, sg) => s + (sg.end - sg.start), 0);
     if (totalSel > 0) setPlayFrac((doneTime + inSeg) / totalSel);
-
-    // waveCursor: posición 0-1 en el waveform por índice de frase
-    const phraseDur = a.duration / n;
-    setWaveCursor((seg.phraseIdx + (phraseDur > 0 ? inSeg / phraseDur : 0)) / n);
   };
 
   // ── agregar al track (TAP) — el nuevo clip se ubica al final de su track ────
@@ -321,7 +317,16 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
             <div className="rt-wave">
               <div className="rt-palette-head"><AudioLines size={12} /> Audio del reel</div>
               <div className="rt-wave-box">
-                {waveText ? <CadenceWave text={waveText} peaks={null} cursor={waveCursor} /> : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>}
+                {(() => {
+                  // Waveform dinámica: solo las frases presentes en el timeline, en orden x
+                  const sorted = [...audioTrack].sort((a, b) => a.x - b.x);
+                  const activeText = sorted.length && phrases.length
+                    ? sorted.map(c => phrases[c.p]).filter(Boolean).join('  ')
+                    : waveText;
+                  return activeText
+                    ? <CadenceWave text={activeText} peaks={null} cursor={playFrac} />
+                    : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>;
+                })()}
               </div>
               <div className="rt-transport">
                 <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar"><SkipBack size={15} /></button>
@@ -407,7 +412,14 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
       )}
       <audio ref={musicAudioRef} />
       <audio ref={voiceRef}
-        onLoadedMetadata={(e) => setVoiceDur(e.currentTarget.duration || 0)}
+        onLoadedMetadata={(e) => {
+          const dur = e.currentTarget.duration || 0;
+          setVoiceDur(dur);
+          if (pendingPlayRef.current && dur > 0) {
+            pendingPlayRef.current = false;
+            startChunkPlay(e.currentTarget, dur);
+          }
+        }}
         onTimeUpdate={onVoiceTimeUpdate}
         onEnded={() => { setPlaying(false); musicAudioRef.current?.pause(); }} />
     </div>
