@@ -41,13 +41,13 @@ export function kitJson(k: Kit) {
 
 // Seed: las 5 familias de SalesBot con los presets que confirmamos en el doc.
 const SEED: Omit<Kit, 'prompt' | 'version' | 'updated_at'>[] = [
-  { id: 'levante', nombre: 'Levante / Picante', estilo: 'pausado, sensual, énfasis en palabras', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.35, similarity: 0.85, style: 0.55, speed: 0.90, tags: ['[whispers]', '[curious]'], max_chars: 250 },
-  { id: 'ventas', nombre: 'Ventas', estilo: 'enérgico, entusiasta', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.30, similarity: 0.80, style: 0.60, speed: 1.05, tags: ['[excited]', '[curious]'], max_chars: 500 },
-  { id: 'soporte', nombre: 'Soporte', estilo: 'directo, claro, plano', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.50, similarity: 0.80, style: 0.25, speed: 1.0, tags: [], max_chars: 400 },
-  { id: 'cobranza', nombre: 'Cobranza', estilo: 'firme, serio, formal', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.60, similarity: 0.85, style: 0.20, speed: 1.0, tags: ['[serious]'], max_chars: 350 },
-  { id: 'joda', nombre: 'Joda / Humor', estilo: 'exagerado, expresivo', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.30, similarity: 0.80, style: 0.65, speed: 1.05, tags: ['[excited]', '[laughs]', '[curious]'], max_chars: 300 },
-  { id: 'formal', nombre: 'Formal / Legal', estilo: 'serio, neutral, claro (laboral, legal, RRHH, vecindad)', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.55, similarity: 0.85, style: 0.20, speed: 0.98, tags: ['[serious]'], max_chars: 320 },
-  { id: 'personal', nombre: 'Familia / Personal', estilo: 'cálido, cercano, natural', voice_id: DEFAULT_VOICE, model: 'eleven_v3', stability: 0.45, similarity: 0.80, style: 0.40, speed: 1.0, tags: ['[curious]', '[sighs]'], max_chars: 300 },
+  { id: 'levante', nombre: 'Levante / Picante', estilo: 'pausado, sensual, énfasis en palabras', voice_id: DEFAULT_VOICE, model: 'eleven_turbo_v2_5', stability: 0.35, similarity: 0.85, style: 0.55, speed: 0.90, tags: ['[whispers]', '[curious]'], max_chars: 250 },
+  { id: 'ventas', nombre: 'Ventas', estilo: 'enérgico, entusiasta', voice_id: DEFAULT_VOICE, model: 'eleven_turbo_v2_5', stability: 0.30, similarity: 0.80, style: 0.60, speed: 1.05, tags: ['[excited]', '[curious]'], max_chars: 500 },
+  { id: 'soporte', nombre: 'Soporte', estilo: 'directo, claro, plano', voice_id: DEFAULT_VOICE, model: 'eleven_turbo_v2_5', stability: 0.50, similarity: 0.80, style: 0.25, speed: 1.0, tags: [], max_chars: 400 },
+  { id: 'cobranza', nombre: 'Cobranza', estilo: 'firme, serio, formal', voice_id: DEFAULT_VOICE, model: 'eleven_turbo_v2_5', stability: 0.60, similarity: 0.85, style: 0.20, speed: 1.0, tags: ['[serious]'], max_chars: 350 },
+  { id: 'joda', nombre: 'Joda / Humor', estilo: 'exagerado, expresivo', voice_id: DEFAULT_VOICE, model: 'eleven_turbo_v2_5', stability: 0.30, similarity: 0.80, style: 0.65, speed: 1.05, tags: ['[excited]', '[laughs]', '[curious]'], max_chars: 300 },
+  { id: 'formal', nombre: 'Formal / Legal', estilo: 'serio, neutral, claro (laboral, legal, RRHH, vecindad)', voice_id: DEFAULT_VOICE, model: 'eleven_turbo_v2_5', stability: 0.55, similarity: 0.85, style: 0.20, speed: 0.98, tags: ['[serious]'], max_chars: 320 },
+  { id: 'personal', nombre: 'Familia / Personal', estilo: 'cálido, cercano, natural', voice_id: DEFAULT_VOICE, model: 'eleven_turbo_v2_5', stability: 0.45, similarity: 0.80, style: 0.40, speed: 1.0, tags: ['[curious]', '[sighs]'], max_chars: 300 },
 ];
 
 function seed(): Kit[] {
@@ -62,7 +62,16 @@ function load(): Kit[] {
   const have = new Set(ks.map((k) => k.id));
   const t = Date.now();
   const missing = SEED.filter((s) => !have.has(s.id)).map((s) => ({ ...s, prompt: buildPrompt(s), version: 1, updated_at: t }));
-  if (missing.length) { ks = [...ks, ...missing]; persist(ks); }
+  let changed = missing.length > 0;
+  if (missing.length) ks = [...ks, ...missing];
+  // migración 1-vez: eleven_v3 era un default malo (alpha, lento, entitlement-gated,
+  // rompía el motor del bot). Lo paso a turbo_v2_5. Después el user puede elegir v3 a mano.
+  if (!localStorage.getItem('ms.kits.mig_v3')) {
+    ks = ks.map((k) => (k.model === 'eleven_v3' ? { ...k, model: 'eleven_turbo_v2_5' } : k));
+    try { localStorage.setItem('ms.kits.mig_v3', '1'); } catch { /* noop */ }
+    changed = true;
+  }
+  if (changed) persist(ks);
   return ks;
 }
 function persist(ks: Kit[]) { try { localStorage.setItem(LS_KEY, JSON.stringify(ks)); } catch { /* noop */ } }

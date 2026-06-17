@@ -9,7 +9,7 @@ import './KitsStudio.css';
 
 interface Voice { voice_id: string; name: string; gender?: string; accent?: string; description?: string }
 const ALL_TAGS: [string, string][] = [['[excited]', 'Entusiasmo'], ['[curious]', 'Curioso'], ['[serious]', 'Serio'], ['[whispers]', 'Susurro'], ['[sighs]', 'Suspiro'], ['[laughs]', 'Risa']];
-const MODELS: [string, string][] = [['eleven_v3', 'v3 (tags)'], ['eleven_turbo_v2_5', 'turbo v2.5'], ['eleven_multilingual_v2', 'multi v2']];
+const MODELS: [string, string][] = [['eleven_turbo_v2_5', 'turbo v2.5'], ['eleven_flash_v2_5', 'flash v2.5'], ['eleven_multilingual_v2', 'multi v2'], ['eleven_v3', 'v3 (tags · lento/alpha)']];
 const SAMPLE = 'Hola… ¿cómo va? Mirá, tengo algo que te va a INTERESAR. Es la promo del mes, sin vueltas.';
 
 // pausas escritas → <break> (idéntico a buildTtsText) + sanitiza tags si no es v3.
@@ -43,7 +43,7 @@ export default function KitsStudio() {
   const voiceName = (id: string) => voices.find((v) => v.voice_id === id)?.name || id.slice(0, 8);
 
   const nuevo = () => {
-    const k: Kit = { id: '', nombre: 'Nuevo kit', estilo: '', voice_id: voices[0]?.voice_id || 'yA5jrK1S9cpCAojBYyMu', model: 'eleven_v3', stability: 0.4, similarity: 0.8, style: 0.4, speed: 1.0, tags: [], max_chars: 400, prompt: '', version: 1, updated_at: 0 };
+    const k: Kit = { id: '', nombre: 'Nuevo kit', estilo: '', voice_id: voices[0]?.voice_id || 'yA5jrK1S9cpCAojBYyMu', model: 'eleven_turbo_v2_5', stability: 0.4, similarity: 0.8, style: 0.4, speed: 1.0, tags: [], max_chars: 400, prompt: '', version: 1, updated_at: 0 };
     k.prompt = buildPrompt(k); setDraft(k); setSel(null); setUrl(null);
   };
   const guardar = () => {
