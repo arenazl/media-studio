@@ -80,6 +80,14 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
 
   useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
+  // Pre-carga el audio apenas voiceUrl está disponible, así v.duration ya es válido
+  // cuando el usuario aprieta play (evita el problema de autoplay-policy tras loadedmetadata async).
+  useEffect(() => {
+    const v = voiceRef.current; if (!v) return;
+    if (voiceUrl) { v.src = voiceUrl; v.load(); }
+    else { v.removeAttribute('src'); setVoiceDur(0); }
+  }, [voiceUrl]);
+
   // ── Chunks: segmenta el mp3 en frases y devuelve los chunks seleccionados ─
   // Cada frase ocupa (voiceDur / n) segundos dentro del mp3 (distribución uniforme).
   const buildSegs = (dur: number) => {
@@ -121,9 +129,11 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
     setPlaying(true); startMusic();
     const v = voiceRef.current;
     if (hasVoice && v) {
-      if (v.src !== voiceUrl) v.src = voiceUrl!;
       const dur = v.duration || voiceDur;
-      if (!dur) { pendingPlayRef.current = true; return; } // espera loadedmetadata
+      if (!dur) {
+        // Todavía cargando (raro con blob URLs) — esperar loadedmetadata
+        pendingPlayRef.current = true; return;
+      }
       startChunkPlay(v, dur);
     } else {
       startRef.current = performance.now() - (playFrac >= 1 ? 0 : playFrac) * totalMs;
