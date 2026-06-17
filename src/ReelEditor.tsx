@@ -51,10 +51,18 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
 
   const SLIDE_SEC = 2.5;
   const totalMs = Math.max(1, slideTrack.length) * SLIDE_SEC * 1000;
-  // slide activo (preview/karaoke): por orden de x.
+  // El playhead (0..1) se mapea al ANCHO real del contenido (px de los clips), así
+  // sabemos qué clip está "abajo" del cursor — sea slide o VIDEO.
+  const playing0 = playing || playFrac > 0;
+  const contentW = Math.max(1, ...[...slideTrack, ...videoTrack].map((c) => c.x + c.w), 1);
+  const playPx = playFrac * contentW;
   const slidesByX = [...slideTrack].sort((a, b) => a.x - b.x);
-  const activeIdx = playing || playFrac > 0 ? Math.min(slidesByX.length - 1, Math.floor(playFrac * Math.max(1, slidesByX.length))) : -1;
-  const activeS = activeIdx >= 0 ? slidesByX[activeIdx]?.s : undefined;
+  // slide actual = el último cuyo inicio ya pasó el playhead (se mantiene en los gaps).
+  const curSlide = playing0 ? ([...slidesByX].reverse().find((c) => c.x <= playPx) ?? slidesByX[0]) : undefined;
+  const activeS = curSlide?.s;
+  // video activo = el clip de video que CUBRE el playhead (si hay) → tiene prioridad en el preview.
+  const activeVidClip = playing0 ? videoTrack.find((c) => playPx >= c.x && playPx < c.x + c.w) : undefined;
+  const activeVid = activeVidClip ? vidById(activeVidClip.id) : undefined;
 
   useEffect(() => {
     let alive = true; setFrames([]);
@@ -230,7 +238,11 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
           {/* preview + waveform + transporte */}
           <div className="rt-stage">
             <div className="rt-preview">
-              {activeS !== undefined && frames[activeS] ? <img src={frames[activeS]} alt="" className="rt-preview-img" /> : <div className="rt-preview-ph"><Film size={22} /></div>}
+              {activeVid ? (
+                <video key={activeVidClip!.id} src={activeVid.url} autoPlay muted loop playsInline className="rt-preview-img" />
+              ) : activeS !== undefined && frames[activeS] ? (
+                <img src={frames[activeS]} alt="" className="rt-preview-img" />
+              ) : <div className="rt-preview-ph"><Film size={22} /></div>}
             </div>
             <div className="rt-wave">
               <div className="rt-palette-head"><AudioLines size={12} /> Audio del reel</div>
@@ -265,7 +277,7 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
             {withVideo && (
               <div className="rt-track">
                 <span className="rt-track-name"><Video size={12} /> Video</span>
-                <div className="rt-lane rt-lane--free">
+                <div className="rt-lane rt-lane--free">{playing0 && <span className="rt-lane-ph" style={{ ['--x']: `${playPx}px` } as React.CSSProperties} />}
                   {videoTrack.length ? videoTrack.map((c, k) => {
                     const v = vidById(c.id);
                     return (
