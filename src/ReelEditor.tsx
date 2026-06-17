@@ -33,12 +33,16 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
   const [galOpen, setGalOpen] = useState(false);   // galería colapsada por defecto → el timeline queda a la vista
   const [selVids, setSelVids] = useState<Set<string>>(new Set());
   const [playing, setPlaying] = useState(false);
-  const [playFrac, setPlayFrac] = useState(0);
+  const [playFrac, setPlayFrac] = useState(0);   // 0-1 sobre los chunks seleccionados
+  const [waveCursor, setWaveCursor] = useState(0); // 0-1 posición en el waveform por frase
   const [voiceDur, setVoiceDur] = useState(0);
   const rafRef = useRef<number | null>(null);
   const startRef = useRef(0);
   const musicAudioRef = useRef<HTMLAudioElement>(null);
   const voiceRef = useRef<HTMLAudioElement>(null);
+  // Chunk playback: segmentos ordenados por posición x en la timeline
+  const segIdxRef = useRef(0);
+  const segsRef = useRef<Array<{ phraseIdx: number; start: number; end: number }>>([]);
 
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
   const n = reel?.frases ?? 0;
@@ -76,10 +80,24 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
 
   useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
+  // ── Chunks: segmenta el mp3 en frases y devuelve los chunks seleccionados ─
+  // Cada frase ocupa (voiceDur / n) segundos dentro del mp3 (distribución uniforme).
+  const buildSegs = (dur: number) => {
+    if (!dur || !n || !audioTrack.length) return [];
+    const phraseDur = dur / n;
+    return [...audioTrack]
+      .sort((a, b) => a.x - b.x)
+      .map((c) => ({
+        phraseIdx: c.p,
+        start: c.p * phraseDur,
+        end: Math.min((c.p + 1) * phraseDur, dur),
+      }));
+  };
+
   // ── transporte ────────────────────────────────────────────────────────────
   const tick = () => {
     const f = Math.min(1, (performance.now() - startRef.current) / totalMs);
-    setPlayFrac(f);
+    setPlayFrac(f); setWaveCursor(f);
     if (f >= 1) { setPlaying(false); musicAudioRef.current?.pause(); return; }
     rafRef.current = requestAnimationFrame(tick);
   };
@@ -93,20 +111,76 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
     const v = voiceRef.current;
     if (hasVoice && v) {
       if (v.src !== voiceUrl) v.src = voiceUrl!;
-      if (playFrac >= 1) { v.currentTime = 0; setPlayFrac(0); }
+      const dur = v.duration || voiceDur;
+      const segs = buildSegs(dur);
+      segsRef.current = segs;
+      segIdxRef.current = 0;
+      if (segs.length > 0) {
+        v.currentTime = segs[0].start;
+      } else if (playFrac >= 1) {
+        v.currentTime = 0; setPlayFrac(0); setWaveCursor(0);
+      }
       v.play().catch(() => {});
     } else {
       startRef.current = performance.now() - (playFrac >= 1 ? 0 : playFrac) * totalMs;
-      if (playFrac >= 1) setPlayFrac(0);
+      if (playFrac >= 1) { setPlayFrac(0); setWaveCursor(0); }
       rafRef.current = requestAnimationFrame(tick);
     }
   };
   const pause = () => { setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); musicAudioRef.current?.pause(); voiceRef.current?.pause(); };
   function stopPlay() {
-    setPlaying(false); setPlayFrac(0); if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setPlaying(false); setPlayFrac(0); setWaveCursor(0);
+    segIdxRef.current = 0; segsRef.current = [];
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     const m = musicAudioRef.current; if (m) { m.pause(); m.currentTime = 0; }
     const v = voiceRef.current; if (v) { v.pause(); v.currentTime = 0; }
   }
+
+  // ── Handler de timeUpdate con lógica de chunks ─────────────────────────
+  const onVoiceTimeUpdate = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    const a = e.currentTarget;
+    if (!a.duration) return;
+    const segs = segsRef.current;
+
+    // Sin chunks → reproducir mp3 completo (fallback legacy)
+    if (!segs.length) {
+      const f = a.currentTime / a.duration;
+      setPlayFrac(f); setWaveCursor(f);
+      return;
+    }
+
+    const idx = segIdxRef.current;
+    const seg = segs[idx];
+    if (!seg) return;
+
+    // ¿Llegamos al fin del chunk actual?
+    if (a.currentTime >= seg.end - 0.05) {
+      if (idx < segs.length - 1) {
+        // Saltar al siguiente chunk
+        segIdxRef.current = idx + 1;
+        a.currentTime = segs[idx + 1].start;
+        return;
+      } else {
+        // Fin de todos los chunks
+        a.pause();
+        setPlaying(false);
+        musicAudioRef.current?.pause();
+        setPlayFrac(1);
+        setWaveCursor(Math.min(1, (seg.phraseIdx + 1) / n));
+        return;
+      }
+    }
+
+    // Progreso dentro del chunk actual sobre el total seleccionado
+    const doneTime = segs.slice(0, idx).reduce((s, sg) => s + (sg.end - sg.start), 0);
+    const inSeg = a.currentTime - seg.start;
+    const totalSel = segs.reduce((s, sg) => s + (sg.end - sg.start), 0);
+    if (totalSel > 0) setPlayFrac((doneTime + inSeg) / totalSel);
+
+    // waveCursor: posición 0-1 en el waveform por índice de frase
+    const phraseDur = a.duration / n;
+    setWaveCursor((seg.phraseIdx + (phraseDur > 0 ? inSeg / phraseDur : 0)) / n);
+  };
 
   // ── agregar al track (TAP) — el nuevo clip se ubica al final de su track ────
   const nextX = (len: number) => len * (CLIP_W + GAP);
@@ -247,13 +321,18 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
             <div className="rt-wave">
               <div className="rt-palette-head"><AudioLines size={12} /> Audio del reel</div>
               <div className="rt-wave-box">
-                {waveText ? <CadenceWave text={waveText} peaks={null} cursor={playFrac} /> : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>}
+                {waveText ? <CadenceWave text={waveText} peaks={null} cursor={waveCursor} /> : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>}
               </div>
               <div className="rt-transport">
                 <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar"><SkipBack size={15} /></button>
                 <button className="rt-tbtn rt-tbtn--play" onClick={() => (playing ? pause() : play())} disabled={!slideTrack.length} title={playing ? 'Pausa' : 'Play'}>{playing ? <Pause size={16} /> : <Play size={16} />}</button>
-                <span className="rt-time">{(playFrac * (hasVoice && voiceDur ? voiceDur : totalMs / 1000)).toFixed(1)}s / {(hasVoice && voiceDur ? voiceDur : totalMs / 1000).toFixed(1)}s</span>
-                <span className="rt-transport-note">{hasVoice ? 'suena la voz generada + música del track' : 'generá el audio en «Audio» para que suene la voz; por ahora música + visual'}</span>
+                {(() => {
+                  const segs = audioTrack.length && voiceDur && n
+                    ? [...audioTrack].map(c => { const pd = voiceDur / n; return Math.min((c.p + 1) * pd, voiceDur) - c.p * pd; }).reduce((a, b) => a + b, 0)
+                    : hasVoice && voiceDur ? voiceDur : totalMs / 1000;
+                  return <span className="rt-time">{(playFrac * segs).toFixed(1)}s / {segs.toFixed(1)}s</span>;
+                })()}
+                <span className="rt-transport-note">{hasVoice ? (audioTrack.length ? `${audioTrack.length} chunks · voz + música` : 'voz completa + música') : 'generá audio en «Audio» para activar la voz'}</span>
               </div>
             </div>
           </div>
@@ -329,7 +408,7 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
       <audio ref={musicAudioRef} />
       <audio ref={voiceRef}
         onLoadedMetadata={(e) => setVoiceDur(e.currentTarget.duration || 0)}
-        onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setPlayFrac(a.currentTime / a.duration); }}
+        onTimeUpdate={onVoiceTimeUpdate}
         onEnded={() => { setPlaying(false); musicAudioRef.current?.pause(); }} />
     </div>
   );
