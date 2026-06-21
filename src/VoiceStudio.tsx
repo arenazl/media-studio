@@ -7,13 +7,14 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, Search, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2 } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import { NARRATION } from './data/narrationText';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
 import ScriptText from './ScriptText';
 import { MUSIC_TRACKS, type MusicTrack } from './lib/music';
+import { exportVoiceWithMusic } from './lib/exportMix';
 
 // rango en construcción: 1er toque fija el inicio (frac del slider), 2º toque cierra.
 interface Pending { frac: number; kind: 'emphasis' | 'tone'; tag?: string; label: string; color: string }
@@ -62,7 +63,7 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
   })();
   const [text, setText] = useState(initialText);
   const [cfg, setCfg] = useState<StudioConfig>(DEFAULT_CONFIG);
-  const [activeFile, setActiveFile] = useState<string | null>(null);
+  const [activeFile, setActiveFile] = useState<string | null>(onAudio ? (DEFAULT_CONFIG.files[0]?.id ?? null) : null);
   const [voices, setVoices] = useState<Voice[]>([]);
   const [voiceId, setVoiceId] = useState('yA5jrK1S9cpCAojBYyMu');
   const [qv, setQv] = useState('');
@@ -94,11 +95,14 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
   const [mHist, setMHist] = useState<PlacedMarker[][]>([]);   // historial de markers para Undo
   const [sampling, setSampling] = useState(false);       // sonando el sample de una voz
   const [editingText, setEditingText] = useState(false); // editar el guión (textarea) vs verlo pintarse (karaoke)
+  const [withMusic, setWithMusic] = useState(false);     // tilde "música" del export: mezcla la pista elegida
+  const [exporting, setExporting] = useState(false);     // exportación de la mezcla en curso
+  const [exportErr, setExportErr] = useState<string | null>(null);
+  const voiceBlobRef = useRef<Blob | null>(null);        // último mp3 de voz generado (para exportar/mezclar)
   const taRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
   const sampleRef = useRef<HTMLAudioElement>(null);      // preview de voz (como la música)
-  const sampleChain = useRef<{ gain: GainNode } | null>(null); // compresor+gain del preview (normaliza loudness)
   const fila2Ref = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -189,27 +193,12 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
     out = out.replace(/[ \t]{2,}/g, (m) => ` <break time="${Math.min(0.25 + (m.length - 1) * 0.1, 1.2).toFixed(2)}s"/> `);
     return out.replace(/[ \t]{2,}/g, ' ').trim();
   };
-  // Sample de la voz: reproduce el preview de ElevenLabs. Los samples NO vienen
-  // normalizados (unos suenan fuerte, otros bajo) → lo ruteo por un compresor +
-  // gain (Web Audio) para emparejar el volumen y respetar la barra de volumen.
-  const setupSampleChain = () => {
-    const s = sampleRef.current; if (!s || sampleChain.current) return;
-    try {
-      const ctx = audioCtx();
-      const src = ctx.createMediaElementSource(s);
-      const comp = ctx.createDynamicsCompressor();
-      comp.threshold.value = -28; comp.knee.value = 26; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.25;
-      const gain = ctx.createGain(); gain.gain.value = sampleVol * 1.6; // makeup gain
-      src.connect(comp); comp.connect(gain); gain.connect(ctx.destination);
-      sampleChain.current = { gain };
-    } catch { /* createMediaElementSource ya usado o sin soporte */ }
-  };
+  // Sample de la voz: reproduce directo (sin Web Audio) para evitar el bloqueo CORS
+  // de las URLs de preview de ElevenLabs (storage.googleapis.com no envía CORS headers).
   const previewVoice = (v: Voice) => {
     setVoiceId(v.voice_id);
     const s = sampleRef.current; if (!s || !v.preview_url) return;
-    setupSampleChain();
-    audioCtx().resume().catch(() => {});
-    if (sampleChain.current) sampleChain.current.gain.gain.value = sampleVol * 1.6;
+    s.volume = sampleVol;
     s.src = v.preview_url; s.currentTime = 0; duck(true);
     s.play().then(() => setSampling(true)).catch(() => setSampling(false));
   };
@@ -245,9 +234,11 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
       });
       if (!r.ok) throw new Error(`HTTP ${r.status} · ${(await r.text()).slice(0, 120)}`);
       const blob = await r.blob();
+      voiceBlobRef.current = blob;                 // lo reusa el export (con o sin música)
       if (url) URL.revokeObjectURL(url);
       const u = URL.createObjectURL(blob); setUrl(u);
-      if (activeFile && onAudio) onAudio(activeFile, blob); // compartir el mp3 con el editor del Reel
+      const fileId = activeFile || cfg.files[0]?.id;
+      if (fileId && onAudio) onAudio(fileId, blob); // compartir el mp3 con el editor del Reel
       try {
         const ctx = audioCtx(); await ctx.resume();
         const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
@@ -261,6 +252,31 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
     } catch (e) { setErr(e instanceof Error ? e.message : 'error'); } finally { setBusy(false); }
   };
   const toggle = () => { const a = audioRef.current; if (!a || !url) return; if (a.paused) { a.play(); setPlaying(true); } else { a.pause(); setPlaying(false); } };
+
+  // Descarga un blob disparando un <a> temporal (sirve igual para voz sola o mezcla).
+  const downloadBlob = (b: Blob, name: string) => {
+    const u = URL.createObjectURL(b);
+    const a = document.createElement('a'); a.href = u; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 4000);
+  };
+  // Export: sin tilde (o sin pista) baja la voz tal cual; con tilde mezcla la pista
+  // elegida (volumen del slider, sin ducking) + fade out de 3s tras la voz.
+  const handleExport = async () => {
+    const voiceBlob = voiceBlobRef.current; if (!voiceBlob) return;
+    if (!withMusic || !track) { downloadBlob(voiceBlob, 'voz.mp3'); return; }
+    const t = cfg.tracks.find((x) => x.id === track); if (!t) return;
+    setExporting(true); setExportErr(null);
+    try {
+      const mixed = await exportVoiceWithMusic({ voiceBlob, musicUrl: t.url, voiceVol, musicVol, fadeTailSec: 3 });
+      downloadBlob(mixed, 'voz-musica.mp3');
+    } catch (e) {
+      const m = e instanceof Error ? e.message : '';
+      setExportErr(/HTTP|fetch|cors|network/i.test(m)
+        ? 'Esa pista no se puede mezclar todavía (sin CORS). Elegí una de las nuevas o exportá sin música.'
+        : 'No se pudo exportar la mezcla.');
+    } finally { setExporting(false); }
+  };
 
   // Enter = play/pausa · Escape = cancela el rango armado (salvo escribiendo).
   useEffect(() => {
@@ -386,8 +402,8 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
         </div>
         <div className="vs-music-vol">
           <div className="vs-music-vol-row"><span className="vs-music-vol-label">Volumen</span><span className="vs-music-vol-val">{Math.round(sampleVol * 100)}%</span></div>
-          <input type="range" min={0} max={1} step={0.05} value={sampleVol} onChange={(e) => { const v = Number(e.target.value); setSampleVol(v); if (sampleChain.current) sampleChain.current.gain.gain.value = v * 1.6; const s = sampleRef.current; if (s) s.volume = v; }} className="vs-range-azure" />
-          <div className="vs-music-vol-hint">samples emparejados (compresor) para que no suenen disparejos</div>
+          <input type="range" min={0} max={1} step={0.05} value={sampleVol} onChange={(e) => { const v = Number(e.target.value); setSampleVol(v); const s = sampleRef.current; if (s) s.volume = v; }} className="vs-range-azure" />
+          <div className="vs-music-vol-hint">volumen del preview de cada narrador</div>
         </div>
       </>
     ),
@@ -523,8 +539,22 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
                 ? `${pending.label} — movés el slider al final y volvés a tocar para cerrar (Esc cancela)`
                 : !url ? 'Posicioná el slider y tocá un marker. «Generar voz» para el audio real.' : peaks ? 'audio real — deslizá para hacer seek' : 'editaste — regenerá la voz'}
             </span>
-            {url && <a href={url} download="voz.mp3" className="vs-export"><Download size={15} /> Exportar mp3</a>}
+            {url && (
+              <div className="vs-export-wrap">
+                <label className={track ? 'vs-export-music' : 'vs-export-music vs-export-music--off'}
+                  title={track ? 'Mezcla la pista de música elegida (volumen del slider) con fade out de 3s al final' : 'Elegí una pista en MÚSICA para activar la mezcla'}>
+                  <input type="checkbox" className="vs-check-box" checked={withMusic && !!track} disabled={!track}
+                    onChange={(e) => setWithMusic(e.target.checked)} />
+                  música
+                </label>
+                <button onClick={handleExport} disabled={exporting} className="vs-export" title="Exportar mp3">
+                  {exporting ? <Loader2 size={15} className="vs-spin" /> : <Download size={15} />}
+                  {exporting ? 'Mezclando…' : 'Exportar mp3'}
+                </button>
+              </div>
+            )}
           </div>
+          {exportErr && <div className="vs-export-err">{exportErr}</div>}
         </div>
       </div>
 
