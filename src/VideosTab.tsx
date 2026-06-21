@@ -3,8 +3,7 @@
 // filtros. La metadata de organización vive local (lib/videoLibrary). Sub-tab aparte:
 // generador de prompts para Flow.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { RefreshCw, Film, Upload, Trash2, Wand2, Clock, Star, Tag, Search, X, FolderKanban } from 'lucide-react';
-import VideoPromptBuilder from './VideoPromptBuilder';
+import { RefreshCw, Upload, Trash2, Clock, Star, Tag, Search, X, FolderKanban } from 'lucide-react';
 import { API_BASE } from './config';
 import { fetchCloudVideos, prettyVid as pretty, fmtVidDate as fmtDate, thumbOf, type CloudVid } from './lib/cloudVideos';
 import {
@@ -21,7 +20,6 @@ export default function VideosTab() {
   const [cloudLoading, setCloudLoading] = useState(false);
   const [cloudErr, setCloudErr] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [vtab, setVtab] = useState<'biblioteca' | 'prompt'>('biblioteca');
   const fileRef = useRef<HTMLInputElement>(null);
 
   // metadata de organización (local) — tags / favorito / proyecto por video.
@@ -73,16 +71,7 @@ export default function VideosTab() {
 
   return (
     <div className="vids-root">
-      <div className="vids-tabs">
-        <button className={vtab === 'biblioteca' ? 'vids-tab vids-tab--on' : 'vids-tab'} onClick={() => setVtab('biblioteca')}><Film size={14} /> Biblioteca</button>
-        <button className={vtab === 'prompt' ? 'vids-tab vids-tab--on' : 'vids-tab'} onClick={() => setVtab('prompt')}><Wand2 size={14} /> Prompt Flow</button>
-      </div>
-
-      {vtab === 'prompt' ? (
-        <div className="vids-prompt-wrap"><VideoPromptBuilder /></div>
-      ) : (
-        <>
-          {/* barra: buscador + favoritos + subir/actualizar */}
+      {/* barra: buscador + favoritos + subir/actualizar */}
           <div className="vlib-bar">
             <div className="vlib-search">
               <Search size={13} className="vlib-search-icon" />
@@ -149,8 +138,6 @@ export default function VideosTab() {
               );
             })}
           </div>
-        </>
-      )}
 
       <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="vids-hidden-input" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }} />
     </div>

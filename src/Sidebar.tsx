@@ -2,26 +2,26 @@
 // base (menú colapsable). Las secciones visibles se filtran según project.contentType
 // (configurado por el wizard de creación). Estilos en Sidebar.css.
 import { useState } from 'react';
-import { Mic, Film, Video, Layers, Download, FolderKanban, ChevronLeft, ChevronRight, ChevronDown, AudioLines, Boxes } from 'lucide-react';
+import { Mic, Clapperboard, Video, Wand2, FolderKanban, ChevronLeft, ChevronRight, ChevronDown, AudioLines, Boxes } from 'lucide-react';
 import type { Project, ProjectReel } from './lib/projects';
 import type { ContentType } from './NewProjectWizard';
 import './Sidebar.css';
 
-export type Section = 'audio' | 'reel' | 'videos' | 'montaje' | 'export';
+// Editor = integrador único (todo lo visual). Audio · Videos · Prompts = satélites.
+export type Section = 'editor' | 'audio' | 'videos' | 'prompts';
 
 const ALL_SECTIONS: { id: Section; label: string; Icon: typeof Mic }[] = [
+  { id: 'editor',  label: 'Editor',  Icon: Clapperboard },
   { id: 'audio',   label: 'Audio',   Icon: Mic },
-  { id: 'reel',    label: 'Reel',    Icon: Film },
   { id: 'videos',  label: 'Videos',  Icon: Video },
-  { id: 'montaje', label: 'Montaje', Icon: Layers },
-  { id: 'export',  label: 'Export',  Icon: Download },
+  { id: 'prompts', label: 'Prompts', Icon: Wand2 },
 ];
 
 const LAYOUT: Record<ContentType, Section[]> = {
-  reels:     ['audio', 'reel', 'montaje', 'export'],
-  video:     ['videos', 'montaje', 'export'],
+  reels:     ['editor', 'audio', 'prompts', 'videos'],
+  video:     ['editor', 'videos', 'prompts'],
   audio:     ['audio'],
-  combinado: ['audio', 'reel', 'videos', 'montaje', 'export'],
+  combinado: ['editor', 'audio', 'videos', 'prompts'],
 };
 
 export function sectionsFor(p: Project | null) {

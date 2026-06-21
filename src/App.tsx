@@ -2,9 +2,8 @@ import { useState } from 'react';
 import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
-import MontajeTab from './MontajeTab';
+import VideoPromptBuilder from './VideoPromptBuilder';
 import KitsStudio from './KitsStudio';
-import StageTab from './StageTab';
 import Sidebar, { defaultSection, type Section } from './Sidebar';
 import ProjectsABM from './ProjectsABM';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
@@ -56,7 +55,7 @@ export default function App() {
         onHome={() => { setTopView('projects'); setActiveProject(null); }}
         onKits={() => { setTopView('kits'); setActiveProject(null); }}
         onSection={setSection}
-        onOpenReel={() => setSection('audio')}
+        onOpenReel={() => setSection('editor')}
       />
 
       <main className="ms-main">
@@ -73,7 +72,6 @@ export default function App() {
 }
 
 function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { section: Section; project: Project; onGrabar: (reelId: string, vc: VoiceConfig) => void; onAudio: (reelId: string, blob: Blob) => void; audioByReel: Record<string, string> }) {
-  const projectName = project.name;
   if (section === 'audio') return (
     <VoiceStudio
       reelConfig={Object.fromEntries(project.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }]))}
@@ -82,12 +80,6 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
     />
   );
   if (section === 'videos') return <VideosTab />;
-  if (section === 'reel') return <ReelTab project={project} audioByReel={audioByReel} />;
-  if (section === 'montaje') return <MontajeTab project={project} />;
-  return (
-    <StageTab title={`EXPORT — ${projectName}`} color="var(--green)"
-      description="Unifico todo (slides + audios + videos) en el reel final. Decime el corte definitivo y los niveles."
-      placeholder="Ej: unificá todo, música Funk al 70% con ducking, voz Lucía, salida 1080×1920 mp4 a 30fps."
-      hint={<>El mp4 final queda en los assets del proyecto.</>} />
-  );
+  if (section === 'prompts') return <div className="vids-root"><VideoPromptBuilder /></div>;
+  return <ReelTab project={project} audioByReel={audioByReel} />;   // 'editor' (integrador, default)
 }
