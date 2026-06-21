@@ -1,26 +1,53 @@
-// Editor de timeline COMPARTIDO (Reel y Montaje). Acumulativo: Slides + Video +
-// Música + Audio. Los clips se mueven LIBRE en horizontal arrastrándolos (pointer
-// events → anda en touch y mouse). Cada clip tiene una posición x propia.
-// Galería de videos estilo Fotos (miniaturas + multi-selección). Transporte con
-// playhead: si hay voz generada, ese mp3 es el reloj; si no, timer estimado + música.
+// Editor de timeline COMPARTIDO (Reel y Montaje). Acumulativo: Animación + Video +
+// Música + Voz. Los clips se mueven LIBRE en horizontal arrastrándolos (pointer
+// events → anda en touch y mouse). La timeline es A-ESCALA (1s = PX_PER_SEC px), así
+// el ancho de cada clip refleja su duración real y mover/cortar mapea 1:1 al audio.
+//
+// AUDIO POR FRASE: cada frase de narración tiene su PROPIO audio (TTS por frase,
+// generado on-demand contra el media-service y cacheado). El motor (lib/montageAudio)
+// agenda cada clip en su posición; el reloj es ctx.currentTime (sin glitches).
+//
+// FUENTES: las paletas de arriba (animaciones, narración, música, videos) son todas
+// instancias del CONTROL GENÉRICO <SourcePanel> — mismo control, distinta vista según
+// el contenido (grid / chips), con buscador, filtros, preview y colapsado. "Se cambia
+// en un lado solo". La lógica pura (timeline + filtros) vive en lib/*, con unit tests.
 import { useEffect, useRef, useState } from 'react';
-import { Film, AudioLines, Music2, Video, GripVertical, X, Play, Pause, SkipBack, ChevronDown, ChevronRight, Plus, Check, Loader2 } from 'lucide-react';
-import CadenceWave from './CadenceWave';
+import { Film, AudioLines, Music2, Video, X, Play, Pause, SkipBack, ChevronRight, ChevronLeft, Loader2, Eraser, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { extractFrames } from './lib/videoFrames';
 import { MUSIC_TRACKS } from './lib/music';
 import { NARRATION } from './data/narrationText';
+import { TTS_SERVICE_URL } from './config';
 import { prettyVid, thumbOf, type CloudVid } from './lib/cloudVideos';
+import { MontageAudio } from './lib/montageAudio';
+import SourcePanel, { type SourcePanelProps } from './SourcePanel';
+import {
+  PX_PER_SEC, GAP, MIN_W, SLIDE_SEC, DEF_PHRASE_SEC, DEF_VIDEO_SEC, DEF_MUSIC_SEC,
+  secToPx, masterSecOf, rulerTicks, appendX, reflow, buildPlan,
+  type SlideClip, type RefClip, type PhraseClip, type PhraseAudio, type TrackKind,
+} from './lib/reelTimeline';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
 
-const CLIP_W = 112, GAP = 6, MIN_W = 36;   // ancho inicial + separación + ancho mínimo
-type TrackKind = 'slide' | 'video' | 'music' | 'audio';
-type DragMode = 'move' | 'l' | 'r';        // mover · resize inicio · resize fin
-interface SlideClip { s: number; x: number; w: number }
-interface RefClip { id: string; x: number; w: number }
-interface PhraseClip { p: number; x: number; w: number }
+type DragMode = 'move' | 'l' | 'r';           // mover · resize inicio · resize fin
 
-export default function ReelEditor({ project, audioByReel = {}, videos, videosLoading = false }: {
+// voz por defecto cuando el reel no tiene settings guardado (Lucía, es-AR).
+const DEFAULT_VOICE = { voice_id: 'yA5jrK1S9cpCAojBYyMu', model: 'eleven_v3', stability: 0.4, similarity: 0.8, style: 0.5, speed: 1.0 };
+
+// Mini-onda dibujada DENTRO de un clip de audio. peaks = slice 0..1 de la fuente.
+function ClipWave({ peaks }: { peaks: number[] }) {
+  if (!peaks.length) return null;
+  const bw = 100 / peaks.length;
+  return (
+    <svg className="rt-clip-wave" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+      {peaks.map((v, i) => {
+        const h = Math.max(7, v * 96);
+        return <rect key={i} x={i * bw} y={(100 - h) / 2} width={Math.max(0.5, bw - 0.35)} height={h} rx={0.6} />;
+      })}
+    </svg>
+  );
+}
+
+export default function ReelEditor({ project, videos, videosLoading = false }: {
   project: Project; audioByReel?: Record<string, string>; videos?: CloudVid[]; videosLoading?: boolean;
 }) {
   const withVideo = videos !== undefined;
@@ -30,177 +57,207 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
   const [audioTrack, setAudioTrack] = useState<PhraseClip[]>([]);
   const [musicTrack, setMusicTrack] = useState<RefClip[]>([]);
   const [videoTrack, setVideoTrack] = useState<RefClip[]>([]);
-  const [galOpen, setGalOpen] = useState(false);   // galería colapsada por defecto → el timeline queda a la vista
-  const [selVids, setSelVids] = useState<Set<string>>(new Set());
+  const [openPanel, setOpenPanel] = useState<Record<string, boolean>>({});   // paletas colapsables (default abiertas)
   const [playing, setPlaying] = useState(false);
-  const [playFrac, setPlayFrac] = useState(0);   // 0-1 sobre los chunks seleccionados (también el cursor del waveform)
-  const [voiceDur, setVoiceDur] = useState(0);
+  const [playFrac, setPlayFrac] = useState(0);   // 0-1 sobre la duración del montaje (también el cursor del waveform)
+  const [phraseAudio, setPhraseAudio] = useState<Record<number, PhraseAudio>>({});  // TTS por frase (url+dur+peaks)
+  const [phraseBusy, setPhraseBusy] = useState<Set<number>>(new Set());             // frases generándose (feedback en el clip)
+  const [musicPeaks, setMusicPeaks] = useState<Record<string, number[]>>({});       // peaks por track de música presente
+  const [muted, setMuted] = useState<Set<TrackKind>>(new Set());                    // canales silenciados en la reproducción
+  const [previewOpen, setPreviewOpen] = useState(true);                             // riel de preview (colapsable)
   const rafRef = useRef<number | null>(null);
-  const startRef = useRef(0);
-  const musicAudioRef = useRef<HTMLAudioElement>(null);
-  const voiceRef = useRef<HTMLAudioElement>(null);
-  // Chunk playback
-  const segIdxRef = useRef(0);
-  const segsRef = useRef<Array<{ phraseIdx: number; start: number; end: number }>>([]);
-  const pendingPlayRef = useRef(false); // play() fue llamado antes de que el audio cargara
+  const startRef = useRef(0);                    // wall-clock para el modo sin-audio
+  const usingEngineRef = useRef(false);          // true: el playhead lo manda el motor; false: wall-clock
+  const engineRef = useRef<MontageAudio | null>(null);
+  if (!engineRef.current) engineRef.current = new MontageAudio();  // 1 motor por editor (AudioContext lazy)
+  const inflightRef = useRef<Set<number>>(new Set());             // dedupe de generaciones TTS en curso
+  const masterSecRef = useRef(0);                // duración total del montaje (s), leída por el rAF sin closure stale
+  const draggingRef = useRef(false);             // durante un drag NO reprogramamos (evita reiniciar el audio por píxel)
+  const playRef = useRef<() => void>(() => {});  // play/stop fresco para el atajo de teclado
+  const [rev, setRev] = useState(0);             // bump al soltar un drag → fuerza una reprogramación con estado fresco
 
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
   const n = reel?.frases ?? 0;
   const slides = Array.from({ length: n }, (_, i) => i);
   const phrases: string[] = (reel && NARRATION[reel.id]) || [];
-  const waveText = phrases.length ? phrases.join('  ') : '';
-  const voiceUrl = reel ? audioByReel[reel.id] : undefined;
-  const hasVoice = !!voiceUrl;
   const vidById = (id: string) => (videos || []).find((v) => v.id === id);
+  const musicUrlOf = (id: string) => MUSIC_TRACKS.find((t) => t.id === id)?.url;
+  const videoUrlOf = (id: string) => vidById(id)?.url;
 
-  const SLIDE_SEC = 2.5;
-  const totalMs = Math.max(1, slideTrack.length) * SLIDE_SEC * 1000;
-  // El playhead (0..1) se mapea al ANCHO real del contenido (px de los clips), así
-  // sabemos qué clip está "abajo" del cursor — sea slide o VIDEO.
+  // duración total + regla de tiempo (lógica pura, testeada).
+  const masterSec = masterSecOf([slideTrack, audioTrack, videoTrack, musicTrack]);
+  masterSecRef.current = masterSec;
+  const contentW = masterSec * PX_PER_SEC;
+  const ruler = rulerTicks(masterSec);
+
   const playing0 = playing || playFrac > 0;
-  const contentW = Math.max(1, ...[...slideTrack, ...videoTrack].map((c) => c.x + c.w), 1);
   const playPx = playFrac * contentW;
   const slidesByX = [...slideTrack].sort((a, b) => a.x - b.x);
-  // slide actual = el último cuyo inicio ya pasó el playhead (se mantiene en los gaps).
   const curSlide = playing0 ? ([...slidesByX].reverse().find((c) => c.x <= playPx) ?? slidesByX[0]) : undefined;
   const activeS = curSlide?.s;
-  // video activo = el clip de video que CUBRE el playhead (si hay) → tiene prioridad en el preview.
+  const restS = slidesByX[0]?.s;                 // en reposo, mostrar la primera animación
+  const showS = activeS ?? restS;
   const activeVidClip = playing0 ? videoTrack.find((c) => playPx >= c.x && playPx < c.x + c.w) : undefined;
   const activeVid = activeVidClip ? vidById(activeVidClip.id) : undefined;
 
+  const currentPlan = () => buildPlan({ audioTrack, phraseAudio, musicTrack, videoTrack, musicUrlOf, videoUrlOf, muted });
+
+  // ── TTS por frase: genera (una vez) el audio de la frase p y lo cachea ────────
+  const genPhrase = async (p: number): Promise<PhraseAudio | null> => {
+    if (phraseAudio[p]) return phraseAudio[p];
+    if (inflightRef.current.has(p)) return null;       // ya hay una generación en curso
+    const text = phrases[p]; if (!text || !reel) return null;
+    inflightRef.current.add(p);
+    setPhraseBusy((s) => new Set(s).add(p));
+    const vc = reel.voiceConfig ?? DEFAULT_VOICE;
+    try {
+      const r = await fetch(`${TTS_SERVICE_URL}/generate`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice_id: vc.voice_id, model_id: vc.model, stability: vc.stability, similarity_boost: vc.similarity, style: vc.style, speed: vc.speed, use_speaker_boost: true }),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const buf = await engineRef.current!.load(url);      // decodifica (y cachea para la reproducción)
+      const dur = buf?.duration || DEF_PHRASE_SEC;
+      const peaks = buf ? MontageAudio.peaksFromBuffer(buf, Math.max(24, Math.round(dur * 38))) : [];
+      const pa: PhraseAudio = { url, dur, peaks };
+      setPhraseAudio((prev) => ({ ...prev, [p]: pa }));
+      return pa;
+    } catch {
+      return null;
+    } finally {
+      inflightRef.current.delete(p);
+      setPhraseBusy((s) => { const nn = new Set(s); nn.delete(p); return nn; });
+    }
+  };
+
+  // layout inicial: las animaciones se cargan todas; la Voz arranca VACÍA (sumás las
+  // frases que quieras). Los frames del boceto se extraen para el preview.
   useEffect(() => {
     let alive = true; setFrames([]);
-    setSlideTrack(slides.map((s, i) => ({ s, x: i * (CLIP_W + GAP), w: CLIP_W })));
-    setAudioTrack(phrases.map((_, i) => ({ p: i, x: i * (CLIP_W + GAP), w: CLIP_W })));
-    setMusicTrack([]); setVideoTrack([]); stopPlay();
+    setSlideTrack(reflow(slides.map((s) => ({ s, x: 0, w: secToPx(SLIDE_SEC) })), () => SLIDE_SEC));
+    setAudioTrack([]); setMusicTrack([]); setVideoTrack([]); stopPlay();
     if (reel?.slidesRef && n > 0) extractFrames(reel.slidesRef, n).then((f) => { if (alive) setFrames(f); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reel?.slidesRef, n]);
 
-  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
-
-  // Pre-carga el audio apenas voiceUrl está disponible, así v.duration ya es válido
-  // cuando el usuario aprieta play (evita el problema de autoplay-policy tras loadedmetadata async).
+  // al cambiar de reel: soltar el audio de las frases del reel anterior (revoca URLs).
   useEffect(() => {
-    const v = voiceRef.current; if (!v) return;
-    if (voiceUrl) { v.src = voiceUrl; v.load(); }
-    else { v.removeAttribute('src'); setVoiceDur(0); }
-  }, [voiceUrl]);
+    setPhraseAudio((prev) => { Object.values(prev).forEach((pa) => { try { URL.revokeObjectURL(pa.url); } catch { /* noop */ } }); return {}; });
+    setPhraseBusy(new Set()); setMusicPeaks({});
+    inflightRef.current = new Set();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reel?.id]);
 
-  // ── Chunks: segmenta el mp3 en frases y devuelve los chunks seleccionados ─
-  // Cada frase ocupa (voiceDur / n) segundos dentro del mp3 (distribución uniforme).
-  const buildSegs = (dur: number) => {
-    if (!dur || !n || !audioTrack.length) return [];
-    const phraseDur = dur / n;
-    return [...audioTrack]
-      .sort((a, b) => a.x - b.x)
-      .map((c) => ({
-        phraseIdx: c.p,
-        start: c.p * phraseDur,
-        end: Math.min((c.p + 1) * phraseDur, dur),
-      }));
-  };
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); engineRef.current?.dispose(); }, []);
 
-  // ── transporte ────────────────────────────────────────────────────────────
-  const tick = () => {
-    const f = Math.min(1, (performance.now() - startRef.current) / totalMs);
-    setPlayFrac(f);
-    if (f >= 1) { setPlaying(false); musicAudioRef.current?.pause(); return; }
-    rafRef.current = requestAnimationFrame(tick);
-  };
-  const startMusic = () => {
-    const m = musicAudioRef.current; const url = MUSIC_TRACKS.find((t) => t.id === musicTrack[0]?.id)?.url;
-    if (m && url) { if (m.src !== url) m.src = url; m.loop = true; m.volume = hasVoice ? 0.35 : 0.7; m.play().catch(() => {}); }
-  };
-  const startChunkPlay = (v: HTMLAudioElement, dur: number) => {
-    const segs = buildSegs(dur);
-    segsRef.current = segs;
-    segIdxRef.current = 0;
-    if (segs.length > 0) {
-      v.currentTime = segs[0].start;
-    } else {
-      v.currentTime = 0; setPlayFrac(0);
+  // Conocida la duración real de una frase, re-secuencia la pista de Voz a-escala:
+  // cada clip toma su ancho real (= duración) y quedan contiguos, en el orden actual.
+  // No corre en pleno drag (no pisa lo que estás moviendo a mano).
+  useEffect(() => {
+    if (draggingRef.current) return;
+    setAudioTrack((arr) => (arr.length ? reflow(arr, (c) => phraseAudio[c.p]?.dur || DEF_PHRASE_SEC) : arr));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phraseAudio]);
+
+  // Peaks de cada track de música presente (para dibujar su onda en el clip).
+  useEffect(() => {
+    const e = engineRef.current!; let alive = true;
+    for (const c of musicTrack) {
+      if (musicPeaks[c.id]) continue;
+      const url = musicUrlOf(c.id); if (!url) continue;
+      e.peaks(url, 140).then((pk) => { if (alive && pk) setMusicPeaks((prev) => prev[c.id] ? prev : { ...prev, [c.id]: pk }); });
     }
-    v.play().catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [musicTrack]);
+
+  // ── reprogramación EN VIVO: si estás reproduciendo (con el motor) y cambia un track
+  //    con audio, el montaje se rearma desde la posición actual (no en pleno drag). ──
+  useEffect(() => {
+    const e = engineRef.current; if (!e?.playing || draggingRef.current) return;
+    const plan = currentPlan(); const at = e.positionSec();
+    e.prime(plan).then(() => { if (e.playing && !draggingRef.current) e.play(plan, at); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioTrack, videoTrack, musicTrack, muted, phraseAudio, rev]);
+
+  // ── transporte ──────────────────────────────────────────────────────────────
+  const tick = () => {
+    const e = engineRef.current!; const total = masterSecRef.current;
+    if (usingEngineRef.current) {
+      setPlayFrac(total > 0 ? Math.min(1, e.positionSec() / total) : 0);
+      if (!e.playing) { setPlaying(false); return; }
+    } else {
+      const f = Math.min(1, (performance.now() - startRef.current) / (total * 1000));
+      setPlayFrac(f);
+      if (f >= 1) { setPlaying(false); return; }
+    }
+    rafRef.current = requestAnimationFrame(tick);
   };
   const play = () => {
     if (playing || !slideTrack.length) return;
-    setPlaying(true); startMusic();
-    const v = voiceRef.current;
-    if (hasVoice && v) {
-      const dur = v.duration || voiceDur;
-      if (!dur) {
-        // Todavía cargando (raro con blob URLs) — esperar loadedmetadata
-        pendingPlayRef.current = true; return;
-      }
-      startChunkPlay(v, dur);
+    const e = engineRef.current!;
+    setPlaying(true);
+    setPreviewOpen(true);   // el preview se abre al dar Play (como las apps de diseño)
+    const fromFrac = playFrac >= 1 ? 0 : playFrac;
+    if (playFrac >= 1) setPlayFrac(0);
+    e.onEnded = () => { setPlaying(false); setPlayFrac(1); };
+    const plan = currentPlan();
+    const from = fromFrac * masterSecRef.current;
+    if (plan.length) {
+      usingEngineRef.current = true;
+      e.prime(plan).then(() => { e.play(plan, from); rafRef.current = requestAnimationFrame(tick); });
     } else {
-      startRef.current = performance.now() - (playFrac >= 1 ? 0 : playFrac) * totalMs;
-      if (playFrac >= 1) setPlayFrac(0);
+      usingEngineRef.current = false;
+      startRef.current = performance.now() - from * 1000;
       rafRef.current = requestAnimationFrame(tick);
     }
   };
-  const pause = () => { setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); musicAudioRef.current?.pause(); voiceRef.current?.pause(); };
+  const pause = () => { engineRef.current?.pause(); setPlaying(false); if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   function stopPlay() {
     setPlaying(false); setPlayFrac(0);
-    pendingPlayRef.current = false; segIdxRef.current = 0; segsRef.current = [];
+    engineRef.current?.stop();
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    const m = musicAudioRef.current; if (m) { m.pause(); m.currentTime = 0; }
-    const v = voiceRef.current; if (v) { v.pause(); v.currentTime = 0; }
   }
+  // barra espaciadora: si suena, para y vuelve a 0; si está parado, arranca desde 0.
+  playRef.current = () => { if (playing) stopPlay(); else play(); };
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null; const tag = el?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+      if (ev.code === 'Space') { ev.preventDefault(); playRef.current(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
-  // ── Handler de timeUpdate con lógica de chunks ─────────────────────────
-  const onVoiceTimeUpdate = (e: React.SyntheticEvent<HTMLAudioElement>) => {
-    const a = e.currentTarget;
-    if (!a.duration) return;
-    const segs = segsRef.current;
-
-    // Sin chunks → reproducir mp3 completo (fallback si audioTrack está vacío)
-    if (!segs.length) {
-      setPlayFrac(a.currentTime / a.duration);
-      return;
-    }
-
-    const idx = segIdxRef.current;
-    const seg = segs[idx];
-    if (!seg) return;
-
-    // ¿Llegamos al fin del chunk actual?
-    if (a.currentTime >= seg.end - 0.05) {
-      if (idx < segs.length - 1) {
-        segIdxRef.current = idx + 1;
-        a.currentTime = segs[idx + 1].start;
-        return;
-      } else {
-        a.pause();
-        setPlaying(false);
-        musicAudioRef.current?.pause();
-        setPlayFrac(1);
-        return;
-      }
-    }
-
-    // playFrac = progreso 0-1 sobre el total de chunks seleccionados
-    const doneTime = segs.slice(0, idx).reduce((s, sg) => s + (sg.end - sg.start), 0);
-    const inSeg = a.currentTime - seg.start;
-    const totalSel = segs.reduce((s, sg) => s + (sg.end - sg.start), 0);
-    if (totalSel > 0) setPlayFrac((doneTime + inSeg) / totalSel);
+  // ── agregar al track ──────────────────────────────────────────────────────────
+  const addSlide = (i: number) => setSlideTrack((t) => [...t, { s: i, x: appendX(t), w: secToPx(SLIDE_SEC) }]);
+  const addPhrase = (i: number) => {
+    setAudioTrack((t) => [...t, { p: i, x: appendX(t), w: secToPx(phraseAudio[i]?.dur || DEF_PHRASE_SEC) }]);
+    if (!phraseAudio[i]) genPhrase(i);   // genera en background → al llegar, el clip toma su onda + duración
   };
-
-  // ── agregar al track (TAP) — el nuevo clip se ubica al final de su track ────
-  const nextX = (len: number) => len * (CLIP_W + GAP);
-  const addSlide = (i: number) => setSlideTrack((t) => [...t, { s: i, x: nextX(t.length), w: CLIP_W }]);
-  const addPhrase = (i: number) => setAudioTrack((t) => [...t, { p: i, x: nextX(t.length), w: CLIP_W }]);
-  const addMusic = (id: string) => setMusicTrack((t) => [...t, { id, x: nextX(t.length), w: CLIP_W }]);
-  const addVideo = (id: string) => setVideoTrack((t) => [...t, { id, x: nextX(t.length), w: CLIP_W }]);
-  const addSelected = () => { setVideoTrack((t) => [...t, ...Array.from(selVids).map((id, k) => ({ id, x: nextX(t.length + k), w: CLIP_W }))]); setSelVids(new Set()); };
+  const addMusic = (id: string) => {
+    const span = Math.max(DEF_MUSIC_SEC, masterSec);   // el bed cubre el montaje actual
+    setMusicTrack((t) => [...t, { id, x: 0, w: secToPx(span) }]);
+  };
+  const addVideo = (id: string) => { const v = vidById(id); setVideoTrack((t) => [...t, { id, x: appendX(t), w: secToPx(v?.duration_sec || DEF_VIDEO_SEC) }]); };
+  const addVideos = (ids: string[]) => setVideoTrack((t) => { let x = appendX(t); return [...t, ...ids.map((id) => { const v = vidById(id); const w = secToPx(v?.duration_sec || DEF_VIDEO_SEC); const c = { id, x, w }; x += w + GAP; return c; })]; });
 
   const removeAt = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>, k: number) => setter((arr) => arr.filter((_, j) => j !== k));
 
+  // ── limpiar canal / todo · mute por canal ────────────────────────────────────
+  const clearTrack = (kind: TrackKind) => {
+    if (kind === 'slide') setSlideTrack([]); else if (kind === 'video') setVideoTrack([]);
+    else if (kind === 'music') setMusicTrack([]); else setAudioTrack([]);
+    setRev((r) => r + 1);
+  };
+  const clearAll = () => { setSlideTrack([]); setVideoTrack([]); setMusicTrack([]); setAudioTrack([]); stopPlay(); };
+  const toggleMute = (kind: TrackKind) => setMuted((m) => { const nn = new Set(m); nn.has(kind) ? nn.delete(kind) : nn.add(kind); return nn; });
+
   // ── mover LIBRE + RESIZE (inicio/fin) — listeners en WINDOW durante el drag ──
-  // (robusto: captura todos los pointermove aunque el clip se re-renderice o el
-  //  cursor salga del clip; anda en touch y mouse).
   const setClip = (kind: TrackKind, idx: number, x: number, w: number) => {
     const upd = <T extends { x: number; w: number }>(arr: T[]) => arr.map((c, i) => (i === idx ? { ...c, x, w } : c));
     if (kind === 'slide') setSlideTrack(upd); else if (kind === 'video') setVideoTrack(upd);
@@ -208,6 +265,7 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
   };
   const onPtrDown = (e: React.PointerEvent, kind: TrackKind, idx: number, mode: DragMode, x0: number, w0: number) => {
     e.stopPropagation(); e.preventDefault();
+    draggingRef.current = true;
     const lane = (e.currentTarget as HTMLElement).closest('.rt-lane') as HTMLElement;
     const laneW = lane?.getBoundingClientRect().width ?? 0;
     const startX = e.clientX;
@@ -219,7 +277,10 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
       else { const right = x0 + w0; x = Math.max(0, Math.min(right - MIN_W, x0 + dx)); w = right - x; }
       setClip(kind, idx, x, w);
     };
-    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp);
+      draggingRef.current = false; setRev((r) => r + 1);
+    };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
@@ -227,11 +288,55 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
   const labelOf = (id: string) => MUSIC_TRACKS.find((m) => m.id === id)?.label || id;
   const xwStyle = (x: number, w: number) => ({ ['--x']: `${x}px`, ['--w']: `${w}px` } as React.CSSProperties);
   const stopPd = (e: React.PointerEvent) => e.stopPropagation();
-  // handles de resize (inicio/fin) — se renderizan dentro de cada clip.
   const handles = (kind: TrackKind, idx: number, x: number, w: number) => (<>
     <span className="rt-clip-h rt-clip-h--l" onPointerDown={(e) => onPtrDown(e, kind, idx, 'l', x, w)} />
     <span className="rt-clip-h rt-clip-h--r" onPointerDown={(e) => onPtrDown(e, kind, idx, 'r', x, w)} />
   </>);
+  const playhead = playing0 ? <span className="rt-lane-ph" style={{ ['--x']: `${playPx}px` } as React.CSSProperties} /> : null;
+  const trackHead = (kind: TrackKind, icon: React.ReactNode, name: string, sounds: boolean) => (
+    <div className="rt-track-head">
+      <span className="rt-track-lbl">{icon} {name}</span>
+      <span className="rt-track-acts">
+        {sounds && <button className={muted.has(kind) ? 'rt-thbtn rt-thbtn--off' : 'rt-thbtn'} title={muted.has(kind) ? 'Activar sonido' : 'Silenciar canal'} onClick={() => toggleMute(kind)}>{muted.has(kind) ? <VolumeX size={12} /> : <Volume2 size={12} />}</button>}
+        <button className="rt-thbtn" title="Vaciar canal" onClick={() => clearTrack(kind)}><Eraser size={12} /></button>
+      </span>
+    </div>
+  );
+
+  // ── FUENTES: cada paleta es una instancia del control genérico <SourcePanel> ──
+  const isPanelOpen = (id: string) => openPanel[id] !== false;
+  const togglePanel = (id: string) => setOpenPanel((o) => ({ ...o, [id]: o[id] === false }));
+  const sources: (SourcePanelProps & { id: string })[] = [
+    {
+      id: 'anim', title: 'Animaciones', accent: 'var(--azure)', icon: <Film size={12} />, grow: 300, view: 'grid',
+      items: slides.map((i) => ({ id: `s${i}`, label: String(i + 1), thumb: frames[i], data: i })),
+      onPick: (it) => addSlide(it.data as number),
+    },
+    {
+      id: 'narr', title: 'Narración', accent: 'var(--gold)', icon: <AudioLines size={12} />, grow: 250, view: 'chips',
+      search: true, hint: '▶ escuchás la frase · tocá el texto para sumarla a la Voz',
+      items: phrases.map((p, i) => ({ id: `n${i}`, label: `frase ${i + 1}`, sub: phraseAudio[i] ? `${phraseAudio[i].dur.toFixed(1)}s` : undefined, searchText: p, data: i })),
+      getPreviewUrl: async (it) => { const i = it.data as number; const pa = phraseAudio[i] || await genPhrase(i); return pa?.url ?? null; },
+      onPick: (it) => addPhrase(it.data as number),
+      emptyText: 'Este reel no tiene narración.',
+    },
+    {
+      id: 'mus', title: 'Música', accent: 'var(--violet)', icon: <Music2 size={12} />, grow: 280, view: 'chips',
+      search: true, filters: [{ key: 'cat', label: 'Estilo' }],
+      items: MUSIC_TRACKS.map((m) => ({ id: m.id, label: m.label, meta: { cat: m.cat }, data: m.id })),
+      getPreviewUrl: (it) => musicUrlOf(it.data as string) ?? null,
+      onPick: (it) => addMusic(it.data as string),
+    },
+  ];
+  if (withVideo) sources.push({
+    id: 'vid', title: 'Videos', accent: 'var(--cyan)', icon: <Video size={12} />, grow: 320, view: 'grid',
+    search: true, multiSelect: true,
+    items: (videos || []).map((v) => ({ id: v.id, label: prettyVid(v.name), thumb: thumbOf(v), data: v.id })),
+    onPick: (it) => addVideo(it.data as string),
+    onPickMany: (its) => addVideos(its.map((i) => i.data as string)),
+    pickManyLabel: (k) => `Agregar ${k} al timeline`,
+    emptyText: videosLoading ? 'Cargando videos…' : 'Subí videos en la solapa «Videos».',
+  });
 
   return (
     <div className="rt-shell">
@@ -239,199 +344,146 @@ export default function ReelEditor({ project, audioByReel = {}, videos, videosLo
         <div className="rt-reelbar">
           {project.reels.map((r) => (
             <button key={r.id} className={r.id === reel?.id ? 'rt-reelchip rt-reelchip--on' : 'rt-reelchip'} onClick={() => setReelId(r.id)}>
-              {r.nombre}{r.voiceConfig?.voice_id && <span className="rt-reelchip-dot" title="tiene audio" />}
+              {r.nombre}{r.voiceConfig?.voice_id && <span className="rt-reelchip-dot" title="tiene voz configurada" />}
             </button>
           ))}
         </div>
       )}
 
       {!n ? (
-        <div className="rt-empty">Este reel todavía no tiene slides. Cargalos/generalos y aparecen acá para editar.</div>
+        <div className="rt-empty">Este reel todavía no tiene animaciones. Cargalas/generalas y aparecen acá para editar.</div>
       ) : (
         <div className="rt-editor">
-          {/* PALETA: slides */}
-          <div className="rt-palette">
-            <div className="rt-palette-head"><Film size={12} /> Slides — tocá uno para sumarlo</div>
-            <div className="rt-frames">
-              {slides.map((i) => (
-                <button key={i} type="button" className="rt-frame" onClick={() => addSlide(i)}>
-                  <div className="rt-frame-thumb">{frames[i] ? <img src={frames[i]} alt={`Slide ${i + 1}`} className="rt-frame-img" /> : <Film size={18} />}</div>
-                  <span className="rt-frame-lbl">Slide {i + 1}</span>
-                </button>
-              ))}
-            </div>
+          {/* FUENTES: paneles colapsables (todos = el mismo control genérico) */}
+          <div className="rt-row1">
+            {sources.map(({ id, ...p }) => (
+              <SourcePanel key={id} {...p} open={isPanelOpen(id)} onToggle={() => togglePanel(id)} />
+            ))}
           </div>
 
-          {/* PALETA: narración */}
-          {phrases.length > 0 && (
-            <div className="rt-palette">
-              <div className="rt-palette-head"><AudioLines size={12} /> Narración — tocá una frase para sumarla</div>
-              <div className="rt-music-chips">
-                {phrases.map((p, i) => (
-                  <button key={i} type="button" className="rt-pchip" title={p} onClick={() => addPhrase(i)}>frase {i + 1}</button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PALETA: música */}
-          <div className="rt-palette">
-            <div className="rt-palette-head"><Music2 size={12} /> Música — tocá una para sumarla</div>
-            <div className="rt-music-chips">
-              {MUSIC_TRACKS.map((m) => (
-                <button key={m.id} type="button" className="rt-mchip" onClick={() => addMusic(m.id)}><GripVertical size={10} /> {m.label}</button>
-              ))}
-            </div>
-          </div>
-
-          {/* GALERÍA de videos estilo Fotos */}
-          {withVideo && (
-            <div className="rt-palette">
-              <button type="button" className="rt-gal-head" onClick={() => setGalOpen((o) => !o)}>
-                {galOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />} <Video size={12} /> Videos <span className="rt-gal-count">{videos!.length}</span>
-                <span className="rt-gal-hint">{selVids.size ? `${selVids.size} seleccionados` : 'tocá para seleccionar varios'}</span>
-                {selVids.size > 0 && <span className="rt-gal-add" role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); addSelected(); }}><Plus size={12} /> Agregar {selVids.size} al timeline</span>}
-              </button>
-              {galOpen && (
-                videosLoading ? (
-                  <div className="rt-gal-loading"><Loader2 size={16} className="rt-spin" /> Cargando videos de Cloudinary…</div>
-                ) : videos!.length ? (
-                  <div className="rt-gal">
-                    {videos!.map((v) => {
-                      const sel = selVids.has(v.id);
-                      return (
-                        <button key={v.id} type="button" className={sel ? 'rt-gal-item rt-gal-item--sel' : 'rt-gal-item'} title={prettyVid(v.name)}
-                          onClick={() => setSelVids((s) => { const nn = new Set(s); nn.has(v.id) ? nn.delete(v.id) : nn.add(v.id); return nn; })}
-                          onDoubleClick={() => addVideo(v.id)}>
-                          <img src={thumbOf(v)} alt="" loading="lazy" className="rt-gal-img" onError={(e) => e.currentTarget.classList.add('rt-gal-img--broken')} />
-                          {sel && <span className="rt-gal-check"><Check size={11} /></span>}
-                          <span className="rt-gal-name">{prettyVid(v.name)}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : <div className="rt-lane-empty">Subí videos en la solapa «Videos» y aparecen acá.</div>
-              )}
-            </div>
-          )}
-
-          {/* preview + waveform + transporte */}
-          <div className="rt-stage">
-            <div className="rt-preview">
-              {activeVid ? (
-                <video key={activeVidClip!.id} src={activeVid.url} autoPlay muted loop playsInline className="rt-preview-img" />
-              ) : activeS !== undefined && frames[activeS] ? (
-                <img src={frames[activeS]} alt="" className="rt-preview-img" />
-              ) : <div className="rt-preview-ph"><Film size={22} /></div>}
-            </div>
-            <div className="rt-wave">
-              <div className="rt-palette-head"><AudioLines size={12} /> Audio del reel</div>
-              <div className="rt-wave-box">
-                {(() => {
-                  // Waveform dinámica: solo las frases presentes en el timeline, en orden x
-                  const sorted = [...audioTrack].sort((a, b) => a.x - b.x);
-                  const activeText = sorted.length && phrases.length
-                    ? sorted.map(c => phrases[c.p]).filter(Boolean).join('  ')
-                    : waveText;
-                  return activeText
-                    ? <CadenceWave text={activeText} peaks={null} cursor={playFrac} />
-                    : <div className="rt-lane-empty">Grabá el audio en la solapa «Audio».</div>;
-                })()}
-              </div>
-              <div className="rt-transport">
-                <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar"><SkipBack size={15} /></button>
-                <button className="rt-tbtn rt-tbtn--play" onClick={() => (playing ? pause() : play())} disabled={!slideTrack.length} title={playing ? 'Pausa' : 'Play'}>{playing ? <Pause size={16} /> : <Play size={16} />}</button>
-                {(() => {
-                  const segs = audioTrack.length && voiceDur && n
-                    ? [...audioTrack].map(c => { const pd = voiceDur / n; return Math.min((c.p + 1) * pd, voiceDur) - c.p * pd; }).reduce((a, b) => a + b, 0)
-                    : hasVoice && voiceDur ? voiceDur : totalMs / 1000;
-                  return <span className="rt-time">{(playFrac * segs).toFixed(1)}s / {segs.toFixed(1)}s</span>;
-                })()}
-                <span className="rt-transport-note">{hasVoice ? (audioTrack.length ? `${audioTrack.length} chunks · voz + música` : 'voz completa + música') : 'generá audio en «Audio» para activar la voz'}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* LÍNEAS DE TIEMPO — clips con posición libre (arrastrá para moverlos) */}
-          <div className="rt-timeline">
-            <div className="rt-track">
-              <span className="rt-track-name"><Film size={12} /> Slides</span>
-              <div className="rt-lane rt-lane--free">
-                {slideTrack.length ? slideTrack.map((c, k) => (
-                  <div key={k} className={c.s === activeS ? 'rt-clip rt-clip--slide rt-clip--active' : 'rt-clip rt-clip--slide'} style={xwStyle(c.x, c.w)}
-                    onPointerDown={(e) => onPtrDown(e, 'slide', k, 'move', c.x, c.w)}>
-                    {handles('slide', k, c.x, c.w)}
-                    {frames[c.s] && <img src={frames[c.s]} alt="" className="rt-clip-thumb" />} S{c.s + 1}
-                    <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setSlideTrack, k)}><X size={10} /></button>
-                  </div>
-                )) : <div className="rt-lane-empty">Tocá un slide de arriba para sumarlo.</div>}
-              </div>
-            </div>
-
-            {withVideo && (
-              <div className="rt-track">
-                <span className="rt-track-name"><Video size={12} /> Video</span>
-                <div className="rt-lane rt-lane--free">{playing0 && <span className="rt-lane-ph" style={{ ['--x']: `${playPx}px` } as React.CSSProperties} />}
-                  {videoTrack.length ? videoTrack.map((c, k) => {
-                    const v = vidById(c.id);
-                    return (
-                      <div key={k} className="rt-clip rt-clip--video" style={xwStyle(c.x, c.w)}
-                        onPointerDown={(e) => onPtrDown(e, 'video', k, 'move', c.x, c.w)}>
-                        {handles('video', k, c.x, c.w)}
-                        {v && <img src={thumbOf(v)} alt="" className="rt-clip-thumb" onError={(e) => e.currentTarget.classList.add('rt-gal-img--broken')} />}
-                        {v ? prettyVid(v.name).slice(0, 9) : 'video'}
-                        <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setVideoTrack, k)}><X size={10} /></button>
-                      </div>
-                    );
-                  }) : <div className="rt-lane-empty">Tocá un video de la galería para meterlo.</div>}
+          {/* WORKSPACE: timeline a la izquierda · preview 9:16 (riel colapsable) a la derecha */}
+          <div className="rt-workspace">
+            <div className="rt-main">
+              {/* barra de transporte + acciones del montaje */}
+              <div className="rt-toolbar">
+                <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar (a 0)"><SkipBack size={15} /></button>
+                <button className="rt-tbtn rt-tbtn--play" onClick={() => (playing ? pause() : play())} disabled={!slideTrack.length} title={playing ? 'Pausa' : 'Play (barra espaciadora)'}>{playing ? <Pause size={16} /> : <Play size={16} />}</button>
+                <span className="rt-time">{(playFrac * masterSec).toFixed(1)}s / {masterSec.toFixed(1)}s</span>
+                <span className="rt-transport-note">{audioTrack.length ? `${audioTrack.length} clips de voz` : 'sumá frases para la voz'} · barra = play/stop</span>
+                <div className="rt-toolbar-right">
+                  <button className="rt-actbtn" onClick={clearAll} title="Vaciar todos los canales"><Trash2 size={13} /> Limpiar todo</button>
+                  {!previewOpen && <button className="rt-actbtn" onClick={() => setPreviewOpen(true)} title="Mostrar preview"><ChevronLeft size={13} /> Preview</button>}
                 </div>
               </div>
-            )}
 
-            <div className="rt-track">
-              <span className="rt-track-name"><Music2 size={12} /> Música</span>
-              <div className="rt-lane rt-lane--free">
-                {musicTrack.length ? musicTrack.map((c, k) => (
-                  <div key={k} className="rt-clip rt-clip--music" style={xwStyle(c.x, c.w)}
-                    onPointerDown={(e) => onPtrDown(e, 'music', k, 'move', c.x, c.w)}>
-                    {handles('music', k, c.x, c.w)}
-                    {labelOf(c.id)}
-                    <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setMusicTrack, k)}><X size={10} /></button>
+              {/* TIMELINE: regla de tiempo + canales (un playhead cruza todo) */}
+              <div className="rt-timeline">
+                <div className="rt-ruler">
+                  <span className="rt-track-head rt-ruler-spacer" />
+                  <div className="rt-lane rt-ruler-lane">
+                    {ruler.map((t) => (
+                      <span key={t} className="rt-tick" style={{ ['--x']: `${t * PX_PER_SEC}px` } as React.CSSProperties}>{t}s</span>
+                    ))}
+                    {playhead}
                   </div>
-                )) : <div className="rt-lane-empty">Tocá una música de arriba para sumarla.</div>}
+                </div>
+
+                <div className="rt-track">
+                  {trackHead('slide', <Film size={12} />, 'Animación', false)}
+                  <div className="rt-lane rt-lane--free">{playhead}
+                    {slideTrack.length ? slideTrack.map((c, k) => (
+                      <div key={k} className={c.s === activeS ? 'rt-clip rt-clip--slide rt-clip--active' : 'rt-clip rt-clip--slide'} style={xwStyle(c.x, c.w)}
+                        onPointerDown={(e) => onPtrDown(e, 'slide', k, 'move', c.x, c.w)}>
+                        {handles('slide', k, c.x, c.w)}
+                        {frames[c.s] && <img src={frames[c.s]} alt="" className="rt-clip-thumb" />} {c.s + 1}
+                        <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setSlideTrack, k)}><X size={10} /></button>
+                      </div>
+                    )) : <div className="rt-lane-empty">Tocá una animación de arriba para sumarla.</div>}
+                  </div>
+                </div>
+
+                {withVideo && (
+                  <div className="rt-track">
+                    {trackHead('video', <Video size={12} />, 'Video', true)}
+                    <div className="rt-lane rt-lane--free">{playhead}
+                      {videoTrack.length ? videoTrack.map((c, k) => {
+                        const v = vidById(c.id);
+                        return (
+                          <div key={k} className="rt-clip rt-clip--video" style={xwStyle(c.x, c.w)}
+                            onPointerDown={(e) => onPtrDown(e, 'video', k, 'move', c.x, c.w)}>
+                            {handles('video', k, c.x, c.w)}
+                            {v && <img src={thumbOf(v)} alt="" className="rt-clip-thumb" onError={(e) => e.currentTarget.classList.add('rt-gal-img--broken')} />}
+                            {v ? prettyVid(v.name).slice(0, 9) : 'video'}
+                            <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setVideoTrack, k)}><X size={10} /></button>
+                          </div>
+                        );
+                      }) : <div className="rt-lane-empty">Tocá un video de la galería para meterlo.</div>}
+                    </div>
+                  </div>
+                )}
+
+                <div className="rt-track">
+                  {trackHead('music', <Music2 size={12} />, 'Música', true)}
+                  <div className="rt-lane rt-lane--free">{playhead}
+                    {musicTrack.length ? musicTrack.map((c, k) => (
+                      <div key={k} className="rt-clip rt-clip--music" style={xwStyle(c.x, c.w)}
+                        onPointerDown={(e) => onPtrDown(e, 'music', k, 'move', c.x, c.w)}>
+                        {musicPeaks[c.id] && <ClipWave peaks={musicPeaks[c.id]} />}
+                        {handles('music', k, c.x, c.w)}
+                        <span className="rt-clip-lbl">{labelOf(c.id)}</span>
+                        <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setMusicTrack, k)}><X size={10} /></button>
+                      </div>
+                    )) : <div className="rt-lane-empty">Tocá una música de arriba para sumarla.</div>}
+                  </div>
+                </div>
+
+                <div className="rt-track">
+                  {trackHead('audio', <AudioLines size={12} />, 'Voz', true)}
+                  <div className="rt-lane rt-lane--free">{playhead}
+                    {audioTrack.length ? audioTrack.map((c, k) => (
+                      <div key={k} className="rt-clip rt-clip--audio" style={xwStyle(c.x, c.w)} title={phrases[c.p]}
+                        onPointerDown={(e) => onPtrDown(e, 'audio', k, 'move', c.x, c.w)}>
+                        <ClipWave peaks={phraseAudio[c.p]?.peaks || []} />
+                        {handles('audio', k, c.x, c.w)}
+                        <span className="rt-clip-lbl">{phraseBusy.has(c.p) ? <Loader2 size={10} className="rt-spin" /> : null} frase {c.p + 1}</span>
+                        <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setAudioTrack, k)}><X size={10} /></button>
+                      </div>
+                    )) : <div className="rt-lane-empty">Tocá una frase de arriba para sumarla.</div>}
+                  </div>
+                </div>
+
+                <div className="rt-hint">Arrastrá los clips para moverlos. Los bordes los agrandan/achican. La × los saca. Cada canal tiene mute y vaciar. Barra espaciadora = play/stop. Próximo: cortar/seccionar + transiciones.</div>
               </div>
             </div>
 
-            <div className="rt-track">
-              <span className="rt-track-name"><AudioLines size={12} /> Audio</span>
-              <div className="rt-lane rt-lane--free">
-                {audioTrack.length ? audioTrack.map((c, k) => (
-                  <div key={k} className="rt-clip rt-clip--audio" style={xwStyle(c.x, c.w)} title={phrases[c.p]}
-                    onPointerDown={(e) => onPtrDown(e, 'audio', k, 'move', c.x, c.w)}>
-                    {handles('audio', k, c.x, c.w)}
-                    frase {c.p + 1}
-                    <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setAudioTrack, k)}><X size={10} /></button>
+            {/* RIEL DE PREVIEW 9:16 — colapsable, se abre al dar Play */}
+            <aside className={previewOpen ? 'rt-rail' : 'rt-rail rt-rail--closed'}>
+              {previewOpen ? (
+                <>
+                  <div className="rt-rail-head">
+                    <span>Preview</span>
+                    <button className="rt-rail-toggle" onClick={() => setPreviewOpen(false)} title="Colapsar preview"><ChevronRight size={15} /></button>
                   </div>
-                )) : <div className="rt-lane-empty">Tocá una frase de arriba para sumarla.</div>}
-              </div>
-            </div>
-
-            <div className="rt-hint">Arrastrá los clips para moverlos libre en horizontal. La × los saca. Tocá las paletas para sumar. Próximo: cortar/seccionar + transiciones.</div>
+                  <div className="rt-rail-preview">
+                    {activeVid ? (
+                      <video key={activeVidClip!.id} src={activeVid.url} autoPlay muted loop playsInline className="rt-preview-img" />
+                    ) : showS !== undefined && frames[showS] ? (
+                      <img src={frames[showS]} alt="" className="rt-preview-img" />
+                    ) : <div className="rt-preview-ph"><Film size={26} /></div>}
+                  </div>
+                  <div className="rt-rail-transport">
+                    <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar (a 0)"><SkipBack size={14} /></button>
+                    <button className="rt-tbtn rt-tbtn--play" onClick={() => (playing ? pause() : play())} disabled={!slideTrack.length} title={playing ? 'Pausa' : 'Play (barra espaciadora)'}>{playing ? <Pause size={15} /> : <Play size={15} />}</button>
+                    <span className="rt-time">{(playFrac * masterSec).toFixed(1)}s / {masterSec.toFixed(1)}s</span>
+                  </div>
+                </>
+              ) : (
+                <button className="rt-rail-open" onClick={() => setPreviewOpen(true)} title="Abrir preview"><ChevronLeft size={16} /></button>
+              )}
+            </aside>
           </div>
         </div>
       )}
-      <audio ref={musicAudioRef} />
-      <audio ref={voiceRef}
-        onLoadedMetadata={(e) => {
-          const dur = e.currentTarget.duration || 0;
-          setVoiceDur(dur);
-          if (pendingPlayRef.current && dur > 0) {
-            pendingPlayRef.current = false;
-            startChunkPlay(e.currentTarget, dur);
-          }
-        }}
-        onTimeUpdate={onVoiceTimeUpdate}
-        onEnded={() => { setPlaying(false); musicAudioRef.current?.pause(); }} />
     </div>
   );
 }

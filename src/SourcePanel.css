@@ -1,0 +1,103 @@
+/* Control genérico de selección+preview. Tokens en styles/tokens.css. El color de
+   acento llega por --accent (set por el host). Cero hex inline en el TSX. */
+
+/* ── panel + colapsado ── */
+.sp-panel {
+  flex: var(--grow, 1) 1 var(--panel-min); min-width: 0;
+  max-height: var(--panel-max-h); overflow: hidden;
+  display: flex; flex-direction: column;
+  border-radius: var(--r-lg); padding: 12px; background: var(--surface); border: 1px solid var(--bd);
+}
+.sp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+.sp-title { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); }
+.sp-collapse { cursor: pointer; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--bd-3); background: var(--surface-3); color: var(--txt-70); }
+.sp-collapse:hover { color: var(--txt); }
+.sp-strip {
+  flex: 0 0 42px; display: flex; flex-direction: column; align-items: center; gap: var(--gap);
+  padding: 12px 0; cursor: pointer; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--bd); color: var(--txt);
+}
+.sp-strip-chevron { color: var(--accent); }
+.sp-strip-label { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: var(--accent); white-space: nowrap; }
+
+/* ── toolbar: filtros dinámicos + buscador ── */
+.sp-tools { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.sp-filter-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.sp-fchip {
+  cursor: pointer; font: inherit; font-size: 10.5px; font-weight: 700; color: var(--txt-60);
+  background: var(--surface-3); border: 1px solid var(--bd-2); border-radius: var(--pill); padding: 3px 9px;
+}
+.sp-fchip:hover { color: var(--txt); }
+.sp-fchip--on { color: var(--ink); background: var(--accent); border-color: var(--accent); }
+.sp-search { display: flex; align-items: center; gap: 6px; background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r-sm); padding: 5px 9px; }
+.sp-search-icon { color: var(--txt-40); flex: 0 0 auto; }
+.sp-search-input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--txt); font: inherit; font-size: 12px; }
+.sp-search-input::placeholder { color: var(--txt-40); }
+
+.sp-hint { font-size: 10px; color: var(--txt-40); margin-bottom: 7px; }
+.sp-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.sp-empty { font-size: 12px; color: var(--txt-40); padding: 12px 2px; }
+
+/* ── vista CHIPS (voces · música · narración) ── */
+.sp-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.sp-chip-wrap { display: inline-flex; align-items: stretch; }
+.sp-play {
+  cursor: pointer; display: flex; align-items: center; justify-content: center; width: 24px; flex: 0 0 auto; padding: 0;
+  color: var(--ink); background: var(--accent); border: 1px solid var(--accent); border-radius: var(--pill) 0 0 var(--pill);
+}
+.sp-play:hover { filter: brightness(1.08); }
+.sp-play:disabled { opacity: 0.7; cursor: default; }
+.sp-chip {
+  cursor: pointer; display: flex; align-items: center; gap: 4px; font: inherit; font-size: 11.5px; font-weight: 700; color: var(--txt-70);
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  border-radius: var(--pill); padding: 5px 11px;
+}
+.sp-chip:hover { border-color: var(--accent); color: var(--txt); }
+.sp-chip--withplay { border-radius: 0 var(--pill) var(--pill) 0; border-left: none; }
+.sp-chip--active { color: var(--ink); background: var(--accent); border-color: var(--accent); }
+.sp-chip-sub { color: var(--txt-40); font-weight: 600; }
+.sp-chip--active .sp-chip-sub { color: color-mix(in srgb, var(--ink) 65%, transparent); }
+
+/* ── vista GRID (animaciones · videos · imágenes) ── */
+.sp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 7px; }
+.sp-card {
+  position: relative; cursor: pointer; padding: 0; border: 2px solid transparent; border-radius: var(--r-sm);
+  background: var(--surface-3); overflow: hidden; aspect-ratio: 9 / 16; font: inherit;
+}
+.sp-card:hover { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.sp-card--sel, .sp-card--active { border-color: var(--accent); }
+.sp-card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sp-img-broken { visibility: hidden; }
+.sp-card-ph { width: 100%; height: 100%; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, var(--ink)), var(--ink-2)); }
+.sp-card-check { position: absolute; top: 3px; right: 3px; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; color: var(--ink); background: var(--accent); }
+.sp-card-lbl { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 4px; font-size: 9px; font-weight: 700; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.72)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── vista LIST (librería · guiones) ── */
+.sp-list { display: flex; flex-direction: column; gap: 5px; }
+.sp-row { display: flex; align-items: stretch; gap: 6px; }
+.sp-row-main {
+  flex: 1; min-width: 0; text-align: left; cursor: pointer; font: inherit;
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--surface-3); border: 1px solid var(--bd-2); border-radius: var(--r-sm); padding: 7px 10px;
+}
+.sp-row-main:hover { border-color: var(--accent); }
+.sp-row--active .sp-row-main { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent); }
+.sp-row-lbl { font-size: 12px; font-weight: 700; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-row-sub { font-size: 9.5px; font-weight: 600; color: var(--txt-40); }
+.sp-row-sec { cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; flex: 0 0 auto; border-radius: var(--r-sm); border: 1px solid var(--bd-2); background: var(--surface-3); color: var(--txt-50); }
+.sp-row-sec:hover { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 42%, transparent); }
+.sp-row .sp-play { border-radius: var(--r-sm); width: 30px; }
+
+/* ── acción multi-selección ── */
+.sp-addmany {
+  margin-top: 9px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  font: inherit; font-size: 12px; font-weight: 800; color: var(--ink);
+  background: var(--accent); border: none; border-radius: var(--pill); padding: 7px 14px;
+}
+.sp-addmany:hover { filter: brightness(1.06); }
+
+/* slot de extras (volúmenes, silencio…) debajo del body */
+.sp-footer { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--bd); }
+.sp-footer .vs-silence { margin-top: 7px; width: 100%; justify-content: center; }
+
+.sp-spin { animation: sp-spin 0.9s linear infinite; }
+@keyframes sp-spin { to { transform: rotate(360deg); } }
