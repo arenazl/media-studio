@@ -12,7 +12,7 @@
 // el contenido (grid / chips), con buscador, filtros, preview y colapsado. "Se cambia
 // en un lado solo". La lógica pura (timeline + filtros) vive en lib/*, con unit tests.
 import { useEffect, useRef, useState } from 'react';
-import { Film, AudioLines, Music2, Video, X, Play, Pause, SkipBack, ChevronRight, ChevronLeft, Loader2, Eraser, Trash2, Volume2, VolumeX } from 'lucide-react';
+import { Film, AudioLines, Music2, Video, Shuffle, Sparkles, Type, Pencil, X, Play, Pause, SkipBack, ChevronRight, ChevronLeft, Loader2, Eraser, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { extractFrames } from './lib/videoFrames';
 import { MUSIC_TRACKS } from './lib/music';
 import { NARRATION } from './data/narrationText';
@@ -22,8 +22,9 @@ import { MontageAudio } from './lib/montageAudio';
 import SourcePanel, { type SourcePanelProps } from './SourcePanel';
 import {
   PX_PER_SEC, GAP, MIN_W, SLIDE_SEC, DEF_PHRASE_SEC, DEF_VIDEO_SEC, DEF_MUSIC_SEC,
-  secToPx, masterSecOf, rulerTicks, appendX, reflow, buildPlan,
-  type SlideClip, type RefClip, type PhraseClip, type PhraseAudio, type TrackKind,
+  TRANSITION_SEC, EFFECT_SEC, TRANSITIONS, EFFECTS, TEXT_SEC, TEXT_PRESETS, DEFAULT_TEXT_FOR,
+  secToPx, masterSecOf, rulerTicks, appendX, reflow, buildPlan, effectAtPx, effectClass, presetLabel, textsAtPx, textPresetClass,
+  type SlideClip, type RefClip, type PhraseClip, type PhraseAudio, type TextClip, type TrackKind,
 } from './lib/reelTimeline';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
@@ -57,6 +58,10 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
   const [audioTrack, setAudioTrack] = useState<PhraseClip[]>([]);
   const [musicTrack, setMusicTrack] = useState<RefClip[]>([]);
   const [videoTrack, setVideoTrack] = useState<RefClip[]>([]);
+  const [transitionTrack, setTransitionTrack] = useState<RefClip[]>([]);   // id = tipo de transición
+  const [effectTrack, setEffectTrack] = useState<RefClip[]>([]);           // id = tipo de efecto
+  const [textTrack, setTextTrack] = useState<TextClip[]>([]);              // textos/títulos (contenido editable)
+  const [editingTextId, setEditingTextId] = useState<string | null>(null); // texto en edición (input en el riel)
   const [openPanel, setOpenPanel] = useState<Record<string, boolean>>({});   // paletas colapsables (default abiertas)
   const [playing, setPlaying] = useState(false);
   const [playFrac, setPlayFrac] = useState(0);   // 0-1 sobre la duración del montaje (también el cursor del waveform)
@@ -85,7 +90,7 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
   const videoUrlOf = (id: string) => vidById(id)?.url;
 
   // duración total + regla de tiempo (lógica pura, testeada).
-  const masterSec = masterSecOf([slideTrack, audioTrack, videoTrack, musicTrack]);
+  const masterSec = masterSecOf([slideTrack, audioTrack, videoTrack, musicTrack, transitionTrack, effectTrack, textTrack]);
   masterSecRef.current = masterSec;
   const contentW = masterSec * PX_PER_SEC;
   const ruler = rulerTicks(masterSec);
@@ -99,6 +104,11 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
   const showS = activeS ?? restS;
   const activeVidClip = playing0 ? videoTrack.find((c) => playPx >= c.x && playPx < c.x + c.w) : undefined;
   const activeVid = activeVidClip ? vidById(activeVidClip.id) : undefined;
+  // efecto activo en el playhead (en reposo, el que arranca en 0) → clase CSS del preview.
+  const activeEffect = effectAtPx(effectTrack, playing0 ? playPx : 0);
+  const fxClass = effectClass(activeEffect);
+  // textos activos en el playhead → overlays del preview.
+  const activeTexts = textsAtPx(textTrack, playing0 ? playPx : 0);
 
   const currentPlan = () => buildPlan({ audioTrack, phraseAudio, musicTrack, videoTrack, musicUrlOf, videoUrlOf, muted });
 
@@ -245,23 +255,32 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
   };
   const addVideo = (id: string) => { const v = vidById(id); setVideoTrack((t) => [...t, { id, x: appendX(t), w: secToPx(v?.duration_sec || DEF_VIDEO_SEC) }]); };
   const addVideos = (ids: string[]) => setVideoTrack((t) => { let x = appendX(t); return [...t, ...ids.map((id) => { const v = vidById(id); const w = secToPx(v?.duration_sec || DEF_VIDEO_SEC); const c = { id, x, w }; x += w + GAP; return c; })]; });
+  const addTransition = (id: string) => setTransitionTrack((t) => [...t, { id, x: appendX(t), w: secToPx(TRANSITION_SEC) }]);
+  const addEffect = (id: string) => setEffectTrack((t) => [...t, { id, x: appendX(t), w: secToPx(Math.min(EFFECT_SEC, Math.max(2, masterSec))) }]);
+  const uid = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : 'x' + Date.now() + Math.round(Math.random() * 1e6));
+  const addText = (preset: string) => { const id = uid(); setTextTrack((t) => [...t, { id, preset, text: DEFAULT_TEXT_FOR[preset] || 'Texto', x: appendX(t), w: secToPx(TEXT_SEC) }]); setEditingTextId(id); setPreviewOpen(true); };
+  const updateText = (id: string, patch: Partial<TextClip>) => setTextTrack((arr) => arr.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  const removeText = (id: string) => { setTextTrack((arr) => arr.filter((c) => c.id !== id)); if (editingTextId === id) setEditingTextId(null); };
 
   const removeAt = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>, k: number) => setter((arr) => arr.filter((_, j) => j !== k));
 
   // ── limpiar canal / todo · mute por canal ────────────────────────────────────
   const clearTrack = (kind: TrackKind) => {
     if (kind === 'slide') setSlideTrack([]); else if (kind === 'video') setVideoTrack([]);
-    else if (kind === 'music') setMusicTrack([]); else setAudioTrack([]);
+    else if (kind === 'music') setMusicTrack([]); else if (kind === 'transition') setTransitionTrack([]);
+    else if (kind === 'effect') setEffectTrack([]); else if (kind === 'text') { setTextTrack([]); setEditingTextId(null); }
+    else setAudioTrack([]);
     setRev((r) => r + 1);
   };
-  const clearAll = () => { setSlideTrack([]); setVideoTrack([]); setMusicTrack([]); setAudioTrack([]); stopPlay(); };
+  const clearAll = () => { setSlideTrack([]); setVideoTrack([]); setMusicTrack([]); setAudioTrack([]); setTransitionTrack([]); setEffectTrack([]); setTextTrack([]); setEditingTextId(null); stopPlay(); };
   const toggleMute = (kind: TrackKind) => setMuted((m) => { const nn = new Set(m); nn.has(kind) ? nn.delete(kind) : nn.add(kind); return nn; });
 
   // ── mover LIBRE + RESIZE (inicio/fin) — listeners en WINDOW durante el drag ──
   const setClip = (kind: TrackKind, idx: number, x: number, w: number) => {
     const upd = <T extends { x: number; w: number }>(arr: T[]) => arr.map((c, i) => (i === idx ? { ...c, x, w } : c));
     if (kind === 'slide') setSlideTrack(upd); else if (kind === 'video') setVideoTrack(upd);
-    else if (kind === 'music') setMusicTrack(upd); else setAudioTrack(upd);
+    else if (kind === 'music') setMusicTrack(upd); else if (kind === 'transition') setTransitionTrack(upd);
+    else if (kind === 'effect') setEffectTrack(upd); else if (kind === 'text') setTextTrack(upd); else setAudioTrack(upd);
   };
   const onPtrDown = (e: React.PointerEvent, kind: TrackKind, idx: number, mode: DragMode, x0: number, w0: number) => {
     e.stopPropagation(); e.preventDefault();
@@ -326,6 +345,24 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
       items: MUSIC_TRACKS.map((m) => ({ id: m.id, label: m.label, meta: { cat: m.cat }, data: m.id })),
       getPreviewUrl: (it) => musicUrlOf(it.data as string) ?? null,
       onPick: (it) => addMusic(it.data as string),
+    },
+    {
+      id: 'trans', title: 'Transiciones', accent: 'var(--pink)', icon: <Shuffle size={12} />, grow: 220, view: 'chips',
+      hint: 'sumala y arrastrala a la unión entre dos clips',
+      items: TRANSITIONS.map((t) => ({ id: t.id, label: t.label, data: t.id })),
+      onPick: (it) => addTransition(it.data as string),
+    },
+    {
+      id: 'fx', title: 'Efectos', accent: 'var(--green)', icon: <Sparkles size={12} />, grow: 220, view: 'chips',
+      hint: 'cubre un rango; el preview lo muestra en vivo',
+      items: EFFECTS.map((e) => ({ id: e.id, label: e.label, data: e.id })),
+      onPick: (it) => addEffect(it.data as string),
+    },
+    {
+      id: 'txt', title: 'Texto', accent: 'var(--amber)', icon: <Type size={12} />, grow: 220, view: 'chips',
+      hint: 'sumá un texto y editá el contenido (✎ en el clip)',
+      items: TEXT_PRESETS.map((p) => ({ id: p.id, label: p.label, data: p.id })),
+      onPick: (it) => addText(it.data as string),
     },
   ];
   if (withVideo) sources.push({
@@ -452,7 +489,50 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
                   </div>
                 </div>
 
-                <div className="rt-hint">Arrastrá los clips para moverlos. Los bordes los agrandan/achican. La × los saca. Cada canal tiene mute y vaciar. Barra espaciadora = play/stop. Próximo: cortar/seccionar + transiciones.</div>
+                <div className="rt-track">
+                  {trackHead('transition', <Shuffle size={12} />, 'Transición', false)}
+                  <div className="rt-lane rt-lane--free">{playhead}
+                    {transitionTrack.length ? transitionTrack.map((c, k) => (
+                      <div key={k} className="rt-clip rt-clip--trans" style={xwStyle(c.x, c.w)}
+                        onPointerDown={(e) => onPtrDown(e, 'transition', k, 'move', c.x, c.w)}>
+                        {handles('transition', k, c.x, c.w)}
+                        <span className="rt-clip-lbl">{presetLabel(TRANSITIONS, c.id)}</span>
+                        <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setTransitionTrack, k)}><X size={10} /></button>
+                      </div>
+                    )) : <div className="rt-lane-empty">Tocá una transición de arriba (va en la unión de dos clips).</div>}
+                  </div>
+                </div>
+
+                <div className="rt-track">
+                  {trackHead('effect', <Sparkles size={12} />, 'Efecto', false)}
+                  <div className="rt-lane rt-lane--free">{playhead}
+                    {effectTrack.length ? effectTrack.map((c, k) => (
+                      <div key={k} className="rt-clip rt-clip--fx" style={xwStyle(c.x, c.w)}
+                        onPointerDown={(e) => onPtrDown(e, 'effect', k, 'move', c.x, c.w)}>
+                        {handles('effect', k, c.x, c.w)}
+                        <span className="rt-clip-lbl">{presetLabel(EFFECTS, c.id)}</span>
+                        <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeAt(setEffectTrack, k)}><X size={10} /></button>
+                      </div>
+                    )) : <div className="rt-lane-empty">Tocá un efecto de arriba (cubre un rango del montaje).</div>}
+                  </div>
+                </div>
+
+                <div className="rt-track">
+                  {trackHead('text', <Type size={12} />, 'Texto', false)}
+                  <div className="rt-lane rt-lane--free">{playhead}
+                    {textTrack.length ? textTrack.map((c, k) => (
+                      <div key={c.id} className={editingTextId === c.id ? 'rt-clip rt-clip--text rt-clip--active' : 'rt-clip rt-clip--text'} style={xwStyle(c.x, c.w)}
+                        onPointerDown={(e) => onPtrDown(e, 'text', k, 'move', c.x, c.w)}>
+                        {handles('text', k, c.x, c.w)}
+                        <span className="rt-clip-lbl">{c.text || presetLabel(TEXT_PRESETS, c.preset)}</span>
+                        <button className="rt-clip-edit" onPointerDown={stopPd} onClick={() => setEditingTextId(c.id)} title="Editar texto"><Pencil size={9} /></button>
+                        <button className="rt-clip-x" onPointerDown={stopPd} onClick={() => removeText(c.id)}><X size={10} /></button>
+                      </div>
+                    )) : <div className="rt-lane-empty">Tocá un texto de arriba (título, lower-third, CTA…).</div>}
+                  </div>
+                </div>
+
+                <div className="rt-hint">Arrastrá los clips para moverlos. Los bordes los agrandan/achican. La × los saca. Cada canal tiene vaciar. Barra espaciadora = play/stop. Próximo: cortar/seccionar + render.</div>
               </div>
             </div>
 
@@ -464,18 +544,35 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
                     <span>Preview</span>
                     <button className="rt-rail-toggle" onClick={() => setPreviewOpen(false)} title="Colapsar preview"><ChevronRight size={15} /></button>
                   </div>
-                  <div className="rt-rail-preview">
+                  <div className={`rt-rail-preview ${fxClass}`}>
                     {activeVid ? (
                       <video key={activeVidClip!.id} src={activeVid.url} autoPlay muted loop playsInline className="rt-preview-img" />
                     ) : showS !== undefined && frames[showS] ? (
                       <img src={frames[showS]} alt="" className="rt-preview-img" />
                     ) : <div className="rt-preview-ph"><Film size={26} /></div>}
+                    {activeTexts.map((c) => (
+                      <div key={c.id} className={`rt-txt ${textPresetClass(c.preset)}`}>{c.text}</div>
+                    ))}
                   </div>
                   <div className="rt-rail-transport">
                     <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar (a 0)"><SkipBack size={14} /></button>
                     <button className="rt-tbtn rt-tbtn--play" onClick={() => (playing ? pause() : play())} disabled={!slideTrack.length} title={playing ? 'Pausa' : 'Play (barra espaciadora)'}>{playing ? <Pause size={15} /> : <Play size={15} />}</button>
                     <span className="rt-time">{(playFrac * masterSec).toFixed(1)}s / {masterSec.toFixed(1)}s</span>
                   </div>
+                  {editingTextId && (() => {
+                    const c = textTrack.find((t) => t.id === editingTextId); if (!c) return null;
+                    return (
+                      <div className="rt-txt-edit">
+                        <div className="rt-txt-edit-presets">
+                          {TEXT_PRESETS.map((p) => (
+                            <button key={p.id} className={c.preset === p.id ? 'rt-txt-preset rt-txt-preset--on' : 'rt-txt-preset'} onClick={() => updateText(c.id, { preset: p.id })}>{p.label}</button>
+                          ))}
+                        </div>
+                        <textarea className="rt-txt-edit-ta" value={c.text} onChange={(e) => updateText(c.id, { text: e.target.value })} rows={2} autoFocus />
+                        <button className="rt-txt-edit-done" onClick={() => setEditingTextId(null)}>Listo</button>
+                      </div>
+                    );
+                  })()}
                 </>
               ) : (
                 <button className="rt-rail-open" onClick={() => setPreviewOpen(true)} title="Abrir preview"><ChevronLeft size={16} /></button>

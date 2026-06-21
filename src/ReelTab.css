@@ -168,9 +168,34 @@
 }
 .rt-rail-toggle:hover, .rt-rail-open:hover { color: var(--txt); border-color: var(--gold); }
 .rt-rail-preview {
+  position: relative;
   width: 100%; aspect-ratio: 9 / 16; border-radius: var(--r); overflow: hidden; background: var(--ink);
   border: 1px solid var(--bd-2); display: flex; align-items: center; justify-content: center;
 }
+/* efectos aplicados EN VIVO al preview (feedback sin render server) */
+.rt-fx--bw { filter: grayscale(1) contrast(1.05); }
+.rt-fx--glow { filter: brightness(1.12) saturate(1.3); }
+.rt-fx--vignette::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 46px 16px rgba(0,0,0,0.58); pointer-events: none; z-index: 2; }
+.rt-fx--grain::after { content: ''; position: absolute; inset: 0; opacity: 0.14; pointer-events: none; z-index: 2; background-image: repeating-radial-gradient(rgba(255,255,255,0.5) 0 0.6px, transparent 0.6px 2.4px); }
+.rt-fx--kenburns .rt-preview-img { animation: rt-kenburns 8s ease-in-out infinite alternate; transform-origin: 50% 40%; }
+@keyframes rt-kenburns { from { transform: scale(1); } to { transform: scale(1.14); } }
+
+/* overlays de TEXTO sobre el preview (posición/estilo por preset) */
+.rt-txt { position: absolute; z-index: 3; padding: 0 8%; color: #fff; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,0.6); pointer-events: none; max-width: 100%; word-break: break-word; }
+.rt-txt--title { left: 0; right: 0; top: 12%; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 9cqw, 30px); }
+.rt-txt--subtitle { left: 0; right: 0; bottom: 7%; text-align: center; font-weight: 600; font-size: clamp(10px, 5cqw, 16px); }
+.rt-txt--lower { left: 6%; right: 14%; bottom: 16%; text-align: left; font-weight: 700; font-size: clamp(11px, 5.5cqw, 18px); padding: 6px 10px; background: rgba(0,0,0,0.42); border-left: 3px solid var(--gold); border-radius: 4px; }
+.rt-txt--cta { left: 50%; transform: translateX(-50%); right: auto; bottom: 11%; text-align: center; font-weight: 800; font-size: clamp(11px, 5cqw, 17px); color: var(--ink); background: var(--gold); padding: 7px 16px; border-radius: var(--pill); text-shadow: none; white-space: nowrap; }
+.rt-rail-preview { container-type: inline-size; }
+
+/* editor de contenido del texto (debajo del preview) */
+.rt-txt-edit { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid var(--bd); }
+.rt-txt-edit-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.rt-txt-preset { cursor: pointer; font: inherit; font-size: 10px; font-weight: 700; color: var(--txt-60); background: var(--surface-3); border: 1px solid var(--bd-2); border-radius: var(--pill); padding: 3px 8px; }
+.rt-txt-preset--on { color: var(--ink); background: var(--amber); border-color: var(--amber); }
+.rt-txt-edit-ta { resize: vertical; min-height: 40px; background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r-sm); padding: 7px 9px; color: var(--txt); font: inherit; font-size: 12px; outline: none; }
+.rt-txt-edit-ta:focus { border-color: var(--amber); }
+.rt-txt-edit-done { cursor: pointer; align-self: flex-end; font: inherit; font-size: 11px; font-weight: 700; color: var(--ink); background: var(--amber); border: none; border-radius: var(--pill); padding: 5px 14px; }
 .rt-rail-transport { display: flex; align-items: center; gap: 8px; justify-content: center; }
 
 /* timeline */
@@ -220,6 +245,12 @@
 .rt-clip--music { color: var(--ink); background: color-mix(in srgb, var(--violet) 78%, white); }
 .rt-clip--audio { color: var(--ink); background: var(--gold); }
 .rt-clip--video { color: #fff; background: color-mix(in srgb, var(--cyan, #22D3EE) 45%, var(--ink)); }
+.rt-clip--trans { color: var(--ink); background: color-mix(in srgb, var(--pink) 72%, white); }
+.rt-clip--fx { color: var(--ink); background: color-mix(in srgb, var(--green) 70%, white); }
+.rt-clip--text { color: var(--ink); background: color-mix(in srgb, var(--amber) 78%, white); }
+/* botón ✎ de editar texto dentro del clip */
+.rt-clip-edit { flex: 0 0 auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 4px; border: none; padding: 0; color: var(--ink); background: rgba(0,0,0,0.16); touch-action: none; }
+.rt-clip-edit:hover { background: rgba(0,0,0,0.32); }
 .rt-clip-thumb { width: 16px; height: 28px; object-fit: cover; border-radius: 3px; flex: 0 0 auto; }
 .rt-clip-x {
   margin-left: auto; flex: 0 0 auto;

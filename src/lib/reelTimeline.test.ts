@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   masterSecOf, rulerTicks, appendX, reflow, buildPlan, secToPx, pxToSec,
+  effectAtPx, effectClass, presetLabel, TRANSITIONS, EFFECTS,
+  textsAtPx, textPresetClass, TEXT_PRESETS,
   PX_PER_SEC, GAP, MIN_W, MUSIC_GAIN,
   type PhraseClip, type RefClip, type TrackKind,
 } from './reelTimeline';
@@ -108,5 +110,51 @@ describe('buildPlan', () => {
       videoTrack: [{ id: 'ghost', x: 0, w: 80 }] as RefClip[],
     });
     expect(plan).toHaveLength(0);
+  });
+});
+
+describe('presets de transiciones / efectos', () => {
+  it('tienen ids únicos y no están vacíos', () => {
+    expect(TRANSITIONS.length).toBeGreaterThan(0);
+    expect(EFFECTS.length).toBeGreaterThan(0);
+    expect(new Set(TRANSITIONS.map((t) => t.id)).size).toBe(TRANSITIONS.length);
+    expect(new Set(EFFECTS.map((e) => e.id)).size).toBe(EFFECTS.length);
+  });
+  it('presetLabel resuelve la etiqueta o cae al id', () => {
+    expect(presetLabel(EFFECTS, 'bw')).toBe('B&N');
+    expect(presetLabel(EFFECTS, 'desconocido')).toBe('desconocido');
+  });
+});
+
+describe('effectAtPx', () => {
+  const clips = [{ id: 'bw', x: 0, w: 160 }, { id: 'vignette', x: 80, w: 160 }];   // se solapan en [80,160)
+  it('sin clips → null', () => { expect(effectAtPx([], 50)).toBeNull(); });
+  it('toma el clip que cubre el playhead', () => { expect(effectAtPx(clips, 20)).toBe('bw'); });
+  it('en el solapamiento gana el que arranca más a la derecha', () => { expect(effectAtPx(clips, 120)).toBe('vignette'); });
+  it('en un gap → null', () => { expect(effectAtPx(clips, 400)).toBeNull(); });
+});
+
+describe('effectClass', () => {
+  it('mapea un efecto conocido a su clase', () => { expect(effectClass('bw')).toBe('rt-fx--bw'); });
+  it('null o desconocido → vacío', () => { expect(effectClass(null)).toBe(''); expect(effectClass('xxx')).toBe(''); });
+});
+
+describe('textos', () => {
+  const clips = [
+    { id: 't1', preset: 'title', text: 'Hola', x: 0, w: 160 },
+    { id: 't2', preset: 'cta', text: 'Probá', x: 80, w: 240 },
+  ];
+  it('TEXT_PRESETS no vacío con ids únicos', () => {
+    expect(TEXT_PRESETS.length).toBeGreaterThan(0);
+    expect(new Set(TEXT_PRESETS.map((p) => p.id)).size).toBe(TEXT_PRESETS.length);
+  });
+  it('textsAtPx devuelve TODOS los textos activos en el playhead', () => {
+    expect(textsAtPx(clips, 20).map((c) => c.id)).toEqual(['t1']);
+    expect(textsAtPx(clips, 120).map((c) => c.id)).toEqual(['t1', 't2']);   // superpuestos
+    expect(textsAtPx(clips, 500)).toEqual([]);
+  });
+  it('textPresetClass mapea el preset, con fallback a título', () => {
+    expect(textPresetClass('cta')).toBe('rt-txt--cta');
+    expect(textPresetClass('xxx')).toBe('rt-txt--title');
   });
 });

@@ -19,7 +19,73 @@ export interface SlideClip extends Clip { s: number }
 export interface RefClip extends Clip { id: string }
 export interface PhraseClip extends Clip { p: number }
 export interface PhraseAudio { url: string; dur: number; peaks: number[] }
-export type TrackKind = 'slide' | 'video' | 'music' | 'audio';
+export type TrackKind = 'slide' | 'video' | 'music' | 'audio' | 'transition' | 'effect' | 'text';
+
+// ── Transiciones (entre clips) y Efectos (rango) ─────────────────────────────
+export interface FxPreset { id: string; label: string }
+export const TRANSITIONS: FxPreset[] = [
+  { id: 'cut', label: 'Corte' },
+  { id: 'fade', label: 'Fundido' },
+  { id: 'crossfade', label: 'Crossfade' },
+  { id: 'wipe', label: 'Wipe' },
+  { id: 'zoom', label: 'Zoom' },
+];
+export const EFFECTS: FxPreset[] = [
+  { id: 'kenburns', label: 'Ken Burns' },
+  { id: 'vignette', label: 'Viñeta' },
+  { id: 'grain', label: 'Grano' },
+  { id: 'glow', label: 'Glow' },
+  { id: 'bw', label: 'B&N' },
+];
+export const TRANSITION_SEC = 0.6;   // duración default de una transición
+export const EFFECT_SEC = 4;         // ancho default de un efecto
+
+// efecto activo en el playhead: el clip que cubre px y arranca más a la derecha
+// (el último aplicado gana). Devuelve su tipo (id) o null.
+export function effectAtPx(clips: { id: string; x: number; w: number }[], px: number): string | null {
+  let best: string | null = null; let bestX = -1;
+  for (const c of clips) {
+    if (px >= c.x && px < c.x + c.w && c.x >= bestX) { best = c.id; bestX = c.x; }
+  }
+  return best;
+}
+
+// clase CSS del efecto para el preview (vacío si no hay / desconocido).
+export function effectClass(type: string | null): string {
+  if (!type || !EFFECTS.some((e) => e.id === type)) return '';
+  return `rt-fx--${type}`;
+}
+
+// etiqueta legible de un preset por id (transición o efecto).
+export function presetLabel(presets: FxPreset[], id: string): string {
+  return presets.find((p) => p.id === id)?.label ?? id;
+}
+
+// ── Texto / Títulos ──────────────────────────────────────────────────────────
+export interface TextClip extends Clip { id: string; preset: string; text: string }
+export const TEXT_PRESETS: FxPreset[] = [
+  { id: 'title', label: 'Título' },
+  { id: 'lower', label: 'Lower-third' },
+  { id: 'cta', label: 'CTA' },
+  { id: 'subtitle', label: 'Subtítulo' },
+];
+export const TEXT_SEC = 3;   // duración default de un texto
+export const DEFAULT_TEXT_FOR: Record<string, string> = {
+  title: 'Tu título acá',
+  lower: 'Nombre · Cargo',
+  cta: 'Probalo gratis',
+  subtitle: 'Subtítulo o aclaración',
+};
+
+// clips de texto activos en el playhead (puede haber varios superpuestos).
+export function textsAtPx<T extends { x: number; w: number }>(clips: T[], px: number): T[] {
+  return clips.filter((c) => px >= c.x && px < c.x + c.w);
+}
+
+// clase CSS de posición/estilo según el preset de texto.
+export function textPresetClass(preset: string): string {
+  return TEXT_PRESETS.some((p) => p.id === preset) ? `rt-txt--${preset}` : 'rt-txt--title';
+}
 
 // duración total del montaje (s) = fin del clip más a la derecha de CUALQUIER track.
 export function masterSecOf(tracks: Clip[][]): number {
