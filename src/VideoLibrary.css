@@ -1,0 +1,47 @@
+/* Organizador de la biblioteca de videos. Tokens en styles/tokens.css. */
+
+/* barra: buscador + favoritos + acciones */
+.vlib-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
+.vlib-search { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 7px; background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r-sm); padding: 6px 10px; }
+.vlib-search-icon { color: var(--txt-40); flex: 0 0 auto; }
+.vlib-search-input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--txt); font: inherit; font-size: 12.5px; }
+.vlib-search-input::placeholder { color: var(--txt-40); }
+.vlib-bar-right { display: flex; gap: 6px; }
+.vlib-chip { cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 11.5px; font-weight: 700; color: var(--txt-60); background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--pill); padding: 6px 12px; }
+.vlib-chip--on { color: var(--ink); background: var(--gold); border-color: var(--gold); }
+.vlib-btn { cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 11.5px; font-weight: 700; color: var(--txt-70); background: var(--surface-2); border: 1px solid var(--bd-3); border-radius: var(--pill); padding: 6px 12px; }
+.vlib-btn:hover { color: var(--txt); border-color: var(--gold); }
+.vlib-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* filtros tag / proyecto */
+.vlib-filters { display: flex; flex-direction: column; gap: 6px; margin-bottom: 9px; }
+.vlib-filter-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.vlib-filter-lbl { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--txt-50); margin-right: 2px; }
+.vlib-fchip { cursor: pointer; font: inherit; font-size: 10.5px; font-weight: 700; color: var(--txt-60); background: var(--surface-3); border: 1px solid var(--bd-2); border-radius: var(--pill); padding: 3px 10px; }
+.vlib-fchip--on { color: var(--ink); background: var(--azure); border-color: var(--azure); }
+
+.vlib-count { font-size: 10.5px; color: var(--txt-40); margin-bottom: 10px; }
+
+/* grilla DENSA de thumbs chicos (9:16) */
+.vlib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 11px; }
+.vlib-card { display: flex; flex-direction: column; gap: 4px; background: var(--surface); border: 1px solid var(--bd); border-radius: var(--r); padding: 7px; }
+.vlib-card--edit { border-color: var(--gold); }
+.vlib-thumb { position: relative; aspect-ratio: 9 / 16; border-radius: var(--r-sm); overflow: hidden; background: var(--ink-2); }
+.vlib-thumb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vlib-thumb-img--broken { visibility: hidden; }
+.vlib-star { position: absolute; top: 4px; left: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; border: none; color: #fff; background: rgba(0,0,0,0.45); }
+.vlib-star--on { color: var(--gold); }
+.vlib-open { position: absolute; top: 4px; right: 4px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; background: rgba(0,0,0,0.45); text-decoration: none; font-size: 12px; }
+.vlib-name { font-size: 11px; font-weight: 700; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vlib-sub { display: flex; align-items: center; gap: 3px; font-size: 9px; color: var(--txt-40); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vlib-tags { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.vlib-tag { display: inline-flex; align-items: center; gap: 2px; font-size: 9px; font-weight: 700; color: var(--txt-70); background: color-mix(in srgb, var(--azure) 18%, var(--surface-2)); border-radius: var(--pill); padding: 2px 4px 2px 7px; }
+.vlib-tag-x { cursor: pointer; display: flex; align-items: center; border: none; background: none; color: var(--txt-50); padding: 0; }
+.vlib-tag-x:hover { color: var(--danger); }
+.vlib-tag-add { cursor: pointer; display: flex; align-items: center; justify-content: center; width: 18px; height: 16px; border-radius: var(--pill); border: 1px dashed var(--bd-3); background: none; color: var(--txt-50); padding: 0; }
+.vlib-tag-add:hover { color: var(--gold); border-color: var(--gold); }
+.vlib-edit { display: flex; align-items: center; gap: 4px; }
+.vlib-edit-in { flex: 1; min-width: 0; background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r-sm); padding: 4px 7px; color: var(--txt); font: inherit; font-size: 10px; outline: none; }
+.vlib-edit-in:focus { border-color: var(--gold); }
+.vlib-edit-del { cursor: pointer; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-sm); border: 1px solid var(--bd-2); background: var(--surface-3); color: var(--txt-50); }
+.vlib-edit-del:hover { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 42%, transparent); }

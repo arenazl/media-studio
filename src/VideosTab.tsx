@@ -1,17 +1,18 @@
-// Solapa VIDEOS — DOS partes separadas:
-//  (A) BIBLIOTECA: videos en Cloudinary (subidos desde la carpeta local),
-//      ordenados por fecha. El user los ve acá y (próximo paso) los inserta en
-//      el editor/montaje donde quiera. Fuente: manifest /cloud-videos.json +
-//      backend /api/cloud-videos (mergeados) → se ven con o sin backend local.
-//  (B) GENERAR PROMPT para Flow — sección aparte, colapsable.
-import { useEffect, useRef, useState } from 'react';
-import { RefreshCw, FolderOpen, Film, Upload, Trash2, Cloud, Wand2, Clock } from 'lucide-react';
+// Solapa VIDEOS — ORGANIZADOR de la biblioteca (no editor de video: los videos los
+// genera Flow). Acá se CATALOGAN y ENCUENTRAN: favoritos, tags, proyecto, buscador y
+// filtros. La metadata de organización vive local (lib/videoLibrary). Sub-tab aparte:
+// generador de prompts para Flow.
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { RefreshCw, Film, Upload, Trash2, Wand2, Clock, Star, Tag, Search, X, FolderKanban } from 'lucide-react';
 import VideoPromptBuilder from './VideoPromptBuilder';
 import { API_BASE } from './config';
-import { fetchCloudVideos, prettyVid as pretty, fmtVidDate as fmtDate, type CloudVid } from './lib/cloudVideos';
+import { fetchCloudVideos, prettyVid as pretty, fmtVidDate as fmtDate, thumbOf, type CloudVid } from './lib/cloudVideos';
+import {
+  loadMeta, saveMeta, metaOf, toggleFavorite, addTag, removeTag, setProject,
+  allTags, allProjects, filterVideos, type MetaMap,
+} from './lib/videoLibrary';
 import './VideosTab.css';
-
-interface LocalVid { name: string; size: number; url: string }
+import './VideoLibrary.css';
 
 const api = (path: string) => `${API_BASE}${path}`;
 
@@ -20,10 +21,20 @@ export default function VideosTab() {
   const [cloudLoading, setCloudLoading] = useState(false);
   const [cloudErr, setCloudErr] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [localVids, setLocalVids] = useState<LocalVid[]>([]);
-  const [localDir, setLocalDir] = useState('');
   const [vtab, setVtab] = useState<'biblioteca' | 'prompt'>('biblioteca');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // metadata de organización (local) — tags / favorito / proyecto por video.
+  const [meta, setMeta] = useState<MetaMap>(() => loadMeta());
+  const mutate = (next: MetaMap) => { setMeta(next); saveMeta(next); };
+
+  // filtros
+  const [q, setQ] = useState('');
+  const [favOnly, setFavOnly] = useState(false);
+  const [tagF, setTagF] = useState('');
+  const [projF, setProjF] = useState('');
+  const [editId, setEditId] = useState<string | null>(null);
+  const [newTag, setNewTag] = useState('');
 
   const loadCloud = async () => {
     setCloudLoading(true); setCloudErr(null);
@@ -33,16 +44,7 @@ export default function VideosTab() {
       if (!list.length) setCloudErr('No hay videos en la biblioteca todavía.');
     } catch { setCloudErr('No se pudo cargar la biblioteca.'); } finally { setCloudLoading(false); }
   };
-
-  const loadLocal = async () => {
-    try {
-      const r = await fetch(api('/api/videos'));
-      const d = await r.json().catch(() => ({}));
-      if (r.ok) { setLocalVids(d.videos || []); setLocalDir(d.dir || ''); }
-    } catch { /* sin backend local */ }
-  };
-
-  useEffect(() => { loadCloud(); loadLocal(); }, []);
+  useEffect(() => { loadCloud(); }, []);
 
   const handleUpload = async (file: File) => {
     setUploading(true); setCloudErr(null);
@@ -57,13 +59,20 @@ export default function VideosTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar este video de Cloudinary?')) return;
     try { await fetch(api(`/api/cloud-videos/${id}`), { method: 'DELETE' }); setCloudVids((vs) => vs.filter((v) => v.id !== id)); } catch { /* ignore */ }
   };
 
+  const tags = useMemo(() => allTags(meta), [meta]);
+  const projects = useMemo(() => allProjects(meta), [meta]);
+  const shown = useMemo(
+    () => filterVideos(cloudVids, meta, { query: q, favorite: favOnly || undefined, tag: tagF || undefined, project: projF || undefined }),
+    [cloudVids, meta, q, favOnly, tagF, projF],
+  );
+
+  const commitTag = (id: string) => { if (newTag.trim()) { mutate(addTag(meta, id, newTag)); setNewTag(''); } };
+
   return (
     <div className="vids-root">
-      {/* sub-tabs: Biblioteca (subir/ver videos) | Prompt Flow (generar el video) */}
       <div className="vids-tabs">
         <button className={vtab === 'biblioteca' ? 'vids-tab vids-tab--on' : 'vids-tab'} onClick={() => setVtab('biblioteca')}><Film size={14} /> Biblioteca</button>
         <button className={vtab === 'prompt' ? 'vids-tab vids-tab--on' : 'vids-tab'} onClick={() => setVtab('prompt')}><Wand2 size={14} /> Prompt Flow</button>
@@ -72,55 +81,78 @@ export default function VideosTab() {
       {vtab === 'prompt' ? (
         <div className="vids-prompt-wrap"><VideoPromptBuilder /></div>
       ) : (
-      <>
-      {/* (A) BIBLIOTECA CLOUDINARY */}
-      <div className="vids-panel">
-        <div className="vids-head">
-          <span className="vids-title"><Film size={14} /> BIBLIOTECA DE VIDEOS ({cloudVids.length})</span>
-          <div className="vids-head-actions">
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} className="vids-upload-btn"><Upload size={12} /> {uploading ? 'Subiendo…' : 'Subir'}</button>
-            <button onClick={loadCloud} disabled={cloudLoading} className="vids-refresh"><RefreshCw size={12} /> Actualizar</button>
-          </div>
-        </div>
-        <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="vids-hidden-input" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }} />
-        <div className="vids-dir"><Cloud size={12} /> Cloudinary · ordenados por fecha (más nuevos primero)</div>
-        {cloudErr && <div className="vids-error">{cloudErr}</div>}
-        <div className="vids-grid">
-          {cloudVids.map((v) => (
-            <div key={v.id} className="vids-card">
-              <video className="vids-video" src={v.url} poster={v.thumbnail || undefined} controls preload="none" playsInline />
-              <div className="vids-meta">
-                <span className="vids-name" title={v.name}>{pretty(v.name)}</span>
-                <span className="vids-size">{v.duration_sec ? `${Math.round(v.duration_sec)}s` : (v.size_bytes ? `${(v.size_bytes / 1e6).toFixed(1)}MB` : '')}</span>
-              </div>
-              <div className="vids-card-actions">
-                <span className="vids-date"><Clock size={11} /> {fmtDate(v.created_at)}</span>
-                <a href={v.url} target="_blank" rel="noreferrer" className="vids-link">abrir ↗</a>
-                <button onClick={() => handleDelete(v.id)} className="vids-del" title="Eliminar de Cloudinary"><Trash2 size={11} /></button>
-              </div>
+        <>
+          {/* barra: buscador + favoritos + subir/actualizar */}
+          <div className="vlib-bar">
+            <div className="vlib-search">
+              <Search size={13} className="vlib-search-icon" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="buscar por nombre o tag…" className="vlib-search-input" />
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* VIDEOS LOCALES (solo dev, si el backend está corriendo) */}
-      {localVids.length > 0 && (
-        <div className="vids-panel">
-          <div className="vids-head"><span className="vids-title"><FolderOpen size={14} /> EN LA CARPETA LOCAL ({localVids.length})</span></div>
-          {localDir && <div className="vids-dir"><FolderOpen size={12} /> {localDir} — subí estos a Cloudinary con «Subir»</div>}
-          <div className="vids-grid">
-            {localVids.map((v) => (
-              <div key={v.name} className="vids-card">
-                <video src={api(v.url)} controls preload="none" className="vids-video" />
-                <div className="vids-meta"><span className="vids-name" title={v.name}>{pretty(v.name)}</span><span className="vids-size">{(v.size / 1e6).toFixed(1)}MB</span></div>
-              </div>
-            ))}
+            <button className={favOnly ? 'vlib-chip vlib-chip--on' : 'vlib-chip'} onClick={() => setFavOnly((f) => !f)} title="Solo favoritos"><Star size={12} fill={favOnly ? 'currentColor' : 'none'} /> Favoritos</button>
+            <div className="vlib-bar-right">
+              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="vlib-btn"><Upload size={12} /> {uploading ? 'Subiendo…' : 'Subir'}</button>
+              <button onClick={loadCloud} disabled={cloudLoading} className="vlib-btn"><RefreshCw size={12} /> Actualizar</button>
+            </div>
           </div>
-        </div>
+
+          {/* filtros por tag / proyecto (sólo si existen) */}
+          {(tags.length > 0 || projects.length > 0) && (
+            <div className="vlib-filters">
+              {tags.length > 0 && (
+                <div className="vlib-filter-row">
+                  <span className="vlib-filter-lbl"><Tag size={11} /> Tags</span>
+                  <button className={!tagF ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setTagF('')}>Todos</button>
+                  {tags.map((t) => <button key={t} className={tagF === t ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setTagF(tagF === t ? '' : t)}>{t}</button>)}
+                </div>
+              )}
+              {projects.length > 0 && (
+                <div className="vlib-filter-row">
+                  <span className="vlib-filter-lbl"><FolderKanban size={11} /> Proyecto</span>
+                  <button className={!projF ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setProjF('')}>Todos</button>
+                  {projects.map((p) => <button key={p} className={projF === p ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setProjF(projF === p ? '' : p)}>{p}</button>)}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="vlib-count">{shown.length} de {cloudVids.length} videos · Cloudinary · catalogá con ★ y tags para reusarlos entre proyectos</div>
+          {cloudErr && <div className="vids-error">{cloudErr}</div>}
+
+          {/* grilla densa de thumbs chicos */}
+          <div className="vlib-grid">
+            {shown.map((v) => {
+              const m = metaOf(meta, v.id);
+              const editing = editId === v.id;
+              return (
+                <div key={v.id} className={editing ? 'vlib-card vlib-card--edit' : 'vlib-card'}>
+                  <div className="vlib-thumb">
+                    <img src={thumbOf(v)} alt="" loading="lazy" className="vlib-thumb-img" onError={(e) => e.currentTarget.classList.add('vlib-thumb-img--broken')} />
+                    <button className={m.favorite ? 'vlib-star vlib-star--on' : 'vlib-star'} title="Favorito" onClick={() => mutate(toggleFavorite(meta, v.id))}><Star size={12} fill={m.favorite ? 'currentColor' : 'none'} /></button>
+                    <a href={v.url} target="_blank" rel="noreferrer" className="vlib-open" title="Abrir">↗</a>
+                  </div>
+                  <div className="vlib-name" title={v.name}>{pretty(v.name)}</div>
+                  <div className="vlib-sub"><Clock size={9} /> {fmtDate(v.created_at)}{v.duration_sec ? ` · ${Math.round(v.duration_sec)}s` : ''}{m.project ? ` · ${m.project}` : ''}</div>
+                  <div className="vlib-tags">
+                    {m.tags.map((t) => (
+                      <span key={t} className="vlib-tag">{t}<button className="vlib-tag-x" title="Quitar tag" onClick={() => mutate(removeTag(meta, v.id, t))}><X size={8} /></button></span>
+                    ))}
+                    <button className="vlib-tag-add" title="Etiquetar / proyecto" onClick={() => { setEditId(editing ? null : v.id); setNewTag(''); }}><Tag size={10} /></button>
+                  </div>
+                  {editing && (
+                    <div className="vlib-edit">
+                      <input className="vlib-edit-in" value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitTag(v.id); }} placeholder="tag + Enter" autoFocus />
+                      <input className="vlib-edit-in" defaultValue={m.project ?? ''} onBlur={(e) => mutate(setProject(meta, v.id, e.target.value))} placeholder="proyecto" />
+                      <button className="vlib-edit-del" title="Eliminar de Cloudinary" onClick={() => handleDelete(v.id)}><Trash2 size={11} /></button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      </>
-      )}
+      <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="vids-hidden-input" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }} />
     </div>
   );
 }
