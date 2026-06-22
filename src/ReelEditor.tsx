@@ -26,6 +26,8 @@ import {
   type SlideClip, type RefClip, type PhraseClip, type PhraseAudio, type TextClip, type TrackKind,
 } from './lib/reelTimeline';
 import { buildSnapshot, loadMontage, saveMontage } from './lib/montageStore';
+import { getRealAudioUrl } from './lib/audioSource';
+import { slicePeaks } from './lib/audioSlice';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
 
@@ -48,7 +50,7 @@ function ClipWave({ peaks }: { peaks: number[] }) {
   );
 }
 
-export default function ReelEditor({ project, videos, videosLoading = false }: {
+export default function ReelEditor({ project, audioByReel, videos, videosLoading = false }: {
   project: Project; audioByReel?: Record<string, string>; videos?: CloudVid[]; videosLoading?: boolean;
 }) {
   const withVideo = videos !== undefined;
@@ -76,6 +78,7 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
   const engineRef = useRef<MontageAudio | null>(null);
   if (!engineRef.current) engineRef.current = new MontageAudio();  // 1 motor por editor (AudioContext lazy)
   const inflightRef = useRef<Set<number>>(new Set());             // dedupe de generaciones TTS en curso
+  const realAudioRef = useRef<{ reelId: string; url: string; dur: number; peaks: number[] } | null>(null); // audio real cargado (locutor)
   const masterSecRef = useRef(0);                // duración total del montaje (s), leída por el rAF sin closure stale
   const draggingRef = useRef(false);             // durante un drag NO reprogramamos (evita reiniciar el audio por píxel)
   const playRef = useRef<() => void>(() => {});  // play/stop fresco para el atajo de teclado
@@ -112,9 +115,36 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
 
   const currentPlan = () => buildPlan({ audioTrack, phraseAudio, musicTrack, videoTrack, musicUrlOf, videoUrlOf, muted });
 
+  // ── Audio REAL (locutor): el reel usa el archivo grabado/subido, recortado por segmento ──
+  const ensureRealAudio = async () => {
+    if (!reel) return null;
+    if (realAudioRef.current?.reelId === reel.id) return realAudioRef.current;
+    // url ya compartida por VoiceStudio en esta sesión; si no, la persistida en IndexedDB.
+    const url = audioByReel?.[reel.id] ?? (await getRealAudioUrl(reel.id));
+    if (!url) return null;
+    const buf = await engineRef.current!.load(url);
+    const dur = buf?.duration || 0;
+    const peaks = buf ? MontageAudio.peaksFromBuffer(buf, Math.max(48, Math.round(dur * 30))) : [];
+    const ra = { reelId: reel.id, url, dur, peaks };
+    realAudioRef.current = ra;
+    return ra;
+  };
+  // PhraseAudio de la frase p a partir del segmento del audio real (offset = inicio del recorte).
+  const genRealPhrase = async (p: number): Promise<PhraseAudio | null> => {
+    const segs = reel?.voiceConfig?.segments ?? [];
+    const seg = segs.find((s) => s.phraseIndex === p) ?? segs[p];
+    if (!seg) return null;
+    const ra = await ensureRealAudio(); if (!ra) return null;
+    const dur = Math.max(0.05, seg.endSec - seg.startSec);
+    const pa: PhraseAudio = { url: ra.url, dur, peaks: slicePeaks(ra.peaks, ra.dur, seg.startSec, seg.endSec), offset: seg.startSec };
+    setPhraseAudio((prev) => ({ ...prev, [p]: pa }));
+    return pa;
+  };
+
   // ── TTS por frase: genera (una vez) el audio de la frase p y lo cachea ────────
   const genPhrase = async (p: number): Promise<PhraseAudio | null> => {
     if (phraseAudio[p]) return phraseAudio[p];
+    if (reel?.voiceConfig?.audioMode === 'real') return genRealPhrase(p);  // locutor real → segmento
     if (inflightRef.current.has(p)) return null;       // ya hay una generación en curso
     const text = phrases[p]; if (!text || !reel) return null;
     inflightRef.current.add(p);
@@ -175,6 +205,7 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
     setPhraseAudio((prev) => { Object.values(prev).forEach((pa) => { try { URL.revokeObjectURL(pa.url); } catch { /* noop */ } }); return {}; });
     setPhraseBusy(new Set()); setMusicPeaks({});
     inflightRef.current = new Set();
+    realAudioRef.current = null;   // soltar el audio real del reel anterior
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reel?.id]);
 

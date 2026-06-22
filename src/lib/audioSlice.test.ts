@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addCut, removeCut, segmentsFromCuts, cutsFromSegments, segDur } from './audioSlice';
+import { addCut, removeCut, segmentsFromCuts, cutsFromSegments, segDur, slicePeaks } from './audioSlice';
 
 describe('addCut', () => {
   it('inserta un corte válido y ordena', () => {
@@ -66,5 +66,23 @@ describe('segDur', () => {
   it('duración del segmento (no negativa)', () => {
     expect(segDur({ startSec: 2, endSec: 6.5 })).toBe(4.5);
     expect(segDur({ startSec: 5, endSec: 1 })).toBe(0);
+  });
+});
+
+describe('slicePeaks', () => {
+  const peaks = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]; // 10 picos, dur 10s
+
+  it('recorta la mitad central', () => {
+    expect(slicePeaks(peaks, 10, 2.5, 7.5)).toEqual([0.2, 0.3, 0.4, 0.5, 0.6, 0.7]);
+  });
+  it('primer cuarto', () => {
+    expect(slicePeaks(peaks, 10, 0, 2.5)).toEqual([0, 0.1, 0.2]);
+  });
+  it('siempre devuelve al menos 1 pico', () => {
+    expect(slicePeaks(peaks, 10, 5, 5).length).toBeGreaterThanOrEqual(1);
+  });
+  it('vacío si no hay peaks o dur inválida', () => {
+    expect(slicePeaks([], 10, 0, 5)).toEqual([]);
+    expect(slicePeaks(peaks, 0, 0, 5)).toEqual([]);
   });
 });

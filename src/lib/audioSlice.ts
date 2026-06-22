@@ -37,3 +37,12 @@ export function cutsFromSegments(segments: AudioSegment[]): number[] {
 }
 
 export const segDur = (s: { startSec: number; endSec: number }): number => Math.max(0, s.endSec - s.startSec);
+
+// Recorta el array de peaks (onda) al rango [startSec,endSec] de un audio de totalDur.
+// Para dibujar la onda de un segmento sin recalcular del buffer. Pura.
+export function slicePeaks(peaks: number[], totalDur: number, startSec: number, endSec: number): number[] {
+  if (!peaks.length || !(totalDur > 0)) return [];
+  const a = Math.max(0, Math.floor((startSec / totalDur) * peaks.length));
+  const b = Math.min(peaks.length, Math.ceil((endSec / totalDur) * peaks.length));
+  return peaks.slice(a, Math.max(a + 1, b));
+}

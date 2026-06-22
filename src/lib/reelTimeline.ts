@@ -18,7 +18,7 @@ export interface Clip { x: number; w: number }
 export interface SlideClip extends Clip { s: number }
 export interface RefClip extends Clip { id: string }
 export interface PhraseClip extends Clip { p: number }
-export interface PhraseAudio { url: string; dur: number; peaks: number[] }
+export interface PhraseAudio { url: string; dur: number; peaks: number[]; offset?: number } // offset: arranque (s) dentro del archivo (audio real recortado)
 export type TrackKind = 'slide' | 'video' | 'music' | 'audio' | 'transition' | 'effect' | 'text';
 
 // ── Transiciones (entre clips) y Efectos (rango) ─────────────────────────────
@@ -139,7 +139,7 @@ export function buildPlan(inp: PlanInput): ScheduledClip[] {
   if (!muted.has('audio')) for (const c of audioTrack) {
     const pa = phraseAudio[c.p]; if (!pa) continue;
     const dur = Math.min(pxToSec(c.w), pa.dur);
-    if (dur > 0.02) plan.push({ key: `a${c.p}-${Math.round(c.x)}`, url: pa.url, kind: 'voice', at: pxToSec(c.x), offset: 0, dur, gain: 1 });
+    if (dur > 0.02) plan.push({ key: `a${c.p}-${Math.round(c.x)}`, url: pa.url, kind: 'voice', at: pxToSec(c.x), offset: pa.offset ?? 0, dur, gain: 1 });
   }
   if (!muted.has('music')) for (const c of musicTrack) {
     const url = musicUrlOf(c.id); if (!url) continue;
