@@ -449,6 +449,68 @@
   color: var(--txt-40);
 }
 
+/* corte en segmentos (audio real) */
+.vs-cuts {
+  margin-bottom: 8px;
+}
+.vs-mk--cut {
+  color: var(--azure);
+  border-color: color-mix(in srgb, var(--azure) 50%, transparent);
+}
+.vs-segs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.vs-seg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  border: 1px solid var(--bd-2);
+}
+.vs-seg-play {
+  cursor: pointer;
+  display: flex;
+  color: var(--azure);
+  background: none;
+  border: none;
+  padding: 1px;
+}
+.vs-seg-name {
+  width: 92px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--txt);
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--bd-2);
+  padding: 1px 2px;
+}
+.vs-seg-name:focus {
+  outline: none;
+  border-bottom-color: var(--azure);
+}
+.vs-seg-dur {
+  font-size: 10px;
+  color: var(--txt-40);
+  font-variant-numeric: tabular-nums;
+}
+.vs-seg-merge {
+  cursor: pointer;
+  display: flex;
+  color: var(--txt-40);
+  background: none;
+  border: none;
+  padding: 1px;
+}
+.vs-seg-merge:hover {
+  color: var(--danger);
+}
+
 /* ===== FILA 2: texto + waveform ===== */
 .vs-row2 {
   display: flex;

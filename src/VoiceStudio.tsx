@@ -8,7 +8,7 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check, Upload, Trash2, AudioLines } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check, Upload, Trash2, AudioLines, Scissors } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
@@ -16,7 +16,8 @@ import ScriptText from './ScriptText';
 import { MUSIC_TRACKS, type MusicTrack } from './lib/music';
 import { exportVoiceWithMusic } from './lib/exportMix';
 import { addVoiceClip } from './lib/voiceLib';
-import { computePeaks, isAudioFile, ACCEPTED_AUDIO, putRealAudio, getRealAudioBlob, delRealAudio } from './lib/audioSource';
+import { computePeaks, isAudioFile, formatClock, ACCEPTED_AUDIO, putRealAudio, getRealAudioBlob, delRealAudio } from './lib/audioSource';
+import { addCut, removeCut, segmentsFromCuts, cutsFromSegments, segDur } from './lib/audioSlice';
 import { deriveName } from './lib/sourcePanel';
 import SourcePanel from './SourcePanel';
 
@@ -116,10 +117,14 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   const [savedLib, setSavedLib] = useState(false);       // feedback "guardada en la librería"
   const [audioMode, setAudioMode] = useState<'tts' | 'real'>('tts'); // sintética vs locutor real (subido/grabado)
   const [recording, setRecording] = useState(false);    // grabando con el micrófono
+  const [audioDur, setAudioDur] = useState(0);           // duración del audio cargado (s)
+  const [cuts, setCuts] = useState<number[]>([]);        // puntos de corte (s) del audio real
+  const [segNames, setSegNames] = useState<Record<number, string>>({}); // nombres de segmentos por índice
   const voiceBlobRef = useRef<Blob | null>(null);        // último mp3 de voz generado (para exportar/mezclar)
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const playSegRef = useRef<{ end: number } | null>(null); // reproducir solo un segmento
   const taRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
@@ -169,10 +174,15 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     } else {
       applyText(f.text); setMarkers([]);
     }
-    // modo de audio del reel: sintético o locutor real (carga el audio guardado).
+    // modo de audio del reel: sintético o locutor real (carga el audio + segmentos guardados).
     const mode = vc?.audioMode === 'real' ? 'real' : 'tts';
     setAudioMode(mode); setUrl(null);
-    if (mode === 'real') void loadRealAudio(f.id);
+    if (mode === 'real') {
+      const segs = vc?.segments ?? [];
+      setCuts(segs.length ? cutsFromSegments(segs) : []);
+      setSegNames(segs.length ? Object.fromEntries(segs.map((s, i) => [i, s.label])) : {});
+      void loadRealAudio(f.id);
+    } else { setCuts([]); setSegNames({}); }
     // avisar al host (ej. Munify) para que sincronice su canvas/preview.
     try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'mediastudio:file', id: f.id }, '*'); } catch { /* noop */ }
   };
@@ -314,6 +324,39 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     const fileId = activeFile || cfg.files[0]?.id;
     if (fileId) { try { await delRealAudio(fileId); } catch { /* noop */ } }
     setAudioMode('tts'); setUrl(null); setPeaks(null); voiceBlobRef.current = null;
+    setCuts([]); setSegNames({});
+  };
+
+  // ---- corte en segmentos (audio real) ----
+  // persiste los segmentos del audio real en el reel (lo lee el editor para alinear planos).
+  const persistSegs = (nextCuts: number[], nextNames: Record<number, string>) => {
+    const fileId = activeFile || cfg.files[0]?.id;
+    if (!fileId || !onGrabar) return;
+    onGrabar(fileId, { voice_id: voiceId, stability, similarity, style, speed, model, markers, text, audioMode: 'real', segments: segmentsFromCuts(nextCuts, audioDur, nextNames) });
+  };
+  // cortar el audio en la posición del slider.
+  const cutAtCursor = () => {
+    if (!audioDur) return;
+    const next = addCut(cuts, cursor * audioDur, audioDur);
+    if (next === cuts) return;
+    setCuts(next); persistSegs(next, segNames);
+  };
+  const clearCuts = () => { setCuts([]); setSegNames({}); persistSegs([], {}); };
+  // unir el segmento i con el anterior = sacar el corte i-1.
+  const mergeSegment = (i: number) => {
+    if (i <= 0) return;
+    const next = removeCut(cuts, i - 1);
+    setCuts(next); persistSegs(next, segNames);
+  };
+  const renameSegment = (i: number, label: string) => {
+    const names = { ...segNames, [i]: label };
+    setSegNames(names); persistSegs(cuts, names);
+  };
+  // reproducir solo un segmento (seek al inicio, frena al final via onTimeUpdate).
+  const playSegment = (s: { startSec: number; endSec: number }) => {
+    const a = audioRef.current; if (!a || !audioDur) return;
+    a.currentTime = s.startSec; playSegRef.current = { end: s.endSec };
+    a.play().then(() => setPlaying(true)).catch(() => {});
   };
 
   const generate = async () => {
@@ -413,6 +456,9 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     </div>
   );
   // Slider: componente de módulo (definido abajo) — antes era inline y se recreaba cada render.
+
+  // segmentos del audio real (derivados de los cortes) — la lista que se asigna a planos.
+  const segments = audioMode === 'real' ? segmentsFromCuts(cuts, audioDur, segNames) : [];
 
   // ---- fuentes (control genérico) ----
   const fileItems = cfg.files.map((f) => ({ id: f.id, label: f.label, sub: f.sub, data: f }));
@@ -549,6 +595,13 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
         {/* WAVEFORM */}
         <div className="vs-card vs-wave">
           <div className="vs-section-title vs-section-title--gold">WAVEFORM</div>
+          {audioMode === 'real' && (
+            <div className="vs-marks vs-cuts">
+              <button onClick={cutAtCursor} disabled={!url} className="vs-mk vs-mk--cut" title="Cortar el audio en la posición del slider"><Scissors size={12} /> Cortar acá</button>
+              <button onClick={clearCuts} disabled={!cuts.length} className="vs-mk" title="Quitar todos los cortes"><Eraser size={12} /> Limpiar cortes</button>
+            </div>
+          )}
+          {audioMode === 'tts' && (
           <div className="vs-marks">
             <button onClick={() => applyRange('emphasis', { label: 'énfasis', color: BRAND.gold })} className={pending?.kind === 'emphasis' ? 'vs-mk vs-mk--emphasis vs-mk--armed' : 'vs-mk vs-mk--emphasis'} title="Parate en el inicio, tocá ÉNFASIS, movés el slider y volvés a tocar para cerrar el rango">ÉNFASIS</button>
             <button onClick={() => applyPause('pause', { label: 'pausa', color: BRAND.gold })} className="vs-mk" title="Pausa en la posición del slider">Pausa</button>
@@ -558,6 +611,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
             <button onClick={clearMarkers} disabled={!markers.length && !pending} title="Limpiar markers (deja el texto)" className="vs-mk"><Eraser size={12} /></button>
             <button onClick={reset} title="Reiniciar todo" className="vs-mk"><RotateCcw size={12} /></button>
           </div>
+          )}
           <div className="vs-wave-area">
             <CadenceWave text={text} peaks={peaks} cursor={cursor} pendingStart={pending ? pending.frac : null} pendingColor={pending?.color} markers={markers} onCursor={onCursor} onRemoveMarker={removeMarker} />
           </div>
@@ -590,11 +644,25 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
             )}
           </div>
           {exportErr && <div className="vs-export-err">{exportErr}</div>}
+          {audioMode === 'real' && url && segments.length > 0 && (
+            <div className="vs-segs">
+              {segments.map((s, i) => (
+                <div key={s.id} className="vs-seg">
+                  <button className="vs-seg-play" onClick={() => playSegment(s)} title="Reproducir este pedazo"><Play size={12} /></button>
+                  <input className="vs-seg-name" value={s.label} onChange={(e) => renameSegment(i, e.target.value)} spellCheck={false} />
+                  <span className="vs-seg-dur">{formatClock(segDur(s))}</span>
+                  {i > 0 && <button className="vs-seg-merge" onClick={() => mergeSegment(i)} title="Unir con el segmento anterior"><Trash2 size={11} /></button>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       <input ref={fileInputRef} type="file" accept={ACCEPTED_AUDIO} hidden onChange={(e) => { onUploadAudio(e.target.files?.[0]); e.currentTarget.value = ''; }} />
-      <audio ref={audioRef} onPlay={() => { setPlaying(true); duck(true); }} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); duck(false); }} onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setCursor(a.currentTime / a.duration); }} />
+      <audio ref={audioRef} onPlay={() => { setPlaying(true); duck(true); }} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); duck(false); playSegRef.current = null; }}
+        onLoadedMetadata={(e) => setAudioDur(e.currentTarget.duration || 0)}
+        onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setCursor(a.currentTime / a.duration); const ps = playSegRef.current; if (ps && a.currentTime >= ps.end) { a.pause(); playSegRef.current = null; } }} />
       <audio ref={musicRef} />
       <audio ref={sampleRef} onEnded={() => { setSampling(false); duck(false); }} />
     </div>
