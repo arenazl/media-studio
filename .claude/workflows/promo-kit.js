@@ -1,11 +1,10 @@
 export const meta = {
   name: 'promo-kit',
-  description: 'Produce el KIT de videos de marketing de un negocio desde brief + capturas, orquestando el panel de skills (estratega/director/mockup/veo/plataforma) con QA adversarial. Modelos por rol: Opus a juicio, Sonnet a ejecución.',
+  description: 'Produce el KIT de videos de marketing de un negocio desde brief + capturas, orquestando el panel de skills (estratega/director/mockup/veo/plataforma) con QA holístico y loop de mejora. Modelos por rol: Opus a juicio, Sonnet a ejecución.',
   whenToUse: 'Cuando el dueño dio luz verde a producir la campaña en serio (varias piezas, calidad alta). Opt-in: gasta tokens.',
   phases: [
     { title: 'Estrategia', detail: 'estratega define posicionamiento + plan de piezas (Opus)', model: 'opus' },
-    { title: 'Produccion', detail: 'por pieza: director -> mockup/veo -> plataforma' },
-    { title: 'QA', detail: 'panel de criticos por lente; loop si score bajo (Opus)', model: 'opus' },
+    { title: 'Produccion', detail: 'por pieza: director -> mockup/veo -> plataforma -> QA, con loop de mejora' },
   ],
 }
 
@@ -69,71 +68,58 @@ const strategy = await agent(
 if (!strategy?.pieces?.length) { log('Estrategia vacía. Aborto.'); return { error: 'no-strategy' } }
 log(`Estrategia lista: ${strategy.pieces.length} piezas.`)
 
-// --- Producción por pieza (pipeline, sin barrera) ---
+// --- Producción por pieza, con QA HOLÍSTICO + loop de mejora ---
 phase('Produccion')
-const QA_MIN = 40
-const capList = captures.length ? `Capturas disponibles: ${captures.join(', ')}.` : 'Sin capturas (mockups en modo fallback).'
+const QA_MIN = 38           // /50 — umbral de "listo para producir"
+const MAX_ATTEMPTS = 2      // 1 reintento si el QA pide ajustar (acota el costo)
+const capList = captures.length ? `Capturas: ${captures.join(', ')}.` : 'Sin capturas (mockups en modo fallback).'
 
-const built = await pipeline(
-  strategy.pieces,
-  // 1) Guion (Opus: criterio creativo) — con loop de QA embebido
-  async (piece) => {
-    let script = await agent(
-      `Actuás como promo-director (skill). Pieza: ${piece.id} · objetivo ${piece.objective} · ángulo "${piece.angle}" · ${piece.durationSec}s · formato ${piece.format}.\n` +
-      `Brief creativo: ${piece.creativeBrief}\nPosicionamiento: ${strategy.positioning}\n` +
+async function buildPiece(piece) {
+  let priorIssues = []
+  let best = null
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const fix = priorIssues.length
+      ? `\nLa versión anterior NO pasó el QA. Corregí ESTO: ${priorIssues.map((i) => i.note).join(' · ')}. ` +
+        `Hook más fuerte en los primeros 2s (sin logo, sin "somos X"), UNA sola idea, CTA único y claro al final.`
+      : ''
+    // 1) Guion (Opus: criterio creativo)
+    const script = await agent(
+      `Actuás como promo-director (skill). Pieza ${piece.id} · objetivo ${piece.objective} · ángulo "${piece.angle}" · ${piece.durationSec}s · ${piece.format}.\n` +
+      `Brief creativo: ${piece.creativeBrief}\nPosicionamiento: ${strategy.positioning}${fix}\n` +
       `Devolvé el guion por bloques (hook→dolor→solución→prueba→cta) con narración calibrada (~2.7 pal/seg) + el mood de música.`,
-      { label: `guion:${piece.id}`, phase: 'Produccion', model: 'opus', schema: SCRIPT }
+      { label: `guion:${piece.id}#${attempt + 1}`, phase: 'Produccion', model: 'opus', schema: SCRIPT }
     )
-    return { piece, script }
-  },
-  // 2) Assets (Sonnet: ejecutores) — mockup y/o veo según formato, en paralelo
-  async (prev) => {
-    const { piece, script } = prev
-    const wantMock = profile === 'demo' || profile === 'mockups-only' || piece.format === 'video-16x9'
+    // 2) Assets (Sonnet) + 3) Publicación (Sonnet), en paralelo
+    const wantMock = profile === 'demo' || profile === 'mockups-only' || /16x9|consider/i.test(`${piece.format}${piece.objective}`)
     const wantVeo = profile !== 'mockups-only'
-    const [slides, videoPrompts] = await Promise.all([
-      wantMock ? agent(
-        `Actuás como mockup-designer (skill). ${capList}\nGuion: ${JSON.stringify(script.blocks)}\n` +
-        `Mapeá guion→capturas y devolvé el spec por slide (framing 9:16, highlight único, motion, copy ≤5 palabras).`,
-        { label: `mockups:${piece.id}`, phase: 'Produccion', model: 'sonnet', schema: ASSETS }
-      ).then((a) => a?.slides || []) : Promise.resolve([]),
-      wantVeo ? agent(
-        `Actuás como veo-flow-prompter (skill, basada en docs/PLAYBOOK_VIDEOS_FLOW.md). Negocio ${project}.\n` +
-        `Guion: ${JSON.stringify(script.blocks)}\nDevolvé los prompts Veo 3 (template A/B/C) + settings (9:16, 8s) + marca fonética.`,
-        { label: `veo:${piece.id}`, phase: 'Produccion', model: 'sonnet', schema: ASSETS }
-      ).then((a) => a?.videoPrompts || []) : Promise.resolve([]),
+    const [[slides, videoPrompts], publish] = await Promise.all([
+      Promise.all([
+        wantMock ? agent(`Actuás como mockup-designer (skill). ${capList}\nGuion: ${JSON.stringify(script.blocks)}\nDevolvé el spec por slide (framing 9:16, highlight único, motion, copy ≤5 palabras).`,
+          { label: `mockups:${piece.id}`, phase: 'Produccion', model: 'sonnet', schema: ASSETS }).then((a) => a?.slides || []) : Promise.resolve([]),
+        wantVeo ? agent(`Actuás como veo-flow-prompter (skill, PLAYBOOK_VIDEOS_FLOW). Negocio ${project}.\nGuion: ${JSON.stringify(script.blocks)}\nDevolvé los prompts Veo 3 (template A/B/C) + settings (9:16, 8s) + marca fonética.`,
+          { label: `veo:${piece.id}`, phase: 'Produccion', model: 'sonnet', schema: ASSETS }).then((a) => a?.videoPrompts || []) : Promise.resolve([]),
+      ]),
+      agent(`Actuás como social-platform-specialist (skill). Pieza ${piece.id}, objetivo ${piece.objective}, plataformas ${(piece.platforms || []).join(', ')}.\nGuion: ${JSON.stringify(script.blocks)}\nDevolvé hook on-screen (≤6 palabras), caption, hashtags (3-6) y CTA. Sin emojis.`,
+        { label: `publish:${piece.id}`, phase: 'Produccion', model: 'sonnet', schema: PUBLISH }),
     ])
-    return { ...prev, slides, videoPrompts }
-  },
-  // 3) Publicación (Sonnet)
-  async (prev) => {
-    const { piece, script } = prev
-    const publish = await agent(
-      `Actuás como social-platform-specialist (skill). Pieza ${piece.id}, objetivo ${piece.objective}, plataformas sugeridas ${(piece.platforms || []).join(', ')}.\n` +
-      `Guion: ${JSON.stringify(script.blocks)}\nDevolvé hook on-screen (≤6 palabras), caption, hashtags (3-6) y CTA. Sin emojis.`,
-      { label: `publish:${piece.id}`, phase: 'Produccion', model: 'sonnet', schema: PUBLISH }
+    // 4) QA HOLÍSTICO: un promo-critic aplica su rúbrica de 10 ejes (0-5) → score /50 real.
+    const qa = await agent(
+      `Evaluá esta promo COMPLETA con tu rúbrica de 10 ejes (0-5 cada uno = total /50). NO la juzgues por un solo aspecto: puntuá los 10 ejes y sumá.\n` +
+      `Pieza ${piece.id}, ${piece.durationSec}s, objetivo ${piece.objective}, ángulo ${piece.angle}.\n` +
+      `Guion: ${JSON.stringify(script.blocks)}\nPublicación: ${JSON.stringify(publish)}\n` +
+      `Devolvé score /50, veredicto (LISTO PARA PRODUCIR ≥${QA_MIN} / AJUSTAR / REHACER) y los issues por severidad con el fix concreto.`,
+      { label: `qa:${piece.id}#${attempt + 1}`, phase: 'Produccion', model: 'opus', agentType: 'promo-critic', schema: VERDICT }
     )
-    return { ...prev, publish }
-  },
-)
+    const cand = { piece, script, slides, videoPrompts, publish, qa: qa || { score: 0, verdict: 'REHACER', issues: [] } }
+    if (!best || cand.qa.score > best.qa.score) best = cand   // me quedo con el mejor intento
+    log(`${piece.id} intento ${attempt + 1}: ${cand.qa.score}/50 ${cand.qa.verdict}`)
+    if (cand.qa.score >= QA_MIN && cand.qa.verdict !== 'REHACER') break
+    priorIssues = cand.qa.issues || []
+  }
+  return best
+}
 
-// --- QA: panel de jueces por lente (Opus). 3 lentes, promedio; loop si bajo ---
-phase('QA')
-const LENSES = ['gancho (frena el scroll en 2s)', 'una sola idea + claridad sin sonido', 'formato/ritmo (9:16, planos 2-4s, CTA único)']
-const judged = await parallel(
-  built.filter(Boolean).map((b) => async () => {
-    const votes = await parallel(LENSES.map((lens) => () =>
-      agent(
-        `Evaluá esta promo SOLO por el lente: ${lens}. Pieza ${b.piece.id}.\nGuion: ${JSON.stringify(b.script.blocks)}\nPublicación: ${JSON.stringify(b.publish)}`,
-        { label: `qa:${b.piece.id}:${lens.slice(0, 8)}`, phase: 'QA', model: 'opus', agentType: 'promo-critic', schema: VERDICT }
-      )
-    ))
-    const valid = votes.filter(Boolean)
-    const score = valid.length ? Math.round(valid.reduce((s, v) => s + (v.score || 0), 0) / valid.length) : 0
-    const issues = valid.flatMap((v) => v.issues || [])
-    return { ...b, qa: { score, verdict: score >= QA_MIN ? 'LISTO PARA PRODUCIR' : 'AJUSTAR', issues } }
-  })
-)
+const judged = await parallel(strategy.pieces.map((p) => () => buildPiece(p)))
 
 const pieces = judged.filter(Boolean).map((b) => ({
   id: b.piece.id, objective: b.piece.objective, angle: b.piece.angle, format: b.piece.format,
@@ -142,6 +128,8 @@ const pieces = judged.filter(Boolean).map((b) => ({
   narration: { mode: 'tts', text: b.script.blocks.map((x) => x.narration).join(' ') },
   publish: b.publish, qa: b.qa,
 }))
-log(`Kit listo: ${pieces.length} piezas · score promedio ${pieces.length ? Math.round(pieces.reduce((s, p) => s + p.qa.score, 0) / pieces.length) : 0}/50`)
+const avg = pieces.length ? Math.round(pieces.reduce((s, p) => s + (p.qa?.score || 0), 0) / pieces.length) : 0
+const ready = pieces.filter((p) => (p.qa?.score || 0) >= QA_MIN).length
+log(`Kit listo: ${pieces.length} piezas · ${ready} listas (≥${QA_MIN}) · score promedio ${avg}/50`)
 
 return { project, profile, positioning: strategy.positioning, audiences: strategy.audiences || [], pieces }
