@@ -188,7 +188,10 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
       setAudioTrack([]); setMusicTrack([]); setVideoTrack([]); setTransitionTrack([]); setEffectTrack([]); setTextTrack([]);
     }
     setEditingTextId(null); stopPlay();
+    // animaciones: del boceto (video) si lo hay; si no, de las CAPTURAS del proyecto
+    // (mockups) cicladas a las n frases. Así el editor muestra los mockups sin boceto.
     if (reel?.slidesRef && n > 0) extractFrames(reel.slidesRef, n).then((f) => { if (alive) setFrames(f); });
+    else if (project.screenshots?.length && n > 0) setFrames(Array.from({ length: n }, (_, i) => project.screenshots![i % project.screenshots!.length]));
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project.id, reel?.id, reel?.slidesRef, n]);
