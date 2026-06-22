@@ -3,17 +3,17 @@ import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
 import VideoPromptBuilder from './VideoPromptBuilder';
-import KitsStudio from './KitsStudio';
-import Sidebar, { defaultSection, type Section } from './Sidebar';
+import Topbar from './Topbar';
 import ProjectsABM from './ProjectsABM';
-import { saveProject, type Project, type VoiceConfig } from './lib/projects';
+import { listProjects, saveProject, type Project, type VoiceConfig } from './lib/projects';
+import { defaultSection, type Section } from './lib/sections';
 import './App.css';
 
 export default function App() {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const embed = params.get('embed') === '1';
 
-  // Modo embed (ej. Munify por iframe): solo el estudio de audio, sin chrome.
+  // Modo embed (otra app por iframe): solo el estudio de audio, sin chrome.
   if (embed) {
     return (
       <div className="ms-embed">
@@ -22,13 +22,12 @@ export default function App() {
     );
   }
 
-  const [collapsed, setCollapsed] = useState(false);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [section, setSection] = useState<Section>('audio');
-  const [topView, setTopView] = useState<'projects' | 'kits'>('projects');
-  // audio generado por reel (objectURL del mp3) — se comparte entre solapas para
-  // que el editor del Reel pueda reproducir la voz sin re-llamar al TTS.
+  const [section, setSection] = useState<Section>('editor');
+  // audio generado por reel (objectURL del mp3) — se comparte entre solapas.
   const [audioByReel, setAudioByReel] = useState<Record<string, string>>({});
+
+  const projects = listProjects();   // se relee en cada render → refleja altas/cambios
 
   // "Grabar" desde el editor: persiste el settings de voz del reel y refresca el proyecto.
   const grabarReel = (reelId: string, vc: VoiceConfig) => {
@@ -44,25 +43,21 @@ export default function App() {
     setAudioByReel((m) => { if (m[reelId]) URL.revokeObjectURL(m[reelId]); return { ...m, [reelId]: URL.createObjectURL(blob) }; });
   };
 
+  const openProject = (p: Project) => { setActiveProject(p); setSection(defaultSection(p)); };
+
   return (
     <div className="ms-shell">
-      <Sidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
+      <Topbar
+        projects={projects}
         activeProject={activeProject}
         section={section}
-        kitsActive={topView === 'kits'}
-        onHome={() => { setTopView('projects'); setActiveProject(null); }}
-        onKits={() => { setTopView('kits'); setActiveProject(null); }}
+        onPickProject={openProject}
+        onHome={() => setActiveProject(null)}
         onSection={setSection}
-        onOpenReel={() => setSection('editor')}
       />
-
       <main className="ms-main">
-        {topView === 'kits' ? (
-          <KitsStudio />
-        ) : !activeProject ? (
-          <ProjectsABM onOpen={(p) => { setTopView('projects'); setActiveProject(p); setSection(defaultSection(p)); }} />
+        {!activeProject ? (
+          <ProjectsABM onOpen={openProject} />
         ) : (
           <SectionView section={section} project={activeProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
         )}

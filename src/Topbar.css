@@ -1,0 +1,60 @@
+/* Topbar de navegación. Tokens en styles/tokens.css. Dark soft-UI, densa (pro-tool). */
+.tb {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 14px;
+  height: 52px; padding: 0 16px;
+  background: var(--surface-2); border-bottom: 1px solid var(--bd);
+}
+
+.tb-brand { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.tb-mark { color: var(--gold); }
+.tb-brand-name { font-family: var(--font-display); font-style: italic; font-size: 17px; color: var(--txt); white-space: nowrap; }
+
+/* combo de proyectos */
+.tb-proj { position: relative; flex: 0 0 auto; }
+.tb-proj-btn {
+  cursor: pointer; display: flex; align-items: center; gap: 7px; font: inherit; font-size: 13px; font-weight: 700; color: var(--txt);
+  background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r-sm); padding: 7px 11px; min-width: 168px;
+  transition: border-color 200ms;
+}
+.tb-proj-btn:hover { border-color: var(--gold); }
+.tb-proj-name { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-proj-caret { color: var(--txt-50); flex: 0 0 auto; }
+.tb-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; min-width: 248px; z-index: 50;
+  background: var(--ink-2); border: 1px solid var(--bd-3); border-radius: var(--r); padding: 6px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+}
+.tb-menu-lbl { font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--txt-40); padding: 4px 8px 6px; }
+.tb-menu-item {
+  cursor: pointer; width: 100%; display: flex; align-items: center; gap: 7px; font: inherit; font-size: 13px; font-weight: 600;
+  color: var(--txt-70); background: none; border: none; border-radius: var(--r-sm); padding: 8px 9px; text-align: left;
+  transition: background 200ms, color 200ms;
+}
+.tb-menu-item:hover { background: var(--surface-2); color: var(--txt); }
+.tb-menu-item--on { color: var(--txt); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.tb-menu-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-menu-sep { height: 1px; background: var(--bd); margin: 5px 4px; }
+
+/* tabs de secciones */
+.tb-tabs { display: flex; gap: 4px; flex: 0 0 auto; background: var(--field); border-radius: var(--r-sm); padding: 4px; overflow-x: auto; }
+.tb-tab {
+  cursor: pointer; display: flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 700;
+  color: var(--txt-60); background: none; border: none; border-radius: 7px; padding: 7px 13px; white-space: nowrap;
+  transition: color 200ms, background 200ms;
+}
+.tb-tab:hover { color: var(--txt); }
+.tb-tab--on { color: var(--ink); background: var(--gold); }
+
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.tb-icon-btn {
+  cursor: pointer; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+  border-radius: var(--r-sm); color: var(--txt-60); background: var(--surface-2); border: 1px solid var(--bd-2);
+  transition: color 200ms, border-color 200ms;
+}
+.tb-icon-btn:hover { color: var(--txt); border-color: var(--bd-3); }
+
+@media (max-width: 860px) {
+  .tb { height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 8px; }
+  .tb-tabs { order: 3; width: 100%; }
+  .tb-right { order: 2; }
+}

@@ -19,10 +19,11 @@
 
 .ms-content { flex: 1; min-height: 0; width: 100%; overflow-y: auto; }
 
-/* ===== Shell multi-tenant: sidebar + main ===== */
+/* ===== Shell: topbar arriba + main abajo ===== */
 .ms-shell {
   height: 100dvh;
   display: flex;
+  flex-direction: column;
   background: var(--ink);
   color: var(--txt);
   font-family: var(--font-sans);
