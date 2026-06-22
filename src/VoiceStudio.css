@@ -376,6 +376,79 @@
   color: var(--danger);
 }
 
+/* modo de audio: sintética vs locutor real */
+.vs-mode-tabs {
+  display: flex;
+  gap: 5px;
+}
+.vs-mode-tab {
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--txt);
+  border-radius: var(--r-sm);
+  padding: 6px 7px;
+  background: var(--surface-3);
+  border: 1.5px solid var(--bd-2);
+}
+.vs-mode-tab--on {
+  background: color-mix(in srgb, var(--azure) 15%, transparent);
+  border-color: var(--azure);
+  color: var(--azure);
+}
+
+/* controles de audio real (subir / grabar) */
+.vs-real {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vs-real-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--txt-40);
+}
+.vs-real-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--txt);
+  background: var(--surface-3);
+  border: 1.5px solid var(--bd-2);
+}
+.vs-real-btn:hover {
+  border-color: var(--azure);
+}
+.vs-real-rec {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+}
+.vs-real-rec--on {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  animation: vs-rec-pulse 1.1s ease-in-out infinite;
+}
+@keyframes vs-rec-pulse {
+  50% { opacity: 0.55; }
+}
+.vs-real-clear {
+  color: var(--txt-40);
+}
+
 /* ===== FILA 2: texto + waveform ===== */
 .vs-row2 {
   display: flex;

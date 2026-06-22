@@ -8,7 +8,7 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check, Upload, Trash2, AudioLines } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
@@ -16,6 +16,7 @@ import ScriptText from './ScriptText';
 import { MUSIC_TRACKS, type MusicTrack } from './lib/music';
 import { exportVoiceWithMusic } from './lib/exportMix';
 import { addVoiceClip } from './lib/voiceLib';
+import { computePeaks, isAudioFile, ACCEPTED_AUDIO, putRealAudio, getRealAudioBlob, delRealAudio } from './lib/audioSource';
 import { deriveName } from './lib/sourcePanel';
 import SourcePanel from './SourcePanel';
 
@@ -59,6 +60,21 @@ const AGE_OPTS = [{ value: 'young', label: 'Joven' }, { value: 'middle_aged', la
 let _actx: AudioContext | null = null;
 const audioCtx = () => (_actx ||= new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
 
+interface SliderProps { label: string; val: number; set: (n: number) => void; min: number; max: number; step: number; hint?: string; fmt: (n: number) => string }
+// Slider de settings (componente de módulo: estable entre renders). Estilos en VoiceStudio.css.
+function Slider({ label, val, set, min, max, step, hint, fmt }: SliderProps) {
+  return (
+    <div>
+      <div className="vs-slider-row">
+        <span className="vs-slider-label">{label}</span>
+        <span className="vs-slider-val">{fmt(val)}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={val} onChange={(e) => set(Number(e.target.value))} className="vs-range-gold" />
+      {hint && <div className="vs-slider-hint">{hint}</div>}
+    </div>
+  );
+}
+
 export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: VoiceStudioProps = {}) {
   const initialText = (() => {
     if (typeof window === 'undefined') return DEFAULT_TEXT;
@@ -98,7 +114,12 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   const [exporting, setExporting] = useState(false);     // exportación de la mezcla en curso
   const [exportErr, setExportErr] = useState<string | null>(null);
   const [savedLib, setSavedLib] = useState(false);       // feedback "guardada en la librería"
+  const [audioMode, setAudioMode] = useState<'tts' | 'real'>('tts'); // sintética vs locutor real (subido/grabado)
+  const [recording, setRecording] = useState(false);    // grabando con el micrófono
   const voiceBlobRef = useRef<Blob | null>(null);        // último mp3 de voz generado (para exportar/mezclar)
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
@@ -148,6 +169,10 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     } else {
       applyText(f.text); setMarkers([]);
     }
+    // modo de audio del reel: sintético o locutor real (carga el audio guardado).
+    const mode = vc?.audioMode === 'real' ? 'real' : 'tts';
+    setAudioMode(mode); setUrl(null);
+    if (mode === 'real') void loadRealAudio(f.id);
     // avisar al host (ej. Munify) para que sincronice su canvas/preview.
     try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'mediastudio:file', id: f.id }, '*'); } catch { /* noop */ }
   };
@@ -225,9 +250,75 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   };
   const duck = (down: boolean) => { const m = musicRef.current; if (m) m.volume = down ? musicVol * 0.45 : musicVol; };
 
+  // Mete un blob de audio (TTS o real) en la onda: url + peaks + reproduce + lo comparte
+  // con el editor del reel. Único camino para voz sintética y locutor real. Devuelve la
+  // duración (s) si pudo decodificar.
+  const loadBlobIntoWave = async (blob: Blob, opts?: { share?: boolean; autoplay?: boolean }): Promise<number> => {
+    voiceBlobRef.current = blob;
+    if (url) URL.revokeObjectURL(url);
+    const u = URL.createObjectURL(blob); setUrl(u); setCursor(0);
+    const a = audioRef.current;
+    if (a) { a.src = u; a.volume = voiceVol; a.currentTime = 0; if (opts?.autoplay !== false) a.play().then(() => setPlaying(true)).catch(() => {}); }
+    const fileId = activeFile || cfg.files[0]?.id;
+    if (opts?.share !== false && fileId && onAudio) onAudio(fileId, blob);
+    try {
+      const ctx = audioCtx(); await ctx.resume();
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+      setPeaks(computePeaks(buf.getChannelData(0)));
+      return buf.duration;
+    } catch { setPeaks(null); return 0; }
+  };
+
+  // Persiste en el reel que su voz es de locutor real (lo lee el editor para no generar TTS).
+  const persistRealMode = (fileId: string) => {
+    if (onGrabar) onGrabar(fileId, { voice_id: voiceId, stability, similarity, style, speed, model, markers, text, audioMode: 'real' });
+  };
+
+  // Subir un archivo de audio (locutor de estudio) → mismo pipeline que el TTS + IndexedDB.
+  const onUploadAudio = async (file: File | undefined) => {
+    if (!file) return;
+    if (!isAudioFile(file)) { setErr('Ese archivo no es audio (mp3/wav/m4a…).'); return; }
+    setErr(null); setAudioMode('real'); setEditingText(false);
+    const dur = await loadBlobIntoWave(file);
+    const fileId = activeFile || cfg.files[0]?.id;
+    if (fileId) { try { await putRealAudio(fileId, file, dur); persistRealMode(fileId); } catch { /* noop */ } }
+  };
+
+  // Grabar con el micrófono (prueba rápida). Al detener: mismo pipeline + guarda en IndexedDB.
+  const startRec = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream);
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
+        setAudioMode('real');
+        const dur = await loadBlobIntoWave(blob);
+        const fileId = activeFile || cfg.files[0]?.id;
+        if (fileId) { try { await putRealAudio(fileId, blob, dur); persistRealMode(fileId); } catch { /* noop */ } }
+      };
+      recorderRef.current = rec; rec.start(); setRecording(true); setErr(null);
+    } catch { setErr('No pude acceder al micrófono (permiso denegado).'); }
+  };
+  const stopRec = () => { const r = recorderRef.current; if (r && r.state !== 'inactive') r.stop(); setRecording(false); };
+
+  // Cargar el audio real guardado del reel (al cambiar de reel) — pinta la onda sin autoplay.
+  const loadRealAudio = async (fileId: string) => {
+    try { const blob = await getRealAudioBlob(fileId); if (blob) await loadBlobIntoWave(blob, { autoplay: false }); } catch { /* noop */ }
+  };
+
+  // Quitar el audio real del reel → vuelve a modo sintético.
+  const clearRealAudio = async () => {
+    const fileId = activeFile || cfg.files[0]?.id;
+    if (fileId) { try { await delRealAudio(fileId); } catch { /* noop */ } }
+    setAudioMode('tts'); setUrl(null); setPeaks(null); voiceBlobRef.current = null;
+  };
+
   const generate = async () => {
     if (!text.trim() || !voiceId) return;
-    setBusy(true); setErr(null); setCursor(0); setEditingText(false);
+    setBusy(true); setErr(null); setCursor(0); setEditingText(false); setAudioMode('tts');
     // el texto queda intacto en el editor; acá lo combino con los markers de la onda.
     const ttsText = buildTtsText();
     try {
@@ -237,20 +328,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
       });
       if (!r.ok) throw new Error(`HTTP ${r.status} · ${(await r.text()).slice(0, 120)}`);
       const blob = await r.blob();
-      voiceBlobRef.current = blob;                 // lo reusa el export (con o sin música)
-      if (url) URL.revokeObjectURL(url);
-      const u = URL.createObjectURL(blob); setUrl(u);
-      const fileId = activeFile || cfg.files[0]?.id;
-      if (fileId && onAudio) onAudio(fileId, blob); // compartir el mp3 con el editor del Reel
-      try {
-        const ctx = audioCtx(); await ctx.resume();
-        const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
-        const ch = buf.getChannelData(0); const N = 260; const step = Math.max(1, Math.floor(ch.length / N));
-        const pk: number[] = [];
-        for (let i = 0; i < N; i++) { let m = 0; for (let j = 0; j < step; j++) { const v = Math.abs(ch[i * step + j] || 0); if (v > m) m = v; } pk.push(m); }
-        const mx = Math.max(...pk, 0.001); setPeaks(pk.map((v) => v / mx));
-      } catch { setPeaks(null); }
-      const a = audioRef.current; if (a) { a.src = u; a.volume = voiceVol; a.currentTime = 0; a.play().then(() => setPlaying(true)).catch(() => {}); }
+      await loadBlobIntoWave(blob);   // url + peaks + reproduce + comparte con el editor del Reel
       autosave(); // guarda el settings del reel (lo lee la solapa Reel)
     } catch (e) { setErr(e instanceof Error ? e.message : 'error'); } finally { setBusy(false); }
   };
@@ -334,16 +412,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
       <button onClick={() => tg(id)} title="Colapsar" className="vs-collapse-btn"><ChevronLeft size={13} /></button>
     </div>
   );
-  const Slider = ({ label, val, set, min, max, step, hint, fmt }: { label: string; val: number; set: (n: number) => void; min: number; max: number; step: number; hint?: string; fmt: (n: number) => string }) => (
-    <div>
-      <div className="vs-slider-row">
-        <span className="vs-slider-label">{label}</span>
-        <span className="vs-slider-val">{fmt(val)}</span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={val} onChange={(e) => set(Number(e.target.value))} className="vs-range-gold" />
-      {hint && <div className="vs-slider-hint">{hint}</div>}
-    </div>
-  );
+  // Slider: componente de módulo (definido abajo) — antes era inline y se recreaba cada render.
 
   // ---- fuentes (control genérico) ----
   const fileItems = cfg.files.map((f) => ({ id: f.id, label: f.label, sub: f.sub, data: f }));
@@ -379,29 +448,46 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     <div className="vs-panel" style={{ ['--grow']: 272, ['--accent']: '#fff' } as React.CSSProperties}>
       {headRow(<>SOUND SETTINGS</>, '#fff', 'sound')}
       <div className="vs-sound">
-        <div className="vs-sound-scroll">
-          <div className="vs-presets">
-            {VOICE_PRESETS.map((p) => (
-              <button key={p.label} onClick={() => applyPreset(p)} className="vs-preset" title={`estab ${p.stability} · estilo ${p.style} · cadencia ${p.speed}×`}>{p.label}</button>
-            ))}
-          </div>
-          <div className="vs-models">
-            {[{ id: 'eleven_v3', label: 'v3' }, { id: 'eleven_multilingual_v2', label: 'v2' }, { id: 'eleven_flash_v2_5', label: 'flash' }].map((m) => (
-              <button key={m.id} onClick={() => setModel(m.id)} className={model === m.id ? 'vs-model vs-model--on' : 'vs-model'}>{m.label}</button>
-            ))}
-          </div>
-          <Slider label="Estabilidad" val={stability} set={setStability} min={0} max={1} step={0.05} hint="bajo = más expresivo" fmt={(v) => v.toFixed(2)} />
-          <Slider label="Similitud" val={similarity} set={setSimilarity} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
-          <Slider label="Estilo" val={style} set={setStyle} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
-          <Slider label="Cadencia" val={speed} set={setSpeed} min={0.7} max={1.2} step={0.05} hint="0.7 lento — 1.2 rápido" fmt={(v) => `${v.toFixed(2)}×`} />
-          <Slider label="Volumen voz" val={voiceVol} set={(v) => { setVoiceVol(v); const a = audioRef.current; if (a) a.volume = v; }} min={0} max={1} step={0.05} hint="volumen de reproducción local" fmt={(v) => `${Math.round(v * 100)}%`} />
-          <label className="vs-check">
-            <input type="checkbox" checked={boost} onChange={(e) => setBoost(e.target.checked)} className="vs-check-box" /> Speaker boost
-          </label>
+        <div className="vs-mode-tabs">
+          <button className={audioMode === 'tts' ? 'vs-mode-tab vs-mode-tab--on' : 'vs-mode-tab'} onClick={() => setAudioMode('tts')} title="Voz sintética (ElevenLabs)"><Mic size={12} /> Sintética</button>
+          <button className={audioMode === 'real' ? 'vs-mode-tab vs-mode-tab--on' : 'vs-mode-tab'} onClick={() => setAudioMode('real')} title="Audio de un locutor real (subir o grabar)"><AudioLines size={12} /> Real</button>
         </div>
-        <button onClick={generate} disabled={busy} className="vs-generate">
-          <Mic size={15} /> {busy ? 'Generando…' : 'Generar voz'}
-        </button>
+        {audioMode === 'tts' ? (
+          <>
+            <div className="vs-sound-scroll">
+              <div className="vs-presets">
+                {VOICE_PRESETS.map((p) => (
+                  <button key={p.label} onClick={() => applyPreset(p)} className="vs-preset" title={`estab ${p.stability} · estilo ${p.style} · cadencia ${p.speed}×`}>{p.label}</button>
+                ))}
+              </div>
+              <div className="vs-models">
+                {[{ id: 'eleven_v3', label: 'v3' }, { id: 'eleven_multilingual_v2', label: 'v2' }, { id: 'eleven_flash_v2_5', label: 'flash' }].map((m) => (
+                  <button key={m.id} onClick={() => setModel(m.id)} className={model === m.id ? 'vs-model vs-model--on' : 'vs-model'}>{m.label}</button>
+                ))}
+              </div>
+              <Slider label="Estabilidad" val={stability} set={setStability} min={0} max={1} step={0.05} hint="bajo = más expresivo" fmt={(v) => v.toFixed(2)} />
+              <Slider label="Similitud" val={similarity} set={setSimilarity} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
+              <Slider label="Estilo" val={style} set={setStyle} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
+              <Slider label="Cadencia" val={speed} set={setSpeed} min={0.7} max={1.2} step={0.05} hint="0.7 lento — 1.2 rápido" fmt={(v) => `${v.toFixed(2)}×`} />
+              <Slider label="Volumen voz" val={voiceVol} set={(v) => { setVoiceVol(v); const a = audioRef.current; if (a) a.volume = v; }} min={0} max={1} step={0.05} hint="volumen de reproducción local" fmt={(v) => `${Math.round(v * 100)}%`} />
+              <label className="vs-check">
+                <input type="checkbox" checked={boost} onChange={(e) => setBoost(e.target.checked)} className="vs-check-box" /> Speaker boost
+              </label>
+            </div>
+            <button onClick={generate} disabled={busy} className="vs-generate">
+              <Mic size={15} /> {busy ? 'Generando…' : 'Generar voz'}
+            </button>
+          </>
+        ) : (
+          <div className="vs-real">
+            <p className="vs-real-hint">Subí la locución del estudio o grabala acá. Después la cortás en pedazos sobre la onda →</p>
+            <button className="vs-real-btn" onClick={() => fileInputRef.current?.click()}><Upload size={14} /> Subir audio</button>
+            {!recording
+              ? <button className="vs-real-btn vs-real-rec" onClick={startRec}><Mic size={14} /> Grabar</button>
+              : <button className="vs-real-btn vs-real-rec vs-real-rec--on" onClick={stopRec}><Square size={14} /> Detener</button>}
+            {url && <button className="vs-real-btn vs-real-clear" onClick={clearRealAudio}><Trash2 size={14} /> Quitar</button>}
+          </div>
+        )}
         {err && <span className="vs-error">error: {err}</span>}
       </div>
     </div>
@@ -507,6 +593,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
         </div>
       </div>
 
+      <input ref={fileInputRef} type="file" accept={ACCEPTED_AUDIO} hidden onChange={(e) => { onUploadAudio(e.target.files?.[0]); e.currentTarget.value = ''; }} />
       <audio ref={audioRef} onPlay={() => { setPlaying(true); duck(true); }} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); duck(false); }} onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setCursor(a.currentTime / a.duration); }} />
       <audio ref={musicRef} />
       <audio ref={sampleRef} onEnded={() => { setSampling(false); duck(false); }} />

@@ -5,6 +5,15 @@
 import type { ContentType } from '../NewProjectWizard';
 import { demoProject } from '../data/demoProject';
 
+// un recorte del audio real (locutor) — metadata; el blob vive en IndexedDB por reel.
+export interface AudioSegment {
+  id: string;
+  label: string;        // "Hook", "CTA", "Frase 2"…
+  startSec: number;     // inicio dentro del audio real
+  endSec: number;       // fin dentro del audio real
+  phraseIndex?: number; // a qué frase/bloque del guion va
+}
+
 // settings de voz por reel (lo que persiste el botón "Grabar").
 export interface VoiceConfig {
   voice_id: string;
@@ -15,6 +24,8 @@ export interface VoiceConfig {
   model: string;
   markers?: unknown[];
   text?: string;
+  audioMode?: 'tts' | 'real';   // sintética (default) o locutor real (subido/grabado)
+  segments?: AudioSegment[];    // recortes del audio real (modo 'real')
 }
 export interface ProjectReel {
   id: string;
