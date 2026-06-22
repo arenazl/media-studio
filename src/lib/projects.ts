@@ -4,6 +4,7 @@
 // cualquier cliente. El core no asume Munify.
 import type { ContentType } from '../NewProjectWizard';
 import { demoProject } from '../data/demoProject';
+import type { BrandKit } from './brandKit';
 
 // un recorte del audio real (locutor) — metadata; el blob vive en IndexedDB por reel.
 export interface AudioSegment {
@@ -43,6 +44,7 @@ export interface Project {
   contentType?: ContentType;     // configura el layout: reels | video | audio | combinado
   brief?: string;                // MD del negocio (input agnóstico)
   screenshots?: string[];        // capturas del producto (para los mockups)
+  brandKit?: BrandKit;           // marca del proyecto (logo/color/fonética) — agnóstico
   reels: ProjectReel[];
   created_at: number;
   updated_at: number;
@@ -73,7 +75,7 @@ export function listProjects(): Project[] {
 export function getProject(id: string): Project | undefined {
   return load().find((p) => p.id === id);
 }
-export function saveProject(input: { id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType; brief?: string; screenshots?: string[]; reels?: ProjectReel[] }): Project {
+export function saveProject(input: { id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType; brief?: string; screenshots?: string[]; brandKit?: BrandKit; reels?: ProjectReel[] }): Project {
   const ps = load();
   const id = input.id || `${slug(input.name) || 'proj'}-${Date.now().toString(36).slice(-4)}`;
   const existing = ps.find((p) => p.id === id);
@@ -84,6 +86,7 @@ export function saveProject(input: { id?: string; name: string; type?: string; p
     contentType: input.contentType ?? existing?.contentType,
     brief: input.brief ?? existing?.brief,
     screenshots: input.screenshots ?? existing?.screenshots,
+    brandKit: input.brandKit ?? existing?.brandKit,
     reels: (input.reels ?? existing?.reels ?? []).map(normReel),
     created_at: existing?.created_at ?? now, updated_at: now,
   };

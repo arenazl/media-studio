@@ -28,6 +28,7 @@ import {
 import { buildSnapshot, loadMontage, saveMontage } from './lib/montageStore';
 import { getRealAudioUrl } from './lib/audioSource';
 import { slicePeaks } from './lib/audioSlice';
+import { resolveBrand, logoPosClass } from './lib/brandKit';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
 
@@ -112,6 +113,8 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
   const fxClass = effectClass(activeEffect);
   // textos activos en el playhead → overlays del preview.
   const activeTexts = textsAtPx(textTrack, playing0 ? playPx : 0);
+  // marca del proyecto (logo/color) → overlay del preview, agnóstico (Fase 6).
+  const brand = resolveBrand(project.brandKit);
 
   const currentPlan = () => buildPlan({ audioTrack, phraseAudio, musicTrack, videoTrack, musicUrlOf, videoUrlOf, muted });
 
@@ -601,6 +604,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
                     {activeTexts.map((c) => (
                       <div key={c.id} className={`rt-txt ${textPresetClass(c.preset)}`}>{c.text}</div>
                     ))}
+                    {brand.logoUrl && <img src={brand.logoUrl} alt="" className={`rt-brand-logo ${logoPosClass(brand.logoPos)}`} />}
                   </div>
                   <div className="rt-rail-transport">
                     <button className="rt-tbtn" onClick={stopPlay} title="Rebobinar (a 0)"><SkipBack size={14} /></button>

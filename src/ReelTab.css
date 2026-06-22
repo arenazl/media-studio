@@ -188,6 +188,13 @@
 .rt-txt--cta { left: 50%; transform: translateX(-50%); right: auto; bottom: 11%; text-align: center; font-weight: 800; font-size: clamp(11px, 5cqw, 17px); color: var(--ink); background: var(--gold); padding: 7px 16px; border-radius: var(--pill); text-shadow: none; white-space: nowrap; }
 .rt-rail-preview { container-type: inline-size; }
 
+/* overlay de LOGO de marca (por proyecto, agnóstico) */
+.rt-brand-logo { position: absolute; z-index: 4; width: 22cqw; max-width: 40%; height: auto; opacity: 0.92; pointer-events: none; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.45)); }
+.rt-brand--tl { top: 4%; left: 5%; }
+.rt-brand--tr { top: 4%; right: 5%; }
+.rt-brand--bl { bottom: 5%; left: 5%; }
+.rt-brand--br { bottom: 5%; right: 5%; }
+
 /* editor de contenido del texto (debajo del preview) */
 .rt-txt-edit { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid var(--bd); }
 .rt-txt-edit-presets { display: flex; flex-wrap: wrap; gap: 4px; }

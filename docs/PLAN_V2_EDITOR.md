@@ -96,8 +96,12 @@ Se queda, pero rediseñada (ver Fase 3). También accesible como panel del edito
 - [x] Fase 3 — Biblioteca como organizador: favoritos, tags, proyecto, filtros (commit f38cf61).
 - [x] Fase 4 — Navegación unificada: topbar con combo de proyectos + tabs (507f65a, 98271f9).
 - [x] Fase 5 — Render real ffmpeg + persistencia del montaje + librería de voces (d1dbdfa, 509b3b8, cf845d3).
-- [~] Fase 6 — Agnóstico / pulido (parcial): `d577081` desacopló Munify→data demo; falta
-  fuentes de mockups por config, logo/marca overlay configurable, plantillas reutilizables.
+- [x] Fase 6 — Agnóstico / pulido: `d577081` desacopló Munify→data demo; marca por proyecto
+  (`lib/brandKit`, logo/color overlay en el preview) + plantillas de promo reutilizables
+  (`lib/promoTemplates`). Las fuentes de animaciones/mockups ya entran por data del proyecto.
 
-**En curso (post-independización):** audio real (locutor) + corte en segmentos en la pestaña
-Audio, y el orquestador `promo-producer` (panel de skills end-to-end). Ver memoria del proyecto.
+**Hecho (post-independización):**
+- Audio real (locutor): subir + grabar en la pestaña Audio, corte en segmentos sobre la onda,
+  conectado al editor por `offset` (`lib/audioSource`, `lib/audioSlice`).
+- Orquestador `promo-producer` (skill) + `docs/CONTRATO_KIT.md` + workflow `promo-kit`
+  (modelos por rol + panel de jueces). Ver memoria del proyecto.
