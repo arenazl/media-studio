@@ -12,6 +12,7 @@
 //   POST   /api/cloud-videos/upload       → sube a Cloudinary, persiste en DB
 //   DELETE /api/cloud-videos/<id>         → elimina de Cloudinary + DB
 //   POST   /api/classify-video            → clasifica un video por tipo (Gemini Vision)
+//   POST   /api/render                     → arma el mp4 del montaje (ffmpeg)
 //   GET    /api/projects                  → lista proyectos SQLite
 //   POST   /api/projects                  → crear proyecto
 //   GET    /api/projects/<id>             → detalle con data JSON
@@ -153,6 +154,57 @@ async function classifyVideoThumb(thumbUrl, types) {
   const ask = `Es un frame de un video promocional. Devolvé SOLO un JSON array con 1 a 4 etiquetas de ESTA lista (exactas, minúscula, sin inventar otras): ${JSON.stringify(allowed)}. Únicamente el array.`;
   const { text } = await runAI({ prompt: ask, imageBuffer: buf });
   return parseTags(text, allowed);
+}
+
+// ── RENDER del montaje a mp4 (ffmpeg) ─────────────────────────────────────────
+// MVP: secuencia de escenas (imagen + duración) → video 9:16 + pista de audio
+// (ya mezclada por el editor: voz + música). Siguiente: video-clips, transiciones,
+// efectos y texto como filtros. Las fuentes llegan como dataURL o URL (Cloudinary).
+async function fetchToBuffer(src) {
+  if (typeof src !== 'string') throw new Error('fuente inválida');
+  if (src.startsWith('data:')) return Buffer.from(src.split(',')[1] || '', 'base64');
+  const r = await fetch(src);
+  if (!r.ok) throw new Error(`no se pudo bajar (${r.status})`);
+  return Buffer.from(await r.arrayBuffer());
+}
+function runFfmpeg(args) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('ffmpeg', args);
+    let err = '';
+    proc.stderr.on('data', (d) => (err += d));
+    proc.on('error', (e) => reject(new Error(`no se pudo lanzar ffmpeg: ${e.message}`)));
+    proc.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exit ${code}: ${err.slice(-500)}`))));
+  });
+}
+async function renderMp4({ width = 1080, height = 1920, fps = 30, scenes, audio }) {
+  if (!Array.isArray(scenes) || !scenes.length) throw new Error('sin escenas para renderizar');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mstudio-render-'));
+  try {
+    const list = [];
+    for (let i = 0; i < scenes.length; i++) {
+      const f = path.join(dir, `s${i}.jpg`);
+      fs.writeFileSync(f, await fetchToBuffer(scenes[i].image));
+      const dur = Math.max(0.3, Number(scenes[i].dur) || 2.5);
+      list.push(`file '${f.replace(/\\/g, '/')}'`, `duration ${dur.toFixed(2)}`);
+    }
+    // el concat demuxer requiere repetir el último file para respetar su duración
+    list.push(`file '${path.join(dir, `s${scenes.length - 1}.jpg`).replace(/\\/g, '/')}'`);
+    const listFile = path.join(dir, 'list.txt');
+    fs.writeFileSync(listFile, list.join('\n'));
+
+    let audioFile = null;
+    if (audio) { audioFile = path.join(dir, 'audio.bin'); fs.writeFileSync(audioFile, await fetchToBuffer(audio)); }
+
+    const out = path.join(dir, 'out.mp4');
+    const vf = `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,fps=${fps},format=yuv420p`;
+    const args = ['-y', '-f', 'concat', '-safe', '0', '-i', listFile];
+    if (audioFile) args.push('-i', audioFile);
+    args.push('-vf', vf, '-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p');
+    if (audioFile) args.push('-c:a', 'aac', '-b:a', '160k', '-shortest');
+    args.push(out);
+    await runFfmpeg(args);
+    return fs.readFileSync(out);
+  } finally { try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* noop */ } }
 }
 
 // ── Videos locales (dev) ─────────────────────────────────────────────────────
@@ -304,6 +356,14 @@ const server = http.createServer(async (req, res) => {
       if (!body.thumbnail) return json(res, 400, { error: 'falta thumbnail' });
       const tags = await classifyVideoThumb(body.thumbnail, body.types);
       return json(res, 200, { tags });
+    }
+
+    // ── render del montaje a mp4 (ffmpeg) ─────────────────────────────────────
+    if (p === '/api/render' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const mp4 = await renderMp4(body);
+      res.writeHead(200, { 'Content-Type': 'video/mp4', 'Content-Length': mp4.length, 'Access-Control-Allow-Origin': '*' });
+      return res.end(mp4);
     }
 
     // ── proyectos ────────────────────────────────────────────────────────────
