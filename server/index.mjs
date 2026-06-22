@@ -26,6 +26,7 @@
 
 import http from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import {
@@ -105,32 +106,53 @@ async function runGemini(prompt) {
   return { text, cost: 0, tools: [] };
 }
 
-// ── Clasificación de video por IA (Gemini Vision sobre el thumbnail) ──────────
-// Devuelve 1-4 tags de la lista permitida (modelo, close-up, people, office…).
+// ── IA: UNA interfaz, un solo switch (local → Claude headless · prod → Gemini) ──
+// runAI({prompt, imageBuffer?}) es el único punto donde se decide el proveedor.
+// Con imageBuffer = visión (en local, Claude lo lee con Read; en prod, Gemini inline).
+async function runAI({ prompt, imageBuffer = null, cwd, allowedTools }) {
+  if (IS_PROD) {
+    if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY no configurada');
+    const parts = [{ text: prompt }];
+    if (imageBuffer) parts.push({ inline_data: { mime_type: 'image/jpeg', data: imageBuffer.toString('base64') } });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts }], generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }) }
+    );
+    if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+    const data = await res.json();
+    return { text: data.candidates?.[0]?.content?.parts?.[0]?.text || '', cost: 0, tools: [] };
+  }
+  // local → Claude headless. Con imagen: la dejo en un temp y la lee con Read.
+  if (imageBuffer) {
+    const tmp = path.join(os.tmpdir(), `mstudio-ai-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`);
+    fs.writeFileSync(tmp, imageBuffer);
+    try { return await runClaude(`Mirá la imagen en "${tmp.replace(/\\/g, '/')}" usando la tool Read. ${prompt}`, { allowedTools: 'Read', timeout: 120_000 }); }
+    finally { try { fs.unlinkSync(tmp); } catch { /* noop */ } }
+  }
+  return await runClaude(prompt, { cwd, allowedTools });
+}
+
+// ── Clasificación de video por IA sobre el thumbnail (los videos viven en Cloudinary) ──
+const DEFAULT_VIDEO_TYPES = ['modelo', 'close-up', 'people', 'office', 'producto', 'exterior', 'interior', 'manos', 'pantalla', 'naturaleza'];
+
+function parseTags(text, allowed) {
+  let tags = [];
+  const m = (text || '').match(/\[[\s\S]*?\]/);
+  try { tags = JSON.parse(m ? m[0] : text); } catch { tags = []; }
+  const set = new Set(allowed);
+  return Array.isArray(tags)
+    ? tags.filter((t) => typeof t === 'string' && set.has(t.toLowerCase().trim())).map((t) => t.toLowerCase().trim()).slice(0, 4)
+    : [];
+}
+
 async function classifyVideoThumb(thumbUrl, types) {
-  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY no configurada (clasificación IA)');
+  const allowed = (Array.isArray(types) && types.length ? types : DEFAULT_VIDEO_TYPES);
   const imgRes = await fetch(thumbUrl);
   if (!imgRes.ok) throw new Error(`no se pudo leer el thumbnail (${imgRes.status})`);
-  const b64 = Buffer.from(await imgRes.arrayBuffer()).toString('base64');
-  const allowed = (Array.isArray(types) && types.length ? types : ['modelo', 'close-up', 'people', 'office', 'producto', 'exterior', 'interior', 'manos', 'pantalla', 'naturaleza']);
-  const prompt = `Sos un clasificador de clips para videos promocionales. Mirá este frame y devolvé SOLO un JSON array con 1 a 4 etiquetas de ESTA lista (exactas, minúscula, sin inventar otras): ${JSON.stringify(allowed)}. Ejemplo: ["people","office"].`;
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data: b64 } }] }],
-        generationConfig: { thinkingConfig: { thinkingBudget: 0 }, responseMimeType: 'application/json' },
-      }),
-    }
-  );
-  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
-  const data = await res.json();
-  let tags = [];
-  try { tags = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || '[]'); } catch { tags = []; }
-  const set = new Set(allowed);
-  return Array.isArray(tags) ? tags.filter((t) => typeof t === 'string' && set.has(t.toLowerCase().trim())).map((t) => t.toLowerCase().trim()).slice(0, 4) : [];
+  const buf = Buffer.from(await imgRes.arrayBuffer());
+  const ask = `Es un frame de un video promocional. Devolvé SOLO un JSON array con 1 a 4 etiquetas de ESTA lista (exactas, minúscula, sin inventar otras): ${JSON.stringify(allowed)}. Únicamente el array.`;
+  const { text } = await runAI({ prompt: ask, imageBuffer: buf });
+  return parseTags(text, allowed);
 }
 
 // ── Videos locales (dev) ─────────────────────────────────────────────────────

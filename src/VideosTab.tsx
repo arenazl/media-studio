@@ -3,7 +3,7 @@
 // filtros. La metadata de organización vive local (lib/videoLibrary). Sub-tab aparte:
 // generador de prompts para Flow. Clasificación por IA (Gemini Vision) al subir.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { RefreshCw, Upload, Trash2, Clock, Star, Tag, Search, X, FolderKanban, Sparkles, Loader2 } from 'lucide-react';
+import { RefreshCw, Upload, Trash2, Clock, Star, Tag, Search, X, FolderKanban, Loader2 } from 'lucide-react';
 import { API_BASE } from './config';
 import { fetchCloudVideos, prettyVid as pretty, fmtVidDate as fmtDate, thumbOf, type CloudVid } from './lib/cloudVideos';
 import {
@@ -59,25 +59,30 @@ export default function VideosTab() {
       const r = await fetch(api('/api/cloud-videos/upload'), { method: 'POST', body: form });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
-      await loadCloud();
-      // clasifica el recién subido por tipo (IA) → tags automáticos
-      if (d.video?.id) { const tags = await classifyVideo(API_BASE, d.video.thumbnail || thumbOf(d.video)); storeTags(d.video.id, tags); }
+      await loadCloud();   // la auto-clasificación (efecto) taggea el nuevo, sin botón
     } catch (e) { setCloudErr(e instanceof Error ? e.message : 'error al subir (¿backend local corriendo?)'); } finally { setUploading(false); }
   };
 
-  // clasifica con IA los videos que todavía no tienen tags (en lote, con progreso).
-  const classifyAll = async () => {
-    const pending = cloudVids.filter((v) => metaOf(meta, v.id).tags.length === 0);
-    if (!pending.length) return;
-    setClassifying({ done: 0, total: pending.length });
-    for (let i = 0; i < pending.length; i++) {
-      const v = pending[i];
-      const tags = await classifyVideo(API_BASE, v.thumbnail || thumbOf(v));
-      storeTags(v.id, tags);
-      setClassifying({ done: i + 1, total: pending.length });
-    }
-    setClassifying(null);
-  };
+  // AUTO-clasificación: cada video sin tags se clasifica solo (no hay botón — es
+  // obligatorio). Corre en background al cargar/subir; el que ya tiene tags se saltea.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const pending = cloudVids.filter((v) => metaOf(meta, v.id).tags.length === 0);
+      if (!pending.length) { setClassifying(null); return; }
+      for (let i = 0; i < pending.length; i++) {
+        if (cancelled) return;
+        setClassifying({ done: i, total: pending.length });
+        const v = pending[i];
+        const tags = await classifyVideo(API_BASE, v.thumbnail || thumbOf(v));
+        if (cancelled) return;
+        storeTags(v.id, tags);
+      }
+      if (!cancelled) setClassifying(null);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudVids]);
 
   const handleDelete = async (id: string) => {
     try { await fetch(api(`/api/cloud-videos/${id}`), { method: 'DELETE' }); setCloudVids((vs) => vs.filter((v) => v.id !== id)); } catch { /* ignore */ }
@@ -102,9 +107,6 @@ export default function VideosTab() {
             </div>
             <button className={favOnly ? 'vlib-chip vlib-chip--on' : 'vlib-chip'} onClick={() => setFavOnly((f) => !f)} title="Solo favoritos"><Star size={12} fill={favOnly ? 'currentColor' : 'none'} /> Favoritos</button>
             <div className="vlib-bar-right">
-              <button onClick={classifyAll} disabled={!!classifying} className="vlib-btn" title="Auto-taggear por tipo con IA (los videos sin tags)">
-                {classifying ? <><Loader2 size={12} className="vlib-spin" /> {classifying.done}/{classifying.total}</> : <><Sparkles size={12} /> Clasificar IA</>}
-              </button>
               <button onClick={() => fileRef.current?.click()} disabled={uploading} className="vlib-btn"><Upload size={12} /> {uploading ? 'Subiendo…' : 'Subir'}</button>
               <button onClick={loadCloud} disabled={cloudLoading} className="vlib-btn"><RefreshCw size={12} /> Actualizar</button>
             </div>
@@ -130,7 +132,12 @@ export default function VideosTab() {
             </div>
           )}
 
-          <div className="vlib-count">{shown.length} de {cloudVids.length} videos · Cloudinary · catalogá con ★ y tags para reusarlos entre proyectos</div>
+          <div className="vlib-count">
+            {shown.length} de {cloudVids.length} videos · Cloudinary
+            {classifying
+              ? <> · <Loader2 size={10} className="vlib-spin" /> clasificando con IA {classifying.done}/{classifying.total}…</>
+              : <> · ★ y tags (auto por IA) para reusarlos entre proyectos</>}
+          </div>
           {cloudErr && <div className="vids-error">{cloudErr}</div>}
 
           {/* grilla densa de thumbs chicos */}
