@@ -25,6 +25,7 @@ import {
   secToPx, masterSecOf, rulerTicks, appendX, reflow, buildPlan, effectAtPx, effectClass, presetLabel, textsAtPx, textPresetClass,
   type SlideClip, type RefClip, type PhraseClip, type PhraseAudio, type TextClip, type TrackKind,
 } from './lib/reelTimeline';
+import { buildSnapshot, loadMontage, saveMontage } from './lib/montageStore';
 import type { Project } from './lib/projects';
 import './ReelTab.css';
 
@@ -141,16 +142,33 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
     }
   };
 
-  // layout inicial: las animaciones se cargan todas; la Voz arranca VACÍA (sumás las
-  // frases que quieras). Los frames del boceto se extraen para el preview.
+  // al abrir un reel: si hay un montaje GUARDADO, lo restaura; si no, layout inicial
+  // (todas las animaciones · resto vacío). Los frames del boceto se extraen para el preview.
   useEffect(() => {
     let alive = true; setFrames([]);
-    setSlideTrack(reflow(slides.map((s) => ({ s, x: 0, w: secToPx(SLIDE_SEC) })), () => SLIDE_SEC));
-    setAudioTrack([]); setMusicTrack([]); setVideoTrack([]); stopPlay();
+    const saved = reel ? loadMontage(project.id, reel.id) : null;
+    if (saved) {
+      setSlideTrack(saved.slides); setAudioTrack(saved.audios); setMusicTrack(saved.music);
+      setVideoTrack(saved.videos); setTransitionTrack(saved.transitions); setEffectTrack(saved.effects); setTextTrack(saved.texts);
+    } else {
+      setSlideTrack(reflow(slides.map((s) => ({ s, x: 0, w: secToPx(SLIDE_SEC) })), () => SLIDE_SEC));
+      setAudioTrack([]); setMusicTrack([]); setVideoTrack([]); setTransitionTrack([]); setEffectTrack([]); setTextTrack([]);
+    }
+    setEditingTextId(null); stopPlay();
     if (reel?.slidesRef && n > 0) extractFrames(reel.slidesRef, n).then((f) => { if (alive) setFrames(f); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reel?.slidesRef, n]);
+  }, [project.id, reel?.id, reel?.slidesRef, n]);
+
+  // auto-guardado del montaje (debounced). El debounce + cleanup evita guardar los clips
+  // del reel anterior bajo la clave del nuevo al cambiar de reel.
+  useEffect(() => {
+    if (!reel) return;
+    const snap = buildSnapshot({ slideTrack, audioTrack, musicTrack, videoTrack, transitionTrack, effectTrack, textTrack });
+    const t = setTimeout(() => saveMontage(project.id, reel.id, snap), 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideTrack, audioTrack, musicTrack, videoTrack, transitionTrack, effectTrack, textTrack, reel?.id]);
 
   // al cambiar de reel: soltar el audio de las frases del reel anterior (revoca URLs).
   useEffect(() => {
