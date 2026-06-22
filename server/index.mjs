@@ -11,6 +11,7 @@
 //   GET    /api/cloud-videos              → lista videos en Cloudinary / DB
 //   POST   /api/cloud-videos/upload       → sube a Cloudinary, persiste en DB
 //   DELETE /api/cloud-videos/<id>         → elimina de Cloudinary + DB
+//   POST   /api/classify-video            → clasifica un video por tipo (Gemini Vision)
 //   GET    /api/projects                  → lista proyectos SQLite
 //   POST   /api/projects                  → crear proyecto
 //   GET    /api/projects/<id>             → detalle con data JSON
@@ -102,6 +103,34 @@ async function runGemini(prompt) {
   const data = await res.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   return { text, cost: 0, tools: [] };
+}
+
+// ── Clasificación de video por IA (Gemini Vision sobre el thumbnail) ──────────
+// Devuelve 1-4 tags de la lista permitida (modelo, close-up, people, office…).
+async function classifyVideoThumb(thumbUrl, types) {
+  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY no configurada (clasificación IA)');
+  const imgRes = await fetch(thumbUrl);
+  if (!imgRes.ok) throw new Error(`no se pudo leer el thumbnail (${imgRes.status})`);
+  const b64 = Buffer.from(await imgRes.arrayBuffer()).toString('base64');
+  const allowed = (Array.isArray(types) && types.length ? types : ['modelo', 'close-up', 'people', 'office', 'producto', 'exterior', 'interior', 'manos', 'pantalla', 'naturaleza']);
+  const prompt = `Sos un clasificador de clips para videos promocionales. Mirá este frame y devolvé SOLO un JSON array con 1 a 4 etiquetas de ESTA lista (exactas, minúscula, sin inventar otras): ${JSON.stringify(allowed)}. Ejemplo: ["people","office"].`;
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data: b64 } }] }],
+        generationConfig: { thinkingConfig: { thinkingBudget: 0 }, responseMimeType: 'application/json' },
+      }),
+    }
+  );
+  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+  const data = await res.json();
+  let tags = [];
+  try { tags = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || '[]'); } catch { tags = []; }
+  const set = new Set(allowed);
+  return Array.isArray(tags) ? tags.filter((t) => typeof t === 'string' && set.has(t.toLowerCase().trim())).map((t) => t.toLowerCase().trim()).slice(0, 4) : [];
 }
 
 // ── Videos locales (dev) ─────────────────────────────────────────────────────
@@ -245,6 +274,14 @@ const server = http.createServer(async (req, res) => {
       const id  = decodeURIComponent(p.slice('/api/cloud-videos/'.length));
       const ok  = deleteCloudVideo(id);
       return json(res, ok ? 200 : 404, { ok });
+    }
+
+    // ── clasificación de video por IA (auto-tags por tipo) ────────────────────
+    if (p === '/api/classify-video' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!body.thumbnail) return json(res, 400, { error: 'falta thumbnail' });
+      const tags = await classifyVideoThumb(body.thumbnail, body.types);
+      return json(res, 200, { tags });
     }
 
     // ── proyectos ────────────────────────────────────────────────────────────

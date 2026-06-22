@@ -30,6 +30,12 @@ export function addTag(m: MetaMap, id: string, tag: string): MetaMap {
   const cur = metaOf(m, id); if (cur.tags.includes(t)) return m;
   return setMetaFor(m, id, { tags: [...cur.tags, t] });
 }
+export function addTags(m: MetaMap, id: string, tags: string[]): MetaMap {
+  const cur = metaOf(m, id);
+  const norm = tags.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  const merged = [...new Set([...cur.tags, ...norm])];
+  return merged.length === cur.tags.length ? m : setMetaFor(m, id, { tags: merged });
+}
 export function removeTag(m: MetaMap, id: string, tag: string): MetaMap {
   return setMetaFor(m, id, { tags: metaOf(m, id).tags.filter((x) => x !== tag) });
 }
@@ -47,6 +53,22 @@ export function allProjects(m: MetaMap): string[] {
   const s = new Set<string>();
   for (const v of Object.values(m)) if (v.project) s.add(v.project);
   return [...s].sort((a, b) => a.localeCompare(b));
+}
+
+// ── clasificación por IA (tipos de clip de video promocional) ────────────────
+export const VIDEO_TYPES = ['modelo', 'close-up', 'people', 'office', 'producto', 'exterior', 'interior', 'manos', 'pantalla', 'naturaleza', 'comida', 'ciudad'];
+
+// pide al backend (Gemini Vision sobre el thumbnail) los tags de tipo del video.
+export async function classifyVideo(apiBase: string, thumbnail: string): Promise<string[]> {
+  try {
+    const r = await fetch(`${apiBase}/api/classify-video`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ thumbnail, types: VIDEO_TYPES }),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return Array.isArray(d.tags) ? d.tags : [];
+  } catch { return []; }
 }
 
 // ── filtrado (búsqueda + favorito + tag + proyecto) ──────────────────────────
