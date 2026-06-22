@@ -11,7 +11,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2 } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
-import { NARRATION } from './data/narrationText';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
 import ScriptText from './ScriptText';
 import { MUSIC_TRACKS, type MusicTrack } from './lib/music';
@@ -26,6 +25,7 @@ import './VoiceStudio.css';
 interface ReelCfg { slidesRef?: string | null; voiceConfig?: VoiceConfig | null }
 interface VoiceStudioProps {
   reelConfig?: Record<string, ReelCfg>;                 // por reelId: boceto + settings guardados
+  files?: SourceFile[];                                 // guiones del proyecto (agnóstico) — antes venían de NARRATION
   onGrabar?: (reelId: string, vc: VoiceConfig) => void; // persiste el settings del reel
   onAudio?: (reelId: string, blob: Blob) => void;       // comparte el mp3 generado (lo usa el editor del Reel)
 }
@@ -35,15 +35,11 @@ interface SourceFile { id: string; label: string; text: string; sub?: string }
 type Track = MusicTrack;
 interface StudioConfig { sourceTitle: string; files: SourceFile[]; tracks: Track[]; text?: string }
 
-// Defaults (caso Munify / standalone). Otra app los sobreescribe por config.
-const REEL_LABELS: Record<string, string> = { tour: 'Tour general', vecino: 'Vecino', intendente: 'Intendente', tesoreria: 'Tesorería', ia: 'IA / WhatsApp' };
+// Defaults agnósticos. Los guiones reales llegan por la prop `files` (del proyecto) o
+// por config dinámica (postMessage/window) cuando se inyecta en otra app.
 const DEFAULT_TRACKS: Track[] = MUSIC_TRACKS;
-const DEFAULT_CONFIG: StudioConfig = {
-  sourceTitle: 'GUIONES',
-  files: Object.keys(NARRATION).map((id) => ({ id, label: REEL_LABELS[id] || id, text: NARRATION[id].join('\n'), sub: `${NARRATION[id].length} frases` })),
-  tracks: DEFAULT_TRACKS,
-};
-const DEFAULT_TEXT = '¿Tu municipio todavía maneja todo en papel?\nCon Munify ves toda tu gestión EN VIVO, en una sola pantalla.\nMunify. Tu municipio, al día.';
+const DEFAULT_CONFIG: StudioConfig = { sourceTitle: 'GUIONES', files: [], tracks: DEFAULT_TRACKS };
+const DEFAULT_TEXT = 'Escribí tu guion acá. Cada línea es una frase. Generás la voz y ajustás la entonación, énfasis y pausas en la onda.';
 
 // Presets de voz (ElevenLabs): stability bajo = más expresivo/variable, alto =
 // estable/uniforme; style sube la carga emocional; speed la cadencia.
@@ -61,15 +57,15 @@ const AGE_OPTS = [{ value: 'young', label: 'Joven' }, { value: 'middle_aged', la
 let _actx: AudioContext | null = null;
 const audioCtx = () => (_actx ||= new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
 
-export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStudioProps = {}) {
+export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: VoiceStudioProps = {}) {
   const initialText = (() => {
     if (typeof window === 'undefined') return DEFAULT_TEXT;
     const t = new URLSearchParams(window.location.search).get('text');
     return t && t.trim() ? t : DEFAULT_TEXT;
   })();
   const [text, setText] = useState(initialText);
-  const [cfg, setCfg] = useState<StudioConfig>(DEFAULT_CONFIG);
-  const [activeFile, setActiveFile] = useState<string | null>(onAudio ? (DEFAULT_CONFIG.files[0]?.id ?? null) : null);
+  const [cfg, setCfg] = useState<StudioConfig>(() => ({ ...DEFAULT_CONFIG, files: files ?? [] }));
+  const [activeFile, setActiveFile] = useState<string | null>(onAudio ? (files?.[0]?.id ?? null) : null);
   const [voices, setVoices] = useState<Voice[]>([]);
   const [voiceId, setVoiceId] = useState('yA5jrK1S9cpCAojBYyMu');
   const [sampleVol, setSampleVol] = useState(0.9); // volumen del preview de voz
@@ -116,6 +112,9 @@ export default function VoiceStudio({ reelConfig, onGrabar, onAudio }: VoiceStud
   const undo = () => { setMHist((h) => { if (!h.length) return h; setMarkers(h[h.length - 1]); return h.slice(0, -1); }); };
 
   useEffect(() => { fetch(`${TTS_SERVICE_URL}/voices`).then((r) => r.json()).then((d) => setVoices(d.voices || [])).catch(() => {}); }, []);
+
+  // guiones del proyecto (prop `files`) → cfg.files (agnóstico, reemplaza a NARRATION).
+  useEffect(() => { if (files) setCfg((c) => ({ ...c, files })); }, [files]);
 
   // Config dinámica: window global + postMessage del host (app que inyecta).
   useEffect(() => {

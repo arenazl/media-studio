@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import VoiceStudio from './VoiceStudio';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
@@ -72,9 +72,15 @@ export default function App() {
 }
 
 function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { section: Section; project: Project; onGrabar: (reelId: string, vc: VoiceConfig) => void; onAudio: (reelId: string, blob: Blob) => void; audioByReel: Record<string, string> }) {
+  // guiones del proyecto → VoiceStudio (memoizado: estable mientras no cambie el proyecto).
+  const voiceFiles = useMemo(
+    () => project.reels.map((r) => ({ id: r.id, label: r.nombre, text: r.guion.join('\n'), sub: `${r.guion.length} frases` })),
+    [project],
+  );
   if (section === 'audio') return (
     <VoiceStudio
       reelConfig={Object.fromEntries(project.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }]))}
+      files={voiceFiles}
       onGrabar={onGrabar}
       onAudio={onAudio}
     />

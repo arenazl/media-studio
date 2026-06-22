@@ -15,7 +15,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Film, AudioLines, Music2, Video, Shuffle, Sparkles, Type, Pencil, X, Play, Pause, SkipBack, ChevronRight, ChevronLeft, Loader2, Eraser, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { extractFrames } from './lib/videoFrames';
 import { MUSIC_TRACKS } from './lib/music';
-import { NARRATION } from './data/narrationText';
 import { TTS_SERVICE_URL } from './config';
 import { prettyVid, thumbOf, type CloudVid } from './lib/cloudVideos';
 import { MontageAudio } from './lib/montageAudio';
@@ -82,9 +81,9 @@ export default function ReelEditor({ project, videos, videosLoading = false }: {
   const [rev, setRev] = useState(0);             // bump al soltar un drag → fuerza una reprogramación con estado fresco
 
   const reel = project.reels.find((r) => r.id === reelId) ?? project.reels[0] ?? null;
-  const n = reel?.frases ?? 0;
+  const phrases: string[] = reel?.guion ?? [];   // el guion VIVE en el proyecto (agnóstico)
+  const n = phrases.length;
   const slides = Array.from({ length: n }, (_, i) => i);
-  const phrases: string[] = (reel && NARRATION[reel.id]) || [];
   const vidById = (id: string) => (videos || []).find((v) => v.id === id);
   const musicUrlOf = (id: string) => MUSIC_TRACKS.find((t) => t.id === id)?.url;
   const videoUrlOf = (id: string) => vidById(id)?.url;

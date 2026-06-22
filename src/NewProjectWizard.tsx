@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight, Check, Film, Volume2, Video, Layers, Sparkles, Folder, Type } from 'lucide-react';
-import { saveProject, munifyBaseReels, type Project } from './lib/projects';
+import { saveProject, type Project } from './lib/projects';
 import './NewProjectWizard.css';
 
 export type ContentType = 'reels' | 'video' | 'audio' | 'combinado';
@@ -33,7 +33,6 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
   const [name, setName]               = useState('');
   const [type, setType]               = useState('');
   const [contentType, setContentType] = useState<ContentType | null>(null);
-  const [withBase, setWithBase]       = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -41,7 +40,7 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
       requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
       // Reset al abrir
       setStep(0); setDir('next');
-      setName(''); setType(''); setContentType(null); setWithBase(false);
+      setName(''); setType(''); setContentType(null);
     } else {
       setVisible(false);
       const t = setTimeout(() => setRendered(false), 300);
@@ -63,12 +62,10 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
   ][step] ?? true;
 
   const handleCreate = () => {
-    const reels = withBase ? munifyBaseReels() : [];
     const proj = saveProject({
       name: name.trim(),
       type: type.trim(),
-      preloaded: withBase,
-      reels,
+      reels: [],   // arranca en blanco — los reels se cargan en el editor o se generan del brief
       contentType: contentType ?? 'combinado',
     });
     onCreated(proj);
@@ -120,8 +117,8 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
             <div className={dir === 'next' ? 'npw-slide-right' : 'npw-slide-left'} key={step}>
               {step === 0 && <StepIdentity name={name} setName={setName} type={type} setType={setType} />}
               {step === 1 && <StepContent selected={contentType} onSelect={setContentType} />}
-              {step === 2 && <StepReels needsReels={needsReels} contentType={contentType} withBase={withBase} setWithBase={setWithBase} />}
-              {step === 3 && <StepSummary name={name} type={type} contentType={contentType!} withBase={withBase} />}
+              {step === 2 && <StepReels needsReels={needsReels} contentType={contentType} />}
+              {step === 3 && <StepSummary name={name} type={type} contentType={contentType!} />}
             </div>
           </div>
 
@@ -164,7 +161,7 @@ function StepIdentity({ name, setName, type, setType }: { name: string; setName:
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Ej. Munify, Spot verano 2025, Campaña escuelas…"
+          placeholder="Ej. Spot verano 2025, Campaña escuelas, Lanzamiento app…"
           onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { /* handled by footer */ } }}
         />
       </div>
@@ -203,17 +200,12 @@ function StepContent({ selected, onSelect }: { selected: ContentType | null; onS
   );
 }
 
-/* ─── Step 2: Reels base ─────────────────────────────────────────────────── */
-function StepReels({ needsReels, contentType, withBase, setWithBase }: {
+/* ─── Step 2: Cómo arranca el proyecto ───────────────────────────────────── */
+function StepReels({ needsReels, contentType }: {
   needsReels: boolean;
   contentType: ContentType | null;
-  withBase: boolean;
-  setWithBase: (v: boolean) => void;
 }) {
-  const baseCount = munifyBaseReels().length;
-
   if (!needsReels) {
-    // Para audio-only o video: mensaje de configuración correspondiente
     const msgs: Record<string, { title: string; desc: string; Icon: typeof Film }> = {
       audio:    { title: 'Estudio de audio listo', desc: 'El proyecto arranca con el estudio de narración y voz — podés grabar, ajustar marcadores y generar audio con varias voces.', Icon: Volume2 },
       video:    { title: 'Biblioteca de videos', desc: 'El proyecto incluye la biblioteca de clips, herramientas de montaje y exportación. Podés subir videos e imágenes y armar secuencias.', Icon: Video },
@@ -222,47 +214,17 @@ function StepReels({ needsReels, contentType, withBase, setWithBase }: {
     return (
       <div>
         <StepHeader icon={m ? <m.Icon size={18} /> : <Layers size={18} />} title={m?.title ?? 'Configuración'} desc={m?.desc ?? ''} />
-        <div className="npw-info-box">
-          Todo listo — pasá al resumen para crear el proyecto.
-        </div>
+        <div className="npw-info-box">Todo listo — pasá al resumen para crear el proyecto.</div>
       </div>
     );
   }
 
   return (
     <div>
-      <StepHeader icon={<Sparkles size={18} />} title="¿Arrancás con reels base?" desc="Los reels base de Munify son guiones y slides prearmados — los podés editar o reemplazar." />
-
-      <label className={`npw-check-card${withBase ? ' checked' : ''}`}>
-        <input
-          type="checkbox"
-          className="npw-check-box"
-          checked={withBase}
-          onChange={(e) => setWithBase(e.target.checked)}
-        />
-        <div>
-          <p className="npw-check-title">Cargar los {baseCount} reels base de Munify</p>
-          <p className="npw-check-desc">
-            Tour general, Para el vecino, Para el intendente, Tesorería, Atención con IA.
-            Cada uno trae su guión de narración y el boceto en video.
-          </p>
-        </div>
-      </label>
-
-      <label className={`npw-check-card${!withBase ? ' checked' : ''}`}>
-        <input
-          type="checkbox"
-          className="npw-check-box"
-          checked={!withBase}
-          onChange={(e) => setWithBase(!e.target.checked)}
-        />
-        <div>
-          <p className="npw-check-title">Empezar de cero</p>
-          <p className="npw-check-desc">
-            Proyecto en blanco — agregás reels y assets cuando quieras desde el estudio.
-          </p>
-        </div>
-      </label>
+      <StepHeader icon={<Sparkles size={18} />} title="Empezás en blanco" desc="El proyecto arranca sin reels. Cargás tu guion en el editor, o generás el kit a partir del brief del negocio + las capturas." />
+      <div className="npw-info-box">
+        Pasá al resumen para crear el proyecto. Después sumás reels, animaciones, música y voz desde el estudio.
+      </div>
     </div>
   );
 }
@@ -276,15 +238,14 @@ const CONTENT_LABELS: Record<ContentType, string> = {
 };
 
 const SECTIONS_FOR: Record<ContentType, string[]> = {
-  reels:     ['Audio', 'Reel', 'Montaje', 'Export'],
-  video:     ['Videos', 'Montaje', 'Export'],
+  reels:     ['Editor', 'Audio', 'Prompts', 'Videos'],
+  video:     ['Editor', 'Videos', 'Prompts'],
   audio:     ['Audio'],
-  combinado: ['Audio', 'Reel', 'Videos', 'Montaje', 'Export'],
+  combinado: ['Editor', 'Audio', 'Videos', 'Prompts'],
 };
 
-function StepSummary({ name, type, contentType, withBase }: { name: string; type: string; contentType: ContentType; withBase: boolean }) {
+function StepSummary({ name, type, contentType }: { name: string; type: string; contentType: ContentType }) {
   const sections = SECTIONS_FOR[contentType] ?? [];
-  const reelCount = munifyBaseReels().length;
   return (
     <div>
       <StepHeader icon={<Check size={18} />} title="Todo listo — revisá y creá" desc="Así va a quedar configurado el proyecto." />
@@ -323,8 +284,8 @@ function StepSummary({ name, type, contentType, withBase }: { name: string; type
           <div className="npw-summary-row">
             <Sparkles size={16} className="npw-summary-icon" />
             <div>
-              <p className="npw-summary-key">Reels base</p>
-              <p className="npw-summary-val">{withBase ? `${reelCount} reels de Munify precargados` : 'Proyecto en blanco'}</p>
+              <p className="npw-summary-key">Reels</p>
+              <p className="npw-summary-val">Proyecto en blanco — los cargás en el editor</p>
             </div>
           </div>
         )}

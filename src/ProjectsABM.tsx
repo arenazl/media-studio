@@ -2,7 +2,7 @@
 // por tipo + wizard de creación + editar (sheet lateral) + borrar (confirm). Estilos en ProjectsABM.css.
 import { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Pencil, FolderKanban, Film, Clock, X, Sparkles, Mic } from 'lucide-react';
-import { listProjects, saveProject, deleteProject, munifyBaseReels, type Project } from './lib/projects';
+import { listProjects, saveProject, deleteProject, type Project } from './lib/projects';
 import NewProjectWizard from './NewProjectWizard';
 import './ProjectsABM.css';
 
@@ -186,12 +186,10 @@ export default function ProjectsABM({ onOpen }: Props) {
 function ProjectSheet({ project, onClose, onSaved }: { project: Project; onClose: () => void; onSaved: () => void }) {
   const [name, setName] = useState(project.name);
   const [type, setType] = useState(project.type);
-  const [withBase, setWithBase] = useState(project.preloaded ?? false);
 
   const save = () => {
     if (!name.trim()) return;
-    const reels = withBase ? munifyBaseReels() : project.reels;
-    saveProject({ id: project.id || undefined, name, type, preloaded: withBase, reels });
+    saveProject({ id: project.id || undefined, name, type, reels: project.reels });
     onSaved();
   };
 
@@ -205,17 +203,12 @@ function ProjectSheet({ project, onClose, onSaved }: { project: Project; onClose
         <div className="abm-sheet-body">
           <label className="abm-field">
             <span className="abm-label">Nombre</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Munify" className="abm-input" autoFocus />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Café Aurora, Lanzamiento app…" className="abm-input" autoFocus />
           </label>
           <label className="abm-field">
             <span className="abm-label">Tipo / rubro</span>
-            <input value={type} onChange={(e) => setType(e.target.value)} placeholder="Ej. Municipal (SaaS)" className="abm-input" />
+            <input value={type} onChange={(e) => setType(e.target.value)} placeholder="Ej. Gastronomía, E-commerce, SaaS…" className="abm-input" />
           </label>
-          <label className="abm-check">
-            <input type="checkbox" checked={withBase} onChange={(e) => setWithBase(e.target.checked)} className="abm-check-box" />
-            <span>Arrancar con los <b>reels base de Munify</b> ({munifyBaseReels().length})</span>
-          </label>
-          <p className="abm-hint">Si lo activás, el proyecto arranca con los guiones/slides ya hechos. Si no, arranca de cero.</p>
         </div>
         <div className="abm-sheet-foot">
           <button className="abm-btn-ghost" onClick={onClose}>Cancelar</button>
