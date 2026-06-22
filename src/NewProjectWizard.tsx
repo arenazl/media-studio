@@ -2,7 +2,7 @@
 // reels base → resumen. En base a las respuestas configura el layout del proyecto.
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight, Check, Film, Volume2, Video, Layers, Sparkles, Folder, Type } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Check, Film, Volume2, Video, Layers, Sparkles, Folder, Type, Lightbulb } from 'lucide-react';
 import { saveProject, type Project } from './lib/projects';
 import './NewProjectWizard.css';
 
@@ -22,6 +22,14 @@ const CONTENT_OPTIONS: { id: ContentType; label: string; desc: string; Icon: typ
 ];
 
 const STEPS = 4;
+
+// Ayuda contextual por paso (panel hint a la derecha del wizard).
+const HINTS: { title: string; lines: string[] }[] = [
+  { title: 'Nombre y rubro', lines: ['Un nombre claro para encontrarlo después en el selector.', 'El rubro ayuda a que la estrategia y los guiones peguen mejor con tu negocio.'] },
+  { title: 'Qué vas a crear', lines: ['El formato define las herramientas que aparecen.', 'Reels 9:16 → redes · Video 16:9 → YouTube/web · Audio → solo voz · Combinado → todo el estudio.'] },
+  { title: 'Arrancás en blanco', lines: ['El proyecto empieza vacío.', 'Cargás los reels en el editor, o los generás desde el brief del negocio + las capturas.'] },
+  { title: 'Listo para crear', lines: ['Revisá el resumen y creá.', 'Después armás todo desde el estudio: animaciones, audio, videos, transiciones y texto.'] },
+];
 
 export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
   const [visible, setVisible] = useState(false);
@@ -112,14 +120,21 @@ export default function NewProjectWizard({ open, onClose, onCreated }: Props) {
             </div>
           </div>
 
-          {/* ── Body ── */}
-          <div className="npw-body">
-            <div className={dir === 'next' ? 'npw-slide-right' : 'npw-slide-left'} key={step}>
-              {step === 0 && <StepIdentity name={name} setName={setName} type={type} setType={setType} />}
-              {step === 1 && <StepContent selected={contentType} onSelect={setContentType} />}
-              {step === 2 && <StepReels needsReels={needsReels} contentType={contentType} />}
-              {step === 3 && <StepSummary name={name} type={type} contentType={contentType!} />}
+          {/* ── Body + hint lateral ── */}
+          <div className="npw-body-row">
+            <div className="npw-body">
+              <div className={dir === 'next' ? 'npw-slide-right' : 'npw-slide-left'} key={step}>
+                {step === 0 && <StepIdentity name={name} setName={setName} type={type} setType={setType} />}
+                {step === 1 && <StepContent selected={contentType} onSelect={setContentType} />}
+                {step === 2 && <StepReels needsReels={needsReels} contentType={contentType} />}
+                {step === 3 && <StepSummary name={name} type={type} contentType={contentType!} />}
+              </div>
             </div>
+            <aside className="npw-hint">
+              <div className="npw-hint-ic"><Lightbulb size={16} /></div>
+              <h4 className="npw-hint-title">{HINTS[step]?.title}</h4>
+              {HINTS[step]?.lines.map((l, i) => <p key={i} className="npw-hint-line">{l}</p>)}
+            </aside>
           </div>
 
           {/* ── Footer ── */}

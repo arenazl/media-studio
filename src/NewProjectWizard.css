@@ -28,7 +28,7 @@
 /* ── Panel lateral ─────────────────────────────────────────────────────────── */
 .npw-modal {
   width: 100%;
-  max-width: 480px;
+  max-width: 760px;
   height: 100vh;
   max-height: 100vh;
   display: flex;
@@ -159,12 +159,29 @@
 .npw-close:hover { color: var(--txt); background: var(--surface-2); }
 
 /* ── Body ────────────────────────────────────────────────────────────────── */
+/* fila: pasos (izq) + hint contextual (der) */
+.npw-body-row { flex: 1; min-height: 0; display: flex; }
 .npw-body {
   flex: 1;
+  min-width: 0;
   overflow: auto;
   padding: 24px;
   min-height: 260px;
 }
+.npw-hint {
+  flex: 0 0 248px;
+  border-left: 1px solid var(--bd);
+  background: var(--surface);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  overflow-y: auto;
+}
+.npw-hint-ic { color: var(--gold); }
+.npw-hint-title { font-size: 13px; font-weight: 800; color: var(--txt); margin: 4px 0 2px; }
+.npw-hint-line { font-size: 12px; line-height: 1.55; color: var(--txt-55); margin: 0; }
+@media (max-width: 760px) { .npw-hint { display: none; } }
 
 /* ── Step animations ─────────────────────────────────────────────────────── */
 @keyframes npw-slide-right {
