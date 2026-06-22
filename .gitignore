@@ -12,3 +12,7 @@ server/*.db
 server/*.db-shm
 server/*.db-wal
 *.log
+
+# Material de trabajo pesado (videos crudos de prueba) — no se versiona
+shorts-nature/
+_shots/

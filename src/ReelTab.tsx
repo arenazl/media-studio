@@ -20,7 +20,7 @@ export default function ReelTab({ project, audioByReel = {} }: { project: Projec
 
   return (
     <div className="rt-root">
-      <div className="rt-head"><Clapperboard size={15} /> Editor del reel</div>
+      <div className="rt-head"><Clapperboard size={15} /> Editor</div>
       <ReelEditor project={project} audioByReel={audioByReel} videos={videos} videosLoading={loading} />
     </div>
   );

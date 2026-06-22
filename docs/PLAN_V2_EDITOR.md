@@ -88,8 +88,16 @@ Se queda, pero rediseñada (ver Fase 3). También accesible como panel del edito
 
 ---
 
-## 4. Estado
+## 4. Estado (actualizado 2026-06-22)
 
 - [x] Control común `SourcePanel` + audio por frase + timeline base (commit 4f3e296).
-- [ ] Fase 1 — Transiciones + Efectos (en curso).
-- [ ] Fases 2–6.
+- [x] Fase 1 — Transiciones + Efectos (commit 3b9aea5).
+- [x] Fase 2 — Texto / Títulos (commit 3b9aea5).
+- [x] Fase 3 — Biblioteca como organizador: favoritos, tags, proyecto, filtros (commit f38cf61).
+- [x] Fase 4 — Navegación unificada: topbar con combo de proyectos + tabs (507f65a, 98271f9).
+- [x] Fase 5 — Render real ffmpeg + persistencia del montaje + librería de voces (d1dbdfa, 509b3b8, cf845d3).
+- [~] Fase 6 — Agnóstico / pulido (parcial): `d577081` desacopló Munify→data demo; falta
+  fuentes de mockups por config, logo/marca overlay configurable, plantillas reutilizables.
+
+**En curso (post-independización):** audio real (locutor) + corte en segmentos en la pestaña
+Audio, y el orquestador `promo-producer` (panel de skills end-to-end). Ver memoria del proyecto.
