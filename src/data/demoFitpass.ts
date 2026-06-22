@@ -2,6 +2,8 @@
 // B2C) para mostrar que el producto es AGNÓSTICO: mismo camino (brief + capturas + marca +
 // reels con guion), otro negocio. Todo es de EJEMPLO — nada acá es un cliente real.
 import type { Project, ProjectReel } from '../lib/projects';
+import type { MontageSnapshot } from '../lib/montageStore';
+import { secToPx } from '../lib/reelTimeline';
 
 const LIME = '#7CCF3F';
 const INK = '#0E1A12';
@@ -117,6 +119,33 @@ const BRIEF = `# FitPass — brief (PROYECTO DE EJEMPLO)
 ## 9. Preset
 - Mezcla: reels 9:16 (awareness/conversión) + demo de la app con mockups.`;
 
+// Montaje PRECOMPUESTO del reel "Empezá gratis": muestra la orquestación completa —
+// los mockups como animaciones + 3 transiciones + efecto Ken Burns + título y CTA +
+// música enérgica. Es la "fábrica" ya armada para probar el sistema de punta a punta.
+function gratisMontage(): MontageSnapshot {
+  const SW = secToPx(2.5);        // ancho de cada animación
+  const G = 6;
+  const xs = [0, 1, 2, 3, 4].map((i) => i * (SW + G));
+  const total = xs[4] + SW;
+  const TW = secToPx(0.6);        // ancho de una transición
+  return {
+    slides: [0, 1, 2, 3, 4].map((s) => ({ s, x: xs[s], w: SW })),
+    audios: [0, 1, 2, 3, 4].map((p) => ({ p, x: p * (secToPx(1.8) + G), w: secToPx(1.8) })),
+    music: [{ id: 'carefree', x: 0, w: total }],
+    videos: [],
+    transitions: [
+      { id: 'fade', x: Math.round(xs[1] - TW / 2), w: TW },
+      { id: 'zoom', x: Math.round(xs[2] - TW / 2), w: TW },
+      { id: 'crossfade', x: Math.round(xs[3] - TW / 2), w: TW },
+    ],
+    effects: [{ id: 'kenburns', x: 0, w: secToPx(7.5) }],
+    texts: [
+      { id: 'ft-title', x: 0, w: secToPx(3), preset: 'title', text: 'Entrenás donde quieras' },
+      { id: 'ft-cta', x: xs[4], w: SW, preset: 'cta', text: 'Primera semana gratis' },
+    ],
+  };
+}
+
 export function fitpassReels(): ProjectReel[] {
   return REELS.map((r) => ({
     id: r.id,
@@ -125,6 +154,7 @@ export function fitpassReels(): ProjectReel[] {
     frases: r.guion.length,
     slidesRef: null,
     voiceConfig: null,
+    ...(r.id === 'gratis' ? { demoMontage: gratisMontage() } : {}),
   }));
 }
 

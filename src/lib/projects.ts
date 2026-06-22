@@ -6,6 +6,7 @@ import type { ContentType } from '../NewProjectWizard';
 import { demoProject } from '../data/demoProject';
 import { fitpassProject } from '../data/demoFitpass';
 import type { BrandKit } from './brandKit';
+import type { MontageSnapshot } from './montageStore';
 
 // un recorte del audio real (locutor) — metadata; el blob vive en IndexedDB por reel.
 export interface AudioSegment {
@@ -36,6 +37,7 @@ export interface ProjectReel {
   guion: string[];               // los textos de las frases — VIVEN en el proyecto (agnóstico)
   slidesRef?: string | null;     // boceto/animación base (video) para el preview
   voiceConfig?: VoiceConfig | null;
+  demoMontage?: MontageSnapshot; // montaje precompuesto (demo) — el editor lo usa si no hay uno guardado
 }
 export interface Project {
   id: string;

@@ -10,10 +10,15 @@ export const meta = {
 }
 
 // args = { project, brief, captures?: string[], profile? }
-const project = args?.project || 'proyecto'
-const brief = args?.brief
-const captures = args?.captures || []
-const profile = args?.profile || 'campaign'
+// robusto: si args llega como string JSON (serializado), lo parseo.
+let A = args
+if (typeof A === 'string') { try { A = JSON.parse(A) } catch (e) { A = {} } }
+A = A || {}
+const project = A.project || 'proyecto'
+const brief = A.brief
+const captures = A.captures || []
+const profile = A.profile || 'campaign'
+log(`args: tipo=${typeof args} · project=${project} · brief=${brief ? brief.length + ' chars' : 'VACIO'} · perfil=${profile}`)
 if (!brief) { log('Falta el brief (hechos del negocio). Aborto.'); return { error: 'no-brief' } }
 
 const STRATEGY = {

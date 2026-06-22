@@ -179,10 +179,12 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
   // (todas las animaciones · resto vacío). Los frames del boceto se extraen para el preview.
   useEffect(() => {
     let alive = true; setFrames([]);
+    // montaje guardado del user; si no hay, el precompuesto del demo (orquestación lista).
     const saved = reel ? loadMontage(project.id, reel.id) : null;
-    if (saved) {
-      setSlideTrack(saved.slides); setAudioTrack(saved.audios); setMusicTrack(saved.music);
-      setVideoTrack(saved.videos); setTransitionTrack(saved.transitions); setEffectTrack(saved.effects); setTextTrack(saved.texts);
+    const init = saved ?? reel?.demoMontage ?? null;
+    if (init) {
+      setSlideTrack(init.slides); setAudioTrack(init.audios); setMusicTrack(init.music);
+      setVideoTrack(init.videos); setTransitionTrack(init.transitions); setEffectTrack(init.effects); setTextTrack(init.texts);
     } else {
       setSlideTrack(reflow(slides.map((s) => ({ s, x: 0, w: secToPx(SLIDE_SEC) })), () => SLIDE_SEC));
       setAudioTrack([]); setMusicTrack([]); setVideoTrack([]); setTransitionTrack([]); setEffectTrack([]); setTextTrack([]);
