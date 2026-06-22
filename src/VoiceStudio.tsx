@@ -8,13 +8,15 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2 } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check } from 'lucide-react';
 import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL } from './config';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
 import ScriptText from './ScriptText';
 import { MUSIC_TRACKS, type MusicTrack } from './lib/music';
 import { exportVoiceWithMusic } from './lib/exportMix';
+import { addVoiceClip } from './lib/voiceLib';
+import { deriveName } from './lib/sourcePanel';
 import SourcePanel from './SourcePanel';
 
 // rango en construcción: 1er toque fija el inicio (frac del slider), 2º toque cierra.
@@ -95,6 +97,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   const [withMusic, setWithMusic] = useState(false);     // tilde "música" del export: mezcla la pista elegida
   const [exporting, setExporting] = useState(false);     // exportación de la mezcla en curso
   const [exportErr, setExportErr] = useState<string | null>(null);
+  const [savedLib, setSavedLib] = useState(false);       // feedback "guardada en la librería"
   const voiceBlobRef = useRef<Blob | null>(null);        // último mp3 de voz generado (para exportar/mezclar)
   const taRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -276,6 +279,16 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
         ? 'Esa pista no se puede mezclar todavía (sin CORS). Elegí una de las nuevas o exportá sin música.'
         : 'No se pudo exportar la mezcla.');
     } finally { setExporting(false); }
+  };
+
+  // Guardar la voz generada en la LIBRERÍA (IndexedDB) — se reusa en el editor.
+  const addToLibrary = async () => {
+    const blob = voiceBlobRef.current; if (!blob) return;
+    const v = voices.find((x) => x.voice_id === voiceId);
+    try {
+      await addVoiceClip({ id: uid(), name: deriveName(text), voiceId, voiceName: v?.name || voiceId, dur: audioRef.current?.duration || 0, createdAt: Date.now(), blob });
+      setSavedLib(true); setTimeout(() => setSavedLib(false), 1600);
+    } catch { /* noop */ }
   };
 
   // Enter = play/pausa · Escape = cancela el rango armado (salvo escribiendo).
@@ -480,9 +493,12 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
                     onChange={(e) => setWithMusic(e.target.checked)} />
                   música
                 </label>
-                <button onClick={handleExport} disabled={exporting} className="vs-export" title="Exportar mp3">
+                <button onClick={handleExport} disabled={exporting} className="vs-export" title="Exportar mp3 (solo descarga)">
                   {exporting ? <Loader2 size={15} className="vs-spin" /> : <Download size={15} />}
                   {exporting ? 'Mezclando…' : 'Exportar mp3'}
+                </button>
+                <button onClick={addToLibrary} className="vs-export" title="Guardar esta voz en la librería (la reusás en el editor)">
+                  {savedLib ? <Check size={15} /> : <Library size={15} />} {savedLib ? 'Guardada' : 'A la librería'}
                 </button>
               </div>
             )}
