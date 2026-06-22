@@ -4,6 +4,7 @@
 // cualquier cliente. El core no asume Munify.
 import type { ContentType } from '../NewProjectWizard';
 import { demoProject } from '../data/demoProject';
+import { fitpassProject } from '../data/demoFitpass';
 import type { BrandKit } from './brandKit';
 
 // un recorte del audio real (locutor) — metadata; el blob vive en IndexedDB por reel.
@@ -59,9 +60,22 @@ const normReel = (r: ProjectReel): ProjectReel => {
 };
 const normProject = (p: Project): Project => ({ ...p, reels: (p.reels ?? []).map(normReel) });
 
+const SEED_FLAG = 'ms.seeded.v2';   // inyecta los demos nuevos UNA sola vez (respeta borrados del usuario)
+// para usuarios que ya tenían solo Munify: suma el demo FitPass una vez (flag), sin re-agregarlo si lo borran.
+function ensureDemos(ps: Project[]): Project[] {
+  try {
+    if (localStorage.getItem(SEED_FLAG)) return ps;
+    localStorage.setItem(SEED_FLAG, '1');
+    if (ps.some((p) => p.id === 'fitpass')) return ps;
+    const out = [...ps, fitpassProject()];
+    persist(out);
+    return out;
+  } catch { return ps; }
+}
+
 function load(): Project[] {
-  try { const raw = localStorage.getItem(LS_KEY); if (raw) return (JSON.parse(raw) as Project[]).map(normProject); } catch { /* noop */ }
-  const seed = [demoProject()];
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) return ensureDemos((JSON.parse(raw) as Project[]).map(normProject)); } catch { /* noop */ }
+  const seed = [demoProject(), fitpassProject()];
   persist(seed);
   return seed;
 }
