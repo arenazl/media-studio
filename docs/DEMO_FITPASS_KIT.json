@@ -1,33 +1,34 @@
 {
   "project": "FitPass",
   "profile": "campaign",
-  "positioning": "Una sola membresia, cientos de lugares, sin permanencia: entrena donde quieras, lo que quieras, el dia que quieras. FitPass libera al que esta cansado de pagar un gym al que casi no va y de estar atado a un solo lugar y horario — eligis actividad, reservas y haces check-in con QR.",
+  "positioning": "Una sola membresía, cientos de lugares, cero permanencia. FitPass es el pase libre para entrenar como quieras: musculación hoy, boxeo mañana, yoga el finde — todo con una app, una cuota y un QR, en CABA y GBA. Dejá de pagar un gym al que casi no vas y de estar atado a un solo lugar y horario. Reservás, hacés check-in y listo: variedad y flexibilidad sin atarte a nada. Primera semana gratis.",
   "audiences": [
     {
-      "label": "El que paga un gym y no va",
-      "pain": "Paga una cuota fija todos los meses pero va dos veces y se siente culpable; siente que tira la plata pero no se da de baja por las dudas.",
-      "language": "Informal rioplatense: 'estoy pagando un gym que no piso', 'me cago de culpa', 'esta finde arranco' (y no arranca)."
+      "label": "El que paga gym y no va",
+      "pain": "Tiene una cuota fija de un solo gimnasio y va pocas veces; siente que tira la plata pero le da culpa darse de baja. Quiere algo flexible que se adapte a su semana, no al revés.",
+      "language": "Rioplatense informal: 'pago el gym y no voy ni en pedo', 'estoy tirando la guita', 'me re cuelgo', 'esta semana imposible'. Habla de horarios rotos, laburo, excusas."
     },
     {
-      "label": "El curioso multi-disciplina",
-      "pain": "Quiere probar yoga, boxeo, pilates, natacion sin atarse a otra cuota mas; un solo gym lo aburre y sumar actividades significa sumar pagos.",
-      "language": "'me re copa probar boxeo pero no voy a pagar otra cuota', 'quiero variar', 'me aburro siempre lo mismo'."
+      "label": "El curioso de disciplinas",
+      "pain": "Quiere probar yoga, boxeo, pilates, natación — variar y no aburrirse — pero cada disciplina es otra cuota y otra inscripción. Termina sin probar nada por la fricción y el costo de sumar lugares.",
+      "language": "Rioplatense informal y entusiasta: 'siempre quise probar boxeo', 'me re tienta el pilates', 'no me quiero atar a uno solo', 'quiero variar'. Curioso, busca novedad y diversión."
     },
     {
-      "label": "El laburante con agenda impredecible",
-      "pain": "Trabaja, los horarios le cambian, vive entre CABA y GBA; necesita entrenar cerca de la oficina un dia y cerca de casa otro, sin estar atado a una sede.",
-      "language": "'nunca se a que hora salgo', 'un dia estoy en microcentro otro en zona norte', 'necesito flexibilidad'."
+      "label": "El profesional ocupado 25-40",
+      "pain": "Trabaja, tiene horarios variables y se mueve por distintas zonas (oficina, casa, gimnasio cerca del laburo). Un solo gym con un solo horario no le sirve; necesita entrenar donde y cuando pueda, sin trámites.",
+      "language": "Rioplatense cercano y práctico: 'entreno cuando puedo', 'cerca de la oficina', 'sin vueltas', 'reservo y voy'. Valora rapidez, app, cero burocracia."
     }
   ],
   "pieces": [
     {
       "id": "aw-01",
       "objective": "awareness",
-      "angle": "Problema -> agitacion -> solucion",
-      "format": "reel 9:16 talking head + b-roll Veo",
+      "angle": "Problema → agitación → solución",
+      "format": "reel 9:16 — talking head a cámara + b-roll (Veo)",
       "platforms": [
         "Instagram Reels",
-        "TikTok"
+        "TikTok",
+        "YouTube Shorts"
       ],
       "durationSec": 18,
       "script": {
@@ -35,297 +36,247 @@
           {
             "role": "hook",
             "tStart": 0,
-            "tEnd": 3.5,
-            "narration": "¿Cuánto hace que pagás un gym al que no vas?",
-            "visual": "Talking head 9:16: presentador joven a cámara, plano medio corto, mira directo al lente. Luz natural, fondo urbano CABA desenfocado. Ceja levantada, medio acusador, medio cómplice. Lip-sync. Cero texto en pantalla todavía."
+            "tEnd": 3,
+            "narration": "Pagás un gym al que no vas... ¿para qué?",
+            "visual": "Talking head a cámara: persona 25-40, rioplatense, energía cercana de amigo. Plano medio corto, mira directo al lente. Fondo neutro cálido con un acento lima sutil (una prenda o detalle). Arranca hablando ya, sin logo, sin intro. Micro-gesto de pregunta genuina."
           },
           {
             "role": "dolor",
-            "tStart": 3.5,
-            "tEnd": 9,
-            "narration": "La cuota se va igual. Vas dos veces al mes. Y encima atado a un solo lugar.",
-            "visual": "Sigue talking head, ahora caminando, gesto de bronca contenida (manos que se abren). Intercalar 1 micro-cut b-roll Veo: un gym vacío y silencioso, una tarjeta de débito, un reloj. Tono gris, apagado, para sentir la culpa de la cuota fija."
+            "tStart": 3,
+            "tEnd": 7,
+            "narration": "La cuota se te va igual. Y la culpa de no ir, también.",
+            "visual": "B-roll (Veo): alguien parado frente a la puerta de un gym casi vacío, dudando, mochila al hombro, sin entrar. Luz fría, sensación de cuota fija que pesa. Corte rápido al talking head asintiendo como quien lo vivio. Plano de 2-3s cada uno."
           },
           {
             "role": "solucion",
-            "tStart": 9,
-            "tEnd": 14,
-            "narration": "Imaginá una sola membresía y cientos de lugares. Sin permanencia. Donde quieras.",
-            "visual": "Giro de energía: el presentador se ilumina, sonríe, el color entra. B-roll Veo en ráfaga corta (cortes rápidos, cámara fluida): musculación, una clase de yoga, un ring de boxeo. Cada lugar distinto, mismo movimiento de cámara que une todo."
+            "tStart": 7,
+            "tEnd": 13,
+            "narration": "Con FitPass es una sola membresía para cientos de lugares. Vas cuando querés, sin atarte a nada.",
+            "visual": "Giro energético. B-roll (Veo): la MISMA persona moviendose entre actividades distintas — musculacion, despues algo de boxeo, despues yoga — encadenadas con cortes al ritmo. Color lima protagonista (ropa/marca/overlay). Talking head intercala: tono que se ilumina, gesto de libertad. Mostrar variedad real, no postales."
           },
           {
             "role": "prueba",
-            "tStart": 14,
-            "tEnd": 16.5,
-            "narration": "Lo que quieras, el día que quieras.",
-            "visual": "Montaje b-roll Veo de variedad: tres estudios distintos en CABA y GBA en planos cinematográficos cortos, gente entrenando feliz. Movimiento continuo, transiciones por match-cut. Sensación de abundancia y libertad."
+            "tStart": 13,
+            "tEnd": 16,
+            "narration": "Una app, una cuota, un QR. Cero permanencia.",
+            "visual": "Talking head a cámara, cierre de idea. B-roll corto (Veo): gesto de check-in con QR en la entrada de un lugar, fluido, sin fricción. Overlay lima sutil 'sin permanencia'. Ritmo firme, planos de 1.5s."
           },
           {
             "role": "cta",
-            "tStart": 16.5,
+            "tStart": 16,
             "tEnd": 18,
-            "narration": "FitPass. Entrená libre.",
-            "visual": "Cierre suave: fondo limpio, logo FitPass aparece centrado sobre acento color lima (#C9F227-ish). Presentador entra de costado, asiente y sonríe. Sin botón de descarga, sin números: solo la marca respirando. Awareness puro."
+            "narration": "Probá la primera semana gratis.",
+            "visual": "Talking head sonriendo a cámara, invitación cálida y directa. Aparece fuerte la marca FitPass en lima sobre fondo limpio + lower-third 'Primera semana gratis'. Una sola idea, una sola acción. Cierre con respiro, sin saturar."
           }
         ],
         "music": {
-          "mood": "Arranca minimal y tenso (un pulso bajo, casi incómodo) para acompañar el dolor de la cuota fija; quiebre marcado en el segundo ~9 con la solución: entra un beat house/electrónico optimista, brillante, rioplatense-urbano, energía ascendente que sostiene hasta el cierre y se asienta suave sobre la marca. Sin voces, percusión limpia, lift emocional claro en el giro."
+          "mood": "Energética y cercana, pop-electrónica luminosa con pulso de beat marcado que sube en el giro a la solución (7s) y sostiene hasta el CTA. Ducking -18dB bajo la voz para que el talking head siempre se entienda. Clima de 'libertad y movimiento', nada épico ni corporativo. Referencia tipo Kevin MacLeod upbeat (incompetech, CC-BY) con crédito de 1 línea al publicar."
         }
       },
       "slides": [],
       "videoPrompts": [
         {
-          "clipId": "clip-1-hook",
+          "clipId": "clip_1_hook",
           "role": "hook",
-          "tStart": 0,
-          "tEnd": 3.5,
           "template": "A",
+          "type": "talking_head",
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
             "duration": "8s",
-            "editTo": "3.5s"
+            "selector": "Flow aspect ratio selector — not the prompt text"
           },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, with dark short hair, casual urban outfit, standing outdoors in Buenos Aires CABA — blurred urban background, natural daylight. The camera holds a medium shot from the waist up — not a close-up — no dolly movement, very stable. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"¿Cuánto hace que pagás un gym al que no vas?\" He delivers the line with one eyebrow raised, half-accusatory half-complicit, looking directly into the lens with calm confidence. After speaking, holds the expression, stays quiet and still until the end. Natural lip-sync, no on-screen text, no logos."
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man or woman in their late 20s to late 30s, natural and relatable, not a model, with casual everyday clothes — no sportswear — and a subtle lime-green accent detail (a bracelet, a pin, a small item). Standing in front of a warm neutral background, slightly off-center, indoors. The camera performs a smooth dolly-out that starts at a medium shot from the waist up and steadily pulls back to a wide full-body shot revealing the full environment: a simple living room or hallway, very ordinary. He or she speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Pagás un gym al que no vas... ¿para qué?\" He or she delivers the whole line with a calm, close, slightly amused energy — like a friend asking a genuine question — with a micro-gesture of honest curiosity, one eyebrow lifting naturally. After speaking, stays quiet holding the gaze at camera until the end. Natural lip-sync, no on-screen text, no logos.",
+          "marcaFonetica": "FitPass — pronunciar Fit-Pass, pausa natural entre silabas",
+          "notes": "Dolly-out obligatorio. Verificar con tira de frames que el sujeto se achique entre frame 1 y frame 5."
         },
         {
-          "clipId": "clip-2a-dolor-walking",
+          "clipId": "clip_2a_dolor_broll",
           "role": "dolor",
-          "tStart": 3.5,
-          "tEnd": 9,
+          "template": "B",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "4s o 8s segun corte final",
+            "selector": "Flow aspect ratio selector — not the prompt text"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and slightly cold-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking person in their late 20s to late 30s, not a model, standing in front of the entrance of a gym — glass door, interior visible but dim and nearly empty — backpack on one shoulder, hesitating. They are not entering. The body language is uncertain, slightly deflated. Cold blue-white ambient light from the gym interior contrasts with a dull exterior. No spoken dialogue, no talking, ambient street sound only. One single continuous take, no cut. Minimal camera motion: very slow barely perceptible push-in. No on-screen text, no logos.",
+          "marcaFonetica": "N/A — b-roll sin dialogo",
+          "notes": "Luz fria intencional para contraste con clips de solucion. Que no entre al gym — la duda es el punto."
+        },
+        {
+          "clipId": "clip_2b_dolor_talkinghead",
+          "role": "dolor",
           "template": "A",
+          "type": "talking_head",
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
-            "duration": "8s"
+            "duration": "4s",
+            "selector": "Flow aspect ratio selector — not the prompt text"
           },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, no cut. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, same dark short hair and casual urban outfit as before, walking slowly through a Buenos Aires sidewalk, blurred urban background. Camera follows at a medium shot from the waist up — not a close-up — smooth tracking movement matching his walk. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"La cuota se va igual. Vas dos veces al mes. Y encima atado a un solo lugar.\" He delivers with restrained frustration — hands open outward mid-gesture, expression tight, controlled annoyance. Muted, slightly desaturated color grading, gray-toned mood. After speaking, continues walking with the same frustrated expression until the end. Natural lip-sync, no on-screen text, no logos."
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same warm neutral background, no cut. An ordinary real-looking Argentine person in their late 20s to late 30s, not a model, same casual everyday clothes with subtle lime-green accent as previous clip. Medium shot from the waist up, camera locked at steady medium distance. He or she does not speak. He or she reacts silently — a slow knowing nod, a slight exhale, the expression of someone who has been through exactly this. After the nod, holds the look at camera. Natural, ambient sound only, no on-screen text, no logos.",
+          "marcaFonetica": "N/A — sin dialogo, reaccion silenciosa",
+          "notes": "Intercut con clip 2A. Editar juntos. Acento de reconocimiento, no pena."
         },
         {
-          "clipId": "clip-2b-dolor-gym-vacio",
-          "role": "dolor",
-          "tStart": 3.5,
-          "tEnd": 9,
+          "clipId": "clip_3a_solucion_musculacion",
+          "role": "solucion",
+          "template": "B",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "4s",
+            "selector": "Flow aspect ratio selector — not the prompt text"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking Argentine person in their late 20s to late 30s, not a model, wearing athletic clothes with a clear lime-green color element — shirt, shorts, or shoes. Inside a functional gym, natural workout lighting. They are performing a weightlifting movement — dumbbell curls or a bench press — with real effort and honest form, not posed. No spoken dialogue, ambient gym sound only. One single continuous take, no cut. Camera steady with a very slight slow pan to the right. No on-screen text, no logos.",
+          "marcaFonetica": "N/A — b-roll sin dialogo",
+          "notes": "El verde lima en la ropa es el hilo visual entre los tres clips de actividad."
+        },
+        {
+          "clipId": "clip_3b_solucion_boxeo",
+          "role": "solucion",
+          "template": "B",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "4s",
+            "selector": "Flow aspect ratio selector — not the prompt text"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. The same ordinary real-looking Argentine person, same lime-green athletic clothes, now in a boxing gym or open training space. They are throwing a combination of punches on a heavy bag — real effort, real sweat, not a posed or promotional shot. Warm directional light. No spoken dialogue, ambient impact and gym sounds only. One single continuous take, no cut. Camera steady. No on-screen text, no logos.",
+          "marcaFonetica": "N/A — b-roll sin dialogo",
+          "notes": "Mismo elemento lima en la ropa para continuidad visual con clips 3A y 3C."
+        },
+        {
+          "clipId": "clip_3c_solucion_yoga",
+          "role": "solucion",
+          "template": "B",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "4s",
+            "selector": "Flow aspect ratio selector — not the prompt text"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. The same ordinary real-looking Argentine person, same lime-green athletic element, now in a yoga or pilates studio — clean floor, natural light from a window. They are settling into a resting pose or a gentle stretch, breathing out, visibly at ease. Calm ambient sound only. No spoken dialogue. One single continuous take, no cut. Camera steady. No on-screen text, no logos.",
+          "marcaFonetica": "N/A — b-roll sin dialogo",
+          "notes": "Cerrar la secuencia de actividades con calma, contrasta con el boxeo anterior."
+        },
+        {
+          "clipId": "clip_3d_solucion_talkinghead",
+          "role": "solucion",
+          "template": "A",
+          "type": "talking_head",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s",
+            "selector": "Flow aspect ratio selector — not the prompt text"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same warm neutral background the whole time, no cut. An ordinary real-looking Argentine person in their late 20s to late 30s, not a model, same casual clothes with lime-green accent, same look as previous clips. Medium shot from the waist up, camera locked at steady medium distance. He or she speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Con FitPass es una sola membresía para cientos de lugares. Vas cuando querés, sin atarte a nada.\" He or she delivers this with a tone that lifts — starts grounded, then opens up with genuine energy, a hand gesture that opens outward, a small natural smile. Not a pitch, a share. After speaking, stays quiet smiling until the end. Natural lip-sync, no on-screen text, no logos.",
+          "marcaFonetica": "FitPass — pronunciar Fit-Pass, pausa natural entre silabas",
+          "notes": "Intercalar en edicion entre clips 3A/3B/3C. El gesto de apertura de manos es clave para la libertad."
+        },
+        {
+          "clipId": "clip_4a_prueba_talkinghead",
+          "role": "prueba",
+          "template": "A",
+          "type": "talking_head",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s",
+            "selector": "Flow aspect ratio selector — not the prompt text"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same warm neutral background, no cut. An ordinary real-looking Argentine person in their late 20s to late 30s, not a model, same look as previous clips. Medium shot from the waist up, camera locked at steady medium distance. He or she speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Una app, una cuota, un QR. Cero permanencia.\" Delivery is confident and rhythmic — each item lands with a brief natural pause between them, like ticking off facts that actually matter. Finished. No residual pitch energy. After speaking, holds the camera gaze. Natural lip-sync, no on-screen text, no logos.",
+          "marcaFonetica": "N/A — no menciona la marca en este clip",
+          "notes": "El ritmo de entrega es clave: tres items con pausa, luego el remate Cero permanencia como cierre definitivo."
+        },
+        {
+          "clipId": "clip_4b_prueba_checkin",
+          "role": "prueba",
           "template": "C",
+          "type": "broll_hibrido",
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
-            "duration": "4s"
+            "duration": "4s",
+            "selector": "Flow aspect ratio selector — not the prompt text"
           },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. An empty, silent gym interior in Buenos Aires — rows of unused machines, fluorescent overhead light, no people, muted desaturated tones — cold and lonely atmosphere. No spoken dialogue, no talking, ambient silence with faint ambient hum only. One single continuous take, no cut. 4-second clip, minimal camera motion, very slow gentle pan across the empty floor. No logos, no on-screen text."
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking person in their late 20s to late 30s, not a model, with lime-green athletic clothing element, at the entrance desk of a fitness venue. They lift their phone toward a QR reader — the gesture is fluid, practiced, zero friction. The screen is not clearly legible. The scanner beeps, they move through. Staff barely looks up; it is routine and frictionless. Warm ambient light, real venue feel. No spoken dialogue, ambient entrance sound only. One single continuous take, no cut. Camera steady. No on-screen text, no logos.",
+          "marcaFonetica": "N/A — b-roll sin dialogo",
+          "notes": "Pantalla del celular NO legible — instruccion critica para que Veo no invente UI falsa. El bip del scanner es el sonido clave."
         },
         {
-          "clipId": "clip-2c-dolor-tarjeta",
-          "role": "dolor",
-          "tStart": 3.5,
-          "tEnd": 9,
-          "template": "C",
-          "settings": {
-            "model": "Veo 3",
-            "aspectRatio": "9:16",
-            "duration": "4s"
-          },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium close-up of a hand holding a debit card over a desk or counter, gray muted tones, slightly desaturated color grading. An ordinary real-looking hand, not styled or manicured. No spoken dialogue, no talking, ambient silence only. One single continuous take, no cut. 4-second clip, very minimal camera movement. No logos, no legible card text, no on-screen text."
-        },
-        {
-          "clipId": "clip-3a-solucion-musculacion",
-          "role": "solucion",
-          "tStart": 9,
-          "tEnd": 14,
-          "template": "B",
-          "settings": {
-            "model": "Veo 3",
-            "aspectRatio": "9:16",
-            "duration": "8s"
-          },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A modern gym weight room in Buenos Aires — an ordinary real-looking man in his 30s doing dumbbell curls, natural effort expression, vibrant warm lighting, rich saturated color grading, energetic atmosphere. Camera performs a smooth slow dolly-in toward the person. No spoken dialogue, no talking, ambient gym sounds only. One single continuous take, no cut. 8-second clip. No logos, no on-screen text."
-        },
-        {
-          "clipId": "clip-3b-solucion-yoga",
-          "role": "solucion",
-          "tStart": 9,
-          "tEnd": 14,
-          "template": "B",
-          "settings": {
-            "model": "Veo 3",
-            "aspectRatio": "9:16",
-            "duration": "8s"
-          },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A bright yoga studio in Buenos Aires — an ordinary real-looking woman in her late 20s holding a warrior pose, natural expression of focus and calm, warm natural light through large windows, saturated vibrant tones. Camera performs the same smooth slow dolly-in motion as the previous clip. No spoken dialogue, no talking, ambient studio silence only. One single continuous take, no cut. 8-second clip. No logos, no on-screen text."
-        },
-        {
-          "clipId": "clip-3c-solucion-boxeo",
-          "role": "solucion",
-          "tStart": 9,
-          "tEnd": 14,
-          "template": "B",
-          "settings": {
-            "model": "Veo 3",
-            "aspectRatio": "9:16",
-            "duration": "8s"
-          },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A boxing gym in Buenos Aires with a ring in the background — an ordinary real-looking man in his late 20s hitting a heavy bag, natural exertion, gritty but clean atmosphere, vibrant saturated color grading. Camera performs the same smooth slow dolly-in motion as the previous clips. No spoken dialogue, no talking, ambient gym sounds and impact sounds only. One single continuous take, no cut. 8-second clip. No logos, no on-screen text."
-        },
-        {
-          "clipId": "clip-4a-prueba-estudio-cycling",
-          "role": "prueba",
-          "tStart": 14,
-          "tEnd": 16.5,
-          "template": "B",
-          "settings": {
-            "model": "Veo 3",
-            "aspectRatio": "9:16",
-            "duration": "8s",
-            "editTo": "~2.5s"
-          },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A modern cycling studio in the Buenos Aires GBA area — mixed group of ordinary real-looking people (various ages, not models) on stationary bikes, genuine expressions of enjoyment and effort, vibrant saturated color grading, warm lighting, sense of abundance and freedom. Camera performs a smooth slow lateral pan across the space. No spoken dialogue, no talking, ambient group fitness sounds only. One single continuous take, no cut. 8-second clip. No logos, no on-screen text."
-        },
-        {
-          "clipId": "clip-4b-prueba-estudio-pilates",
-          "role": "prueba",
-          "tStart": 14,
-          "tEnd": 16.5,
-          "template": "B",
-          "settings": {
-            "model": "Veo 3",
-            "aspectRatio": "9:16",
-            "duration": "8s",
-            "editTo": "~2.5s"
-          },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A bright pilates studio in the Buenos Aires GBA area — mixed group of ordinary real-looking people (various ages, not models) on reformer machines, genuine expressions of focus and ease, vibrant saturated color grading, warm lighting. Camera performs the same smooth slow lateral pan as the previous clip. No spoken dialogue, no talking, ambient studio sounds only. One single continuous take, no cut. 8-second clip. No logos, no on-screen text."
-        },
-        {
-          "clipId": "clip-4c-prueba-estudio-funcional",
-          "role": "prueba",
-          "tStart": 14,
-          "tEnd": 16.5,
-          "template": "B",
-          "settings": {
-            "model": "Veo 3",
-            "aspectRatio": "9:16",
-            "duration": "8s",
-            "editTo": "~2.5s"
-          },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A functional training space in the Buenos Aires GBA area — mixed group of ordinary real-looking people (various ages, not models) doing kettlebell and bodyweight exercises together, genuine expressions of energy and enjoyment, vibrant saturated color grading, warm lighting. Camera performs the same smooth slow lateral pan as the previous clips. No spoken dialogue, no talking, ambient gym sounds only. One single continuous take, no cut. 8-second clip. No logos, no on-screen text."
-        },
-        {
-          "clipId": "clip-5-cta",
+          "clipId": "clip_5_cta_talkinghead",
           "role": "cta",
-          "tStart": 16.5,
-          "tEnd": 18,
           "template": "A",
+          "type": "talking_head",
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
             "duration": "8s",
-            "editTo": "1.5s",
-            "logoRequired": true
+            "selector": "Flow aspect ratio selector — not the prompt text"
           },
-          "phoneticBrand": "FitPás",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and very well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, no cut. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, same dark short hair and casual urban outfit as previous clips, entering the frame from the left side against a clean minimal background — near-white or very light neutral tone, bright even studio lighting. The camera holds a medium shot from the waist up — not a close-up — no dolly movement. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"FitPás. Entrená libre.\" He delivers the line with a warm, confident nod and a genuine smile — soft energy, not aggressive, pure brand moment. After speaking, stays quiet smiling and looking at camera until the end. Natural lip-sync, no on-screen text. Use the attached FitPass logo as a clean centered overlay on a lime-green accent background element (#C9F227 tone) that fades in gently after he speaks."
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same warm neutral background, no cut. An ordinary real-looking Argentine person in their late 20s to late 30s, not a model, same look as previous clips. The camera performs a smooth dolly-out that starts at a medium shot from the waist up and steadily pulls back to a wide full-body shot, revealing a clean bright space behind them. He or she speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Probá la primera semana gratis.\" The delivery is warm, direct, and close — like a genuine personal invitation from a friend. A real smile that reaches the eyes. Unhurried. After speaking, stays quiet smiling at camera until the end, giving it a full breath of space. Natural lip-sync, no on-screen text, no logos.",
+          "marcaFonetica": "FitPass — pronunciar Fit-Pass. Agregar overlay FitPass + Primera semana gratis en post, NO en el prompt.",
+          "notes": "Dolly-out para dar respiro visual al cierre. Overlay de marca y bajada se agregan en post (DaVinci / CapCut / Premiere): texto lima sobre fondo limpio, lower third."
         }
       ],
       "narration": {
         "mode": "tts",
-        "text": "¿Cuánto hace que pagás un gym al que no vas? La cuota se va igual. Vas dos veces al mes. Y encima atado a un solo lugar. Imaginá una sola membresía y cientos de lugares. Sin permanencia. Donde quieras. Lo que quieras, el día que quieras. FitPass. Entrená libre."
+        "text": "Pagás un gym al que no vas... ¿para qué? La cuota se te va igual. Y la culpa de no ir, también. Con FitPass es una sola membresía para cientos de lugares. Vas cuando querés, sin atarte a nada. Una app, una cuota, un QR. Cero permanencia. Probá la primera semana gratis."
       },
       "publish": {
-        "hookOnScreen": "¿Cuánto pagás por no ir?",
-        "caption": "Cuota fija, asistencia cero. FitPass te da cientos de lugares sin permanencia — entrená donde quieras, cuando quieras. Link en bio.",
+        "hookOnScreen": "Pagas un gym al que no vas",
+        "caption": "Una sola cuota, cientos de lugares. Sin atarte a nada. La primera semana es gratis.",
         "hashtags": [
           "#FitPass",
-          "#EntrenamientoLibre",
-          "#GymArgentina",
-          "#VidaActiva",
-          "#Fitness"
+          "#GymLibre",
+          "#EntrenamientoFlexible",
+          "#SinPermanencia",
+          "#FitnessArgentina"
         ],
-        "cta": "Link en bio para conocer FitPass."
+        "cta": "Link en bio para arrancar gratis."
       },
       "qa": {
-        "score": 26,
-        "verdict": "AJUSTAR",
+        "score": 41,
+        "verdict": "LISTO PARA PRODUCIR",
         "issues": [
           {
-            "severity": "CRITICAL",
-            "note": "El visual del hook dice explicitamente 'cero texto en pantalla todavia'. En reels silenciados (mayoria del scroll), eso anula el gancho en los primeros 2s: el hookOnScreen ('¿Cuanto pagas por no ir?') existe en la publicacion pero el guion lo retrasa. Fix: quemar ese texto en el frame 1, grande y alto contraste."
+            "severity": "HIGH",
+            "note": "PRUEBA (eje 6, 2/5): 'cientos de lugares' es un claim sin respaldo en pantalla y 'una app, una cuota, un QR' es mecanica, no prueba. No hay dato verificable. FIX: poner el dato real en overlay en la escena prueba (13-16s), ej. 'NNN sedes' o 'rating 4,8' o 'XXk usuarios' con el numero real de FitPass. NO inventar el numero: si no lo tenes, bajar la promesa de 'cientos' a algo demostrable en camara (mostrar variedad concreta) y dejar el claim numerico fuera."
           },
           {
             "severity": "HIGH",
-            "note": "El dolor visual mas fuerte (gym vacio y silencioso, tarjeta de debito, reloj) esta enterrado en el bloque 'dolor' (3.5-9s) en vez de pinchar en 0-2s. El contraste 'pagas ↔ vacio' llega tarde. Fix: abrir con micro-cut de ~0.8s de ese b-roll antes/sobre la cara."
+            "note": "MARCA FONETICA (eje 9, 2/5): la marca va escrita 'FitPass' en las narraciones habladas (escenas solucion y prueba). Un TTS rioplatense la lee inconsistente. FIX: en las lineas de narration escribir la grafia fonetica para la voz, ej. 'Con Fitpas es una sola membresia...', y dejar 'FitPass' SOLO en el visual/overlay/CTA. Asi separas como suena de como se escribe en pantalla."
           },
           {
             "severity": "HIGH",
-            "note": "El hook narrado '¿Cuanto hace que pagas un gym al que no vas?' recien cierra la idea cerca de 2.5-3.5s; en la ventana critica de 2s el golpe aun no llego completo. Fix: usar la version corta '¿Cuanto pagas por un gym al que no vas?' tambien en voz."
+            "note": "VOSEO / TILDES on-screen y caption (ejes 9 y 10): hookOnScreen dice 'Pagas un gym al que no vas' y el caption 'Pagas un gym' — sin tilde, rompe el voseo rioplatense del guion ('Pagas...'). FIX: 'Pagas' -> 'Pagas' (con tilde en la a) en hookOnScreen y caption. Revisar tambien 'vivio' (escena dolor) -> 'vivio' y 'moviendose' (escena solucion) que arrastran mala prosodia al TTS."
           },
           {
             "severity": "MEDIUM",
-            "note": "Primer frame es talking head generico (presentador joven, plano medio, fondo CABA desenfocado, luz natural) sin elemento visual disruptivo que compita con la cara. La expresion (ceja, acusador/complice) lo salva en parte, pero el encuadre en si se ve en miles de reels."
+            "note": "FLAGS DE PROMPT VEO ausentes (eje 10): ninguna escena declara 'Rioplatense + voseo', 'only once / no repeat', 'not a model', 'not over-rendered, not CGI-perfect', ni 'music with ducking'. Las escenas que son SOLO b-roll (dolor, parte de solucion, check-in QR) no dicen 'No spoken dialogue' ni 'single continuous take'. FIX: agregar esos flags por escena segun sea talking-head (con voz, voseo, only once) o b-roll (sin dialogo, toma continua, realismo)."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "9:16 no declarado (eje 8, 4/5): el guion no pide 9:16 ni en metadata ni por escena, y no aclara que en Veo/Flow el 9:16 se setea en el SELECTOR, no solo en el texto. Riesgo de b-roll en 16:9. FIX: declarar aspect 9:16 vertical en cada escena de Veo y recordar setear el selector."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "CLARIDAD SIN SONIDO en el bloque solucion (eje 3, 4/5): de 7-13s el diferencial central ('cientos de lugares', 'sin atarte') vive solo en la narracion. Mudo no se lee. FIX: overlay lima corto sobre el b-roll de variedad, ej. 'Cientos de lugares · 1 cuota', 1.5-2s, que aparezca cuando se ve el encadenado musculacion/boxeo/yoga."
           },
           {
             "severity": "LOW",
-            "note": "Prompt de Veo: el 9:16 solo esta en el texto del visual, no se indica pedirlo al selector; y el frame 1 no especifica el texto on-screen quemado. Menor para el lente del gancho, pero conviene explicitarlo."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "Claridad sin sonido: la pieza no pasa el test de mute. De t3.5 a t18 no hay NINGUN texto en pantalla planificado; toda la cadena logica (pagas de mas -> atado a un solo lugar -> una membresia, cientos de lugares -> sin permanencia) vive solo en la narracion hablada. En mute (80-85% del feed) se ve un talking head + b-roll de gyms + logo final, y la promesa diferencial (multi-sede sin permanencia) NO se entiende. Fix: agregar lower-thirds sincronizados a los 4 latidos, sobre todo 'solucion' t9: '1 membresia - cientos de lugares - sin permanencia'."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Contradiccion en el hook: el plano hook (t0-3.5) dice explicito 'Cero texto en pantalla todavia', pero la publicacion trae hookOnScreen '¿Cuanto pagas por no ir?'. En mute, el gancho de texto es lo unico que frena el scroll en los primeros 2s; renunciar a el en el primer plano es el error mas caro. Decidir que el hookOnScreen SI se renderiza sobre t0-3.5 y eliminar el 'cero texto'."
-          },
-          {
-            "severity": "HIGH",
-            "note": "La idea diferencial se DICE pero no se MUESTRA. En solucion/prueba (t9-16.5) el b-roll de 'tres estudios distintos / variedad' comunica 'variedad de fitness', no 'una sola membresia para muchos lugares'. Sin audio puede leerse como un solo gym grande. Reforzar visualmente el concepto multi-sede (misma persona/credencial haciendo check-in en 3 fachadas distintas) para que la idea sobreviva al mute."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Eje 'una sola idea': solido y consistente (membresia unica = muchos lugares, sin permanencia) de hook a CTA, sin dispersion. Matiz menor: el segmento 'dolor' (t3.5-9) carga dos sub-ideas y 'atado a un solo lugar' es en realidad setup de la solucion, no dolor; diluye levemente el golpe del dolor economico. No rompe la unidad."
+            "note": "HASHTAGS (publicacion): mezcla marca + categoria bien, pero '#GymLibre' es invento sin volumen y '#EntrenamientoFlexible' es largo/poco buscado. FIX: priorizar terminos con busqueda real (#gym #fitnessargentina #entrenamiento) y dejar #FitPass como branded. Bajo impacto en el reel, alto en discovery."
           },
           {
             "severity": "LOW",
-            "note": "Awareness sin dato/numero esta declarado y es coherente con el formato (no lo penalizo como prueba faltante). Pero 'cientos de lugares' es la unica cifra-promesa; conviene fijarla como texto en pantalla para que no se pierda en mute. No inventar un numero exacto si no esta validado."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "CTA demasiado corto: el rol cta dura 16.5-18s = 1.5s, y ahi metes logo FitPass centrado + presentador entrando de costado + asintiendo + sonriendo. 1.5s no alcanza para leer la marca NI registrar 'Entrena libre'. FIX: extender el CTA a 2.5-3s (ej. 15.5-18.5s) y dejar el logo solo, fijo, 2s minimo. Recorta de 'solucion'/'prueba' para compensar y mantener ~18s."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Plano muerto en 'dolor' (3.5-9s = 5.5s): es el tramo mas largo de la pieza sobre un mismo talking head caminando. 5.5s no entra limpio en los bloques 4/8s del selector de Flow (playbook seccion 2) y arrastra ritmo. FIX: partirlo en 2 clips de ~2.5-3s (talking head + micro-cut b-roll culpa) con corte real, no 'intercalar' dentro de una toma."
-          },
-          {
-            "severity": "HIGH",
-            "note": "'solucion' (9-14s, 5s) y 'prueba' (14-16.5s, 2.5s) son funcionalmente el MISMO b-roll de variedad de gimnasios; 'prueba' no aporta idea nueva, repite 'lugares distintos'. Para el ritmo son 7.5s de b-roll que hay que tratar como UN bloque de cortes 2-4s, no dos roles. Ademas no es 'prueba' real (no hay dato/numero) — siendo awareness, ok no tener cifra, pero entonces no lo etiquetes 'prueba'."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Conteo de planos enganoso: el guion describe talking-head con lip-sync MAS micro-cuts de b-roll dentro de la misma 'escena'. En Veo eso son clips SEPARADOS (el lip-sync ancla el plano; el b-roll va en otra toma). 'mismo movimiento de camara que une todo' entre locaciones distintas NO es generable como continuidad — cada gym es un clip aparte y el match-cut se hace en EDICION, no en el prompt."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "9:16 solo pedido en el texto del 'visual'. El lente exige que el 9:16 vaya al SELECTOR de aspect ratio de Flow (playbook seccion 0 y 8); el texto solo no basta. Confirmar selector en 9:16 + Veo 3 antes de generar."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Marca no fonetizada para TTS/Veo: 'FitPass' se leeria en ingles (fit-pass anglo). El estandar del playbook (seccion 1.4) exige grafia fonetica rioplatense (ej. 'Fitpas'). Aplicarla en la narracion del CTA y en cualquier voz hablada."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Hook con primer corte a los 3.5s: la pregunta-gancho funciona y arranca con dolor sin logo (bien), pero 3.5s sin ningun cambio visual es un pelin largo para frenar scroll. FIX: primer micro-cambio (corte o push-in) a los ~2-2.5s para sostener la retencion."
-          },
-          {
-            "severity": "LOW",
-            "note": "La accion del CTA solo vive en narracion + caption ('Link en bio'); en pantalla no hay verbo de accion visible mas alla del logo. Para awareness puro es defendible, pero la 'accion clara' queda debil. Si es 100% awareness, asumilo; si queres conversion, agrega un 'Link en bio' minimo en el plano final."
+            "note": "CIERRE CTA (eje 7, ok): 'Cierre con respiro, sin saturar' esta bien, pero 2s (16-18) para marca fuerte + lower-third + sonrisa es ajustado para que el ojo registre la marca. FIX: que la marca FitPass entre en frame ~16.3s y se sostenga hasta el final, sin animacion de entrada larga que se coma el tiempo de lectura."
           }
         ]
       }
@@ -333,255 +284,8 @@
     {
       "id": "aw-02",
       "objective": "awareness",
-      "angle": "Lo que nadie te dice",
-      "format": "reel 9:16 talking head + b-roll Veo",
-      "platforms": [
-        "TikTok",
-        "Instagram Reels",
-        "YouTube Shorts"
-      ],
-      "durationSec": 16,
-      "script": {
-        "blocks": [
-          {
-            "role": "hook",
-            "narration": "Lo que nadie te dice de los gimnasios: pagás por uno solo.",
-            "visual": "Talking head 9:16, presentador joven energico a camara, gimnasio de fondo desenfocado. Mira fijo al lente, gesto de complicidad, medio plano. Sin logo todavia.",
-            "tStart": 0,
-            "tEnd": 3
-          },
-          {
-            "role": "dolor",
-            "narration": "Y siempre, siempre, terminás haciendo lo mismo. La misma maquina, el mismo dia.",
-            "visual": "Corte a b-roll cinematografico: misma persona repitiendo la misma rutina aburrida en una cinta, luz fria, mirada perdida al espejo. Loop monotono. Texto en pantalla: la misma rutina de siempre.",
-            "tStart": 3,
-            "tEnd": 6
-          },
-          {
-            "role": "solucion",
-            "narration": "Con una membresia entrás a musculacion, yoga, boxeo, pilates, natacion. Variedad real.",
-            "visual": "B-roll que SALTA entre disciplinas, un plano corto por cada una (2 frames c/u): pesas, una postura de yoga, un gancho de boxeo, pilates reformer, brazada en pileta. Color calido, energia, cada corte al beat. Texto: una membresia, todas las disciplinas.",
-            "tStart": 6,
-            "tEnd": 11
-          },
-          {
-            "role": "prueba",
-            "narration": "Una sola cuota. Cientos de lugares. Vos elegís.",
-            "visual": "Vuelta al presentador a camara, ahora sonriendo, levanta el celular: pantalla con el mapa de lugares y el check-in QR. Lower-third: una membresia, cientos de lugares.",
-            "tStart": 11,
-            "tEnd": 13.5
-          },
-          {
-            "role": "cta",
-            "narration": "Y sin permanencia. Bajá FitPass y entrená lo que quieras.",
-            "visual": "Cierre con logo FitPass fuerte y centrado, gesto del presentador senalando al CTA. Texto grande: sin permanencia. Boton: Proba FitPass. Fondo dinamico que mezcla las disciplinas.",
-            "tStart": 13.5,
-            "tEnd": 16
-          }
-        ],
-        "music": {
-          "mood": "Enérgica y moderna — beat electro-pop/hip-hop instrumental con drop marcado en la solución para sincronizar los cortes entre disciplinas. Energía de acción de principio a fin, con ducking -18dB bajo la voz del presentador. Cierra en el golpe del CTA. Referencia tipo Kevin MacLeod (incompetech, CC-BY) 'Higher Up' o similar; crédito de 1 línea al publicar."
-        }
-      },
-      "slides": [],
-      "videoPrompts": [
-        {
-          "scene": 1,
-          "role": "hook",
-          "tStart": 0,
-          "tEnd": 3,
-          "template": "A",
-          "settings": "Veo 3 · 9:16 · 8s · Texto a video",
-          "marcaFonetica": "FitPas",
-          "nota": "Generá este clip y recortalo a 3s en edicion. Si la camara no hace dolly visible, reroll 2-3 veces.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, with short dark hair and casual athletic wear, standing inside a modern gym with blurred equipment in the background, warm industrial lighting. The camera performs a smooth dolly-out that starts at a medium shot from the waist up — not a close-up — and steadily pulls back to a wide full-body shot revealing the full gym space behind him. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Lo que nadie te dice de los gimnasios: pagás por uno solo.\" He delivers the line calmly and with a tone of real confidence, leaning slightly toward camera with a complicit expression — like sharing a secret — eyes locked on the lens. After speaking, stays quiet smiling until the end. Natural lip-sync, no on-screen text, no logos."
-        },
-        {
-          "scene": 2,
-          "role": "dolor",
-          "tStart": 3,
-          "tEnd": 6,
-          "template": "C",
-          "settings": "Veo 3 · 9:16 · 8s · Texto a video — recortar a 3s en edicion",
-          "marcaFonetica": "FitPas",
-          "nota": "Sin texto en pantalla — el lower-third 'la misma rutina de siempre' lo agregás vos en edicion. Pedir a Veo solo el video limpio.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, no cut. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his late 20s, not a model, walking on a treadmill inside a gym, cold fluorescent light, staring blankly at his reflection in the wall mirror with a tired, bored expression — the kind of person who has done this exact routine a hundred times. The movement is mechanical and monotonous. Camera is locked off on a tripod, static, emphasizing the repetitive loop. No spoken dialogue, no talking; ambient gym sound only — low hum of treadmill motor, faint background music. No on-screen text, no logos."
-        },
-        {
-          "scene": "3a",
-          "role": "solucion — pesas (musculacion)",
-          "tStart": 6,
-          "tEnd": 7,
-          "template": "B",
-          "settings": "Veo 3 · 9:16 · 4s · Texto a video — usas 1-2s en edicion",
-          "marcaFonetica": "FitPas",
-          "nota": "Este es el primer plano del montaje rapido de la solucion. Generá los 5 clips por separado y editá intercalandolos al beat. El texto 'una membresia, todas las disciplinas' va como lower-third en edicion, no en el prompt.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his late 20s, not a model, performing a heavy barbell squat in a well-lit modern gym, warm color grading, explosive energy, sweat visible, natural gym lighting. One single very short take, no cut. No spoken dialogue, no talking; ambient gym sound only — weights clinking, effort grunt. No on-screen text, no logos."
-        },
-        {
-          "scene": "3b",
-          "role": "solucion — yoga",
-          "tStart": 7,
-          "tEnd": 7.8,
-          "template": "B",
-          "settings": "Veo 3 · 9:16 · 4s · Texto a video — usas 1-2s en edicion",
-          "marcaFonetica": "FitPas",
-          "nota": "Segundo plano del montaje rapido. Mismo hombre que en 3a si es posible — describilo igual. En Flow, reusar la misma descripcion fisica ayuda a la consistencia.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his late 20s, not a model, holding a warrior yoga pose on a mat inside a bright yoga studio with wooden floors and plants, warm natural light, calm and focused expression. One single very short take, no cut. No spoken dialogue, no talking; soft ambient room sound only. No on-screen text, no logos."
-        },
-        {
-          "scene": "3c",
-          "role": "solucion — boxeo",
-          "tStart": 7.8,
-          "tEnd": 8.6,
-          "template": "B",
-          "settings": "Veo 3 · 9:16 · 4s · Texto a video — usas 1-2s en edicion",
-          "marcaFonetica": "FitPas",
-          "nota": "Tercer plano del montaje. El gancho debe ser visualmente potente — el punch al beat es el mejor corte del montaje.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his late 20s, not a model, throwing a powerful hook punch at a heavy bag in a boxing gym, gloves on, raw energy, dynamic body rotation, sweat, dramatic side lighting with some shadow. One single very short take, no cut. No spoken dialogue, no talking; ambient gym sound — punch impact, chain rattling. No on-screen text, no logos."
-        },
-        {
-          "scene": "3d",
-          "role": "solucion — pilates",
-          "tStart": 8.6,
-          "tEnd": 9.4,
-          "template": "B",
-          "settings": "Veo 3 · 9:16 · 4s · Texto a video — usas 1-2s en edicion",
-          "marcaFonetica": "FitPas",
-          "nota": "Cuarto plano. El reformer es visualmente caracteristico — pedilo explicito.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. An ordinary real-looking Argentine woman in her 30s, not a model, performing a controlled leg press on a Pilates reformer machine in a bright modern Pilates studio, clean white interior, warm natural light, precise controlled movement. One single very short take, no cut. No spoken dialogue, no talking; soft ambient studio sound only. No on-screen text, no logos."
-        },
-        {
-          "scene": "3e",
-          "role": "solucion — natacion",
-          "tStart": 9.4,
-          "tEnd": 11,
-          "template": "B",
-          "settings": "Veo 3 · 9:16 · 4s · Texto a video — usas 1-2s en edicion",
-          "marcaFonetica": "FitPas",
-          "nota": "Ultimo plano del montaje de disciplinas. La brazada en 9:16 vertical es visualmente fuerte. El agua y la luz de la pileta suman dinamismo natural.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium underwater shot or above-waterline shot at a steady medium distance. An ordinary real-looking Argentine person, not a model, swimming freestyle in a clean indoor pool, water splashing, light refracting beautifully on the water surface, teal and blue tones, dynamic and energetic. One single very short take, no cut. No spoken dialogue, no talking; ambient pool echo sound only — water splashing, faint indoor echo. No on-screen text, no logos."
-        },
-        {
-          "scene": 4,
-          "role": "prueba",
-          "tStart": 11,
-          "tEnd": 13.5,
-          "template": "A",
-          "settings": "Veo 3 · 9:16 · 8s · Texto a video — recortar a 2.5s en edicion",
-          "marcaFonetica": "FitPas",
-          "nota": "La pantalla del celular NO debe ser legible — Veo inventa UI falsa. El lower-third 'una membresia, cientos de lugares' lo agregás vos en edicion. Misma descripcion fisica del presentador de escena 1 para consistencia visual.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, with short dark hair and casual athletic wear, standing inside a modern gym with blurred equipment in the background, warm industrial lighting. Medium shot from the waist up, camera slightly closer than before — not a close-up, but framing him with confidence. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Una sola cuota. Cientos de lugares. Vos elegís.\" He delivers this with a warm, confident smile and raises his smartphone naturally toward camera as he says \"vos elegís\" — screen not clearly legible, just a glowing interface with a map-like visual impression. After speaking, stays quiet smiling with the phone still raised until the end. Natural lip-sync, no on-screen text, no logos."
-        },
-        {
-          "scene": 5,
-          "role": "cta",
-          "tStart": 13.5,
-          "tEnd": 16,
-          "template": "A",
-          "settings": "Veo 3 · 9:16 · 8s · Texto a video — recortar a 2.5s en edicion. Adjuntar logo FitPass como imagen ingrediente.",
-          "marcaFonetica": "FitPas",
-          "nota": "El texto grande 'sin permanencia' y el boton 'Proba FitPass' los agregás vos en edicion (After Effects / CapCut / DaVinci). El fondo dinamico de disciplinas es un efecto de montaje, no lo genera Veo en un prompt. Este clip es el presentador cerrando con gesto hacia camara — el fondo de disciplinas lo componés vos en post.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, with short dark hair and casual athletic wear, standing inside a modern gym with blurred equipment in the background, warm industrial lighting. Medium shot from the waist up. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Sin permanencia. Bajá FitPas y entrá donde quieras.\" He delivers this with high energy and a direct, engaging tone — on the word \"bajá\" he points naturally toward camera with a confident gesture, as if directing the viewer to act right now. After speaking, holds the gesture with a big smile until the end. Natural lip-sync. Use the attached logo as a small clean overlay in a top corner; no other on-screen text."
-        }
-      ],
-      "narration": {
-        "mode": "tts",
-        "text": "Lo que nadie te dice de los gimnasios: pagás por uno solo. Y siempre, siempre, terminás haciendo lo mismo. La misma maquina, el mismo dia. Con una membresia entrás a musculacion, yoga, boxeo, pilates, natacion. Variedad real. Una sola cuota. Cientos de lugares. Vos elegís. Y sin permanencia. Bajá FitPass y entrená lo que quieras."
-      },
-      "publish": {
-        "hookOnScreen": "Pagás un gimnasio, usás uno.",
-        "caption": "Siempre la misma rutina porque solo tenés un lugar. FitPass te da musculacion, yoga, boxeo, pilates, natacion y mas — con una sola cuota y sin permanencia. Baja la app y probalo.",
-        "hashtags": [
-          "fitpass",
-          "gimnasio",
-          "vidaactiva",
-          "membresia",
-          "entrenamiento",
-          "variedad"
-        ],
-        "cta": "Baja FitPass — link en bio."
-      },
-      "qa": {
-        "score": 26,
-        "verdict": "AJUSTAR",
-        "issues": [
-          {
-            "severity": "HIGH",
-            "note": "El gancho hablado entierra el golpe. 'Lo que nadie te dice de los gimnasios: pagás por uno solo' gasta ~1.5s en preámbulo clickbait antes del contraste real. El remate llega despues de la ventana de 2s. Reemplazo: que el audio abra directo con el contraste, igual que el texto en pantalla: 'Pagás un gimnasio entero. Y usás una sola maquina.' El golpe primero, el contexto despues."
-          },
-          {
-            "severity": "HIGH",
-            "note": "El activo mas fuerte esta en el lugar equivocado. El hookOnScreen 'Pagás un gimnasio, usás uno' es seco, una idea, se lee sin sonido — es mejor gancho que la narración. Pero audio y texto no coinciden en el instante 0-2s, asi que el frame fuerte no esta respaldado por la voz. Alinear ambos: misma frase de contraste en audio y en pantalla al arrancar."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "El frame 1 no muestra el dolor. Talking head energico a camara con gimnasio desenfocado es el plano mas generico de fitness; no hay contraste visual que frene el dedo hasta el b-roll del segundo 3. Sugerencia: abrir en frame 0 con el plano de la persona aburrida repitiendo SIEMPRE la misma maquina (el b-roll de 'dolor') y meter el talking head un beat despues, o split-screen 'lo que pagás / lo que usás'."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "'Lo que nadie te dice de...' es un opener sobreusado en reels; el ojo lo filtra como plantilla. Si se mantiene el talking head, que la primera linea sea concreta y especifica del dolor, no la formula de secreto."
-          },
-          {
-            "severity": "LOW",
-            "note": "Marca para TTS/Veo: el guion usa 'FitPass' en texto plano; en Rioplatense el TTS puede leerlo en ingles. Usar marca fonetica (ej. Fitpas) en la narración. No es del eje gancho pero rompe en producción. Logo correctamente recien en el CTA, eso esta bien."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Claridad sin sonido rota en el plano solucion (6-11s): pide 5 cortes a '2 frames c/u' (~0,066s cada disciplina a 30fps). Es subliminal: ni se distinguen las disciplinas ni se alcanza a leer el cartel 'una membresia, todas las disciplinas'. Fix: 5 disciplinas en 5s = ~1s por plano, y mostrar como mucho 3 (pesas / boxeo / pileta) con su nombre on-screen apareciendo sincronizado ('Musculacion', 'Boxeo', 'Natacion') en vez de un solo cartel generico."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Texto on-screen redundante: 'una membresia, todas las disciplinas' (solucion) y 'una membresia, cientos de lugares' (prueba) son casi la misma frase. Para el mute-reader cada cartel debe sumar info NUEVA, no parafrasear. Fix: que el plano solucion liste disciplinas (Yoga · Boxeo · Pilates · Natacion) y el plano prueba muestre el beneficio diferencial en numeros, no repetir 'una membresia'."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Segunda idea apilada: la pieza es sobre 'variedad de disciplinas con una cuota', pero el plano prueba introduce 'cientos de lugares + mapa + QR + check-in', que es otra idea (cobertura/red). Sumado a 'sin permanencia' en el CTA, son 3 beneficios compitiendo. No rompe la idea unica pero la diluye. Fix: elegir UN beneficio de soporte (variedad) y degradar 'cientos de lugares' y 'sin permanencia' a la caption, no al on-screen."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "QR/check-in ilegible sin aportar: el plano prueba (11-13,5s) muestra mapa + QR en un celular dentro de un 9:16 durante 2,5s. Sin sonido no se lee y compite con el lower-third. Fix: sacar el QR; dejar solo el mapa con pines y un dato concreto on-screen."
-          },
-          {
-            "severity": "LOW",
-            "note": "Prueba floja: 'cientos de lugares' es un claim redondo, no un dato verificable; como cartel de prueba sin sonido no prueba nada (repite la promesa). No inventar el numero: si no hay cifra real, reemplazar por una prueba de uso ('cambia de disciplina cuando quieras') en vez de simular cantidad."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "Plano 'solucion' (6-11s) pide cortes de '2 frames c/u' (~66-83ms): es flash subliminal, no corte al beat. Ilegible. Reemplazo: ~1s por disciplina (24-30 frames), corte al beat real."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Texto largo 'una membresia, todas las disciplinas' sobre 5 cortes rapidos = ilegible. Usar 1 palabra/plano (Musculacion/Yoga/Boxeo/Pilates/Natacion); dejar la frase para el plano estatico de prueba."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Dolor (3-6s) 'Loop monotono' sin progresion interna se lee como plano muerto. Agregar micro-progresion en el mismo encuadre."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Falta marca fonetica para TTS/Veo: 'FitPass' puede leerse anglo o mal cortado. Indicar 'Fitpas' en narracion de prueba y CTA."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Si pasa a prompt Veo, pedir 9:16 al selector (no solo en el texto del plano)."
-          },
-          {
-            "severity": "LOW",
-            "note": "Desfase hook hablado ('pagas por uno solo') vs hookOnScreen ('Pagas un gimnasio, usas uno.'). Alinear para no distraer sin sonido."
-          },
-          {
-            "severity": "LOW",
-            "note": "En prompt Veo con voz: agregar only once / no repeat y punto antes del remate del CTA."
-          }
-        ]
-      }
-    },
-    {
-      "id": "aw-03",
-      "objective": "awareness",
-      "angle": "Problema -> agitacion -> solucion (angulo flexibilidad)",
-      "format": "reel 9:16 b-roll Veo + voz en off",
+      "angle": "Lo que nadie te dice (insight del rubro)",
+      "format": "reel 9:16 — talking head a cámara + b-roll (Veo)",
       "platforms": [
         "Instagram Reels",
         "TikTok"
@@ -593,212 +297,500 @@
             "role": "hook",
             "tStart": 0,
             "tEnd": 3,
-            "narration": "Un día estás en el centro. Otro, en zona norte.",
-            "visual": "B-roll cinematográfico 9:16, hora pico en CABA: vista cenital del microcentro, gente saliendo del subte, luz de media tarde. Corte rápido a una avenida de zona norte, más verde y abierta. Color lima de marca como acento sutil (un cartel, un reflejo). Sin logo. Movimiento de cámara fluido tipo drone/gimbal."
+            "narration": "Lo que nadie te dice del gym: no te aburrís del ejercicio, te aburrís de hacer siempre lo mismo.",
+            "visual": "TALKING HEAD a camara, plano medio 9:16. Presentador joven, energetico, ropa deportiva, gimnasio luminoso de fondo desenfocado. Mira fijo a camara, gesto de complicidad, casi en secreto. Sin logo todavia. Iluminacion natural, lima."
           },
           {
             "role": "dolor",
             "tStart": 3,
             "tEnd": 7,
-            "narration": "Y nunca sabés a qué hora salís. Atado a una sola sede.",
-            "visual": "Oficina al atardecer, el laburante mirando el reloj/celular, único en el piso. Plano del gimnasio de siempre con las luces apagándose, lejos. Tono frío, encajonado. La ciudad sigue girando afuera mientras él queda fijo. Sensación de estar trabado a un lugar y un horario."
+            "narration": "Siempre quisiste probar boxeo, yoga, pilates, natacion. Pero cada uno es otra cuota, otra inscripcion, y nunca arrancas.",
+            "visual": "B-ROLL en cortes rapidos (Veo), 1 disciplina por plano de ~1s: guante de boxeo golpeando, persona en postura de yoga, reformer de pilates, manos rompiendo el agua en pileta. Look frustrado/desistir al cierre: alguien cerrando una pestania de inscripcion en el cel."
           },
           {
             "role": "solucion",
             "tStart": 7,
             "tEnd": 12,
-            "narration": "Con FitPass elegís dónde y cuándo. Cientos de lugares en CABA y zona norte.",
-            "visual": "Transición enérgica: la misma persona ahora moviéndose libre por la ciudad. Quick cuts a distintos espacios cerca suyo: un box de funcional luminoso, una pileta, un estudio de yoga, un gym de barrio. Cada corte abre el cuadro, color lima vivo, luz cálida. El mapa de la ciudad se ilumina con puntos. Alivio en movimiento."
+            "narration": "FitPass te da musculacion, yoga, boxeo, pilates y natacion con una sola membresia. Cambias de disciplina segun el dia y las ganas.",
+            "visual": "B-ROLL energetico, cortes rapidos mostrando variedad real: misma persona entrenando en distintas disciplinas, transiciones con match-cut (mancuerna -> guante -> esterilla -> agua). Un solo celular con la app y un QR de check-in apareciendo entre planos. Ritmo alto."
           },
           {
             "role": "prueba",
             "tStart": 12,
-            "tEnd": 15,
-            "narration": "Una sola membresía. Sin permanencia. Donde estés.",
-            "visual": "Plano del laburante entrando a un lugar nuevo cerca del trabajo, relajado, sonriendo. Detalle del check-in con QR en el celular (insinuado, no tutorial). Lower-third sutil: \"cientos de lugares · sin permanencia\". La ciudad de fondo, ya como aliada, no como cárcel."
+            "tEnd": 14.5,
+            "narration": "Una app, una cuota, un QR. En CABA y GBA, sin permanencia.",
+            "visual": "TALKING HEAD breve de vuelta + overlay de 3 iconos SVG (app, cuota, QR) entrando uno por uno. Lower-third sutil: FitPass. Gesto de simpleza, manos abiertas."
           },
           {
             "role": "cta",
-            "tStart": 15,
+            "tStart": 14.5,
             "tEnd": 17,
-            "narration": "FitPass. Entrená donde quieras.",
-            "visual": "Cierre cálido: la persona ya adentro, en movimiento, plena. Logo FitPass aparece fuerte sobre fondo lima de marca, claim corto debajo: \"Una membresía. Cientos de lugares.\" Awareness puro: sin botón de descarga, solo la promesa y el alivio. Último frame respira."
+            "narration": "Varia. Primera semana gratis, descarga la app.",
+            "visual": "TALKING HEAD a camara, sonrisa, senalando hacia el espectador. Logo FitPass fuerte centrado + boton CTA 'Primera semana gratis - Descarga la app'. Cierre con flash de las 5 disciplinas en grilla rapida. Energia alta."
           }
         ],
         "music": {
-          "mood": "Enérgica y liberadora con arco emocional: arranque tenso/urbano de baja intensidad bajo el dolor (percusión seca, sensación de encierro), que rompe en un drop cálido y luminoso en la Solución (sintetizadores brillantes, pulso optimista, tempo medio-alto ~110-120 BPM). Clima rioplatense moderno, no épico. Ducking -18dB bajo la voz. Pico emocional en el CTA, resolución plena. Música libre tipo Kevin MacLeod / incompetech (CC-BY) con crédito de 1 línea al publicar."
+          "mood": "Energica/uptempo electronica-pop con drive de gimnasio, BPM alto (~120-128), percusion marcada y subida de energia hacia el CTA. Ducking -18dB bajo la voz. Pista libre CC-BY (Kevin MacLeod / incompetech) con credito de 1 linea al publicar. Emocion del CTA: accion."
         }
       },
       "slides": [],
       "videoPrompts": [
         {
-          "escena": "HOOK — Microcentro / Zona Norte",
+          "scene": "HOOK",
           "role": "hook",
           "tStart": 0,
           "tEnd": 3,
-          "template": "B (B-roll de lugar)",
+          "template": "A",
+          "durationSelector": "8s",
           "settings": {
-            "modelo": "Veo 3",
+            "model": "Veo 3",
             "aspectRatio": "9:16",
-            "duracion": "8s",
-            "modo": "Texto a video"
+            "duration": "8s"
           },
-          "marcaFonetica": "N/A — sin diálogo en esta escena",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background, no cut. Aerial cinematic top-down shot of the Buenos Aires microcentro at peak hour, mid-afternoon golden light: crowded pedestrians streaming out of a subte entrance, tall buildings, dense city grid. A subtle lime-green accent color appears in a small distant street sign or shop awning — no logo. Smooth cinematic drone or gimbal glide. Cut-style transition cue at the end toward a wide avenue in zona norte, greener and more open, with trees lining the sidewalk and the same lime-green color reflected faintly on a bus shelter. No spoken dialogue, no talking; ambient city sound only. No on-screen text, no logos."
+          "marcaFonetica": "FitPas (no mencionada en esta escena)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, with short dark hair, wearing athletic clothes in light colors — gym shorts and a fitted t-shirt — standing inside a bright modern gym with defocused equipment in the background, natural warm lighting. The camera holds a steady medium shot from the waist up, not a close-up, with a slight slow push-in to create intimacy without becoming a close-up. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Lo que nadie te dice del gym: no te aburrís del ejercicio. Te aburrís de hacer siempre lo mismo.\" He delivers the line calmly, almost as a secret, leaning slightly forward, direct eye contact with camera, a subtle conspiratorial grin on his face — not exaggerated, natural and relatable. After speaking, stays quiet holding that gaze until the end. Natural lip-sync, no on-screen text, no logos.",
+          "editingNote": "Recortar a 3s en edicion. No agregar logo en esta escena."
         },
         {
-          "escena": "DOLOR — Oficina atardecer / Gym cerrado",
+          "scene": "DOLOR — Boxeo",
           "role": "dolor",
           "tStart": 3,
           "tEnd": 7,
-          "template": "C (B-roll del problema)",
+          "template": "C",
+          "durationSelector": "8s",
           "settings": {
-            "modelo": "Veo 3",
+            "model": "Veo 3",
             "aspectRatio": "9:16",
-            "duracion": "8s",
-            "modo": "Texto a video"
+            "duration": "8s"
           },
-          "marcaFonetica": "N/A — sin diálogo en esta escena",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background, no cut. An ordinary real-looking Argentine office worker, not a model, sits alone at his desk in an open-plan office at dusk, fluorescent overhead lights, the city still lit through the floor-to-ceiling window behind him. He glances anxiously at his phone and then out the window — trapped, static. Cut cue to a medium shot of a gym exterior at night: the lights flicker off one by one through the glass door, a padlock on the entrance, the building locked. Cold blue tones throughout. The city moves outside while he stays fixed — a sense of being chained to one place and one schedule. No spoken dialogue, no talking; ambient office hum and distant city sound only. No on-screen text, no logos."
+          "marcaFonetica": "FitPas (no mencionada en esta escena)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic, not over-rendered. Medium shot at a steady medium distance. A boxing glove — red leather, worn texture — lands a powerful punch on a heavy bag, the bag swinging back in slow motion, close-up on the impact point. Bright gym lighting, defocused background with gym ropes. No spoken dialogue, no talking, ambient gym sound only — leather impact, chain rattle. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Recortar a ~1s. Usar solo el momento del impacto."
         },
         {
-          "escena": "SOLUCIÓN — Quick cuts lugares fitness + mapa",
+          "scene": "DOLOR — Yoga",
+          "role": "dolor",
+          "tStart": 3,
+          "tEnd": 7,
+          "template": "C",
+          "durationSelector": "8s",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "marcaFonetica": "FitPas (no mencionada en esta escena)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic. Medium shot. An ordinary real-looking woman in her 30s, not a model, holding a calm yoga warrior pose on a purple mat, a bright studio with natural light through large windows. She breathes slowly, eyes forward, serene expression. No spoken dialogue, ambient soft breathing and quiet studio sound only. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Recortar a ~1s. Elegir el frame mas estatico de la pose."
+        },
+        {
+          "scene": "DOLOR — Pilates Reformer",
+          "role": "dolor",
+          "tStart": 3,
+          "tEnd": 7,
+          "template": "C",
+          "durationSelector": "8s",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "marcaFonetica": "FitPas (no mencionada en esta escena)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic. Medium shot. An ordinary real-looking woman in her 30s, not a model, performing a controlled movement on a Pilates reformer machine — sliding carriage, white straps — in a bright clean studio. Side angle showing the full machine. No spoken dialogue, ambient equipment sound only. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Recortar a ~1s. Mostrar el movimiento del carriage."
+        },
+        {
+          "scene": "DOLOR — Natacion + Frustracion celular",
+          "role": "dolor",
+          "tStart": 3,
+          "tEnd": 7,
+          "template": "C",
+          "durationSelector": "8s",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "marcaFonetica": "FitPas (no mencionada en esta escena)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic. Close-up of two hands breaking through the surface of a bright blue pool, water splashing upward, strong backstroke motion. Bright outdoor or indoor pool, light refracting through water. No spoken dialogue, ambient pool splash sound only. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Clip A: manos en el agua ~1s. Clip B separado: hombre joven en sofa mirando celular con cara frustrada, cerrando una pestania de inscripcion. Editar ambos juntos al cierre del bloque dolor."
+        },
+        {
+          "scene": "SOLUCION — Musculacion (match-cut anchor)",
           "role": "solucion",
           "tStart": 7,
           "tEnd": 12,
-          "template": "B (B-roll energético multi-lugar)",
+          "template": "B",
+          "durationSelector": "8s",
           "settings": {
-            "modelo": "Veo 3",
+            "model": "Veo 3",
             "aspectRatio": "9:16",
-            "duracion": "8s",
-            "modo": "Texto a video"
+            "duration": "8s"
           },
-          "marcaFonetica": "N/A — sin diálogo en esta escena",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Quick-cut energy: same ordinary real-looking Argentine man from before, not a model, now moving freely through the city. Shot 1 — a bright functional training box, lime-green lighting accent, he walks in energized. Shot 2 — an outdoor pool at a sports club, warm sunlight, he dips in. Shot 3 — a yoga studio with wood floors and plants, calm and luminous, he unrolls a mat. Shot 4 — a local neighborhood gym, friendly and accessible, he gives a thumbs-up to the trainer. Each cut opens the frame wider, warmer color, lime-green accent visible in signage or walls. Final wide frame: an illustrated city map overlay glows with scattered lime-green location dots spreading across CABA and zona norte. Relief and freedom in motion. No spoken dialogue, no talking; ambient energetic sound only. No on-screen text, no logos."
+          "marcaFonetica": "FitPas — 'FitPas te da musculacion...' — pronunciar como en castellano rioplatense, no como ingles",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot. An ordinary real-looking young man in his 20s, not a model, wearing dark gym clothes, curling a dumbbell in a brightly lit weight room. The dumbbell is held up at the peak of the curl — foreground, sharp focus. Camera angle slightly low, emphasizing the upward motion. No spoken dialogue, ambient gym sound only. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Match-cut de salida: congelar en el frame con mancuerna arriba y cortar al guante de boxeo en la misma posicion."
         },
         {
-          "escena": "PRUEBA — Check-in QR + lower-third",
+          "scene": "SOLUCION — Boxeo (match-cut)",
+          "role": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
+          "durationSelector": "8s",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "marcaFonetica": "FitPas (no mencionada en este clip)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic. Medium shot. Same real-looking young man in his 20s — same face and build — now wearing boxing gloves, throwing a straight punch toward camera, glove filling the lower frame in a motion that mirrors the dumbbell curl angle from the previous clip. Bright boxing gym, ring ropes defocused in background. No spoken dialogue, ambient boxing gym sound only. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Match-cut: entrar desde el guante arriba, salir al plano de la esterilla de yoga."
+        },
+        {
+          "scene": "SOLUCION — Yoga / Esterilla (match-cut)",
+          "role": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
+          "durationSelector": "8s",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "marcaFonetica": "FitPas (no mencionada en este clip)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic. Medium shot. Same real-looking young man — same face and build — now in a calm yoga studio, lowering himself onto a blue mat in a downward dog position, one hand touching the mat in a motion that mirrors the previous glove punch. Soft natural light, minimal studio background. No spoken dialogue, ambient quiet studio sound only. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Match-cut: entrar desde la mano tocando la esterilla, salir al agua."
+        },
+        {
+          "scene": "SOLUCION — Natacion (match-cut)",
+          "role": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
+          "durationSelector": "8s",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "marcaFonetica": "FitPas (no mencionada en este clip)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic. Underwater or at water-surface angle. Same real-looking young man — same face and build — entering the pool, one hand cutting into the water in a freestyle stroke motion that mirrors the mat-touch from the previous clip. Bright outdoor or indoor pool, light refracting through water. No spoken dialogue, ambient pool sound only. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Match-cut desde la esterilla. Al final del bloque cortar al clip del celular con QR."
+        },
+        {
+          "scene": "SOLUCION — App QR check-in",
+          "role": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
+          "durationSelector": "8s",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "marcaFonetica": "FitPas (no mencionada en este clip)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, high production quality, realistic. Medium shot. Same real-looking young man holding a smartphone with a fitness app open — screen not clearly legible, blurred UI — bringing it up to a QR reader at a gym entrance. A brief green confirmation light flashes. He smiles naturally and walks through. No spoken dialogue, ambient light reception desk sound. One single continuous take, 3–4 second clip. No logos.",
+          "editingNote": "Cerrar el bloque solucion con este clip. Pantalla del cel intencionalmente no legible."
+        },
+        {
+          "scene": "PRUEBA",
           "role": "prueba",
           "tStart": 12,
-          "tEnd": 15,
-          "template": "C (B-roll del resultado resuelto)",
+          "tEnd": 14.5,
+          "template": "A",
+          "durationSelector": "8s",
           "settings": {
-            "modelo": "Veo 3",
+            "model": "Veo 3",
             "aspectRatio": "9:16",
-            "duracion": "8s",
-            "modo": "Texto a video"
+            "duration": "8s"
           },
-          "marcaFonetica": "N/A — sin diálogo en esta escena",
-          "notaProduccion": "El lower-third 'cientos de lugares · sin permanencia' conviene agregarlo en postpro (DaVinci/CapCut) para control exacto de tipografía. Si lo pedís al prompt, Veo puede inventarlo mal.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background, no cut. Medium shot: the same ordinary real-looking Argentine man, not a model, relaxed and smiling, walks into a bright modern gym near his workplace. He holds his smartphone casually at chest level — a QR code is briefly implied on the screen but not clearly legible, a check-in gesture at a reader near the entrance. Gym staff nods with a friendly welcome. The city is visible through glass behind him, now an ally, not a cage. Warm and open tones. No spoken dialogue, no talking; ambient gym ambiance only. No on-screen text, no logos — lower-third to be added in post-production."
+          "marcaFonetica": "FitPas — no se pronuncia en la narracion de este clip, aparece como grafico lower-third en post",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. Same ordinary real-looking Argentine man in his late 20s — same face, same short dark hair, same athletic clothes — inside the same bright modern gym with defocused equipment in background. The camera holds a steady medium shot from the waist up, not a close-up. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Una app, una cuota, un QR. En CABA y GBA, sin permanencia.\" He delivers the line with calm confidence, a small satisfied smile, opening his hands outward in a simple open-palms gesture of ease — like it is that simple. After speaking, stays quiet with open hands and a relaxed smile until the end. Natural lip-sync, no on-screen text. No logos in video; graphics will be added in post-production.",
+          "editingNote": "Recortar a 2.5s. Agregar en post: 3 iconos SVG (app / cuota / QR) entrando uno por uno + lower-third 'FitPas'. Veo NO genera estos graficos."
         },
         {
-          "escena": "CTA — Cierre marca FitPass",
+          "scene": "CTA",
           "role": "cta",
-          "tStart": 15,
+          "tStart": 14.5,
           "tEnd": 17,
-          "template": "A (con logo — usar Imagen a video si adjuntás el logo FitPass)",
+          "template": "A",
+          "durationSelector": "8s",
           "settings": {
-            "modelo": "Veo 3",
+            "model": "Veo 3",
             "aspectRatio": "9:16",
-            "duracion": "8s",
-            "modo": "Imagen a video (recomendado si adjuntás logo) / Texto a video como fallback"
+            "duration": "8s"
           },
-          "marcaFonetica": "Fitpas — en minúscula corrida en el prompt para forzar lectura hispánica si Veo vocaliza; en el lower-third visual usar la tipografía oficial de la marca",
-          "notaProduccion": "El logo y el claim 'Una membresía. Cientos de lugares.' conviene agregarlos en postpro sobre el frame limado de cierre para control total de branding.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background, no cut. Warm closing frame: the same ordinary real-looking Argentine man, not a model, already inside a gym, in relaxed light motion — stretching or lifting lightly, natural smile, soft warm light with a lime-green environmental accent. The mood is relief and belonging. The shot slowly settles to a near-static frame, the subject at ease. Atmosphere: quiet triumph, the city now an ally in the background through gym windows. No spoken dialogue, no talking; warm ambient gym sound fading gently to near-silence at the end. The last frame breathes and holds. No on-screen text, no logos — branding overlay and claim to be added in post-production. Use the attached FitPass logo as a centered overlay on the final still frame if using image-to-video mode."
+          "marcaFonetica": "FitPas — aparece como logo y boton CTA en post-produccion, no en el prompt Veo",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. Same ordinary real-looking Argentine man in his late 20s — same face, same short dark hair, same athletic clothes — inside the same bright modern gym, defocused equipment in background, bright warm lighting. The camera holds a steady medium shot from the waist up — not a close-up — with a very slow gentle push-in. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Varia. ¡La primera semana es gratis, descargá la app!\" He delivers 'Varia.' calmly and confidently, pauses for a beat, then exclaims '¡La primera semana es gratis, descargá la app!' with euphoric, excited, high-energy delivery — voice rising sharply while pointing directly at camera with one hand, face lighting up in a wide natural smile, eyes energized, in perfect sync. After speaking, stays pointing and smiling until the end. Natural lip-sync, no on-screen text. No logos in video; logo and CTA button will be added in post-production.",
+          "editingNote": "Recortar a 2.5s. Agregar en post: logo FitPas centrado + boton CTA 'Primera semana gratis - Descarga la app' + grilla rapida de 5 disciplinas al cierre. Todo en edicion, no en Veo."
         }
       ],
       "narration": {
         "mode": "tts",
-        "text": "Un día estás en el centro. Otro, en zona norte. Y nunca sabés a qué hora salís. Atado a una sola sede. Con FitPass elegís dónde y cuándo. Cientos de lugares en CABA y zona norte. Una sola membresía. Sin permanencia. Donde estés. FitPass. Entrená donde quieras."
+        "text": "Lo que nadie te dice del gym: no te aburrís del ejercicio, te aburrís de hacer siempre lo mismo. Siempre quisiste probar boxeo, yoga, pilates, natacion. Pero cada uno es otra cuota, otra inscripcion, y nunca arrancas. FitPass te da musculacion, yoga, boxeo, pilates y natacion con una sola membresia. Cambias de disciplina segun el dia y las ganas. Una app, una cuota, un QR. En CABA y GBA, sin permanencia. Varia. Primera semana gratis, descarga la app."
       },
       "publish": {
-        "hookOnScreen": "Nunca sabés a qué hora salís",
-        "caption": "El gimnasio no tendría que depender del horario ni del barrio. FitPass te da cientos de lugares en CABA y zona norte — una sola membresía, sin permanencia. Entrenás donde estés.",
+        "hookOnScreen": "No te aburrís del gym.",
+        "caption": "Te aburrís de hacer siempre lo mismo. Boxeo, yoga, pilates, natacion — todo con una sola cuota. FitPass. Primera semana gratis, link en bio.",
         "hashtags": [
-          "#fitpass",
-          "#entrenamiento",
-          "#GymArgentina",
-          "#vidaactiva",
-          "#CABAfit"
+          "fitness",
+          "gym",
+          "multideporte",
+          "fitpass"
         ],
-        "cta": "Link en bio para ver los lugares cerca tuyo."
+        "cta": "Primera semana gratis — link en bio."
       },
       "qa": {
-        "score": 20,
-        "verdict": "AJUSTAR",
+        "score": 41,
+        "verdict": "LISTO PARA PRODUCIR",
         "issues": [
           {
             "severity": "CRITICAL",
-            "note": "El anzuelo emocional real ('Nunca sabes a que hora salis / Atado a una sola sede') vive en el segmento dolor (seg 3-7), no en los primeros 2s. La apertura narrada ('Un dia estas en el centro. Otro, en zona norte.') es setup geografico tibio, sin dolor ni contraste: no frena el scroll. FIX: subir el dolor al frame 0."
+            "note": "Marca FitPass sin forma fonetica para el TTS/Veo. La rubrica exige fonetica tipo Munifai. Un motor rioplatense puede leer 'fit-pas', deletrearla o partirla mal. FIX: en las narraciones de solucion, prueba y CTA escribir la marca como 'Fitpas' (fonetica), dejando 'FitPass' solo en los overlays/logo de texto. Ej solucion: 'Fitpas te da musculacion, yoga, boxeo...'."
           },
           {
             "severity": "HIGH",
-            "note": "Disonancia audio/texto en el momento mas critico: hookOnScreen muestra 'Nunca sabes a que hora salis' (linea de dolor) mientras la narracion del hook dice otra cosa ('Un dia estas en el centro...'). Sin sonido, texto y plano no conversan. FIX: que narracion y texto en pantalla sean la MISMA idea de dolor en los primeros 2s."
+            "note": "B-roll definido como 'cortes rapidos 1 disciplina por plano de ~1s' dentro de UN solo prompt Veo. Veo genera mejor toma continua; pedir 4-5 microcortes en una generacion suele salir incoherente o con morphing. FIX: separar cada disciplina en su propia generacion (single continuous take) y armar el ritmo rapido en el montaje, no dentro del prompt. Agregar a cada b-roll: 'No spoken dialogue, single continuous take, screen not clearly legible' para el cel/QR."
+          },
+          {
+            "severity": "HIGH",
+            "note": "Prueba floja (eje 6 = 2/5). 'Una app, una cuota, un QR. En CABA y GBA, sin permanencia' son atributos/cobertura, no prueba (numero, resultado o testimonio). FIX: si existe dato real, agregar uno concreto en el bloque prueba (ej. cantidad de sedes o de disciplinas totales). NO inventar el numero: si no hay dato verificable, dejar el hueco y mantener el claim cualitativo."
           },
           {
             "severity": "MEDIUM",
-            "note": "El visual del hook (vista cenital del microcentro, gente saliendo del subte) es un plano de stock generico que no frena por si solo. El plano del laburante mirando el reloj solo en el piso vacio (hoy en seg 3-7) tiene mas poder de freno y deberia abrir."
+            "note": "Parametros de prompt Veo no declarados a nivel pieza: falta pedir Veo 3 y 9:16 AL SELECTOR (no solo en el texto de cada plano), y en el talking head con voz faltan las instrucciones 'Rioplatense + voseo', 'only once / no repeat' y 'punto antes del remate' del hook y del CTA. El voseo esta en el texto pero no instruido al motor."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "Claridad sin sonido (eje 3 = 4/5). El bloque dolor (3-7s) y solucion (7-12s) cargan info clave ('otra cuota, otra inscripcion' / 'una sola membresia') solo en la narracion. Mudo no se entiende 'una sola cuota' hasta el segundo 12. FIX: agregar un text overlay corto en el bloque solucion, ej '5 disciplinas. 1 cuota.' para que el mensaje cierre sin audio."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "Sin direccion de audio: no se menciona musica ni ducking. La rubrica de higiene pide musica con ducking bajo la voz. FIX: especificar bed musical energetico con ducking -12 a -18 dB bajo narracion en talking head, y subir en los b-roll sin voz (3-7s y 7-12s)."
           },
           {
             "severity": "LOW",
-            "note": "Bien resuelto: sin logo en los primeros frames (logo recien en CTA), 9:16 declarado, color de marca como acento sutil y no como placa. La base tecnica del hook esta; el problema es de orden y sincronizacion, no de cero."
+            "note": "Realismo del presentador en riesgo de salir tipo modelo/stock ('joven, energetico, ropa deportiva'). FIX: agregar 'not a model, not over-rendered, not CGI-perfect, medium distance, natural skin texture' a los planos de talking head."
           },
+          {
+            "severity": "LOW",
+            "note": "Densidad de info al borde de saturar en 17s: el bloque solucion encadena 5 disciplinas + match-cuts + app + QR en 5s. Para una pieza de awareness conviene respirar un toque. FIX: si se siente apurado en el primer corte, sacar 1 transicion o estirar el plano de variedad ~0.5s tomandolo del bloque prueba."
+          }
+        ]
+      }
+    },
+    {
+      "id": "aw-03",
+      "objective": "awareness",
+      "angle": "Problema → agitación → solución (flexibilidad/horarios)",
+      "format": "reel 9:16 — talking head a cámara + b-roll (Veo)",
+      "platforms": [
+        "Instagram Reels",
+        "YouTube Shorts",
+        "TikTok"
+      ],
+      "durationSec": 16,
+      "script": {
+        "blocks": [
+          {
+            "role": "hook",
+            "narration": "Tu gym tiene horario fijo. Tu semana, no.",
+            "visual": "TALKING HEAD a camara. Profesional 30-40 (saco liviano o camisa arremangada) en vereda de microcentro CABA, gente cruzando detras desenfocada. Mira a camara directo, energico pero cercano. Plano medio 9:16, luz natural de manana. Sin logo. Corte seco al final de la linea.",
+            "tStart": 0,
+            "tEnd": 3
+          },
+          {
+            "role": "dolor",
+            "narration": "Un dia te queda cerca de la oficina, otro cerca de casa. Un solo gimnasio nunca te queda bien.",
+            "visual": "B-ROLL ciudad: misma persona caminando rapido entre dos puntos distintos de la ciudad (corte oficina vidriada -> corte barrio residencial), mochila de gym al hombro. Insert de un calendario/agenda en el celu con la semana cambiada. Movimiento, ritmo apurado, transiciones rapidas (2 planos de ~2s). VO sobre b-roll.",
+            "tStart": 3,
+            "tEnd": 7
+          },
+          {
+            "role": "solucion",
+            "narration": "Con FitPass entrenas donde y cuando puedas: reservas, haces check-in con QR, y listo.",
+            "visual": "B-ROLL solucion: 1) dedo reservando desde la app en el celu (UI clara, lista de lugares). 2) check-in escaneando QR en la entrada de un estudio. 3) micro-corte a OTRO lugar distinto (musculacion -> clase grupal) para vender variedad. Tres lugares = tres ambientes. Marca FitPass como overlay sutil arriba. VO sobre b-roll.",
+            "tStart": 7,
+            "tEnd": 12
+          },
+          {
+            "role": "prueba",
+            "narration": "Cientos de lugares en CABA y GBA. Sin permanencia.",
+            "visual": "TALKING HEAD de vuelta a camara, ahora dentro/afuera de un gym, media sonrisa de cierre. Lower-third con texto: 'Cientos de lugares - CABA + GBA - Sin permanencia'. Plano medio firme. Sin numeros inventados.",
+            "tStart": 12,
+            "tEnd": 14
+          },
+          {
+            "role": "cta",
+            "narration": "Entrena a tu ritmo. Primera semana gratis.",
+            "visual": "Cierre de marca: logo FitPass centrado sobre fondo limpio o sobre el talking head, CTA grande 'Primera semana gratis'. Boton/URL de descarga abajo. Plano fijo 9:16, corte final con beat de la musica.",
+            "tStart": 14,
+            "tEnd": 16
+          }
+        ],
+        "music": {
+          "mood": "Enérgica y urbana, tempo medio-alto (house/pop instrumental con groove de ciudad), upbeat pero práctica — no épica. Ducking -18dB bajo la voz. Beat marcado que acentúa los cortes rápidos del b-roll y cierra justo en el CTA. Música libre CC-BY (Kevin MacLeod / incompetech), crédito de 1 línea al publicar."
+        }
+      },
+      "slides": [],
+      "videoPrompts": [
+        {
+          "clipId": "clip1",
+          "role": "hook",
+          "template": "A",
+          "durationSeconds": 8,
+          "hasDialogue": true,
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his 30s, natural and relatable, not a model, with dark short hair, wearing a light blazer or rolled-up button shirt, standing on a busy sidewalk in Microcentro Buenos Aires — glass office buildings behind him, blurred commuters crossing in the background, morning natural light. The camera performs a smooth dolly-out that starts at a medium shot from the waist up — not a close-up — and steadily pulls back to a wide full-body shot revealing the full street scene behind him. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Tu gym tiene horario fijo. ¡Tu semana, no!\" He delivers the first part calmly and confidently looking straight at the camera, pauses for a beat, then exclaims \"¡Tu semana, no!\" with euphoric, high-energy delivery — voice rising while the face lights up in perfect sync. After speaking, stays quiet smiling until the end. Natural lip-sync, no on-screen text, no logos.",
+          "phoneticBrand": "Fit-PAS"
+        },
+        {
+          "clipId": "clip2",
+          "role": "dolor",
+          "template": "B",
+          "durationSeconds": 8,
+          "hasDialogue": false,
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his 30s, not a model, dark short hair, wearing a light blazer and carrying a gym backpack, walking fast on a Buenos Aires sidewalk — first a glass-and-steel corporate district (Microcentro), then a calm residential neighborhood with low buildings and trees (Palermo or Caballito). Continuous single take: the background transitions from the glass office block to the quiet residential street as if he kept walking across the whole city — no hard cut, seamless scene change within the take. He looks slightly tired and slightly frustrated, checking his phone while walking. Morning golden light. No spoken dialogue, no talking; ambient city street sound only — traffic, footsteps, distant horns. No logos.",
+          "phoneticBrand": "Fit-PAS"
+        },
+        {
+          "clipId": "clip3a",
+          "role": "solucion_app",
+          "template": "B",
+          "durationSeconds": 4,
+          "hasDialogue": false,
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "4s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Close-up of a hand holding a modern smartphone, screen showing a list-style mobile app interface — screen not clearly legible, just the visual feel of a list of locations with a selection action. Thumb tapping to select one item. Warm indoor light, blurred home or office background. No spoken dialogue, ambient subtle indoor sound only. Single continuous take, no cut. No logos.",
+          "phoneticBrand": "Fit-PAS"
+        },
+        {
+          "clipId": "clip3b",
+          "role": "solucion_qr",
+          "template": "B",
+          "durationSeconds": 4,
+          "hasDialogue": false,
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "4s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot of the entrance area of a modern gym or fitness studio in Buenos Aires — a turnstile or reception desk with a QR reader. The same ordinary real-looking Argentine man in his 30s, gym backpack on shoulder, holds his phone up to a QR scanner — a green confirmation light or checkmark appears on the reader. Receptionist or staff visible slightly in background. Clean interior light. No spoken dialogue, ambient gym-entrance ambient sound only. Single continuous take, no cut. Small clean \"Fit-PAS\" logo overlay in upper-right corner, small and unobtrusive.",
+          "phoneticBrand": "Fit-PAS"
+        },
+        {
+          "clipId": "clip3c",
+          "role": "solucion_variedad",
+          "template": "B",
+          "durationSeconds": 4,
+          "hasDialogue": false,
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "4s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot inside a bright group fitness class studio in Buenos Aires — ordinary real-looking people (not models) doing a group exercise class with an instructor, colorful studio walls, overhead lighting. Contrast with the previous clip's weight-training environment to show variety. Natural energy and effort, not staged-looking. No spoken dialogue, ambient class audio — music, instructor cues, movement sounds. Single continuous take, no cut. Small clean \"Fit-PAS\" logo overlay in upper-right corner.",
+          "phoneticBrand": "Fit-PAS"
+        },
+        {
+          "clipId": "clip4",
+          "role": "prueba",
+          "template": "A",
+          "durationSeconds": 8,
+          "hasDialogue": true,
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. The same ordinary real-looking Argentine man in his 30s, natural and relatable, not a model, dark short hair, light blazer, now standing just outside or inside the entrance of a modern gym or fitness studio — glass door, equipment visible behind him, clean interior lighting mixed with natural light from the entrance. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Cientos de lugares en CABA y GBA. Sin permanencia.\" He delivers the line with calm confidence and a half-smile closing the argument — relaxed, assured, not shouting. After speaking, stays quiet with a subtle smile until the end. Natural lip-sync. Lower-third text overlay: \"Cientos de lugares · CABA + GBA · Sin permanencia\" in clean white sans-serif, bottom third. Small \"Fit-PAS\" logo in upper-right corner.",
+          "phoneticBrand": "Fit-PAS"
+        },
+        {
+          "clipId": "clip5",
+          "role": "cta",
+          "template": "A",
+          "durationSeconds": 8,
+          "hasDialogue": true,
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and very well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take. The same ordinary real-looking Argentine man in his 30s, not a model, dark short hair, light blazer, standing on the same Microcentro sidewalk from the opening — completing the visual circle. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Entrená a tu ritmo. ¡Primera semana gratis!\" He delivers the first sentence calmly and directly, pauses for one beat, then exclaims \"¡Primera semana gratis!\" with high energy and an open confident smile — voice rising while the face lights up in perfect sync. After speaking, holds the smile looking at camera until the end. Natural lip-sync. Use the attached Fit-PAS logo as a clean centered overlay that appears in the final 2 seconds on a slightly darkened frame — paired with CTA text \"Primera semana gratis\" in bold white below the logo, and a download URL or app store badge at the very bottom. No extra motion.",
+          "phoneticBrand": "Fit-PAS"
+        }
+      ],
+      "narration": {
+        "mode": "tts",
+        "text": "Tu gym tiene horario fijo. Tu semana, no. Un dia te queda cerca de la oficina, otro cerca de casa. Un solo gimnasio nunca te queda bien. Con FitPass entrenas donde y cuando puedas: reservas, haces check-in con QR, y listo. Cientos de lugares en CABA y GBA. Sin permanencia. Entrena a tu ritmo. Primera semana gratis."
+      },
+      "publish": {
+        "hookOnScreen": "Tu gym tiene horario fijo",
+        "caption": "Un solo gym nunca te queda bien. FitPass: reservas donde estes, sin permanencia. Primera semana gratis.",
+        "hashtags": [
+          "#FitPass",
+          "#GimnasioFlexible",
+          "#EntrenarEnBuenosAires",
+          "#FitnessSinPermanencia",
+          "#WorkoutCABA"
+        ],
+        "cta": "Primera semana gratis — link en bio."
+      },
+      "qa": {
+        "score": 45,
+        "verdict": "LISTO PARA PRODUCIR",
+        "issues": [
           {
             "severity": "CRITICAL",
-            "note": "Claridad sin sonido rota: el texto en pantalla cambia de eje entre hook (hookOnScreen 'Nunca sabes a que hora salis' = TIEMPO), cuerpo (lower-third 'cientos de lugares · sin permanencia' = LUGAR+contrato) y cierre ('Una membresia. Cientos de lugares.' = LUGAR). En mute el espectador recibe 3 mensajes distintos y ninguno se repite; ademas el claim central de la narracion ('elegis donde y cuando') no aparece escrito en ningun frame."
+            "note": "No hay issues que rompan la promo. El gancho frena scroll en 0-2s con contraste puro ('Tu gym tiene horario fijo. Tu semana, no.'), hay UNA sola idea (flexibilidad lugar/horario), CTA unico y claro ('Primera semana gratis' + logo solo al cierre), y se entiende el mensaje base sin sonido via hook on-screen + lower-third + CTA grande. Nada que bloquee produccion."
           },
           {
             "severity": "HIGH",
-            "note": "Una sola idea rota: la pieza compite entre tres ideas (horario / sede unica / sin permanencia). El dolor (3-7s) mezcla 'nunca sabes a que hora salis' + 'atado a una sola sede'; la prueba suma 'sin permanencia' sin siembra; y el CTA cierra solo en LUGAR ('una membresia, cientos de lugares'), descartando el eje tiempo. No hay UNA idea dominante sostenida de 0 a 17s."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Hook ambiguo en mute: el contraste centro vs zona norte del visual del hook (0-3s) no esta rotulado, y el hookOnScreen habla de horario ('a que hora salis'), que no matchea lo que muestra la imagen (geografia). En silencio el espectador no entiende de que trata el reel en los primeros 2s."
+            "note": "Marca fonetica ausente para TTS/VO. El guion usa 'FitPass' pero no declara la grafia fonetica rioplatense para la voz (ej. 'Fitpás' o 'Fit-Pass'). Si el VO es sintetico/Veo, el nombre de marca -lo mas importante de una pieza de awareness- puede salir mal acentuado o anglosajon. FIX: agregar campo de pronunciacion en cada narration que mencione la marca, escribiendo foneticamente 'Fitpás' para el TTS y dejando 'FitPass' solo en los overlays de texto."
           },
           {
             "severity": "MEDIUM",
-            "note": "La idea-fuerza 'ciudad como carcel -> ciudad como aliada' es puramente atmosferica/fotografica; sin audio ni texto que la nombre es muy improbable que se lea en mute. Si es central, hay que anclarla con un rotulo."
-          },
-          {
-            "severity": "LOW",
-            "note": "'Sin permanencia' aparece recien en el plano de prueba (12-15s) sin siembra previa, agregando una cuarta señal que dispersa aun mas la idea unica."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "GANCHO LENTO (0-2s). El hook ocupa 0-3s con narración 'Un día estás en el centro. Otro, en zona norte.' — es un planteo, no un freno de scroll. En los primeros 2s no hay dolor ni contraste fuerte: hay b-roll cenital lindo pero genérico. El hookOnScreen 'Nunca sabés a qué hora salís' (que SÍ es el dolor) recién aparece como concepto en el bloque dolor (3-7s). FIX: subir ese texto al frame 0. Plano 0-2s = laburante atrapado mirando el reloj con el gym apagándose de fondo + texto en pantalla 'Nunca sabés a qué hora salís'. El paisaje cenital pasa a segundo plano o se recorta."
-          },
-          {
-            "severity": "HIGH",
-            "note": "DURACION 17s, pero el reparto de planos arrastra. Bloque solucion 7-12s = 5s para 'quick cuts a box/pileta/yoga/gym + mapa que se ilumina': son 4-5 sub-planos en 5s (~1s c/u), va bien de ritmo PERO el bloque hook (3s) y dolor (4s) son planos largos contemplativos = riesgo de plano muerto en la primera mitad, justo donde se decide la retencion. El ritmo esta invertido: lento donde tiene que enganchar, rapido donde ya te tiene. FIX: comprimir hook+dolor a 0-5s total y dar el aire ganado a la solucion."
+            "note": "Prueba floja en el bloque 'prueba' (12-14s): 'Cientos de lugares en CABA y GBA' es claim vago y no verificado. Bien que NO inventa numeros (lo aclara explicito y eso se respeta), pero 'cientos' no ancla. FIX: si existe el dato real, reemplazar por el numero concreto ('+450 estudios') o por un proxy de prueba verificable (rating de app store, cantidad de check-ins/mes). 'Sin permanencia' si funciona como prueba de beneficio, dejarlo."
           },
           {
             "severity": "MEDIUM",
-            "note": "PLANO MUERTO en cierre. 'Ultimo frame respira' (15-17s) sobre fondo lima con logo: 2s de logo estatico es mucho para un reel. Respira = bien para awareness, pero que el frame final tenga micro-movimiento (la persona en movimiento detras del logo, o el logo entrando con un beat) para no cortar el ritmo en seco."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "CTA UNICO: correcto y bien resuelto para awareness. 'FitPass. Entrená donde quieras.' + logo recien en el CTA (15-17s) = cumple la regla de logo al final. UNA sola accion implicita (caption manda a 'link en bio'). No hay doble CTA. Bien. Solo observacion: el guion dice 'sin boton de descarga' y la caption dice 'Link en bio' — coherente con awareness, no es conflicto, pero asegurate que el on-screen del CTA no agregue una segunda llamada."
+            "note": "El bloque solucion (3-12s) carga demasiado peso en el VO y se entiende flojo en muteo. El b-roll de 'caminar rapido entre dos puntos' puede leerse como 'persona apurada' generica sin el audio. FIX: agregar un on-screen corto de 3 pasos sincronizado con los micro-planos ('Reservá' sobre la UI / 'QR' sobre el check-in / 'Entrá' sobre el cambio de ambiente). Cierra el agujero de claridad sin tocar el ritmo."
           },
           {
             "severity": "LOW",
-            "note": "9:16 declarado en el texto del visual ('B-roll cinematografico 9:16') pero esto es guion, no prompt de Veo. Si esto pasa a un prompt de Flow, el 9:16 hay que pedirlo en el SELECTOR de aspecto, no confiar en el texto. Recordatorio para la etapa de produccion."
+            "note": "El 'overlay sutil arriba' de marca FitPass en el bloque solucion (7-12s) adelanta la marca antes del CTA. Es sutil y defendible para reforzar el nombre en awareness, pero rompe la regla pura de 'logo recien en el CTA'. FIX opcional: bajar aun mas la opacidad o moverlo solo al micro-plano de la app (donde el logo ya aparece naturalmente en la UI), reservando el logo pleno para el cierre."
           },
           {
             "severity": "LOW",
-            "note": "PLANOS 2-4s: el guion respeta la franja salvo el hook (3s, ok) y los quick-cuts internos de solucion (sub-segundo, intencionales y validos para un montaje energico). El conteo de planos es sano para 17s. Sin objeciones de formato puro mas alla del reparto de ritmo ya marcado."
+            "note": "Pulido de copy: el lower-third 'Cientos de lugares - CABA + GBA - Sin permanencia' usa guiones como separador. Para legibilidad en 2s y 9:16, preferir tres lineas apiladas o bullets cortos (mas escaneable a velocidad de reel) en vez de una linea con guiones."
           }
         ]
       }
     },
     {
       "id": "demo-01",
-      "objective": "consideracion",
-      "angle": "Demo en 15s",
-      "format": "reel 9:16 mockups de app animados + voz en off",
+      "objective": "consideration",
+      "angle": "Demo en 15s (cómo funciona)",
+      "format": "reel 9:16 — mockups de app animados (mockup-designer) + voz en off",
       "platforms": [
         "Instagram Reels",
+        "TikTok",
         "YouTube Shorts"
       ],
       "durationSec": 20,
@@ -806,233 +798,252 @@
         "blocks": [
           {
             "role": "hook",
-            "narration": "Mira que facil.",
-            "visual": "Mockup 9:16 de la app FitPass (delegar a mockup-designer; marcar [DEMO] si no hay capturas reales). Arranca SIN logo: pulgar entrando en cuadro y un tap que despierta la pantalla home con acento color lima. Micro-animacion rapida, sensacion de inmediatez. Texto en pantalla minimo o nulo: el gesto manda.",
             "tStart": 0,
-            "tEnd": 2
+            "tEnd": 3,
+            "narration": "Mirá lo simple que es entrenar donde quieras.",
+            "visual": "Apertura directa sobre el mockup 9:16 de la app FitPass: home con grilla de actividades (musculacion, yoga, boxeo, pilates, natacion) en tarjetas. Micro-animacion: las tarjetas entran en cascada con un leve scale-up. Acento lima en chips/iconos activos. SIN logo grande todavia, solo la UI hablando. >> mockup-designer: pantalla HOME / lista de actividades, recreada creible si no hay captura real, SIN nombres de gimnasios ni precios inventados (marcar como [placeholder] cualquier texto de relleno). Lower-third minimo o ninguno: que mande la pantalla."
           },
           {
             "role": "dolor",
-            "narration": "Cansado de pagar un gym que casi no usas.",
-            "visual": "Plano de contraste corto: mockup de un calendario/recordatorio de cuota mensual gris y apagado, candado de permanencia atado a un solo lugar. Paleta deliberadamente fria/neutra frente al lima que viene despues. 1 sola idea: estas atado y pagas de mas.",
-            "tStart": 2,
-            "tEnd": 5
+            "tStart": 3,
+            "tEnd": 6,
+            "narration": "Sin pagar un gym al que casi no vas.",
+            "visual": "Transicion rapida sobre el mockup: el dedo (cursor/tap fantasma) elige una actividad de la grilla y se abre el detalle de esa actividad. El tap se resalta con un pulso lima. La idea de dolor se cuenta en la voz, no en pantalla: el plano muestra la libertad de elegir cualquier disciplina. >> mockup-designer: PASO 1 - seleccion de actividad -> pantalla de detalle de actividad. Animar el tap y el push de pantalla. Datos de relleno como [placeholder]."
           },
           {
             "role": "solucion",
-            "narration": "Elegis la actividad. Reservas el turno. Haces check-in con el QR. Listo.",
-            "visual": "Nucleo demo: 3 mockups animados encadenados (delegar a mockup-designer), un paso por frase, ~3s cada uno. 1) Pantalla de seleccion de actividad: grilla de disciplinas, el dedo elige una, highlight lima. 2) Pantalla de reserva: selector de horario, tap en CONFIRMAR, micro check verde. 3) Pantalla de check-in: el QR aparece y se escanea en el lugar, pulso lima de exito. Transiciones rapidas y limpias entre pasos, lower-third numerando 1-2-3.",
-            "tStart": 5,
-            "tEnd": 14
+            "tStart": 6,
+            "tEnd": 15,
+            "narration": "Elegis la actividad. Reservas el horario que te queda bien. Y al llegar, hacés check-in con el QR.",
+            "visual": "Secuencia demo de 3 micro-planos encadenados (3s c/u), el corazon del reel:\n1) RESERVA (resaltado): pantalla de horarios disponibles; el tap fantasma selecciona un slot y aparece confirmacion 'Reserva lista' con check lima. Zoom suave al boton de reservar -> este es el momento diferencial #1, darle pop (glow lima, leve haptic-visual).\n2) puente: tarjeta de reserva confirmada con dia/hora [placeholder] y un boton 'Ver QR'.\n3) CHECK-IN QR (resaltado): pantalla del QR a pantalla completa; el QR escala/brilla y aparece tilde verde-lima 'Check-in OK'. Este es el momento diferencial #2: sostener el plano medio segundo mas y agrandar el QR. >> mockup-designer: 3 pantallas (HORARIOS/RESERVA, RESERVA CONFIRMADA, QR CHECK-IN). Resaltar reserva y QR con halo lima. Horarios y fechas = [placeholder], sin nombres de sede ni precios reales."
           },
           {
             "role": "prueba",
-            "narration": "Una sola membresia, cientos de lugares, sin permanencia.",
-            "visual": "Mockup mostrando el mapa/grilla con cientos de sedes y disciplinas dentro de la app, badge de UNA membresia mensual y un tachado sutil sobre PERMANENCIA. Refuerza el diferenciador con datos en pantalla, color lima protagonista. Sensacion de abundancia y libertad.",
-            "tStart": 14,
-            "tEnd": 18
+            "tStart": 15,
+            "tEnd": 18,
+            "narration": "Una membresía, cientos de lugares, y entrás con un QR.",
+            "visual": "Plano resumen: split o stack rapido de los 3 iconos clave (actividad / reloj-reserva / QR) sobre fondo limpio, con el QR cerrando el recorrido. Aca SI entra la marca FitPass fuerte como overlay/logo, acento lima. Texto en pantalla maximo 1 idea: 'Una membresia. Cientos de lugares.' Refuerza la prueba diferencial sin inventar la cifra exacta de sedes (mantener 'cientos', no un numero falso). >> mockup-designer: lockup de marca + tira de los 3 iconos del flujo."
           },
           {
             "role": "cta",
-            "narration": "Entrena donde quieras. Proba FitPass.",
-            "visual": "Cierre con la marca FitPass fuerte y centrada por primera vez, sobre fondo lima. CTA unico y no agresivo: boton/lower-third 'Proba FitPass'. Tono cercano, invita sin presionar. Logo + nombre claros para fijar marca al final.",
             "tStart": 18,
-            "tEnd": 20
+            "tEnd": 20,
+            "narration": "Probalo gratis la primera semana. Descargá la app.",
+            "visual": "Cierre con CTA unico y claro sobre fondo lima/marca FitPass: boton 'Descargar la app' + badge 'Primera semana gratis'. Logo FitPass centrado, acento lima. Micro-animacion: el boton pulsa una vez invitando al tap. Sin ruido: una sola accion en pantalla. >> mockup-designer/plataforma: card de CTA con store badges (placeholder si no hay links reales)."
           }
         ],
         "music": {
-          "mood": "calida y optimista con pulso ligero (upbeat friendly) — acompana sin tapar la voz, ducking -18dB bajo la narracion; subida sutil de energia en el paso 3 (check-in QR) y resolucion luminosa en el CTA. Evitar epico/agresivo: el cierre prepara la conversion desde la cercania, no desde la urgencia. Tema libre tipo Kevin MacLeod / incompetech (CC-BY), credito de 1 linea al publicar."
+          "mood": "energica-clara: pop/house instrumental ligero, BPM medio-alto (~110-120), brillante y optimista, percusion limpia que marca cada paso del demo (un 'tick' por pantalla). Ducking -18dB bajo la voz. Pico ritmico en el plano del QR (check-in) y resolucion luminosa en el CTA. Sin epica ni drama: claridad y movimiento, acorde al acento lima. Tema libre CC-BY (Kevin MacLeod/incompetech) con credito de 1 linea al publicar."
         }
       },
-      "slides": [],
-      "videoPrompts": [
+      "slides": [
         {
-          "segment": "hook",
+          "id": 1,
           "role": "hook",
           "tStart": 0,
-          "tEnd": 2,
-          "template": "B — b-roll app gesture",
-          "durationSetting": "4s (recortar a 2s en edicion)",
-          "aspectRatio": "9:16",
-          "model": "Veo 3",
-          "marcaFonetica": "N/A — sin dialogo",
-          "narrationTTS": "Mira que facil.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background the whole time, no cut. Extreme close-up of a real human thumb entering the frame from below and tapping a smartphone screen — the screen wakes up instantly to reveal a clean app home screen with a vivid lime-green accent color, bright and energetic. The display glows with clarity: a fresh dashboard, the lime highlight pops against a white background. The tap is quick and decisive, a single natural gesture. Screen content not clearly legible — no readable text on screen. Micro-animation feel: the screen activates in a snap. No spoken dialogue, no talking, ambient subtle tap sound only. No logo, no on-screen text."
+          "tEnd": 3,
+          "screen": "HOME — grilla de actividades",
+          "framing": "9:16 centrado en la grilla de cards. Sin frame de celular — pantalla llena ocupa todo el encuadre.",
+          "highlight": "Las 5 cards de disciplinas (musculacion, yoga, boxeo, pilates, natacion) en cascada scale-up.",
+          "motion": "Entrada en cascada: cada card sube con scale 0.85→1 + fade-in, separadas por 80ms. Chips/iconos activos pulsean en lima #C8FF00 al aparecer.",
+          "copy": "Elegí tu entrenamiento hoy.",
+          "taper": "Ninguno — datos de disciplinas son genericos.",
+          "design_notes": "Fondo #1A1A2E. Cards con border-radius 16px, fondo #252540, icono SVG centrado + label disciplina. Chip 'activo' en lima. Barra de navegacion inferior con icono Home resaltado en lima."
         },
         {
-          "segment": "dolor",
+          "id": 2,
           "role": "dolor",
-          "tStart": 2,
-          "tEnd": 5,
-          "template": "C — b-roll contraste frio",
-          "durationSetting": "4s (recortar a 3s en edicion)",
-          "aspectRatio": "9:16",
-          "model": "Veo 3",
-          "marcaFonetica": "N/A — sin dialogo",
-          "narrationTTS": "Cansado de pagar un gym que casi no usas.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background the whole time, no cut. Medium close-up of a smartphone screen showing a recurring monthly payment reminder — a dull gray calendar notification with the words 'Cuota gym' and a lock icon beside it, cold neutral color palette, desaturated, no bright colors, deliberately flat and oppressive mood. The notification pulses softly once, evoking inevitability: money leaving, no freedom, tied to one place. Screen content slightly blurred but readable enough to convey 'monthly charge locked to one location'. Static locked-off shot, no camera movement. No spoken dialogue, no talking, ambient faint notification ping only. No logo, no on-screen text overlay."
+          "tStart": 3,
+          "tEnd": 6,
+          "screen": "DETALLE DE ACTIVIDAD — seleccion desde grilla",
+          "framing": "9:16 — transicion push desde grilla al detalle. El detalle ocupa pantalla completa con imagen hero de la disciplina elegida en la mitad superior y datos en la inferior.",
+          "highlight": "El tap fantasma (circulo lima semitransparente, 48px) sobre la card de yoga/boxeo [placeholder] y el push-in de la pantalla de detalle.",
+          "motion": "Tap pulse: circulo lima aparece → escala 1→1.4 → desvanece en 300ms. Push de pantalla: slide desde derecha 250ms ease-out. Al llegar el detalle, el boton 'Reservar turno' (CTA lima) hace micro-bounce.",
+          "copy": "Tu disciplina, tu horario.",
+          "taper": "Nombre de sede = [placeholder]. Precio = [placeholder].",
+          "design_notes": "Mitad superior: imagen hero oscurecida al 60% con gradiente. Mitad inferior: nombre actividad en bold 28px blanco, descripcion 2 lineas gris claro, rating [placeholder], boton primario lima 'Reservar turno' full-width border-radius 12px."
         },
         {
-          "segment": "solucion-paso1",
-          "role": "solucion",
-          "tStart": 5,
-          "tEnd": 8,
-          "template": "B — b-roll mockup paso 1: elegir actividad",
-          "durationSetting": "4s (recortar a 3s en edicion)",
-          "aspectRatio": "9:16",
-          "model": "Veo 3",
-          "marcaFonetica": "N/A — sin dialogo",
-          "narrationTTS": "Elegis la actividad.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background the whole time, no cut. Medium close-up of a real human hand holding a smartphone — the screen shows a clean app grid of fitness disciplines (yoga, cycling, swimming, pilates, crossfit icons) with a lime-green highlight appearing on one selected activity as the thumb taps it. The selection highlight pulses in lime green, energetic and immediate. Screen content not clearly legible — discipline names are visible but not sharp enough to read. Lower-third area subtly suggests '1' as a step indicator. Smooth static shot, camera does not move. No spoken dialogue, no talking, ambient light tap sound only. No logo, no on-screen text overlay."
-        },
-        {
-          "segment": "solucion-paso2",
-          "role": "solucion",
-          "tStart": 8,
+          "id": 3,
+          "role": "solucion — reserva",
+          "tStart": 6,
           "tEnd": 11,
-          "template": "B — b-roll mockup paso 2: reservar turno",
-          "durationSetting": "4s (recortar a 3s en edicion)",
-          "aspectRatio": "9:16",
-          "model": "Veo 3",
-          "marcaFonetica": "N/A — sin dialogo",
-          "narrationTTS": "Reservas el turno.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background the whole time, no cut. Medium close-up of a real human thumb tapping a smartphone showing a time-slot booking screen — a clean schedule grid with available time slots, the thumb selects one and taps a prominent CONFIRMAR button. Immediately a small green checkmark micro-animation appears, confirming the reservation. Screen content not clearly legible — times are visible but not sharp enough to read. Lower-third area subtly suggests '2' as a step indicator. Smooth static shot, camera does not move. No spoken dialogue, no talking, ambient faint success chime only. No logo, no on-screen text overlay."
+          "screen": "HORARIOS DISPONIBLES → CONFIRMACION DE RESERVA",
+          "framing": "9:16 — lista de slots horarios. Tras el tap, transicion a modal de confirmacion centrado.",
+          "highlight": "El tap fantasma selecciona el slot '10:00 hs [placeholder]' → aparece glow lima alrededor del slot seleccionado → boton 'Confirmar reserva' se activa lima → modal 'Reserva lista' con check animado.",
+          "motion": "Slot tap: borde lima aparece con glow (box-shadow lima 0 0 12px) en 200ms. Boton 'Confirmar' cambia de gris a lima en 150ms. Modal slide-up desde bottom en 300ms. Check SVG se dibuja (stroke-dashoffset) en 400ms. Zoom suave 1→1.05 sobre el check durante 500ms.",
+          "copy": "Reserva lista.",
+          "taper": "Horario = [placeholder]. Fecha = [placeholder]. Nombre sede = [placeholder].",
+          "design_notes": "Lista de slots: chips horizontales con hora, estado (libre/lleno). Slot seleccionado: fondo lima #C8FF00, texto #1A1A2E. Modal de confirmacion: fondo #252540, icono check en circulo lima 64px, texto 'Reserva lista' 24px bold blanco, subtexto fecha/hora [placeholder] gris claro."
         },
         {
-          "segment": "solucion-paso3",
-          "role": "solucion",
+          "id": 4,
+          "role": "solucion — QR check-in",
           "tStart": 11,
-          "tEnd": 14,
-          "template": "B — b-roll mockup paso 3: check-in QR",
-          "durationSetting": "4s (recortar a 3s en edicion)",
-          "aspectRatio": "9:16",
-          "model": "Veo 3",
-          "marcaFonetica": "N/A — sin dialogo",
-          "narrationTTS": "Haces check-in con el QR. Listo.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background the whole time, no cut. Medium close-up of a real human hand holding a smartphone displaying a large QR code check-in screen — the QR code is prominent and clean. A scanning beam passes over it from an unseen reader just off frame, and immediately a lime-green success pulse radiates out from the screen edges, glowing with satisfaction and energy. The lime pulse feels like 'access granted', instant and joyful. Screen content: only the QR pattern visible, no readable text. Lower-third area subtly suggests '3' as a step indicator. Smooth static shot, camera does not move. No spoken dialogue, no talking, ambient soft beep of successful scan only. No logo, no on-screen text overlay."
+          "tEnd": 16,
+          "screen": "RESERVA CONFIRMADA con boton 'Ver QR' → PANTALLA QR CHECK-IN",
+          "framing": "9:16 — primero tarjeta de reserva confirmada (card centrada, 70% del alto). Tap en 'Ver QR' → pantalla QR full-screen.",
+          "highlight": "El QR ocupa 80% del ancho. Escala 0.9→1 con glow lima pulsante. Al escanear: tilde verde-lima aparece sobre el QR con texto 'Check-in OK'.",
+          "motion": "Tarjeta: fade-in 300ms. Boton 'Ver QR': tap pulse lima. Transicion a QR: fade 200ms. QR scale-up 0.9→1 en 400ms ease-out. Glow lima: pulse ciclico (opacity 0.4→0.8→0.4) cada 1.2s. Tilde SVG: stroke-dashoffset draw en 500ms. 'Check-in OK' fade-in debajo en 200ms. Sostener plano 1s extra.",
+          "copy": "Check-in OK.",
+          "taper": "QR code = generado placeholder (no QR real de usuario). Nombre usuario = [placeholder].",
+          "design_notes": "Tarjeta reserva: fondo #252540, icono calendario lima, dia/hora [placeholder], boton 'Ver QR' lima. Pantalla QR: fondo #1A1A2E, QR blanco centrado en cuadro con esquinas lima redondeadas, halo lima pulsante. Tilde: circulo lima 80px con check blanco 40px. Texto 'Check-in OK' 22px bold lima debajo del QR."
         },
         {
-          "segment": "prueba",
+          "id": 5,
+          "role": "prueba + CTA",
+          "tStart": 16,
+          "tEnd": 20,
+          "screen": "LOCKUP DE MARCA + TIRA DE 3 ICONOS + CTA",
+          "framing": "9:16 — fondo lima #C8FF00 solido. Composicion centrada vertical: logo FitPass arriba, tira de 3 iconos en el medio, boton CTA abajo.",
+          "highlight": "Boton 'Descargar la app' negro sobre lima pulsa una vez (scale 1→1.04→1) invitando al tap.",
+          "motion": "Logo FitPass: fade-in + slide-down suave 300ms. Tira de iconos: los 3 iconos (actividad / reloj-reserva / QR) entran en cascada con scale-up 80ms de separacion. Badge 'Primera semana gratis': pop-in scale 0→1 en 250ms con spring. Boton CTA: pulse unico scale 1→1.04→1 en 600ms despues de que todo aparece.",
+          "copy": "Primera semana gratis.",
+          "taper": "Store badges = placeholder (iconos App Store / Google Play sin link real).",
+          "design_notes": "Fondo lima #C8FF00. Logo FitPass en negro centrado arriba (40% del ancho). Tira de 3 iconos SVG negros: actividad (rayo/figura), reloj, QR — separados por lineas finas negras, 48px cada uno. Badge 'Primera semana gratis': pill negro, texto lima, 14px bold. Boton 'Descargar la app': fondo negro, texto blanco, border-radius 12px, full-width 80% pantalla. Store badges debajo: iconos placeholder App Store + Google Play en negro."
+        }
+      ],
+      "videoPrompts": [
+        {
+          "id": "clip_01_hook",
+          "role": "hook",
+          "tStart": 0,
+          "tEnd": 3,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s",
+            "audioGeneration": false
+          },
+          "marcaFonetica": "FitPas (fit-PAS, acento en segunda silaba)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. An ordinary real-looking Argentine woman in her late 20s, natural and relatable, not a model, athletic but everyday look, wearing casual gym clothes, sitting on a bench inside a modern gym locker room or entrance area, holding a smartphone in both hands with the screen facing the camera at a readable angle — screen not clearly legible, just bright and colorful. Her face is relaxed and curious, eyes moving slightly as if browsing. Warm natural light from the side, slight bokeh on background gym equipment. Camera performs a very slow gentle push-in toward the phone screen. No spoken dialogue, no talking; ambient gym sound only — distant weights, low music. One single continuous take, same background the whole time, no cut. No logos, no on-screen text.",
+          "editNote": "Superponer mockup HOME de FitPass (grilla de actividades) en pantalla del teléfono. Animación de tarjetas en cascada con scale-up. Narración off: 'Mirá lo simple que es entrenar donde quieras.'"
+        },
+        {
+          "id": "clip_02_dolor",
+          "role": "dolor",
+          "tStart": 3,
+          "tEnd": 6,
+          "template": "C",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s",
+            "audioGeneration": false
+          },
+          "marcaFonetica": "FitPas (fit-PAS, acento en segunda silaba)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his early 30s, natural and relatable, not a model, wearing everyday clothes, standing outside a closed gym door pulling on the handle — the door is locked, a small handwritten paper sign on the glass. His expression shifts from casual to mildly frustrated, looks at his phone, sighs. Late afternoon natural light, slightly desaturated background. No spoken dialogue, ambient street sound only — light traffic, distant footsteps. Very short 3-4 second clip, one brief moment, minimal camera motion. No logos, no on-screen text.",
+          "editNote": "Usar primeros 3s del clip. El dolor se cuenta en narración off: 'Sin pagar un gym al que casi no vas.' No agregar texto en pantalla."
+        },
+        {
+          "id": "clip_03_solucion_reserva",
+          "role": "solucion_reserva",
+          "tStart": 6,
+          "tEnd": 9,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s",
+            "audioGeneration": false
+          },
+          "marcaFonetica": "FitPas (fit-PAS, acento en segunda silaba)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance, slightly above-hand angle looking down at a smartphone held in one hand. An ordinary real-looking Argentine woman in her late 20s, natural and relatable, not a model, thumb hovering over the phone screen as if about to tap. The phone screen glows brightly but the UI is not clearly legible — just colorful cards and a bright accent color. A single soft tap gesture, the thumb lands and lifts. Her face in background is relaxed and satisfied, a subtle small smile. Warm indoor light, clean neutral background. Camera holds steady, very slight rack focus from thumb to face. No spoken dialogue, ambient indoor sound only — faint AC hum. One single continuous take, no cut. No logos, no on-screen text.",
+          "editNote": "Superponer mockup HORARIOS/RESERVA. Animar tap con pulso lima y aparicion de 'Reserva lista' con check. Glow lima en boton de reservar. Narración off: 'Elegis la actividad. Reservas el horario que te queda bien.'"
+        },
+        {
+          "id": "clip_04_solucion_qr",
+          "role": "solucion_qr",
+          "tStart": 9,
+          "tEnd": 15,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s",
+            "audioGeneration": false
+          },
+          "marcaFonetica": "FitPas (fit-PAS, acento en segunda silaba)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his late 20s, natural and relatable, not a model, athletic but everyday look, standing at a modern gym reception desk or turnstile. He holds a smartphone up toward a QR scanner mounted on a small stand — the phone screen faces the scanner, not the camera, so the UI is not visible. The scanner blinks a green light, he lowers the phone with a confident natural smile and walks forward through the turnstile. Bright clean gym interior light, slight depth-of-field. Camera performs a slow gentle pan following him as he passes the turnstile. No spoken dialogue, ambient gym sound only — beep of scanner, distant music. One single continuous take, no cut. No logos, no on-screen text.",
+          "editNote": "Usar 4-6s del clip. Superponer pantalla QR a pantalla completa en primer momento, luego match-cut al scan fisico. Sostener tilde verde-lima 'Check-in OK' medio segundo extra. Narración off: 'Y al llegar, hacés check-in con el QR.'"
+        },
+        {
+          "id": "clip_05_prueba",
           "role": "prueba",
-          "tStart": 14,
+          "tStart": 15,
           "tEnd": 18,
-          "template": "B — b-roll mapa abundancia de sedes",
-          "durationSetting": "4s",
-          "aspectRatio": "9:16",
-          "model": "Veo 3",
-          "marcaFonetica": "N/A — sin dialogo",
-          "narrationTTS": "Una sola membresia, cientos de lugares, sin permanencia.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. One single continuous take, same background the whole time, no cut. Medium close-up of a smartphone screen showing a city map densely populated with dozens of location pins in lime green — fitness venues spread abundantly across a city grid, a sense of freedom and variety. In the upper area of the screen a clean badge reads 'UNA membresía' and below it a word 'PERMANENCIA' appears with a subtle strikethrough line crossing it out. The lime-green pins fill the screen, radiating abundance and choice. Screen content not clearly legible for small text, but the map pins and the badges are visually clear. Slow gentle zoom-in on the map, pulling the viewer into the abundance. No spoken dialogue, no talking, ambient calm ambient music feel only. No logo overlay in this clip, no on-screen text beyond the in-app badges."
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s",
+            "audioGeneration": false
+          },
+          "marcaFonetica": "FitPas (fit-PAS, acento en segunda silaba)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Wide medium shot at a steady distance. A fast-cut montage feel in a single continuous take: an ordinary real-looking Argentine woman in her early 30s, natural and relatable, not a model, shown in three rapid sequential poses within the same gym space — first posture: standing near a yoga mat holding rolled mat; second: near a boxing bag with gloves; third: at a pool edge in swimwear looking at the water. Smooth seamless transitions between poses, same warm gym light throughout. Face confident and energized, no forced smiling — just calm energy. No spoken dialogue, ambient gym sound only. One single continuous take, no cut. No logos, no on-screen text.",
+          "editNote": "Cortar en 3s. Overlay de logo FitPas fuerte + texto 'Una membresia. Cientos de lugares.' Acento lima. Narración off: 'Una membresía, cientos de lugares, y entrás con un QR.'"
         },
         {
-          "segment": "cta",
+          "id": "clip_06_cta",
           "role": "cta",
           "tStart": 18,
           "tEnd": 20,
-          "template": "B — plano de marca sobre fondo lima (sin presentador)",
-          "durationSetting": "4s (recortar a 2s en edicion, o mantener 4s si el cierre lo permite)",
-          "aspectRatio": "9:16",
-          "model": "Veo 3",
-          "marcaFonetica": "Fit-Pas (pronunciacion rioplatense si se agrega TTS: /fit-PAS/)",
-          "narrationTTS": "Entrena donde quieras. Proba FitPass.",
-          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and very well-lit, smooth steady camera, high production quality, realistic. One single static shot, same background the whole time, no cut, no camera movement. A clean minimal set: solid vivid lime-green background filling the entire frame, bright and energetic. Centered in the frame, large and bold, the FitPass logo and brand name appear clearly — first time in the video the brand is shown this prominently, full center stage. Below the logo, a single clean rounded-rectangle button or lower-third card with the text 'Probá FitPass', white on a slightly darker lime or white card, friendly and non-aggressive tone. The logo and name are sharp and readable. No people, no hands, no other elements. Calm confident static energy — the brand owns the moment. No spoken dialogue, no talking, ambient minimal sound only. The logo is large, centered, unmistakable."
+          "template": "C",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "4s",
+            "audioGeneration": false
+          },
+          "marcaFonetica": "FitPas (fit-PAS, acento en segunda silaba)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Close-medium shot of two hands — ordinary real-looking hands, not manicured or model-perfect — holding a smartphone with both hands, thumbs ready to tap, screen facing camera but not clearly legible, glowing bright lime-green accent. The person is implied but not shown from the face up. The thumbs tap the screen once with a light confident gesture. Background is clean white or very light gray, minimal. Soft diffused light, no harsh shadows. No spoken dialogue, no talking; ambient silence with a faint soft click of the tap. Very short 3-4 second clip, one brief moment, camera holds perfectly steady. No logos, no on-screen text.",
+          "editNote": "Superponer fondo lima/marca FitPas sobre el plano. Boton 'Descargar la app' + badge 'Primera semana gratis'. Logo FitPas centrado. Micro-animacion de pulso en el boton. Narración off: 'Probalo gratis la primera semana. Descargá la app.'"
         }
       ],
       "narration": {
         "mode": "tts",
-        "text": "Mira que facil. Cansado de pagar un gym que casi no usas. Elegis la actividad. Reservas el turno. Haces check-in con el QR. Listo. Una sola membresia, cientos de lugares, sin permanencia. Entrena donde quieras. Proba FitPass."
+        "text": "Mirá lo simple que es entrenar donde quieras. Sin pagar un gym al que casi no vas. Elegis la actividad. Reservas el horario que te queda bien. Y al llegar, hacés check-in con el QR. Una membresía, cientos de lugares, y entrás con un QR. Probalo gratis la primera semana. Descargá la app."
       },
       "publish": {
-        "hookOnScreen": "Mira que facil de usar",
-        "caption": "Pagar un gym que casi no usas no tiene sentido. FitPass te da acceso a cientos de lugares con una sola membresia y sin permanencia. Elegis, reservas, haces check-in. Proba gratis.",
+        "hookOnScreen": "Entrenás donde quieras, cuando quieras",
+        "caption": "Una membresía, cientos de lugares para entrenar. Sin atarte a un solo gym. Reservás, vas, hacés check-in con QR. Primera semana gratis — descargá FitPass.",
         "hashtags": [
           "#FitPass",
-          "#GymFlexible",
           "#EntrenamientoLibre",
+          "#GymApp",
           "#Fitness",
-          "#SinPermanencia"
+          "#VidaActiva"
         ],
-        "cta": "Link en bio para probar FitPass sin compromiso."
+        "cta": "Link en bio para descargar la app y activar la semana gratis."
       },
       "qa": {
-        "score": 26,
-        "verdict": "AJUSTAR",
+        "score": 41,
+        "verdict": "LISTO PARA PRODUCIR",
         "issues": [
           {
-            "severity": "CRITICAL",
-            "note": "Gancho 0-2s sin stakes: 'Mira que facil de usar' / 'Mira que facil' promete sobre la interfaz, no sobre el dolor del espectador. No frena el scroll porque no comunica que algo le esta costando plata/tiempo. El dolor real ('pagar un gym que casi no usas') aparece recien en 2-5s, despues de la ventana de decision."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "Visual de los primeros 2s es un mockup de UI generico (pulgar entrando + tap + home con acento lima). Es uno de los planos mas salteables del feed: parece publicidad de cualquier app, sin contraste ni tension humana. Doble fallo: sin tension verbal y sin tension visual en la misma ventana."
+            "severity": "HIGH",
+            "note": "CLARIDAD SIN SONIDO (eje 3, 3/5): el mensaje vive casi todo en la narración (dolor, beneficio y los 3 pasos van por voz). En pantalla los pasos RESERVA y CHECK-IN QR no tienen labels. Muteado se ve 'alguien tocando una app' pero no se lee el flujo. FIX: agregar microcopy de 1 idea por plano sincronizado a la voz — t6-9 'Reservás tu horario', t9-12 'Confirmado', t12-15 'Check-in con QR'. Sube claridad sin romper la regla de ≤1 idea por plano."
           },
           {
             "severity": "HIGH",
-            "note": "El gancho correcto ya esta escrito pero en el lugar equivocado: 'Cansado de pagar un gym que casi no usas' (seg 2-5) es dolor real, en lenguaje del target y con contraste. Debe subir a 0-2s."
-          },
-          {
-            "severity": "HIGH",
-            "note": "hookOnScreen ('Mira que facil de usar') y narration ('Mira que facil') son redundantes y ninguno aporta dolor; queman los 2 segundos mas valiosos con relleno. Deben decir cosas distintas y complementarias (texto sin sonido + voz)."
+            "note": "MARCA FONÉTICA AUSENTE para TTS/Veo (eje 9, 3/5): el guion tiene narración pero nunca define cómo pronunciar 'FitPass'. Un TTS rioplatense puede leerlo anglo o mal acentuado. FIX: especificar marca fonética en cada narración que la nombre y en el CTA, ej. 'Fitpás' (o 'Fit-Pás'), y agregar nota de pronunciación al render. Es el único hueco técnico de producción real."
           },
           {
             "severity": "MEDIUM",
-            "note": "El acento color lima es coherencia de marca pero no es un mecanismo de retencion; no compensa la ausencia de gancho verbal o situacional en la apertura."
+            "note": "GANCHO TIBIO / DOLOR ENTERRADO (ejes 1 y 4): 'Mirá lo simple que es entrenar donde quieras' abre con beneficio suave, no con fricción. El dolor real ('un gym al que casi no vas') recién aparece en t3, solo en voz, una línea. FIX: arrancar t0 con el dolor en contraste — narración 'Pagás un gym al que casi no vas.' + hookOnScreen 'El gym que pagás y no usás'. Mover el beneficio a t3. El dolor frena más scroll que el beneficio."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "PRUEBA VAGA (eje 6, 3/5): 'cientos de lugares' es la única prueba y es difusa. La decisión de NO inventar la cifra exacta es correcta y se respeta. FIX: si existe un dato real (nº de sedes verificable, rating de la store, reservas/mes), usarlo en t15-18; si no existe, dejar 'cientos' tal cual — no rellenar con número falso."
           },
           {
             "severity": "LOW",
-            "note": "Faltan tildes y voseo en el hook ('Mira'->'Mira'/'Mira'). Para TTS rioplatense conviene 'Mira' (voseo) para reforzar target; menor pero suma identificacion."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "NO se entiende sin sonido (eje claridad). El guion dice 'Texto en pantalla minimo o nulo: el gesto manda' en el hook, y en los 3 pasos solo pone un lower-third '1-2-3' SIN las palabras Elegi/Reserva/Check-in. El ~85% de reels se ven muteados: asi la pieza es un carrusel de mockups lindos sin mensaje. La narracion carga el 100% del significado. FIX: poner texto on-screen sincronizado por plano -> Hook: 'Pagas un gym que casi no usas?'; pasos: 'Elegi' / 'Reserva' / 'Check-in con QR'; prueba: 'Una membresia. Sin permanencia.'"
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "DOS ideas compiten, no una (eje una-sola-idea). El bloque solucion (9s, casi medio reel: elegis/reservas/check-in) vende USABILIDAD ('que facil'), mientras el plano prueba vende ACCESO/LIBERTAD ('cientos de lugares, sin permanencia'). El espectador sale sin saber si FitPass es 'una app comoda' o 'gym sin ataduras'. FIX: elegir UNA. Si el diferenciador es 'sin permanencia / cientos de lugares con una membresia', subordinar el flujo de 3 pasos a 1 plano corto y dedicar el reel a la libertad. El how-to de 9s es lo que dispersa."
-          },
-          {
-            "severity": "HIGH",
-            "note": "El gancho 0-2s no frena el scroll: 'Mira que facil' es generico (sirve para cualquier app) y NO arranca con dolor/contraste. El dolor real ('cansado de pagar un gym que casi no usas') recien aparece en 2-5s, tarde. FIX: mover el dolor al segundo 0. Abrir con 'Pagas un gym que casi no usas?' sobre el calendario gris de cuota, y recien despues mostrar la solucion."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Prueba floja: 'cientos de lugares / cientos de sedes' es un claim vago, no un dato concreto verificable. No lo inventes, pero la pieza no deberia apoyar el diferenciador en un numero impreciso. FIX: si hay cifra real (ej. '350 sedes') usarla; si no, bajar a algo demostrable en pantalla (el mapa lleno de pins) sin pretender que es prueba dura."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Marca sin guia fonetica para TTS/Veo. 'FitPass' queda en ingles crudo: un TTS rioplatense puede leerlo 'fit-pass', 'fitpas' o anglo inconsistente entre el hook y el CTA. FIX: definir marca fonetica (ej. 'Fitpas') en narration, igual que el patron Munifai."
+            "note": "INCONSISTENCIA DE CANAL EN CTA: el guion cierra con 'Descargá la app' + store badges, pero el campo cta de la publicación dice 'Link en bio'. Mezcla dos rutas. FIX: unificar — si hay deep link/store, decir 'Descargá FitPás' en ambos; si el destino real es bio, quitar los badges del plano de cierre para no prometer dos caminos."
           },
           {
             "severity": "LOW",
-            "note": "Inconsistencia hook vs publicacion: el guion del hook pide texto 'minimo o nulo', pero hookOnScreen del post dice 'Mira que facil de usar'. Definir uno solo (y deberia ser el texto-dolor del fix CRITICAL, no 'que facil'). Ademas 9s para 3 pasos esta en el limite alto de ritmo: con transiciones puede sentirse lento; bajar a ~2-2.5s por paso."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "Gancho debil: el hook (0-2s) abre con 'Mira que facil' + 'Mira que facil de usar' on-screen, una promesa vacia que no frena el scroll. El dolor real ('pagas un gym que casi no usas') ya existe en el plano 2 (2-5s) pero llega tarde. FIX: subir el dolor al segundo 0. Hook on-screen: 'Pagas un gym que casi no usas.' y narracion arrancando por el dolor/contraste, no por la promesa generica."
-          },
-          {
-            "severity": "CRITICAL",
-            "note": "Bloque solucion (5-14s) es un unico tEnd de 9s para 3 acciones distintas (elegis / reservas / check-in). Tal como esta en el guion es UN plano largo: riesgo de plano muerto y de romper la regla 2-4s. FIX: partirlo explicitamente en 3 planos encadenados de ~3s cada uno con corte duro entre pasos (5-8 / 8-11 / 11-14), un mockup por frase, lower-third 1-2-3 ya previsto."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Marca sin grafia fonetica para TTS/Veo: 'FitPass' aparece en narracion (plano cta) sin forma fonetica, un TTS rioplatense puede leerla mal. FIX: en la narracion usar 'Fitpas' (fonetico) y dejar 'FitPass' solo en el texto/logo en pantalla. El logo recien en el CTA esta bien."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Prompt de Veo/Flow incompleto: el 9:16 solo aparece en el texto del visual, no pedido al selector; no declara Veo 3; en los planos hablados falta Rioplatense + voseo explicito y 'only once / no repeat' para evitar que el TTS repita o cambie de acento. FIX: agregar 9:16 al selector, Veo 3, y por cada narracion marcar idioma rioplatense + only once / no repeat."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Prueba floja: 'cientos de lugares' / 'cientos de sedes' es claim vago, no dato verificable. No hay numero concreto ni justificacion de su ausencia. FIX: usar el numero real (X sedes / Y disciplinas) si existe; si no existe, NO inventarlo y apoyar la prueba solo en 'sin permanencia / una sola membresia', que si es verificable. No rellenar con un numero falso."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Claridad sin sonido en riesgo: el hook on-screen 'Mira que facil de usar' no comunica el QUE del producto y no coincide con la narracion 'Mira que facil'. El reel se entiende solo si suena el audio del bloque solucion. FIX: unificar hook on-screen con la narracion y reforzar el bloque solucion con micro-texto por paso (Elegis / Reservas / Check-in) ademas del 1-2-3."
-          },
-          {
-            "severity": "LOW",
-            "note": "Narracion sin tildes ('facil','usas','Reservas','Haces','Proba'): no afecta lo visual pero degrada la entonacion del TTS. FIX: tildar para que Veo lea con prosodia correcta. Punto antes del remate en el cierre: 'Entrena donde quieras. Proba Fitpas.' ya cumple."
+            "note": "PULIDO DE PLANOS (eje 5, ya 5/5): el momento diferencial #2 (QR check-in) está bien priorizado con 'sostener medio segundo más', pero compite con la prueba en t15-18 que vuelve a mostrar el QR. FIX opcional: que el plano de prueba use el ICONO del QR (no la pantalla full otra vez) para no repetir el mismo asset dos veces seguidas y mantener variedad visual."
           }
         ]
       }
@@ -1040,8 +1051,8 @@
     {
       "id": "conv-01",
       "objective": "conversion",
-      "angle": "FOMO / oferta",
-      "format": "reel 9:16 talking head + mockup app + CTA en pantalla",
+      "angle": "FOMO / oferta (CTA único)",
+      "format": "reel 9:16 — talking head a cámara directo + cierre con mockup de descarga",
       "platforms": [
         "Instagram Reels",
         "TikTok"
@@ -1051,195 +1062,262 @@
         "blocks": [
           {
             "role": "hook",
+            "narration": "Primera semana gratis. Una membresía, cientos de gimnasios y estudios, sin permanencia.",
+            "visual": "Talking head a cámara, plano medio energico. Fondo lima dominante con textura sutil. Presentador/a directo al lente, sonrisa de arranque. SIN logo todavia. Lower-third minimo: 'Semana gratis' en lima sobre negro.",
             "tStart": 0,
-            "tEnd": 2.5,
-            "narration": "Una membresia. Cientos de lugares.",
-            "visual": "Talking head: presentador energico arranca a camara, plano medio 9:16, fondo con bloque de color lima dominante. Sin logo todavia. Corte rapido sincronizado con cada frase. Lower-third minimo: 'Una membresia, cientos de lugares'."
+            "tEnd": 4
           },
           {
             "role": "dolor",
-            "tStart": 2.5,
-            "tEnd": 5,
-            "narration": "Cansado de pagar un gym al que no vas.",
-            "visual": "Mantiene talking head, presentador baja el tono (empatia), gesto de 'estas atado'. Overlay sutil tachando un icono SVG de candado/contrato. Acento lima en el detalle, fondo neutro para que respire el dolor."
+            "narration": "Basta de pagar un gym al que casi no vas, atado a un solo lugar y horario.",
+            "visual": "Mismo presentador, gesto de hartazgo (mano que descarta). Corte rapido a inserto: un solo gym vacio / candado en la puerta como contraste del 'atado a un lugar'. Vuelta a camara.",
+            "tStart": 4,
+            "tEnd": 7
           },
           {
             "role": "solucion",
-            "tStart": 5,
-            "tEnd": 9,
-            "narration": "Con FitPass elegis actividad, reservas y hacés check-in con QR.",
-            "visual": "Split: presentador a un lado, mockup app FitPass 9:16 al otro. Pantalla recorre eleccion de actividad -> reserva -> check-in QR (tres micro-pantallas en 4s). Mockup con frame de telefono, micro-animacion de tap. Marca FitPass aparece sutil en la barra de la app (primer guino de marca)."
+            "narration": "Con FitPass entrenas como quieras: musculacion hoy, boxeo manana, yoga el finde. Una app, una cuota, un QR.",
+            "visual": "Talking head intercalado con tres flashes rapidos (1s c/u): musculacion, boxeo, yoga. Overlay de iconos SVG lima por disciplina. En 'un QR', inserto de un check-in con celular y codigo QR. Ritmo en aumento.",
+            "tStart": 7,
+            "tEnd": 12
           },
           {
             "role": "prueba",
-            "tStart": 9,
-            "tEnd": 12,
-            "narration": "Sin permanencia. Y tu primera semana es gratis.",
-            "visual": "Vuelve a full talking head, presentador sube energia y urgencia suave. Texto en pantalla grande sobre fondo lima: 'PRIMERA SEMANA GRATIS'. Debajo, etiqueta SVG: 'sin permanencia'. Nada de precios ni cifras inventadas: solo la oferta declarada."
+            "narration": "Cientos de lugares en CABA y GBA. Reservas, haces check-in y listo.",
+            "visual": "Mapa estilizado CABA + GBA con puntos lima encendiendose (cientos de sedes). Dato grande en pantalla: 'cientos de sedes'. Vuelta breve a presentador asintiendo, confianza.",
+            "tStart": 12,
+            "tEnd": 15
           },
           {
             "role": "cta",
-            "tStart": 12,
-            "tEnd": 15,
-            "narration": "Descargá FitPass y arrancá esta semana.",
-            "visual": "Mockup de la pantalla de descarga/registro de FitPass centrado, logo FitPass fuerte por primera vez, color lima dominante. CTA en pantalla: boton 'Descargar FitPass' + microcopy 'arranca hoy'. Cierre con badge de stores (icono SVG). Presentador senala el boton (gesto a camara)."
+            "narration": "Descarga FitPass y arranca esta semana. Si no te convence, te das de baja cuando quieras: no hay permanencia.",
+            "visual": "Cierre con MOCKUP de descarga: pantalla del telefono con la app FitPass y boton/badge de store (App Store / Google Play) bien visible, latido sutil del boton. Logo FitPass fuerte por primera vez. CTA unico en lima: 'Descarga la app'. Microcopy abajo: 'Sin permanencia · Baja cuando quieras'.",
+            "tStart": 15,
+            "tEnd": 18
           }
         ],
         "music": {
-          "mood": "Energica y up-tempo con beat de cierre — pulso de accion que sube en la prueba y resuelve en el CTA, urgencia suave (no agresiva). Ducking -18dB bajo la voz. Sugerencia libre CC-BY: Kevin MacLeod 'Itty Bitty 8 Bit' o 'Local Forecast - Elevator' (electro/pop ligero), credito de 1 linea al publicar."
+          "mood": "Enérgica y directa, percusión motivadora con beat marcado (gym/entrenamiento) que sube hacia el CTA; ducking -18dB bajo la voz, golpe de cierre en el mockup de descarga. Referencia libre CC-BY tipo Kevin MacLeod 'Hep Cats' / 'Itty Bitty' (upbeat). Crédito de 1 línea al publicar."
         }
       },
       "slides": [],
       "videoPrompts": [
         {
-          "scene": "hook",
+          "id": "A-1",
+          "block": "hook",
+          "tStart": 0,
+          "tEnd": 4,
           "template": "A",
-          "durationSeconds": 8,
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
-            "durationSelector": "8s"
+            "duration": "8s"
           },
-          "phoneticBrand": "Fit-Pass",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his early 30s, natural and relatable, not a model, with short dark hair, casual athletic t-shirt, standing in front of a solid lime-green background. The camera performs a smooth dolly-out that starts at a medium shot from the waist up — not a close-up — and steadily pulls back to a wide full-body shot revealing the full lime-green background behind him. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Una membresía. ¡Cientos de lugares!\" He delivers \"Una membresía\" calmly and confidently, pauses for a beat, then exclaims \"¡Cientos de lugares!\" with euphoric, excited, high-energy delivery — voice rising while the face lights up in perfect sync. After speaking, stays quiet smiling until the end. Natural lip-sync, no on-screen text, no logos.",
-          "editingNote": "Agregar lower-third 'Una membresia, cientos de lugares' en edicion. Sin logo todavia."
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine woman in her late twenties, natural and relatable, not a model, with dark medium hair and a bright fitted gym top, standing in front of a clean lime-green wall with a subtle geometric texture. The camera starts at a medium shot from the waist up — not a close-up — and holds steady. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"La primera semana es gratis. Una membresía, cientos de gimnasios y estudios. Sin permanencia.\" She delivers the whole sentence calmly, confidently, with a warm energetic smile directly at lens. After speaking, holds the smile until the end. Natural lip-sync, no on-screen text. No logos.",
+          "phoneticBrand": "FitPas"
         },
         {
-          "scene": "dolor",
+          "id": "A-2",
+          "block": "dolor",
+          "tStart": 4,
+          "tEnd": 7,
           "template": "A",
-          "durationSeconds": 8,
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
-            "durationSelector": "8s"
+            "duration": "8s"
           },
-          "phoneticBrand": "Fit-Pass",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his early 30s, natural and relatable, not a model, with short dark hair, casual athletic t-shirt, standing against a neutral light-grey background. Camera holds at a steady medium shot from the waist up, no dolly. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Cansado de pagar un gym al que no vas.\" He delivers the line with a low, empathetic tone — slightly slumped shoulders, a knowing half-smile, a subtle shrug gesture as if saying 'you know how it is'. After speaking, holds the empathetic expression quietly until the end. Natural lip-sync, no on-screen text, no logos.",
-          "editingNote": "Overlay sutil en edicion: icono SVG de candado/contrato tachado. Acento lima en el detalle. Fondo neutro del video ya acomoda el respiro visual."
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine woman in her late twenties, natural and relatable, not a model, with dark medium hair and a bright fitted gym top, same lime-green wall background as before. Medium shot from the waist up. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Basta de pagar un gym al que casi no vas, atado a un solo lugar y horario.\" She delivers this with a frustrated, dismissive tone, shaking her head slightly, then makes a firm hand gesture pushing the idea away. After speaking, pauses with a knowing look until the end. Natural lip-sync, no on-screen text. No logos.",
+          "phoneticBrand": "FitPas"
         },
         {
-          "scene": "solucion",
-          "template": "A",
-          "durationSeconds": 8,
+          "id": "C-2",
+          "block": "dolor",
+          "tStart": 4,
+          "tEnd": 7,
+          "template": "C",
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
-            "durationSelector": "8s"
+            "duration": "8s"
           },
-          "phoneticBrand": "Fit-Pass",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his early 30s, natural and relatable, not a model, with short dark hair, casual athletic t-shirt, standing to the LEFT side of frame against a clean white background, leaving the RIGHT half of frame empty for a graphic overlay. Camera holds at a steady medium shot from the waist up, no close-up, no dolly. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Con Fit-Pass elegís actividad, reservás, y hacés check-in con QR.\" He delivers the line with clear, upbeat, solution-energy — pointing slightly to the right side of frame with his hand as if presenting the app. After speaking, stays turned slightly toward the right, smiling, until the end. Natural lip-sync, no on-screen text, no logos. No smartphone or app visible in the video — the right half of frame stays clean for a post-production graphic insert.",
-          "editingNote": "Split app/presentador armado en edicion. El video de Veo entrega solo al presentador con lado derecho limpio. Mockup de app FitPass (tres micro-pantallas: eleccion -> reserva -> QR) se superpone en post con micro-animacion de tap. Logo FitPass sutil en barra de la app mockup."
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. Interior of an empty, dimly lit gym — unused equipment, a padlock visible on a locker in the background — shot with a slightly cold, desaturated color grade to feel lonely and abandoned. No people. No spoken dialogue, no talking, ambient silence with faint AC hum only. One single continuous take, no cut. 3–4 second clip, minimal camera motion, slight slow push-in toward the padlock. No logos.",
+          "phoneticBrand": "FitPas"
         },
         {
-          "scene": "prueba",
+          "id": "A-3",
+          "block": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
           "template": "A",
-          "durationSeconds": 8,
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
-            "durationSelector": "8s"
+            "duration": "8s"
           },
-          "phoneticBrand": "Fit-Pass",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his early 30s, natural and relatable, not a model, with short dark hair, casual athletic t-shirt, standing in front of a solid lime-green background. Camera holds at a steady medium shot from the waist up, no dolly. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Sin permanencia. ¡Y tu primera semana es gratis!\" He delivers \"Sin permanencia\" with calm, assertive confidence, pauses for a beat, then exclaims \"¡Y tu primera semana es gratis!\" with euphoric, excited, high-energy delivery — voice rising sharply, eyes wide, big open smile, hands open toward camera in perfect sync. After speaking, holds the excited open expression smiling until the end. Natural lip-sync, no on-screen text, no logos.",
-          "editingNote": "Texto superpuesto en edicion: 'PRIMERA SEMANA GRATIS' grande sobre fondo lima. Etiqueta SVG 'sin permanencia' debajo. Sin precios ni cifras inventadas."
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine woman in her late twenties, natural and relatable, not a model, with dark medium hair and bright gym top, same lime-green wall. Camera performs a smooth dolly-out starting at a medium shot from the waist up and steadily pulling back to a wide full-body shot. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Con FitPas entrenás como querés: musculación hoy, boxeo mañana, yoga el finde. Una app, una cuota. ¡Un QR!\" She delivers the first part with growing enthusiasm, pauses briefly before the remate, then exclaims \"¡Un QR!\" with euphoric, high-energy delivery — voice rising, face lighting up in perfect sync, raising one finger. After speaking, stays smiling until the end. Natural lip-sync, no on-screen text. No logos.",
+          "phoneticBrand": "FitPas"
         },
         {
-          "scene": "cta",
-          "template": "A",
-          "durationSeconds": 8,
+          "id": "B-3a",
+          "block": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
           "settings": {
             "model": "Veo 3",
             "aspectRatio": "9:16",
-            "durationSelector": "8s"
+            "duration": "8s"
           },
-          "phoneticBrand": "Fit-Pass",
-          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his early 30s, natural and relatable, not a model, with short dark hair, casual athletic t-shirt, standing in front of a solid lime-green background. Camera performs a slow smooth zoom-in that starts as a wide medium shot and ends slightly tighter on the upper body, closing the energy of the reel. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Descargá Fit-Pass y arrancá esta semana.\" He delivers the line with warm, direct, inviting energy — at the end of the line he extends one arm and points toward the camera with confident enthusiasm, as if pointing at a download button just below frame. After speaking, holds the pointing gesture with a big smile until the end. Natural lip-sync, no on-screen text, no logos.",
-          "editingNote": "Logo FitPass fuerte + boton 'Descargar FitPass' + microcopy 'arranca hoy' + badges de stores (SVG) superpuestos en edicion sobre el fondo lima. El video de Veo entrega al presentador limpio."
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp, well-lit warm gym lighting, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking young Argentine man lifting dumbbells at a well-equipped gym, natural effort on his face, not a fitness model. Warm amber lighting, modern gym environment. No spoken dialogue, no talking, ambient gym sound only — light clinking metal. One single continuous take, no cut. 3–4 second clip, camera very slightly pans right. No logos.",
+          "phoneticBrand": "FitPas"
+        },
+        {
+          "id": "B-3b",
+          "block": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp, well-lit, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking young Argentine woman throwing punches at a punching bag in a boxing studio, wraps on her hands, determined expression, not a model. Moody side-lit environment with dark background. No spoken dialogue, ambient boxing gym sound only — bag impacts, light breath. One single continuous take, no cut. 3–4 second clip. No logos.",
+          "phoneticBrand": "FitPas"
+        },
+        {
+          "id": "B-3c",
+          "block": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp, soft natural light, high production quality, realistic. Medium shot at a steady medium distance. A small group of ordinary real-looking people on yoga mats in a bright airy studio, mid-pose, calm and focused, not models. Soft morning light from side windows. No spoken dialogue, ambient sound only — faint breath, stillness. One single continuous take, no cut. 3–4 second clip, camera completely still. No logos.",
+          "phoneticBrand": "FitPas"
+        },
+        {
+          "id": "B-3d",
+          "block": "solucion",
+          "tStart": 7,
+          "tEnd": 12,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp, well-lit, high production quality, realistic. Close-medium shot of a real person's hands holding a smartphone showing a QR code on screen — screen not clearly legible, just the QR shape visible. A gym scanner or turnstile in the background. Quick check-in moment, natural and fluid. No spoken dialogue, ambient sound only — soft beep of the scanner. One single continuous take, no cut. 3–4 second clip. No logos.",
+          "phoneticBrand": "FitPas"
+        },
+        {
+          "id": "B-4",
+          "block": "prueba",
+          "tStart": 12,
+          "tEnd": 15,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp, well-lit, high production quality, realistic. Top-down stylized map view of Buenos Aires and Greater Buenos Aires (CABA and GBA), rendered as a clean modern city map with lime-green glowing dots appearing one by one across the metropolitan area — hundreds of points lighting up progressively. The map fills the vertical frame, no people visible. No spoken dialogue, no talking, ambient electronic hum only. One single continuous take, no cut. 7–8 second clip, slow gentle zoom into CABA center as the dots continue to appear. No logos. No on-screen text.",
+          "phoneticBrand": "FitPas"
+        },
+        {
+          "id": "A-4",
+          "block": "prueba",
+          "tStart": 12,
+          "tEnd": 15,
+          "template": "A",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine woman in her late twenties, natural and relatable, not a model, with dark medium hair and gym top, same lime-green wall. Medium shot from the waist up. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Cientos de lugares en CABA y Gran Buenos Aires. Reservás, hacés check-in y listo.\" She delivers this with calm, assured confidence, nodding gently on \"y listo\", holding direct eye contact with the lens. After speaking, stays smiling with a slight nod until the end. Natural lip-sync, no on-screen text. No logos.",
+          "phoneticBrand": "FitPas"
+        },
+        {
+          "id": "A-5",
+          "block": "cta",
+          "tStart": 15,
+          "tEnd": 18,
+          "template": "A",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine woman in her late twenties, natural and relatable, not a model, with dark medium hair and gym top, lime-green wall behind. Medium shot from the waist up. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Descargá FitPas y arrancá esta semana. Si no te convence, te das de baja cuando querés: no hay permanencia.\" She delivers the first sentence with genuine excitement and energy, then the second with a warm, reassuring smile — voice softening slightly on \"no hay permanencia\", making it feel like a friendly guarantee. After speaking, stays smiling at lens until the end. Natural lip-sync, no on-screen text. No logos.",
+          "phoneticBrand": "FitPas"
+        },
+        {
+          "id": "B-5",
+          "block": "cta",
+          "tStart": 15,
+          "tEnd": 18,
+          "template": "B",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp, well-lit product-style lighting, high production quality, realistic. Medium close-up of a real smartphone held in a natural hand against a clean lime-green background. The phone screen shows a mobile app store download page — app icon and download button clearly visible as shapes, screen not clearly legible beyond the general layout. The download button pulses with a very subtle glow every two seconds. No spoken dialogue, no talking, ambient silence only. One single continuous take, no cut. 7–8 second clip, camera completely still, very slight shallow depth of field. No logos.",
+          "phoneticBrand": "FitPas"
         }
       ],
       "narration": {
         "mode": "tts",
-        "text": "Una membresia. Cientos de lugares. Cansado de pagar un gym al que no vas. Con FitPass elegis actividad, reservas y hacés check-in con QR. Sin permanencia. Y tu primera semana es gratis. Descargá FitPass y arrancá esta semana."
+        "text": "Primera semana gratis. Una membresía, cientos de gimnasios y estudios, sin permanencia. Basta de pagar un gym al que casi no vas, atado a un solo lugar y horario. Con FitPass entrenas como quieras: musculacion hoy, boxeo manana, yoga el finde. Una app, una cuota, un QR. Cientos de lugares en CABA y GBA. Reservas, haces check-in y listo. Descarga FitPass y arranca esta semana. Si no te convence, te das de baja cuando quieras: no hay permanencia."
       },
       "publish": {
-        "hookOnScreen": "Una membresia. Cientos de lugares.",
-        "caption": "Pagar un gym al que no vas no tiene sentido. Con FitPass elegis donde entrenار, reservas y hacés check-in con QR. Primera semana gratis, sin permanencia. Descargalo ahora.",
+        "hookOnScreen": "Semana gratis, sin permanencia",
+        "caption": "Una membresía, cientos de gimnasios. Musculacion, boxeo, yoga, lo que quieras, cuando quieras. Sin atarte a un solo lugar. Descarga FitPass y arranca esta semana.",
         "hashtags": [
           "#FitPass",
-          "#GymFlex",
+          "#GimnasioSinPermamencia",
           "#EntrenamientoLibre",
-          "#FitnessArgentina",
-          "#SinPermanencia"
+          "#FitnessCABA",
+          "#DescargaYaFitPass"
         ],
-        "cta": "Link en bio para descargar FitPass y activar tu semana gratis."
+        "cta": "Link en bio para descargar la app. Sin permanencia, baja cuando quieras."
       },
       "qa": {
-        "score": 26,
+        "score": 39,
         "verdict": "AJUSTAR",
         "issues": [
           {
-            "severity": "HIGH",
-            "note": "El gancho (0-2.5s) abre con feature/oferta ('Una membresia. Cientos de lugares.') en vez del dolor. La linea mas filosa y que mas frena scroll ('Cansado de pagar un gym al que no vas') esta enterrada en el beat 2.5-5s. Swapear: subir el dolor al frame 0."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "hookOnScreen replica literal la narracion del hook, no aporta tension ni dato extra. En mute el primer frame de texto describe el plan en vez de doler. Cambiarlo a 'Pagas un gym al que no vas' en tipografia grande sobre el lima."
-          },
-          {
-            "severity": "LOW",
-            "note": "Talking-head 'energico a camara' es patron de interrupcion valido pero generico; el bloque de color lima es lo que realmente diferencia en el frame 0. Apoyarse mas en el contraste cromatico/tipografico y mover el gesto de 'estas atado' + icono candado tachado al frame 0-1s."
-          },
-          {
             "severity": "CRITICAL",
-            "note": "FALLA DE UNA SOLA IDEA - el reel pelea contra si mismo. El hook vende 'acceso a muchos lugares' (Una membresia. Cientos de lugares.) pero el dolor, la solucion y la caption se reposicionan en 'el gym al que no vas'. Son DOS promesas distintas: (a) marketplace/variedad de lugares vs (b) flexibilidad sin permanencia de UN gym. El espectador no sabe si FitPass es un pase multi-club o un gym sin contrato. Hay que elegir UNA. Fix: si la idea es variedad, el dolor debe ser 'pagas un gym fijo y te aburris / no podes cambiar', no 'pagas un gym al que no vas'. Si la idea es flexibilidad, cambia el hook a 'Entrena cuando quieras, sin contrato.' y olvidate de 'cientos de lugares'."
+            "note": "Inconsistencia de duracion: la pieza se declara 15s pero los segmentos suman 18s (hook 0-4, dolor 4-7, solucion 7-12, prueba 12-15, cta 15-18). El slot 'prueba' (12-15) y el 'cta' (15-18) se pisan/desfasan respecto al total. FIX: decidir 15s reales recomprimiendo (hook 0-3, dolor 3-6, solucion 6-10, prueba 10-12, cta 12-15) o re-rotular la pieza como 18s. El timeline/render va a fallar con el desajuste actual."
           },
           {
             "severity": "HIGH",
-            "note": "CLARIDAD SIN SONIDO - el plano solucion (5-9s) mete TRES micro-pantallas (elegir actividad -> reservar -> check-in QR) en 4 segundos dentro de un split con talking head al lado. Sin audio, nadie lee/procesa 3 transiciones de UI en ~1.3s cada una compitiendo con un presentador. El texto on-screen ahi no existe: la unica forma de entender el flujo es la narracion, que es justo lo que NO tenemos sin sonido. Fix: una sola micro-pantalla dominante (el check-in QR, que es lo mas visual y diferencial) con un lower-third de 1 idea: 'Reserva y entra con QR'."
+            "note": "Prueba floja (eje 6 = 2/5): 'cientos de lugares' / 'cientos de sedes' es claim vago, no dato concreto. El mapa con puntos es decorativo, no probatorio. FIX: usar el numero real (ej. '+320 sedes en CABA y GBA' o 'mas de 50.000 socios') con el dato en pantalla grande. Si NO se tiene el numero real, no rellenar con 'cientos': cambiar el angulo de prueba a algo verificable (ej. 'reserva en 10 seg' mostrado en tiempo real, o testimonio). No inventar el numero."
           },
           {
             "severity": "HIGH",
-            "note": "CLARIDAD SIN SONIDO - el HOOK on-screen funciona ('Una membresia, cientos de lugares' como lower-third), pero a partir del dolor el guion se apoya en narracion para todo. El dolor (2.5-5s) solo tiene un icono de candado tachado: sin texto, 'cansado de pagar un gym al que no vas' no se lee, se escucha. El lower-third minimo del hook desaparece justo cuando el mensaje se vuelve mas verbal. Fix: cada plano necesita su frase ancla en pantalla. Dolor: 'Pagas un gym que no usas'. Asi el reel se entiende mudo de punta a punta."
+            "note": "Falta especificacion 9:16 explicita: ni el guion ni la publicacion piden formato vertical 9:16. Para reel/Veo el 9:16 debe pedirse al selector, no asumirse. FIX: agregar '9:16 vertical' explicito en el setup de la pieza."
           },
           {
             "severity": "MEDIUM",
-            "note": "CLARIDAD - el hook 'cientos de lugares' nunca se MUESTRA. Se afirma con texto pero el visual es talking head sobre bloque lima: no hay ni un plano de lugares/variedad. Sin sonido y sin imagen que respalde la promesa, 'cientos de lugares' es una etiqueta vacia. Si esa es la idea elegida, hay que verla (grilla de espacios, mapa, multiples actividades), no solo leerla."
+            "note": "Marca fonetica ausente para TTS rioplatense: 'FitPass' lo lee mal un TTS (acento ingles o mal silabeo). FIX: fonetizar la marca en la narracion para Veo/TTS, ej. 'Fitpas' o 'Fit Pass' con guia de pronunciacion, manteniendo 'FitPass' en los textos en pantalla y logo."
           },
           {
             "severity": "MEDIUM",
-            "note": "CONSISTENCIA DE IDEA en la publicacion - la caption refuerza la vertiente 'flexibilidad' ('Pagar un gym al que no vas no tiene sentido') mientras el hookOnScreen mantiene la vertiente 'variedad' ('Una membresia. Cientos de lugares.'). El paquete entero hereda la disonancia del guion. Una vez elegida la idea unica, hook on-screen y caption deben decir lo mismo."
+            "note": "Claridad mudo (eje 3): la multidisciplina 'musculacion hoy, boxeo manana, yoga el finde' solo aparece como 3 flashes de 1s sin texto ancla. Mudo no se registra que disciplina es. FIX: agregar label SVG/lower-third por flash (Musculacion / Boxeo / Yoga) y subir cada flash a 1.3-1.5s o el espectador no lo decodifica sin audio."
           },
           {
             "severity": "LOW",
-            "note": "HIGIENE/CLARIDAD menor - typo en la caption 'donde entrenار' (caracteres arabes pegados) rompe la lectura; y el plano prueba mete 'sin permanencia' + 'primera semana gratis' como dos mensajes en pantalla a la vez. Por el lente de una-sola-idea-por-plano, dejar UNO grande ('PRIMERA SEMANA GRATIS') y el otro como microcopy chico, no dos titulos compitiendo."
-          },
-          {
-            "severity": "HIGH",
-            "note": "Plano 'solucion' (5-9s) mete 4 sub-planos en 4s (split + 3 micro-pantallas actividad/reserva/QR + micro-animacion de tap = ~1s c/u). Ritmo atragantado, ninguna pantalla se lee. Rompe la regla de plano legible 2-4s. Fix: una pantalla por plano; reservar los 4s solo al check-in QR (lo mas visual) o estirar la seccion a 5-6s con 2 planos de ~2.5s."
-          },
-          {
-            "severity": "HIGH",
-            "note": "CTA doble en el cierre (12-15s): boton 'Descargar FitPass' + 'badge de stores' + presentador senalando = 3 focos compitiendo. La regla es UNA accion. Fix: dejar solo el boton 'Descargar FitPass' + microcopy; stores como icono chico secundario, no como segundo llamado."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "El 9:16 solo aparece en el texto del guion ('plano medio 9:16', 'mockup 9:16'). El formato real lo manda el SELECTOR de aspect ratio de Flow, no la narracion. Falta anotar 'selector Flow = 9:16, Veo 3' fuera del texto."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Marca 'FitPass' narrada sin grafia fonetica para TTS/Veo: la leeria en ingles ('fit-pass'). Igual que el playbook exige 'Munifai', falta pautar la grafia fonetica (ej. 'Fitpas') en cada narracion."
-          },
-          {
-            "severity": "MEDIUM",
-            "note": "Mucho cambio de layout en 15s: full talking head -> split -> full talking head -> mockup centrado. El patron validado favorece 'single continuous take, same background'. No es bloqueante en un montaje editado, pero suma carga de ritmo."
+            "note": "Hashtag con typo: #GimnasioSinPermamencia (dice 'Permamencia', debe ser 'Permanencia'). FIX: corregir a #GimnasioSinPermanencia."
           },
           {
             "severity": "LOW",
-            "note": "El caption de publicacion tiene texto corrupto: 'elegis donde entrenار' (fragmento en arabe pegado). Si alimenta un overlay o lectura TTS, sale roto. Corregir a 'elegis donde entrenar'."
-          },
-          {
-            "severity": "LOW",
-            "note": "Aciertos a conservar: hook sin logo con corte sincronizado por frase (frena scroll), logo fuerte recien en el CTA (primer guino sutil en la barra de la app), duracion total 15s dentro de rango 15-25s, y bloques de tiempo en su mayoria dentro de 2.5-3s."
+            "note": "Caption sin tildes ('Una membresia', 'Musculacion'). Es la copy visible de la publicacion, no la narracion TTS. FIX: tildar correctamente en el texto publicado (membresia->membresia con tilde, Musculacion->Musculacion con tilde) para que no se vea descuidado."
           }
         ]
       }
