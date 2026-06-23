@@ -1,0 +1,444 @@
+{
+  "contract_version": "1.1",
+  "last_updated": "2026-06-23T00:00:00Z",
+  "business": {
+    "name": "EventMarket",
+    "tagline": "Marketplace de servicios para eventos sociales y corporativos en Argentina: contratá música, catering, fotografía, animación y más en una sola app.",
+    "description": "EventMarket es una plataforma que conecta organizadores de eventos (clientes) con proveedores de servicios especializados en música, catering, fotografía, animación, decoración, transporte, lunch & bar y estilismo. A través de solicitudes de cotización, chat in-app, reservas con pago integrado y combos pre-armados, simplificamos la planificación end-to-end de eventos sociales y corporativos. Incluye un asistente IA que ayuda a definir el evento, y un back-office completo para administración de proveedores, pagos y disputas.",
+    "industry": "Marketplace de servicios para eventos (evento-tech)",
+    "target_audience": "Organizadores de eventos (particulares, familias, coordinadores, empresas), proveedores de servicios para eventos en Argentina, principalmente en Buenos Aires y Gran Buenos Aires.",
+    "website": "https://eventmarker.app"
+  },
+  "offerings": [
+    {
+      "id": "solicitudes-cotizacion",
+      "name": "Solicitudes de cotización",
+      "description": "El cliente crea una solicitud especificando fecha, ubicación, presupuesto, cantidad de invitados y categorías de servicios que necesita. Los proveedores reciben la solicitud y responden con una cotización vía chat in-app, sin comprometerse hasta que el cliente acepte.",
+      "key_features": [
+        "Formulario inteligente con fecha, lugar, presupuesto e invitados",
+        "Invitación automática a proveedores preseleccionados",
+        "Chat in-app bidireccional para negociar detalles",
+        "Sistema de notificaciones en tiempo real",
+        "Historial completo de conversaciones"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "catalogo-servicios",
+      "name": "Catálogo de servicios",
+      "description": "8 categorías principales (música, catering, fotografía, animación, decoración, transporte, lunch & bar, estilismo) donde los proveedores publican sus servicios con descripción, fotos, precios base y valoraciones de clientes anteriores. El cliente explora y filtra por calificación, precio y zona.",
+      "key_features": [
+        "8 categorías con modelos de precios flexible (por evento, por cubierto, por jornada, por paquete, a cotizar)",
+        "Perfil del proveedor con rating, reviews y disponibilidad",
+        "Buscar por zona, categoría, rango de precio",
+        "Rating y reviews verificados de clientes anteriores",
+        "Filtro por proveedores verificados y destacados"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "combos-packs",
+      "name": "Combos y packs pre-armados",
+      "description": "Combinaciones pre-armadas de servicios (ej. DJ + fotografía + catering) con descuento por volumen. El cliente selecciona un combo listo para un tipo de evento (casamiento, 15 años, corporativo, cumpleaños kids) y contrata todo en una sola operación.",
+      "key_features": [
+        "Combos por tipo de evento (casamiento, 15 años, corporativo, cumpleaños, egresados, kids)",
+        "Hasta 15-18% de descuento vs. servicios por separado",
+        "Descripción del combo con servicios incluidos",
+        "Fotos del combo armado",
+        "Un solo pago y coordinación centralizada"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "reservas-pago",
+      "name": "Reservas y pagos integrados",
+      "description": "Una vez acordada la cotización, el cliente paga una seña o el monto total directamente desde la app vía MercadoPago (sandbox en desarrollo, real en producción). El pago queda en escrow hasta que el evento se realiza y el admin lo libera al proveedor.",
+      "key_features": [
+        "Integración con MercadoPago (pago de seña o total)",
+        "Pago en escrow (asegurado para ambas partes)",
+        "Confirmación automática de reserva",
+        "Estados de pago transparentes",
+        "Refund automático si se cancela antes de la fecha"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "asistente-ia",
+      "name": "Asistente IA para planificación",
+      "description": "Un chatbot conversacional que guía al cliente (vía voz, texto o conversación) a definir los detalles del evento: tipo, presupuesto, cantidad de invitados, fecha, temática. Genera una solicitud pre-llenada que el cliente puede refinar antes de enviar a los proveedores.",
+      "key_features": [
+        "Conversación natural en voz y texto",
+        "Sugiere presupuesto aproximado según el tipo de evento",
+        "Genera lista de servicios necesarios",
+        "Propone proveedores y combos recomendados",
+        "Asegurador de detalles antes de enviar solicitud"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "calendar-disponibilidad",
+      "name": "Calendario de disponibilidad del proveedor",
+      "description": "El proveedor configura su disponibilidad en un calendario (qué días está disponible, qué días no). El cliente ve esta disponibilidad al solicitar y acepta una cotización solo si el proveedor tiene el día libre.",
+      "key_features": [
+        "Calendario visual del proveedor",
+        "Bloques de disponibilidad por día",
+        "Sincronización con reservas confirmadas",
+        "Alertas automáticas de conflictos",
+        "Exportable para integraciones externas"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "reviews-ratings",
+      "name": "Reviews y ratings bilaterales",
+      "description": "Tras finalizar el evento, cliente y proveedor pueden reseñarse mutuamente. Las reviews son públicas, verificadas por admin en caso de disputa, y afectan el ranking del proveedor en búsquedas.",
+      "key_features": [
+        "Rating 1-5 estrellas con comentario",
+        "Reviews verificadas por admin",
+        "Promedio ponderado visible en perfil",
+        "Filtro de búsqueda por rating mínimo",
+        "Protección contra reviews falsas"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "backoffice-admin",
+      "name": "Back-office de administración",
+      "description": "Panel exclusivo para admin: gestión de proveedores (alta/baja/aprobación), moderación de reviews, resolución de disputas, tesorería (comisiones, payouts), tier system de proveedores y feature flags. No es un servicio para clientes; es para operación del marketplace.",
+      "key_features": [
+        "ABM de proveedores y servicios",
+        "Moderación de reviews y disputas",
+        "Dashboard de KPIs (GMV, comisiones, pending release)",
+        "Tier system para proveedores (Bronze, Silver, Gold, Platinum)",
+        "Feature flags y configuración runtime",
+        "Tesorería: movimientos, comisiones, payouts"
+      ],
+      "status": "available"
+    }
+  ],
+  "pricing": {
+    "model": "commission",
+    "summary": "EventMarket cobra comisión sobre el monto final de cada reserva pagada. Los proveedores pagan una comisión base del 12% (Bronze tier), con reducción según tier de promoción (Silver 9%, Gold 6%, Platinum 4%). No hay costo de listado. Los clientes no pagan comisión ni suscripción; el acceso es completamente gratuito.",
+    "pricing_disclosed": true,
+    "plans": [
+      {
+        "name": "Cliente",
+        "description": "Acceso completo al marketplace, solicitudes ilimitadas, chat, reviews, asistente IA. Totalmente gratuito.",
+        "target": "Organizadores de eventos (particulares y empresas)",
+        "features": [
+          "Acceso ilimitado al catálogo de servicios",
+          "Crear solicitudes de cotización ilimitadas",
+          "Chat in-app con proveedores",
+          "Combos y packs con descuento",
+          "Asistente IA conversacional",
+          "Pago seguro vía MercadoPago",
+          "Reviews bilaterales"
+        ],
+        "price": null
+      },
+      {
+        "name": "Proveedor - Bronze (Tier)",
+        "description": "Tier inicial. Publicar servicios, recibir solicitudes, cotizar, gestionar agenda y comentarios. Comisión 12% sobre reservas pagadas.",
+        "target": "Proveedores nuevos o de menor volumen",
+        "features": [
+          "Perfil de proveedor completo",
+          "Publicar servicios ilimitados",
+          "Recibir solicitudes de clientes",
+          "Chat in-app y cotizaciones",
+          "Calendario de disponibilidad",
+          "Aceptar pagos vía MercadoPago",
+          "Reviews y ratings",
+          "Dashboard con KPIs básicos"
+        ],
+        "price": null
+      },
+      {
+        "name": "Proveedor - Silver (Tier)",
+        "description": "Tier premium. Reduce comisión a 9% + boost de ranking. Acceso a coach IA y herramientas avanzadas.",
+        "target": "Proveedores con buen historial y volumen",
+        "features": [
+          "Todo lo de Bronze",
+          "Comisión reducida a 9%",
+          "Ranking mejorado en búsquedas",
+          "Coach IA para gestión de eventos",
+          "Acceso a analytics avanzado",
+          "Badge 'Silver' en perfil"
+        ],
+        "price": null
+      },
+      {
+        "name": "Proveedor - Gold (Tier)",
+        "description": "Tier avanzado. Comisión 6%, listing bonificado, featured priority máximo.",
+        "target": "Proveedores de alto desempeño",
+        "features": [
+          "Todo lo de Silver",
+          "Comisión reducida a 6%",
+          "Listado destacado (featured) sin costo extra",
+          "Featured priority máximo",
+          "Analytics ultra-detallado",
+          "Soporte prioritario"
+        ],
+        "price": null
+      },
+      {
+        "name": "Proveedor - Platinum (Tier)",
+        "description": "Tier máximo. Comisión 4%, featured premium, soporte VIP.",
+        "target": "Proveedores top (empresas consolidadas, agencias)",
+        "features": [
+          "Todo lo de Gold",
+          "Comisión mínima 4%",
+          "Featured premium garantizado",
+          "Soporte VIP 24/7",
+          "Acceso a datos de mercado",
+          "Co-marketing con EventMarket"
+        ],
+        "price": null
+      }
+    ],
+    "promotions": [
+      "Combo 3+ servicios: hasta 18% de descuento sobre el total (vs. servicios individuales)",
+      "Primeros clientes: 20% off en primera reserva (promo de lanzamiento)",
+      "Referral (en roadmap): cliente refiere amigo, ambos obtienen crédito"
+    ]
+  },
+  "differentiators": [
+    "Marketplace integral: no necesitás googlear 8 proveedores diferentes; en EventMarket están todos (música, catering, foto, animación, deco, transporte, bar, estilismo) en una sola app.",
+    "Combos pre-armados con descuento: para los tipos de evento más comunes (casamiento, 15 años, corporativo, cumple kids), combos listos con descuento 15-18%, sin armar nada.",
+    "Chat in-app bidireccional: el cliente y proveedor negocian directamente, sin emails ni whatsapps privados; todo queda registrado.",
+    "Pago seguro en escrow: el cliente paga, el dinero queda asegurado en MercadoPago hasta que el proveedor entrega; el proveedor no cobra seña en la app sin garantía.",
+    "Asistente IA conversacional: en lugar de un formulario frío, el cliente charla con un bot que sugiere presupuesto, servicios, proveedores y arma la solicitud automáticamente.",
+    "Reviews verificadas: las críticas son moderadas por admin, sin bots ni reviews falsas.",
+    "Tier system de proveedores: cuanto mejor calificación y volumen, menor comisión (de 12% a 4%); incentivo real para mejorar servicio.",
+    "Multitud de modelos de precio: catering cobra por cubierto, DJ por evento/hora, foto por paquete, flores a cotizar; cada categoría tiene su lógica, la app la soporta.",
+    "Disponibilidad en tiempo real: el cliente ve calendarios de proveedores, sin sorpresas de 'lamentablemente no tengo ese día'.",
+    "Gratuito para clientes: sin suscripción, sin cuota de listado; el cliente crea solicitudes ilimitadas sin pagar nada."
+  ],
+  "objections": [
+    {
+      "objection": "Ya encontré los proveedores yo en WhatsApp/Google.",
+      "response": "Sí, pero acá los tenés todos en un solo lugar, comparables por rating, precio y zona, sin andar llamando por teléfono 8 veces. Además, el pago y el chat quedan registrados; si pasa algo, te protegemos nosotros."
+    },
+    {
+      "objection": "Prefiero tratar directamente con el DJ/catering, sin intermediarios.",
+      "response": "No somos un intermediario que negocia; somos un lugar donde te encontrás con él. Ustedes dos pactan, chatean en la app, se pagan y listo. La app es el puente, no el guardaespaldas."
+    },
+    {
+      "objection": "¿Y si me estafa el proveedor o no viene el día del evento?",
+      "response": "El dinero queda en escrow (MercadoPago) hasta que el evento se realiza. Si el proveedor no aparece, el admin interviene y te devolvemos el dinero. Además, cada proveedor tiene reviews verificadas de clientes anteriores."
+    },
+    {
+      "objection": "¿Cuánto cobra EventMarket? Quiero saber el precio real.",
+      "response": "No te cobro a vos nada. El cliente usa la app gratis. Al proveedor se le descuenta una comisión (12-4% según su tier) solo cuando cobra. Así gano EventMarket: si el proveedor vende, yo vendo."
+    },
+    {
+      "objection": "Voy a terminar en una disputa con el proveedor; ¿vosotros qué hacen?",
+      "response": "Tenemos un sistema de resolución de disputas. Si no se ponen de acuerdo, un admin interviene. Además, con todo registrado (chat, fotos, contrato, pago), es mucho más fácil resolver que si fuera por WhatsApp."
+    },
+    {
+      "objection": "¿La app es segura? ¿Voy a perder mis datos?",
+      "response": "Sí. Cumplimos protección de datos personales argentina, encriptamos, hacemos backups diarios, y la DB está hosteada en Aiven (infraestructura seria). Tu dinero pasa por MercadoPago, que es el banco del marketplace."
+    },
+    {
+      "objection": "Mi hermana tiene un combo listo de catering + DJ + decoración. ¿Por qué no la tenés en la app?",
+      "response": "Probablemente esté por venir. Nos estamos expandet y verificamos a cada proveedor antes de darles acceso. Si ella quiere sumarse, que se inscriba; la aprobamos en 48h si tiene los papeles en orden."
+    }
+  ],
+  "faq": [
+    {
+      "question": "¿Tengo que pagar para crear una solicitud de evento?",
+      "answer": "No. Crear solicitudes es completamente gratis. Solo pagas cuando aceptás una cotización y confirmás la reserva (seña o total)."
+    },
+    {
+      "question": "¿El pago es seguro?",
+      "answer": "Sí. Usamos MercadoPago, que encripta y garantiza la transacción. El dinero queda en escrow hasta que el evento se realiza y el admin lo libera al proveedor."
+    },
+    {
+      "question": "¿Puedo cancelar una reserva?",
+      "answer": "Sí, hasta 7 días antes del evento. Si cancelás después, la política de reembolso depende del proveedor y el combo (suele ser no reembolsable). Los detalles están en cada oferta."
+    },
+    {
+      "question": "¿Qué pasa si el proveedor no viene el día del evento?",
+      "answer": "Avisás por la app, el admin interviene y te reembolsa. También queda un registro para nosotros marcar al proveedor como no confiable o desactivarlo."
+    },
+    {
+      "question": "¿Puedo hablar directamente con el proveedor?",
+      "answer": "Sí, vía chat in-app. También suelen dejar WhatsApp en el perfil si quieren. El chat en la app queda registrado, lo cual es útil si hay disputa."
+    },
+    {
+      "question": "¿Cómo funciona el asistente IA?",
+      "answer": "Vas a /asistente, le decís el tipo de evento, presupuesto, fecha, cantidad de invitados (voz o texto). Él te sugiere servicios, proveedores y combos. Al final, genera una solicitud que vos podés editar antes de enviar."
+    },
+    {
+      "question": "¿Puedo contratar servicios directamente del catálogo sin solicitud?",
+      "answer": "Sí. Si ves un servicio que te gusta, clickeás 'Solicitar cotización' o 'Reservar ahora' (si el proveedor lo permite). El flujo es más corto."
+    },
+    {
+      "question": "¿Qué es un combo?",
+      "answer": "Es una combinación pre-armada de servicios (ej. DJ + catering + foto) para un tipo de evento específico, con descuento. Vos pagas una sola vez, una sola coordinación, y tenés todo."
+    },
+    {
+      "question": "¿Los combos incluyen decoración / animación / bar?",
+      "answer": "Depende del combo. Cada uno lista qué servicios incluye. Algunos llevan todo; otros son mínimos (DJ + foto). Léelo bien antes de confirmar."
+    },
+    {
+      "question": "¿Puedo agregar más servicios a un combo que ya contraté?",
+      "answer": "Sí. Después de contratar el combo, podés abrir nuevas solicitudes para servicios adicionales (ejemplo: más decoración, extra de catering, fotógrafo second shooter)."
+    },
+    {
+      "question": "¿Cuál es el rango de precio de los servicios?",
+      "answer": "Varia mucho. Un DJ base: $15.000-$50.000 según experiencia. Catering: $800-$3000 por cubierto. Combos: $180.000-$1.250.000 según evento. Filtrá por presupuesto y ves opciones."
+    },
+    {
+      "question": "¿Cómo se promocionan los proveedores en EventMarket?",
+      "answer": "Por ratings (reviews de clientes), tier (Bronze a Platinum), featured (destacados), y búsqueda. Si un proveedor tiene 5 estrellas y es Gold, aparece primero. Nosotros no compramos posiciones."
+    },
+    {
+      "question": "¿Tengo que dejar review?",
+      "answer": "No es obligatorio, pero ayuda. Las reviews verificadas crean confianza y ayudan a otros clientes. El proveedor también puede reseñarte."
+    },
+    {
+      "question": "¿Qué pasa si noto un error en el chat con el proveedor?",
+      "answer": "Podés reportarlo a admin vía 'Reportar conversación'. Si hay disputa, el admin revisa el historial completo."
+    },
+    {
+      "question": "¿Dónde está EventMarket disponible?",
+      "answer": "Por ahora, focus en Buenos Aires y Gran Buenos Aires. Planeamos expandir a otras provincias próximamente."
+    }
+  ],
+  "contact": {
+    "website": "https://eventmarker.app",
+    "email": "hola@eventmarker.app",
+    "demo_url": null,
+    "phone": null,
+    "notes": "Consultá vía email o contacto web. El equipo responde en 24h. Para proveedores interesados en sumarse, hay un proceso de onboarding en la plataforma."
+  },
+  "do_not_say": [
+    "No prometer integración con sistemas específicos que no existan (ej. 'integramos con SIPAF' si no es cierto).",
+    "No usar la palabra 'revolucionario', 'increíble', 'potencia' u otro jerga de marketing barato.",
+    "No comparar directamente con competidores por nombre.",
+    "No afirmar que EventMarket es el único marketplace de eventos en Argentina (existen otros, nosotros ofrecemos algo distinto).",
+    "No prometer que la app es free forever si hay planes para monetización futura.",
+    "No dar fechas de lanzamiento de features que están en roadmap sin confirmar internamente.",
+    "No inventar comisiones o tarifas distintas a las que figuran en este KB.",
+    "No asegurar que TODOS los proveedores están en EventMarket; estamos en crecimiento y agregamos nuevos permanentemente.",
+    "No decir que el pago es gratis si se refiere al cliente (client-side comisión 0); sí hay comisión para el proveedor.",
+    "No usar emojis ni caracteres especiales innecesarios en copys.",
+    "No afirmar que las reviews están 100% libres de moderación; tienen filtros de calidad y se revisan en caso de disputa.",
+    "No exagerar sobre la IA asistente; sugiere y guía, pero no reemplaza la decisión del cliente ni es una IA que 'planifica eventos' de verdad."
+  ],
+  "screens": [
+    {
+      "label": "Home público (catálogo, combos, hero)",
+      "url": "https://eventmarker.app/",
+      "route": "/"
+    },
+    {
+      "label": "Explorar servicios (búsqueda y filtros)",
+      "url": "https://eventmarker.app/servicios",
+      "route": "/servicios"
+    },
+    {
+      "label": "Página de combo específico (detalles, precio, reviews)",
+      "url": "https://eventmarker.app/combos",
+      "route": "/combos"
+    },
+    {
+      "label": "Asistente IA conversacional (voz + texto)",
+      "url": "https://eventmarker.app/asistente",
+      "route": "/asistente"
+    },
+    {
+      "label": "Dashboard cliente (solicitudes, estado, chat)",
+      "url": "https://eventmarker.app/cliente",
+      "route": "/cliente"
+    },
+    {
+      "label": "Crear solicitud nueva (wizard paso a paso)",
+      "url": "https://eventmarker.app/cliente/solicitudes/nueva",
+      "route": "/cliente/solicitudes/nueva"
+    },
+    {
+      "label": "Detalle solicitud con cotizaciones y chat",
+      "url": "https://eventmarker.app/cliente/solicitudes/1",
+      "route": "/cliente/solicitudes/:id"
+    },
+    {
+      "label": "Dashboard proveedor (bandeja, KPIs, agenda)",
+      "url": "https://eventmarker.app/proveedor",
+      "route": "/proveedor"
+    },
+    {
+      "label": "Bandeja proveedor (solicitudes recibidas)",
+      "url": "https://eventmarker.app/proveedor/bandeja",
+      "route": "/proveedor/bandeja"
+    },
+    {
+      "label": "Gestionar servicios propios (ABM)",
+      "url": "https://eventmarker.app/proveedor/servicios",
+      "route": "/proveedor/servicios"
+    },
+    {
+      "label": "Calendario disponibilidad proveedor",
+      "url": "https://eventmarker.app/proveedor/agenda",
+      "route": "/proveedor/agenda"
+    },
+    {
+      "label": "Perfil proveedor (público, con reviews y calificación)",
+      "url": "https://eventmarker.app/proveedor/1",
+      "route": "/proveedor/:slug"
+    },
+    {
+      "label": "Back-office admin (KPIs, tesorería, proveedores)",
+      "url": "https://eventmarker.app/backoffice",
+      "route": "/backoffice"
+    },
+    {
+      "label": "Gestión de proveedores (admin)",
+      "url": "https://eventmarker.app/backoffice/proveedores",
+      "route": "/backoffice/proveedores"
+    },
+    {
+      "label": "Moderación de reviews (admin)",
+      "url": "https://eventmarker.app/backoffice/reviews",
+      "route": "/backoffice/reviews"
+    },
+    {
+      "label": "Resolución de disputas (admin)",
+      "url": "https://eventmarker.app/backoffice/disputas",
+      "route": "/backoffice/disputas"
+    },
+    {
+      "label": "Tesorería y movimientos (admin)",
+      "url": "https://eventmarker.app/backoffice/tesoreria",
+      "route": "/backoffice/tesoreria"
+    }
+  ],
+  "brand": {
+    "logo": {
+      "primary": "https://eventmarker.app/logo.svg",
+      "light": "https://eventmarker.app/logo-light.svg",
+      "dark": "https://eventmarker.app/logo-dark.svg",
+      "isotype": "https://eventmarker.app/iso.svg"
+    },
+    "colors": {
+      "primary": "#7C3AED",
+      "primary_dark": "#6D28D9",
+      "accent": "#F59E0B",
+      "secondary": "#EC4899",
+      "ink": "#1E1B2E",
+      "surface": "#FFFFFF"
+    },
+    "fonts": {
+      "display": "Editorial",
+      "text": "Inter"
+    },
+    "phonetic": "Event Market",
+    "tone": "cercano y moderno",
+    "avoid": [
+      "No usar rojo de alarma (puro peligro).",
+      "No estética corporativa fría ni stock genérico.",
+      "No jerga de marketing barato (revolucionario, potencia, etc.).",
+      "No emojis Unicode en branding visual."
+    ]
+  }
+}

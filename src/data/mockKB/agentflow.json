@@ -1,0 +1,403 @@
+{
+  "contract_version": "1.1",
+  "last_updated": "2026-06-23T10:00:00Z",
+  "business": {
+    "name": "AgentFlow",
+    "tagline": "Plataforma de gestión operativa y análisis de cumplimiento para inmobiliarias. Manual diario por rol con DMO dinámico, pipeline kanban y coaching con IA.",
+    "description": "AgentFlow es el sistema operativo diario para inmobiliarias que buscan disciplina de procedimientos y visibilidad profunda del desempeño del equipo. Cada vendedor, coordinador, gerente o recluter tiene su DMO (Daily Management Outline) personalizado: bloques horarios, metas numéricas, y análisis automático de cumplimiento. No es un CRM tradicional — es un manual de procedimientos vivo que detecta patrones, rajas de racha y coach en tiempo real.",
+    "industry": "Real Estate Technology (PropTech) — Gestión operativa para inmobiliarias",
+    "target_audience": "Gerentes y dueños de inmobiliarias, líderes de equipos de ventas, inmobiliarias de mediano-gran porte que requieren profundidad analítica más allá de CRM básico",
+    "website": "https://agentflow.netlify.app"
+  },
+  "offerings": [
+    {
+      "id": "dmo",
+      "name": "Manual Diario (DMO) — Daily Management Outline",
+      "description": "Cada rol (vendedor, coordinador, gerente, recluter, captador) recibe su rutina horaria configurable con bloques de trabajo y metas numéricas concretas. El app registra en tiempo real qué bloques se completaron, qué métricas se lograron, y calcula el % de cumplimiento del día. Dinámico: los templates pueden clonarse y adaptarse a cada oficina.",
+      "key_features": [
+        "Bloques horarios configurables por rol con metas numéricas (ej: Vendedor 08:30-09:00 Apertura, 09:00-10:30 WhatsApp Block 12 conversaciones)",
+        "Money blocks para actividades de alto impacto (captación, cierre, visitas)",
+        "Registro en vivo: checkbox, contador, o métrica libre",
+        "Cálculo automático de % cumplimiento diario y racha (días consecutivos >=80%)",
+        "Histórico de logs por vendedor para análisis de patrones"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "crm",
+      "name": "CRM Operativo",
+      "description": "Pipeline integral para inmobiliarias: gestión de clientes, propiedades (stock propio y de oficina), visitas, autorizaciones de venta. Pipeline kanban con las 6 etapas legales de Argentina (Contacto, Reunión, Propuesta, Reserva, Boleto, Escrituración).",
+      "key_features": [
+        "ABM clientes con contacto (mail, teléfono, WhatsApp) y historial",
+        "ABM propiedades: descripción, fotos (Cloudinary), valores, asignación a vendedor",
+        "Pipeline kanban drag-drop con etapas legales argentinas",
+        "Gestión de visitas (programadas, concretadas, canceladas) con fotografías",
+        "Autorizaciones de venta multivendedor",
+        "Búsqueda y filtros por zona, precio, tipo, estado"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "analytics",
+      "name": "Análisis Profundo de Cumplimiento",
+      "description": "El foso defensivo de AgentFlow: detección automática de patrones, racha y alertas. No es solo dashboard de KPIs — es análisis que NINGÚN CRM del mercado tiene. Identifica: vendedor que llega tarde el lunes, caída de viernes, racha cortada, leads que se enfrían.",
+      "key_features": [
+        "Histórico de DMO por vendedor con calendario heat-map de cumplimiento",
+        "Sistema de racha: días consecutivos con >=80% cumplimiento + récord personal",
+        "Detección automática de patrones (job cron diario)",
+        "Comparativas asesor vs promedio equipo por bloque y mes",
+        "Alertas coaching contextual",
+        "Dashboard para gerente con top 3 asesores en riesgo"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "ai-coach",
+      "name": "AI Coach Contextual",
+      "description": "Asistente IA (Gemini 2.5 Flash) que conoce el template del vendedor (Beyker AR, Tom Ferry, Buffini, Mike Ferry, Workman) y la pantalla específica en que está. Da recomendaciones tácticas en tiempo real sin salir de la app.",
+      "key_features": [
+        "Contexto por pantalla específica",
+        "Respeta el template del coach del vendedor",
+        "Escalable: nuevos coaches como JSON sin cambio de código",
+        "Agnóstico al modelo IA: ready para cambiar de provider"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "dashboard",
+      "name": "Dashboard de KPIs",
+      "description": "Vista centralizada para gerentes y dueños. KPIs en vivo: visitas hoy, deals abiertos, ranking de vendedores, leads fríos, DMO compliance. Datos actualizados sin refresh manual.",
+      "key_features": [
+        "KPIs por rol: vendedor, coordinador, gerente",
+        "Ranking dinámico de vendedores (por visitas, deals, puntos, cumplimiento DMO)",
+        "Indicadores de salud del equipo: racha rota, inactividad, patrones",
+        "Drilldown para ver histórico y recomendaciones de coaching"
+      ],
+      "status": "available"
+    },
+    {
+      "id": "sistema-puntos",
+      "name": "Sistema de Incentivos (Puntos y Premios)",
+      "description": "Gamificación opcional: reglas configurables de puntos por evento (completar money block, visita concretada, deal a boleto). Vendedores canjen puntos por premios (día libre, vouchers, capacitación).",
+      "key_features": [
+        "ABM Reglas de Puntos: definir eventos y puntos",
+        "ABM Premios: catálogo de canjes configurable",
+        "Wallet de puntos: ledger transparente + historial",
+        "Ranking de puntos visible"
+      ],
+      "status": "beta"
+    },
+    {
+      "id": "comisiones",
+      "name": "Cálculo de Comisiones (Argentina)",
+      "description": "Módulo financiero para franquicias inmobiliarias (como Beyker). Calcula automáticamente: comisión total, split franquicia/agente, retenciones (IVA, IIBB), neto a cobrar.",
+      "key_features": [
+        "Cálculo automático por deal con porcentajes configurables",
+        "Split franquicia/agente personalizado",
+        "Retenciones AFIP (IVA, IIBB) según jurisdicción",
+        "Reporte mensual por vendedor",
+        "Tracking de estado (pendiente → liquidada → cobrada)"
+      ],
+      "status": "beta"
+    },
+    {
+      "id": "whatsapp",
+      "name": "Inbox de WhatsApp (futuro)",
+      "description": "Integración con Meta Cloud API para centralizar conversaciones de WhatsApp. En roadmap: bot lead capture con IA agéntica para responder consultas, agendar visitas, crear leads automáticamente.",
+      "key_features": [
+        "Inbox compartido de WhatsApp para el equipo",
+        "Historial de conversaciones ligado a cliente/lead",
+        "Bot IA agéntico con tools: buscar_propiedades, agendar_visita, crear_lead"
+      ],
+      "status": "coming_soon"
+    }
+  ],
+  "pricing": {
+    "model": "human_closes",
+    "summary": "AgentFlow es un sistema profesional de gestión y análisis para inmobiliarias medianas y grandes. El precio se estructura por cantidad de usuarios activos y módulos contratados. Un asesor del equipo confirma la propuesta tras evaluar la oficina y necesidades específicas.",
+    "pricing_disclosed": false,
+    "human_closes_price": true,
+    "plans": [
+      {
+        "name": "Starter",
+        "description": "Para inmobiliarias de 1-3 vendedores o prueba piloto.",
+        "target": "1-3 usuarios",
+        "features": [
+          "DMO para 1 rol (vendedor) con 2 templates predefinidos",
+          "CRM operativo (clientes, propiedades, pipeline)",
+          "Dashboard básico",
+          "AI Coach",
+          "Soporte email"
+        ],
+        "price": null
+      },
+      {
+        "name": "Professional",
+        "description": "Para inmobiliarias de 4-15 vendedores, equipo completo.",
+        "target": "4-15 usuarios",
+        "features": [
+          "Todo en Starter",
+          "DMO multirol (vendedor, coordinador, gerente)",
+          "Templates avanzados (Beyker, Tom Ferry, Buffini, Mike Ferry, Workman)",
+          "Análisis de cumplimiento con histórico y patrones",
+          "Sistema de racha y alertas coaching",
+          "Dashboard gerente con alertas",
+          "Soporte prioritario WhatsApp + email"
+        ],
+        "price": null
+      },
+      {
+        "name": "Enterprise",
+        "description": "Para franquicias u oficinas complejas.",
+        "target": "15+ usuarios",
+        "features": [
+          "Todo en Professional",
+          "Módulo de Comisiones + splits",
+          "Puntos y Premios personalizados",
+          "Integraciones CRM externo (Tokko Broker, custom)",
+          "WhatsApp Business API integrado",
+          "Capacitación en sitio",
+          "SLA garantizado 99%",
+          "Soporte técnico 24/7"
+        ],
+        "price": null
+      }
+    ],
+    "promotions": [
+      "3 meses de prueba gratuita sin tarjeta de crédito para inmobiliarias que contraen el plan Professional.",
+      "Descuento por referencia: si traés una inmobiliaria nueva, ambas ganan 1 mes de descuento."
+    ]
+  },
+  "differentiators": [
+    "Único en el mercado con análisis profundo de cumplimiento DMO: detección automática de patrones, racha, alertas coaching — no es solo un CRM con KPIs.",
+    "Templates de coaches reales (Beyker AR, Tom Ferry, Buffini, Mike Ferry, Workman) con tácticas específicas por región y contexto.",
+    "Pipeline kanban con etapas legales argentinas (Contacto, Reunión, Propuesta, Reserva, Boleto, Escrituración) — hecho para el mercado AR.",
+    "IA contextual (Gemini) que conoce el template del coach y la pantalla en que estás — recomendaciones que pesan, no genéricas.",
+    "Diseño para disciplina operativa: el manual diario es el corazón, no una característica más.",
+    "Extensible: nueva coaching methodology → nuevo JSON → sin cambio de código.",
+    "Franquicia-ready: comisiones multivendedor, splits, retenciones AFIP integrados.",
+    "Métricas transparentes por rol: cada empleado ve su racha, su histórico, qué le falta cumplir hoy.",
+    "Built in Argentina: entiende jurisdicciones, monotributo municipal, matriculas CUCICBA, plazos 45d."
+  ],
+  "objections": [
+    {
+      "objection": "Ya usamos un CRM (Tokko, MercadoLibre, otro).",
+      "response": "AgentFlow no reemplaza el CRM de inmuebles — lo complementa. Suma lo que NINGÚN CRM tiene: análisis de cumplimiento DMO, racha, patrones del equipo, coaching automático. Es un segundo sistema que hace que tu equipo sea más disciplinado."
+    },
+    {
+      "objection": "No tenemos presupuesto / es muy caro.",
+      "response": "Ofrecemos 3 meses gratis sin tarjeta de crédito. El ROI sale rápido: si AgentFlow mejora el cierre del equipo en 2-3 operaciones por mes, ya pagó. Cero lock-in si no funciona."
+    },
+    {
+      "objection": "La gente no va a usar una app nueva todos los días.",
+      "response": "Ese es el punto: AgentFlow hace que sea imposible no usarla. El DMO se completa en 15 minutos antes de las 12, el vendedor ve su racha, ve si va a perder su record. Está diseñado para ser addictivo en el buen sentido."
+    },
+    {
+      "objection": "¿Y si la app se cae? ¿Perdemos todo?",
+      "response": "No. Todos los datos viven en base de datos redundante (MySQL Aiven con backups diarios). La app funciona offline (LocalStorage) y sincroniza cuando hay conexión. Los datos son tuyos — los exportas en cualquier momento."
+    },
+    {
+      "objection": "Necesitamos integraciones con [sistema antiguo del cliente].",
+      "response": "Tenemos arquitectura lista para integraciones. Para los casos standard (Tokko, MercadoLibre API) ya está documentado. Para casos custom, nos sentamos 1h a planificar."
+    },
+    {
+      "objection": "¿Qué pasa con la privacidad? ¿Monitorean a los vendedores?",
+      "response": "AgentFlow registra métricas operativas (visitas, calls, deals) no GPS ni vigilancia. El vendedor ve exactamente lo que ve el gerente — transparencia total. Es un sistema de responsabilidad compartida."
+    }
+  ],
+  "faq": [
+    {
+      "question": "¿Cuánto tarda implementar AgentFlow en mi oficina?",
+      "answer": "Implementación completa: 1-2 semanas. Día 1-2: cargamos tu estructura de roles y DMOs reales. Día 3-5: capacitamos al equipo. Día 6-10: tuning y estabilización. Para oficinas complejas puede ser hasta 4 semanas."
+    },
+    {
+      "question": "¿Soy dueño de mis datos? ¿Puedo irme en cualquier momento?",
+      "answer": "100% sí. Cero lock-in. Exportás todos los datos en CSV/JSON en cualquier momento. La base es tuya. Si te vas, te va bien sin nosotros."
+    },
+    {
+      "question": "¿Funciona offline?",
+      "answer": "Sí, parcialmente. La app usa LocalStorage para cachear data reciente. Si no hay internet, podés registrar visits y logs DMO. Al volver conexión, sincroniza automáticamente."
+    },
+    {
+      "question": "¿Puedo crear mis propios templates de DMO?",
+      "answer": "Sí. El DMO es JSON configurable. Podés empezar con uno de nuestros templates (Beyker AR, Tom Ferry, Buffini) y adaptarlo a tu oficina. Los admins clonán el template y ajustan bloques, horarios, metas."
+    },
+    {
+      "question": "¿Cuál es la diferencia entre DMO y comisiones?",
+      "answer": "DMO es conducta: qué hace el vendedor cada día (llamadas, visitas, captación). Comisiones es resultado financiero: cuánto gana por operación. Son ortogonales. Muy buen DMO ≠ cerrá mucho si la coyuntura es mala."
+    },
+    {
+      "question": "¿El IA Coach necesita internet?",
+      "answer": "Sí. El AI Coach es Gemini 2.5 Flash vía API. Requiere conexión a internet. Si no hay internet, la app funciona pero el coach no responde hasta que haya red."
+    },
+    {
+      "question": "¿Puedo tener múltiples gerentes en la misma oficina?",
+      "answer": "Sí. La app soporta múltiples roles. Cada usuario tiene permisos: vendedor ve su DMO + ranking + coach; coordinador ve el equipo + pipeline; gerente ve dashboard completo + coaching."
+    },
+    {
+      "question": "¿Qué pasa con leads viejos? ¿Los pierdo si migro a AgentFlow?",
+      "answer": "No. Migramos tus clientes y deals actuales al pipeline de AgentFlow. Podés subir un CSV/Excel y los cargamos automáticamente. Cero pérdida de data."
+    },
+    {
+      "question": "¿Funciona en celular?",
+      "answer": "Sí. La app está optimizada para mobile (React responsive). Vendedor puede registrar visitas, cargar fotos, completar bloques DMO todo desde el celular."
+    },
+    {
+      "question": "¿Cómo se calcula la racha?",
+      "answer": "Racha = días consecutivos con cumplimiento DMO >=80%. Si completa 80% o más de sus metas del día, suma 1 a la racha. Si no llega, se corta y resetea a 0. Automático cada día a las 23:59."
+    }
+  ],
+  "contact": {
+    "website": "https://agentflow.netlify.app",
+    "email": "arenazl@gmail.com",
+    "demo_url": "https://agentflow.netlify.app (credenciales demo incluidas al cargar)",
+    "phone": null,
+    "notes": "Contacto directo por email o desde la app. Para demostraciones en vivo, un miembro del equipo lo conecta por Zoom o videollamada. Todo fluye por email central."
+  },
+  "do_not_say": [
+    "No afirmar que AgentFlow reemplaza un CRM tradicional — es un complemento analítico que suma inteligencia al CRM que ya tenés.",
+    "No prometer integraciones custom sin confirmar con el equipo técnico — decir que evaluamos cada caso pero que algunas toman 1-2 semanas.",
+    "No inventar precios ni ofrecer descuentos cerrados — el precio exacto lo cierra un asesor tras entender el tamaño de la oficina y módulos contratados.",
+    "No garantizar aumentos de ventas específicos ('se venden 30% más') — el DMO mejora disciplina y visibilidad, pero la venta depende del mercado y el vendedor.",
+    "No comparar directamente con competidores por nombre (Tokko, MercadoLibre, CRM X) — posicionar AgentFlow en su nicho sin desmerecerlos.",
+    "No prometer que el IA Coach sustituye al gerente — es un asistente que libera tiempo, no lo reemplaza.",
+    "No usar jerga de marketing (revolucionario, game-changer, el futuro) — AgentFlow es herramienta que funciona, sin hype.",
+    "No incluir fotos o datos reales de clientes (vendedores, propiedades) en demos — usar siempre datos de demo con nombres ficticios.",
+    "No entregar números de vendedores internos ni pedir que contacten a personas específicas — todo fluye por email central arenazl@gmail.com.",
+    "No afirmar que el sistema se integra automáticamente con Beyker CRM u otro legacy — aclarar que requiere mapeo y testing."
+  ],
+  "screens": [
+    {
+      "label": "Dashboard (KPIs del gerente)",
+      "url": "https://agentflow.netlify.app/dashboard",
+      "route": "/dashboard"
+    },
+    {
+      "label": "DMO del día (vendedor)",
+      "url": "https://agentflow.netlify.app/dmo",
+      "route": "/dmo"
+    },
+    {
+      "label": "Pipeline Kanban",
+      "url": "https://agentflow.netlify.app/pipeline",
+      "route": "/pipeline"
+    },
+    {
+      "label": "Clientes y leads",
+      "url": "https://agentflow.netlify.app/clientes",
+      "route": "/clientes"
+    },
+    {
+      "label": "Propiedades",
+      "url": "https://agentflow.netlify.app/propiedades",
+      "route": "/propiedades"
+    },
+    {
+      "label": "Visitas programadas y concretadas",
+      "url": "https://agentflow.netlify.app/visitas",
+      "route": "/visitas"
+    },
+    {
+      "label": "Templates de DMO (admin)",
+      "url": "https://agentflow.netlify.app/configuracion/dmo-templates",
+      "route": "/configuracion/dmo-templates"
+    },
+    {
+      "label": "Asignaciones DMO por vendedor (admin)",
+      "url": "https://agentflow.netlify.app/configuracion/dmo-assignments",
+      "route": "/configuracion/dmo-assignments"
+    }
+  ],
+  "brand": {
+    "logo": {
+      "primary": "https://agentflow.netlify.app/logos/agentflow-primary.svg",
+      "isotype": "https://agentflow.netlify.app/logos/agentflow-isotype.svg",
+      "dark": "https://agentflow.netlify.app/logos/agentflow-dark.svg"
+    },
+    "colors": {
+      "primary": "#103070",
+      "accent": "#C8A24E",
+      "secondary": "#2D5AA0",
+      "ink": "#0E1830",
+      "surface": "#F1EAD8",
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444"
+    },
+    "fonts": {
+      "display": "Fraunces",
+      "text": "Inter"
+    },
+    "phonetic": "Agent Flow (dos palabras)",
+    "tone": "profesional, cercano, accionable",
+    "avoid": [
+      "No usar rojo alarmista — los colores de error/alerta son naranja/rojo suave",
+      "No estetica futurista o high-tech — AgentFlow es herramienta operativa, sin ficción",
+      "No comparar visualmente con Beyker (aunque Beyker es cliente) — mantener identidad propia",
+      "Evitar jerga de IA o blockchain — es software real, no startup crypto"
+    ]
+  },
+  "extra": {
+    "demo_credentials": {
+      "note": "Credenciales de prueba (password todas: admin123)",
+      "users": [
+        {
+          "email": "admin@beyker.demo",
+          "role": "admin",
+          "name": "Admin Demo"
+        },
+        {
+          "email": "gerente@beyker.demo",
+          "role": "gerente",
+          "name": "Patricio Bagur (Gerente)"
+        },
+        {
+          "email": "lautaro@beyker.demo",
+          "role": "vendedor",
+          "name": "Lautaro (Beyker AR)"
+        },
+        {
+          "email": "romina@beyker.demo",
+          "role": "vendedor",
+          "name": "Romina (Beyker AR)"
+        },
+        {
+          "email": "federico@beyker.demo",
+          "role": "vendedor",
+          "name": "Federico (Beyker AR)"
+        },
+        {
+          "email": "camila@beyker.demo",
+          "role": "vendedor",
+          "name": "Camila (Buffini)"
+        },
+        {
+          "email": "martin@beyker.demo",
+          "role": "vendedor",
+          "name": "Martin (Tom Ferry)"
+        }
+      ]
+    },
+    "technology_stack": {
+      "backend": "FastAPI 0.104 + SQLAlchemy async + MySQL (Aiven)",
+      "frontend": "React 18 + TypeScript + Vite + Tailwind + Sonner",
+      "ai": "Gemini 2.5 Flash",
+      "hosting": "Heroku (backend) + Netlify (frontend)",
+      "email": "Brevo SMTP",
+      "storage": "Cloudinary"
+    },
+    "roadmap_near_term": [
+      "WhatsApp Business API integration (Inbox compartido + bot lead capture)",
+      "Comisiones y splits (fase beta actual)",
+      "Puntos y premios gamificación",
+      "Histórico DMO con análisis comparativo",
+      "Integraciones con Tokko Broker y CRMs legacy"
+    ],
+    "legal_argentina": [
+      "Pipeline con etapas legales: Contacto, Reunión, Propuesta, Reserva, Boleto, Escrituración",
+      "Soporte para cálculo de comisiones con retenciones AFIP (IVA, IIBB)",
+      "Seguimiento de plazo 45d para inscripción en Registro de Inmuebles",
+      "Validación de CUCICBA (matrícula de corredor inmobiliario)"
+    ]
+  }
+}

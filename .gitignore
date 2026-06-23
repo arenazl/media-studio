@@ -16,3 +16,6 @@ server/*.db-wal
 # Material de trabajo pesado (videos crudos de prueba) — no se versiona
 shorts-nature/
 _shots/
+
+# Secrets de integración (X-KB-Key por app) — NUNCA al repo
+PROMPTS_INTEGRACION.md
