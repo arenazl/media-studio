@@ -51,3 +51,12 @@
   .ms-embed { height: auto; min-height: 100vh; padding: 10px; }
   .ms-embed-inner { height: auto; }
 }
+
+/* home: acceso a importar desde una Integración (KSP) */
+.ms-home-bar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+.ms-kb-cta {
+  cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 800; color: var(--ink);
+  background: var(--gold); border: none; border-radius: var(--r); padding: 10px 18px;
+}
+.ms-kb-cta:hover { filter: brightness(1.06); }

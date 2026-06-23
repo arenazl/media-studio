@@ -61,6 +61,52 @@ if (!IS_PROD) fs.mkdirSync(VIDEOS_DIR, { recursive: true });
 const json    = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(obj)); };
 const readBody = (req) => new Promise((resolve) => { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => resolve(b)); });
 
+// ── Integraciones (KSP): registro compartido + traer el KB por el consumidor ──
+// El registro (apps.json) tiene la base_url + key de cada Integración. La key vive
+// SOLO acá (backend); el front nunca la ve. Media Studio = consumidor: lee el registro
+// y hace el GET a cada Integración con su X-KB-Key.
+const KB_REGISTRY = process.env.KB_REGISTRY || 'D:/Code/knowledge_share/apps.json';
+function loadKbRegistry() {
+  try {
+    // prod: el registro (con las keys) se inyecta por env desde Secret Manager.
+    if (process.env.KB_REGISTRY_JSON) return JSON.parse(process.env.KB_REGISTRY_JSON).apps || [];
+    return JSON.parse(fs.readFileSync(KB_REGISTRY, 'utf8')).apps || [];
+  } catch { return []; }
+}
+async function fetchKbFor(app) {
+  const base = (app.base_url || '').replace(/\/+$/, '');
+  if (!base) throw new Error(`${app.name || app.id}: sin base_url en el registro`);
+  const r = await fetch(`${base}/api/knowledge-base`, { headers: { 'X-KB-Key': app.key || '' } });
+  if (!r.ok) throw new Error(`${app.name || app.id}: HTTP ${r.status}${r.status === 401 ? ' (key inválida)' : ''}`);
+  const ct = r.headers.get('content-type') || '';
+  if (!ct.includes('json')) throw new Error(`${app.name || app.id}: la URL no devolvió JSON (¿la base_url apunta al front en vez del backend?)`);
+  return await r.json();
+}
+
+// extrae el primer objeto JSON de una respuesta de IA (que a veces trae texto alrededor).
+function extractJson(text) {
+  const s = (text || '').indexOf('{'); const e = (text || '').lastIndexOf('}');
+  if (s === -1 || e <= s) throw new Error('la IA no devolvió JSON');
+  return JSON.parse(text.slice(s, e + 1));
+}
+
+// Prompt: del KB → prospecto (resumen del negocio) + propuesta de trabajo (qué campaña).
+// NO genera los reels (eso es la 2da etapa); arma la propuesta para que el dueño la apruebe.
+const KB_PLAN_PROMPT = (kb) => `Sos un estratega de marketing de video. Te paso el Knowledge Base de un negocio. Devolvé SOLO un JSON (sin texto alrededor, sin markdown) con:
+{
+  "prospecto": "resumen claro del negocio en 3-4 frases: qué hace, a quién, su dolor, su diferenciador",
+  "publico": ["1-3 segmentos objetivo, una linea cada uno"],
+  "propuesta": {
+    "perfil": "awareness | demo | conversion | campaña | solo-mockups",
+    "piezas": [ { "objetivo": "awareness|consideracion|conversion", "angulo": "el angulo", "formato": "reel 9:16", "duracionSeg": 18 } ],
+    "resumen": "1-2 frases de por que esta propuesta para este negocio"
+  }
+}
+Reglas: español rioplatense, sin emojis, una pieza = un angulo = un objetivo. Para 'campaña' proponé ~3 awareness + 1 demo + 1 conversion. No inventes numeros/precios como reales.
+
+KNOWLEDGE BASE:
+${JSON.stringify(kb).slice(0, 9000)}`;
+
 // ── Claude headless (local) ──────────────────────────────────────────────────
 function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash,Edit,Write', timeout = 900_000 } = {}) {
   return new Promise((resolve, reject) => {
@@ -450,6 +496,28 @@ const server = http.createServer(async (req, res) => {
       const app_id = decodeURIComponent(p.slice('/api/apps/'.length));
       const ok     = deleteAppConfig(app_id);
       return json(res, ok ? 200 : 404, { ok });
+    }
+
+    // ── Integraciones (KSP): lista del registro + traer el KB ────────────────
+    if (p === '/api/kb/apps' && req.method === 'GET') {
+      const apps = loadKbRegistry().map((a) => ({ id: a.id, name: a.name, base_url: a.base_url || '', ready: !!a.base_url }));
+      return json(res, 200, { apps });
+    }
+    if (p === '/api/kb/fetch' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const app = loadKbRegistry().find((a) => a.id === body.appId);
+      if (!app) return json(res, 404, { error: 'esa Integración no está en el registro' });
+      try { return json(res, 200, { app: { id: app.id, name: app.name }, kb: await fetchKbFor(app) }); }
+      catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error trayendo el KB' }); }
+    }
+    // del KB → prospecto + propuesta de trabajo (con IA).
+    if (p === '/api/kb/plan' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!body.kb) return json(res, 400, { error: 'falta el kb' });
+      try {
+        const { text } = await runAI({ prompt: KB_PLAN_PROMPT(body.kb), allowedTools: 'Read' });
+        return json(res, 200, { plan: extractJson(text) });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error armando el plan' }); }
     }
 
     return json(res, 404, { error: 'not found' });

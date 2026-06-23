@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import VoiceStudio from './VoiceStudio';
+import KbImport from './KbImport';
+import { Sparkles } from 'lucide-react';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
 import VideoPromptBuilder from './VideoPromptBuilder';
@@ -26,6 +28,7 @@ export default function App() {
   const [section, setSection] = useState<Section>('editor');
   // audio generado por reel (objectURL del mp3) — se comparte entre solapas.
   const [audioByReel, setAudioByReel] = useState<Record<string, string>>({});
+  const [kbImport, setKbImport] = useState(false);
 
   const projects = listProjects();   // se relee en cada render → refleja altas/cambios
 
@@ -57,7 +60,16 @@ export default function App() {
       />
       <main className="ms-main">
         {!activeProject ? (
-          <ProjectsABM onOpen={openProject} />
+          kbImport ? (
+            <KbImport onClose={() => setKbImport(false)} onCreated={(p) => { setKbImport(false); openProject(p); }} />
+          ) : (
+            <div className="ms-home">
+              <div className="ms-home-bar">
+                <button className="ms-kb-cta" onClick={() => setKbImport(true)}><Sparkles size={15} /> Importar de una Integración</button>
+              </div>
+              <ProjectsABM onOpen={openProject} />
+            </div>
+          )
         ) : (
           <SectionView section={section} project={activeProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
         )}
