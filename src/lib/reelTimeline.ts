@@ -36,6 +36,9 @@ export const EFFECTS: FxPreset[] = [
   { id: 'grain', label: 'Grano' },
   { id: 'glow', label: 'Glow' },
   { id: 'bw', label: 'B&N' },
+  { id: 'sepia', label: 'Sepia' },
+  { id: 'vivid', label: 'Vívido' },
+  { id: 'blur', label: 'Desenfoque' },
 ];
 export const TRANSITION_SEC = 0.6;   // duración default de una transición
 export const EFFECT_SEC = 4;         // ancho default de un efecto
@@ -69,7 +72,8 @@ export function presetLabel(presets: FxPreset[], id: string): string {
 }
 
 // ── Texto / Títulos ──────────────────────────────────────────────────────────
-export interface TextClip extends Clip { id: string; preset: string; text: string }
+// nx/ny: posición libre normalizada (0-1) dentro del preview. Si faltan, manda el preset.
+export interface TextClip extends Clip { id: string; preset: string; text: string; nx?: number; ny?: number }
 export const TEXT_PRESETS: FxPreset[] = [
   { id: 'title', label: 'Título' },
   { id: 'lower', label: 'Lower-third' },
@@ -107,6 +111,18 @@ export function rulerTicks(masterSec: number): number[] {
   const ticks: number[] = [];
   for (let t = 0; t <= masterSec + 1e-3; t += step) ticks.push(Math.round(t * 10) / 10);
   return ticks;
+}
+
+// ── Snapping / guías de alineación al arrastrar ──────────────────────────────
+// imanta `value` al punto más cercano dentro de `threshold` px. Devuelve el valor
+// ajustado y `guide` = el punto donde enganchó (o null si no hubo imán).
+export function snap(value: number, points: number[], threshold = 7): { value: number; guide: number | null } {
+  let best: number | null = null, bestD = threshold + 1e-4;
+  for (const p of points) {
+    const d = Math.abs(p - value);
+    if (d < bestD) { best = p; bestD = d; }
+  }
+  return best === null ? { value, guide: null } : { value: best, guide: best };
 }
 
 // x del próximo clip: al final del último + GAP (o 0 si el track está vacío).

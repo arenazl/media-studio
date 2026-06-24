@@ -223,7 +223,7 @@ function runFfmpeg(args) {
   });
 }
 // efectos soportados (mismos ids que el editor) y mapeo transición→nombre de xfade.
-const EFFECT_IDS = new Set(['kenburns', 'vignette', 'grain', 'glow', 'bw']);
+const EFFECT_IDS = new Set(['kenburns', 'vignette', 'grain', 'glow', 'bw', 'sepia', 'vivid', 'blur']);
 const XFADE_MAP = { fade: 'fade', crossfade: 'dissolve', wipe: 'wipeleft', zoom: 'zoomin' };
 
 // cadena de filtros de UNA escena: la encuadra a WxH (cover) y le aplica el efecto.
@@ -236,7 +236,10 @@ function sceneFilterChain(effect, w, h, fps) {
       + `setsar=1,format=yuv420p`;
   }
   const base = `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=${fps}`;
-  const fx = { bw: 'hue=s=0,eq=contrast=1.05', glow: 'eq=brightness=0.06:saturation=1.35', vignette: 'vignette', grain: 'noise=alls=16:allf=t' }[effect] || '';
+  const fx = {
+    bw: 'hue=s=0,eq=contrast=1.05', glow: 'eq=brightness=0.06:saturation=1.35', vignette: 'vignette', grain: 'noise=alls=16:allf=t',
+    sepia: 'colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131', vivid: 'eq=saturation=1.5:contrast=1.12', blur: 'gblur=sigma=6',
+  }[effect] || '';
   return `${base}${fx ? ',' + fx : ''},format=yuv420p`;
 }
 

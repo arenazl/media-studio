@@ -1,11 +1,38 @@
 import { describe, it, expect } from 'vitest';
 import {
   masterSecOf, rulerTicks, appendX, reflow, buildPlan, secToPx, pxToSec,
-  effectAtPx, effectClass, presetLabel, TRANSITIONS, EFFECTS,
+  effectAtPx, effectClass, transitionClass, snap, presetLabel, TRANSITIONS, EFFECTS,
   textsAtPx, textPresetClass, TEXT_PRESETS,
   PX_PER_SEC, GAP, MIN_W, MUSIC_GAIN,
   type PhraseClip, type RefClip, type TrackKind,
 } from './reelTimeline';
+
+describe('snap (imán de alineación)', () => {
+  it('engancha al punto más cercano dentro del umbral', () => {
+    const r = snap(103, [0, 100, 240], 7);
+    expect(r.value).toBe(100); expect(r.guide).toBe(100);
+  });
+  it('no engancha si está fuera del umbral', () => {
+    const r = snap(120, [0, 100, 240], 7);
+    expect(r.value).toBe(120); expect(r.guide).toBeNull();
+  });
+  it('elige el candidato más cercano', () => { expect(snap(98, [100, 95], 7).value).toBe(100); });
+});
+
+describe('transitionClass', () => {
+  it('mapea una transición válida', () => { expect(transitionClass('fade')).toBe('rt-trans--fade'); });
+  it('cut, null y desconocidos → vacío', () => {
+    expect(transitionClass('cut')).toBe('');
+    expect(transitionClass(null)).toBe('');
+    expect(transitionClass('xxx')).toBe('');
+  });
+});
+
+describe('EFFECTS', () => {
+  it('incluye los nuevos sepia, vivid y blur', () => {
+    expect(EFFECTS.map((e) => e.id)).toEqual(expect.arrayContaining(['sepia', 'vivid', 'blur']));
+  });
+});
 
 describe('secToPx / pxToSec', () => {
   it('escala 1s = 80px', () => { expect(secToPx(1)).toBe(80); expect(pxToSec(80)).toBe(1); });

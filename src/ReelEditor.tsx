@@ -22,7 +22,7 @@ import SourcePanel, { type SourcePanelProps } from './SourcePanel';
 import {
   PX_PER_SEC, GAP, MIN_W, SLIDE_SEC, DEF_PHRASE_SEC, DEF_VIDEO_SEC, DEF_MUSIC_SEC,
   TRANSITION_SEC, EFFECT_SEC, TRANSITIONS, EFFECTS, TEXT_SEC, TEXT_PRESETS, DEFAULT_TEXT_FOR,
-  secToPx, masterSecOf, rulerTicks, appendX, reflow, buildPlan, effectAtPx, effectClass, transitionClass, presetLabel, textsAtPx, textPresetClass,
+  secToPx, masterSecOf, rulerTicks, appendX, reflow, snap, buildPlan, effectAtPx, effectClass, transitionClass, presetLabel, textsAtPx, textPresetClass,
   type SlideClip, type RefClip, type PhraseClip, type PhraseAudio, type TextClip, type TrackKind,
 } from './lib/reelTimeline';
 import { buildSnapshot, loadMontage, saveMontage } from './lib/montageStore';
@@ -73,6 +73,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
   const [musicPeaks, setMusicPeaks] = useState<Record<string, number[]>>({});       // peaks por track de música presente
   const [muted, setMuted] = useState<Set<TrackKind>>(new Set());                    // canales silenciados en la reproducción
   const [previewOpen, setPreviewOpen] = useState(true);                             // riel de preview (colapsable)
+  const [guideX, setGuideX] = useState<number | null>(null);                        // guía de alineación (snapping) durante un drag
   const rafRef = useRef<number | null>(null);
   const startRef = useRef(0);                    // wall-clock para el modo sin-audio
   const usingEngineRef = useRef(false);          // true: el playhead lo manda el motor; false: wall-clock
@@ -321,6 +322,20 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
   const addText = (preset: string) => { const id = uid(); setTextTrack((t) => [...t, { id, preset, text: DEFAULT_TEXT_FOR[preset] || 'Texto', x: appendX(t), w: secToPx(TEXT_SEC) }]); setEditingTextId(id); setPreviewOpen(true); };
   const updateText = (id: string, patch: Partial<TextClip>) => setTextTrack((arr) => arr.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   const removeText = (id: string) => { setTextTrack((arr) => arr.filter((c) => c.id !== id)); if (editingTextId === id) setEditingTextId(null); };
+  // arrastre del texto DENTRO del preview → guarda su posición libre normalizada (nx, ny).
+  const onTextDragStart = (e: React.PointerEvent, id: string) => {
+    e.stopPropagation(); e.preventDefault();
+    const box = (e.currentTarget as HTMLElement).closest('.rt-rail-preview') as HTMLElement;
+    const rect = box?.getBoundingClientRect(); if (!rect) return;
+    const move = (ev: PointerEvent) => {
+      const nx = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+      const ny = Math.max(0, Math.min(1, (ev.clientY - rect.top) / rect.height));
+      updateText(id, { nx, ny });
+    };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
 
   const removeAt = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>, k: number) => setter((arr) => arr.filter((_, j) => j !== k));
 
@@ -348,17 +363,45 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
     const lane = (e.currentTarget as HTMLElement).closest('.rt-lane') as HTMLElement;
     const laneW = lane?.getBoundingClientRect().width ?? 0;
     const startX = e.clientX;
+    // puntos de imán: bordes (inicio/fin) de los clips de TODOS los canales (menos el que
+    // se mueve) + el 0 + el playhead. Se congelan al empezar el drag (no cambian al arrastrar).
+    const snapTracks: [TrackKind, { x: number; w: number }[]][] = [
+      ['slide', slideTrack], ['video', videoTrack], ['music', musicTrack], ['audio', audioTrack],
+      ['transition', transitionTrack], ['effect', effectTrack], ['text', textTrack],
+    ];
+    const pts: number[] = [0];
+    if (playing0) pts.push(playPx);
+    for (const [tk, arr] of snapTracks) for (let i = 0; i < arr.length; i++) {
+      if (tk === kind && i === idx) continue;
+      pts.push(arr[i].x, arr[i].x + arr[i].w);
+    }
     const onMove = (ev: PointerEvent) => {
       const dx = ev.clientX - startX;
-      let x = x0, w = w0;
-      if (mode === 'move') x = Math.max(0, Math.min(Math.max(0, laneW - w0), x0 + dx));
-      else if (mode === 'r') w = Math.max(MIN_W, Math.min(laneW - x0, w0 + dx));
-      else { const right = x0 + w0; x = Math.max(0, Math.min(right - MIN_W, x0 + dx)); w = right - x; }
+      let x = x0, w = w0, guide: number | null = null;
+      if (mode === 'move') {
+        x = Math.max(0, Math.min(Math.max(0, laneW - w0), x0 + dx));
+        const sl = snap(x, pts), sr = snap(x + w0, pts);   // imanta el borde izq o el der, el más cercano
+        if (sl.guide !== null && (sr.guide === null || Math.abs(sl.value - x) <= Math.abs(sr.value - (x + w0)))) {
+          x = sl.value; guide = sl.guide;
+        } else if (sr.guide !== null) { x = sr.value - w0; guide = sr.guide; }
+        x = Math.max(0, Math.min(Math.max(0, laneW - w0), x));
+      } else if (mode === 'r') {
+        w = Math.max(MIN_W, Math.min(laneW - x0, w0 + dx));
+        const sr = snap(x0 + w, pts);
+        if (sr.guide !== null) { w = Math.max(MIN_W, Math.min(laneW - x0, sr.value - x0)); guide = sr.guide; }
+      } else {
+        const right = x0 + w0;
+        x = Math.max(0, Math.min(right - MIN_W, x0 + dx));
+        const sl = snap(x, pts);
+        if (sl.guide !== null) { x = Math.max(0, Math.min(right - MIN_W, sl.value)); guide = sl.guide; }
+        w = right - x;
+      }
       setClip(kind, idx, x, w);
+      setGuideX(guide);
     };
     const onUp = () => {
       window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp);
-      draggingRef.current = false; setRev((r) => r + 1);
+      draggingRef.current = false; setGuideX(null); setRev((r) => r + 1);
     };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
@@ -372,6 +415,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
     <span className="rt-clip-h rt-clip-h--r" onPointerDown={(e) => onPtrDown(e, kind, idx, 'r', x, w)} />
   </>);
   const playhead = playing0 ? <span className="rt-lane-ph" style={{ ['--x']: `${playPx}px` } as React.CSSProperties} /> : null;
+  const guide = guideX !== null ? <span className="rt-lane-guide" style={{ ['--x']: `${guideX}px` } as React.CSSProperties} /> : null;
   const trackHead = (kind: TrackKind, icon: React.ReactNode, name: string, sounds: boolean) => (
     <div className="rt-track-head">
       <span className="rt-track-lbl">{icon} {name}</span>
@@ -481,13 +525,13 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
                     {ruler.map((t) => (
                       <span key={t} className="rt-tick" style={{ ['--x']: `${t * PX_PER_SEC}px` } as React.CSSProperties}>{t}s</span>
                     ))}
-                    {playhead}
+                    {playhead}{guide}
                   </div>
                 </div>
 
                 <div className="rt-track">
                   {trackHead('slide', <Film size={12} />, 'Animación', false)}
-                  <div className="rt-lane rt-lane--free">{playhead}
+                  <div className="rt-lane rt-lane--free">{playhead}{guide}
                     {slideTrack.length ? slideTrack.map((c, k) => (
                       <div key={k} className={c.s === activeS ? 'rt-clip rt-clip--slide rt-clip--active' : 'rt-clip rt-clip--slide'} style={xwStyle(c.x, c.w)}
                         onPointerDown={(e) => onPtrDown(e, 'slide', k, 'move', c.x, c.w)}>
@@ -502,7 +546,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
                 {withVideo && (
                   <div className="rt-track">
                     {trackHead('video', <Video size={12} />, 'Video', true)}
-                    <div className="rt-lane rt-lane--free">{playhead}
+                    <div className="rt-lane rt-lane--free">{playhead}{guide}
                       {videoTrack.length ? videoTrack.map((c, k) => {
                         const v = vidById(c.id);
                         return (
@@ -521,7 +565,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
 
                 <div className="rt-track">
                   {trackHead('music', <Music2 size={12} />, 'Música', true)}
-                  <div className="rt-lane rt-lane--free">{playhead}
+                  <div className="rt-lane rt-lane--free">{playhead}{guide}
                     {musicTrack.length ? musicTrack.map((c, k) => (
                       <div key={k} className="rt-clip rt-clip--music" style={xwStyle(c.x, c.w)}
                         onPointerDown={(e) => onPtrDown(e, 'music', k, 'move', c.x, c.w)}>
@@ -536,7 +580,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
 
                 <div className="rt-track">
                   {trackHead('audio', <AudioLines size={12} />, 'Voz', true)}
-                  <div className="rt-lane rt-lane--free">{playhead}
+                  <div className="rt-lane rt-lane--free">{playhead}{guide}
                     {audioTrack.length ? audioTrack.map((c, k) => (
                       <div key={k} className="rt-clip rt-clip--audio" style={xwStyle(c.x, c.w)} title={phrases[c.p]}
                         onPointerDown={(e) => onPtrDown(e, 'audio', k, 'move', c.x, c.w)}>
@@ -551,7 +595,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
 
                 <div className="rt-track">
                   {trackHead('transition', <Shuffle size={12} />, 'Transición', false)}
-                  <div className="rt-lane rt-lane--free">{playhead}
+                  <div className="rt-lane rt-lane--free">{playhead}{guide}
                     {transitionTrack.length ? transitionTrack.map((c, k) => (
                       <div key={k} className="rt-clip rt-clip--trans" style={xwStyle(c.x, c.w)}
                         onPointerDown={(e) => onPtrDown(e, 'transition', k, 'move', c.x, c.w)}>
@@ -565,7 +609,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
 
                 <div className="rt-track">
                   {trackHead('effect', <Sparkles size={12} />, 'Efecto', false)}
-                  <div className="rt-lane rt-lane--free">{playhead}
+                  <div className="rt-lane rt-lane--free">{playhead}{guide}
                     {effectTrack.length ? effectTrack.map((c, k) => (
                       <div key={k} className="rt-clip rt-clip--fx" style={xwStyle(c.x, c.w)}
                         onPointerDown={(e) => onPtrDown(e, 'effect', k, 'move', c.x, c.w)}>
@@ -579,7 +623,7 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
 
                 <div className="rt-track">
                   {trackHead('text', <Type size={12} />, 'Texto', false)}
-                  <div className="rt-lane rt-lane--free">{playhead}
+                  <div className="rt-lane rt-lane--free">{playhead}{guide}
                     {textTrack.length ? textTrack.map((c, k) => (
                       <div key={c.id} className={editingTextId === c.id ? 'rt-clip rt-clip--text rt-clip--active' : 'rt-clip rt-clip--text'} style={xwStyle(c.x, c.w)}
                         onPointerDown={(e) => onPtrDown(e, 'text', k, 'move', c.x, c.w)}>
@@ -613,7 +657,9 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
                       ) : <div className="rt-preview-ph"><Film size={26} /></div>}
                     </div>
                     {activeTexts.map((c) => (
-                      <div key={c.id} className={`rt-txt ${textPresetClass(c.preset)}`}>{c.text}</div>
+                      <div key={c.id} className={`rt-txt ${textPresetClass(c.preset)}${c.nx != null ? ' rt-txt--free' : ''}`}
+                        style={c.nx != null && c.ny != null ? { left: `${c.nx * 100}%`, top: `${c.ny * 100}%`, right: 'auto', bottom: 'auto', transform: 'translate(-50%, -50%)' } : undefined}
+                        onPointerDown={(e) => onTextDragStart(e, c.id)} title="Arrastrá para reubicar">{c.text}</div>
                     ))}
                     {brand.logoUrl && <img src={brand.logoUrl} alt="" className={`rt-brand-logo ${logoPosClass(brand.logoPos)}`} />}
                   </div>

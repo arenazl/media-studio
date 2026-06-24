@@ -179,9 +179,15 @@
 .rt-fx--grain::after { content: ''; position: absolute; inset: 0; opacity: 0.14; pointer-events: none; z-index: 2; background-image: repeating-radial-gradient(rgba(255,255,255,0.5) 0 0.6px, transparent 0.6px 2.4px); }
 .rt-fx--kenburns .rt-preview-img { animation: rt-kenburns 8s ease-in-out infinite alternate; transform-origin: 50% 40%; }
 @keyframes rt-kenburns { from { transform: scale(1); } to { transform: scale(1.14); } }
+.rt-fx--sepia { filter: sepia(0.7) contrast(1.05) brightness(1.02); }
+.rt-fx--vivid { filter: saturate(1.5) contrast(1.12); }
+.rt-fx--blur { filter: blur(3px); }
 
 /* overlays de TEXTO sobre el preview (posición/estilo por preset) */
-.rt-txt { position: absolute; z-index: 3; padding: 0 8%; color: #fff; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,0.6); pointer-events: none; max-width: 100%; word-break: break-word; }
+.rt-txt { position: absolute; z-index: 3; padding: 0 8%; color: #fff; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,0.6); pointer-events: auto; cursor: grab; touch-action: none; max-width: 100%; word-break: break-word; }
+.rt-txt:active { cursor: grabbing; }
+/* texto reubicado a mano (nx/ny): padding compacto y ancho acotado para que el centro caiga en el punto */
+.rt-txt--free { padding: 2px 8px; width: max-content; max-width: 84%; }
 .rt-txt--title { left: 0; right: 0; top: 12%; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 9cqw, 30px); }
 .rt-txt--subtitle { left: 0; right: 0; bottom: 7%; text-align: center; font-weight: 600; font-size: clamp(10px, 5cqw, 16px); }
 .rt-txt--lower { left: 6%; right: 14%; bottom: 16%; text-align: left; font-weight: 700; font-size: clamp(11px, 5.5cqw, 18px); padding: 6px 10px; background: rgba(0,0,0,0.42); border-left: 3px solid var(--gold); border-radius: 4px; }
@@ -241,6 +247,8 @@
 }
 .rt-lane-empty { font-size: 11px; color: var(--txt-40); padding: 12px 10px; }
 .rt-lane-ph { position: absolute; top: 0; bottom: 0; left: var(--x, 0); width: 2px; margin-left: -1px; background: var(--gold); pointer-events: none; z-index: 4; box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent); }
+/* guía de alineación (snapping): línea vertical que aparece al enganchar un borde con otro clip */
+.rt-lane-guide { position: absolute; top: 0; bottom: 0; left: var(--x, 0); width: 0; margin-left: -1px; border-left: 1px dashed var(--azure); pointer-events: none; z-index: 5; box-shadow: 0 0 6px color-mix(in srgb, var(--azure) 70%, transparent); }
 
 .rt-clip {
   position: absolute; left: var(--x, 0); top: 4px; width: var(--w, 112px); height: 34px;
