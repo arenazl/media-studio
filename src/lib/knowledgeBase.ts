@@ -1,7 +1,7 @@
 // Consumidor del Knowledge Share Protocol (KSP). Media Studio es el 2º consumidor:
 // lee el KB de una app (GET /api/knowledge-base, vía nuestro backend por el X-KB-Key) y
 // lo convierte en lo que ya consume el pipeline: un brief + la marca + las pantallas.
-// Contrato completo: D:\Code\knowledge_share\KNOWLEDGE_SHARE_PROTOCOL.md (v1.1).
+// Contrato completo: D:\Code\base-compartida\KNOWLEDGE_SHARE_PROTOCOL.md (v1.1).
 import type { BrandKit } from './brandKit';
 
 export interface KBScreen { label: string; url: string; route?: string }

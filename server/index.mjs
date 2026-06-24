@@ -65,7 +65,7 @@ const readBody = (req) => new Promise((resolve) => { let b = ''; req.on('data', 
 // El registro (apps.json) tiene la base_url + key de cada Integración. La key vive
 // SOLO acá (backend); el front nunca la ve. Media Studio = consumidor: lee el registro
 // y hace el GET a cada Integración con su X-KB-Key.
-const KB_REGISTRY = process.env.KB_REGISTRY || 'D:/Code/knowledge_share/apps.json';
+const KB_REGISTRY = process.env.KB_REGISTRY || 'D:/Code/base-compartida/apps.json';
 function loadKbRegistry() {
   try {
     // prod: el registro (con las keys) se inyecta por env desde Secret Manager.
