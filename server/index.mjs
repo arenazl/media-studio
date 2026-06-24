@@ -222,32 +222,87 @@ function runFfmpeg(args) {
     proc.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exit ${code}: ${err.slice(-500)}`))));
   });
 }
+// efectos soportados (mismos ids que el editor) y mapeo transición→nombre de xfade.
+const EFFECT_IDS = new Set(['kenburns', 'vignette', 'grain', 'glow', 'bw']);
+const XFADE_MAP = { fade: 'fade', crossfade: 'dissolve', wipe: 'wipeleft', zoom: 'zoomin' };
+
+// cadena de filtros de UNA escena: la encuadra a WxH (cover) y le aplica el efecto.
+// kenburns hace un zoom-in lento (zoompan sobre la imagen sobredimensionada).
+function sceneFilterChain(effect, w, h, fps) {
+  if (effect === 'kenburns') {
+    const ew = Math.ceil((w * 1.25) / 2) * 2, eh = Math.ceil((h * 1.25) / 2) * 2;
+    return `scale=${ew}:${eh}:force_original_aspect_ratio=increase,crop=${ew}:${eh},`
+      + `zoompan=z='min(1+0.0010*in\\,1.18)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=${w}x${h}:fps=${fps},`
+      + `setsar=1,format=yuv420p`;
+  }
+  const base = `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=${fps}`;
+  const fx = { bw: 'hue=s=0,eq=contrast=1.05', glow: 'eq=brightness=0.06:saturation=1.35', vignette: 'vignette', grain: 'noise=alls=16:allf=t' }[effect] || '';
+  return `${base}${fx ? ',' + fx : ''},format=yuv420p`;
+}
+
+// scenes: [{ image, dur, effect?, transition? }]. effect = efecto de ESA escena;
+// transition = transición de ENTRADA a esa escena (la primera la ignora). Sin
+// efectos ni transiciones cae al concat demuxer (rápido). Con ellos arma xfade.
 async function renderMp4({ width = 1080, height = 1920, fps = 30, scenes, audio }) {
   if (!Array.isArray(scenes) || !scenes.length) throw new Error('sin escenas para renderizar');
+  const W = width, H = height, F = fps;
+  const durs = scenes.map((s) => Math.max(0.3, Number(s.dur) || 2.5));
+  const effects = scenes.map((s) => (EFFECT_IDS.has(s.effect) ? s.effect : null));
+  const transitions = scenes.map((s) => s.transition || null);
+  const hasFx = effects.some(Boolean) || transitions.slice(1).some((t) => t && t !== 'cut');
+
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mstudio-render-'));
   try {
-    const list = [];
-    for (let i = 0; i < scenes.length; i++) {
-      const f = path.join(dir, `s${i}.jpg`);
-      fs.writeFileSync(f, await fetchToBuffer(scenes[i].image));
-      const dur = Math.max(0.3, Number(scenes[i].dur) || 2.5);
-      list.push(`file '${f.replace(/\\/g, '/')}'`, `duration ${dur.toFixed(2)}`);
-    }
-    // el concat demuxer requiere repetir el último file para respetar su duración
-    list.push(`file '${path.join(dir, `s${scenes.length - 1}.jpg`).replace(/\\/g, '/')}'`);
-    const listFile = path.join(dir, 'list.txt');
-    fs.writeFileSync(listFile, list.join('\n'));
-
+    for (let i = 0; i < scenes.length; i++) fs.writeFileSync(path.join(dir, `s${i}.jpg`), await fetchToBuffer(scenes[i].image));
     let audioFile = null;
     if (audio) { audioFile = path.join(dir, 'audio.bin'); fs.writeFileSync(audioFile, await fetchToBuffer(audio)); }
-
     const out = path.join(dir, 'out.mp4');
-    const vf = `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,fps=${fps},format=yuv420p`;
-    const args = ['-y', '-f', 'concat', '-safe', '0', '-i', listFile];
+
+    // ── Camino simple: sin efectos ni transiciones → concat demuxer ──
+    if (!hasFx) {
+      const list = [];
+      for (let i = 0; i < scenes.length; i++) list.push(`file '${path.join(dir, `s${i}.jpg`).replace(/\\/g, '/')}'`, `duration ${durs[i].toFixed(2)}`);
+      list.push(`file '${path.join(dir, `s${scenes.length - 1}.jpg`).replace(/\\/g, '/')}'`);
+      const listFile = path.join(dir, 'list.txt');
+      fs.writeFileSync(listFile, list.join('\n'));
+      const vf = `scale=${W}:${H}:force_original_aspect_ratio=decrease,pad=${W}:${H}:(ow-iw)/2:(oh-ih)/2,fps=${F},format=yuv420p`;
+      const args = ['-y', '-f', 'concat', '-safe', '0', '-i', listFile];
+      if (audioFile) args.push('-i', audioFile);
+      args.push('-vf', vf, '-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p');
+      if (audioFile) args.push('-c:a', 'aac', '-b:a', '160k', '-shortest');
+      args.push('-movflags', '+faststart', out);
+      await runFfmpeg(args);
+      return fs.readFileSync(out);
+    }
+
+    // ── Camino con efectos + transiciones: filter_complex + xfade encadenado ──
+    const args = ['-y'];
+    for (let i = 0; i < scenes.length; i++) args.push('-loop', '1', '-t', durs[i].toFixed(2), '-i', path.join(dir, `s${i}.jpg`));
+    const audioIdx = scenes.length;
     if (audioFile) args.push('-i', audioFile);
-    args.push('-vf', vf, '-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p');
+
+    const parts = [];
+    for (let i = 0; i < scenes.length; i++) parts.push(`[${i}:v]${sceneFilterChain(effects[i], W, H, F)}[v${i}]`);
+
+    // encadena xfade: cada uno mezcla el acumulado con la escena k. offset/duración
+    // se derivan de la duración acumulada (cut = solape mínimo ≈ corte seco).
+    let chain = '[v0]', prevDur = durs[0], lastLabel = 'v0';
+    for (let k = 1; k < scenes.length; k++) {
+      const isCut = !transitions[k] || transitions[k] === 'cut';
+      const dt = isCut ? Math.min(0.08, durs[k] * 0.4, prevDur * 0.4) : Math.min(0.6, durs[k] * 0.5, prevDur * 0.5);
+      const off = Math.max(0, prevDur - dt);
+      const t = XFADE_MAP[transitions[k]] || 'fade';
+      lastLabel = (k === scenes.length - 1) ? 'outv' : `x${k}`;
+      parts.push(`${chain}[v${k}]xfade=transition=${t}:duration=${dt.toFixed(3)}:offset=${off.toFixed(3)}[${lastLabel}]`);
+      chain = `[${lastLabel}]`;
+      prevDur = prevDur + durs[k] - dt;
+    }
+    const vOut = `[${lastLabel}]`;
+    args.push('-filter_complex', parts.join(';'), '-map', vOut);
+    if (audioFile) args.push('-map', `${audioIdx}:a`);
+    args.push('-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-r', String(F));
     if (audioFile) args.push('-c:a', 'aac', '-b:a', '160k', '-shortest');
-    args.push(out);
+    args.push('-movflags', '+faststart', out);
     await runFfmpeg(args);
     return fs.readFileSync(out);
   } finally { try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* noop */ } }
