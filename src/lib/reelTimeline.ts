@@ -56,6 +56,13 @@ export function effectClass(type: string | null): string {
   return `rt-fx--${type}`;
 }
 
+// clase CSS de la transición de ENTRADA del slide en el preview.
+// 'cut' (corte seco) y desconocidos → vacío (sin animación).
+export function transitionClass(type: string | null): string {
+  if (!type || type === 'cut' || !TRANSITIONS.some((t) => t.id === type)) return '';
+  return `rt-trans--${type}`;
+}
+
 // etiqueta legible de un preset por id (transición o efecto).
 export function presetLabel(presets: FxPreset[], id: string): string {
   return presets.find((p) => p.id === id)?.label ?? id;

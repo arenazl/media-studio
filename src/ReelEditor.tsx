@@ -22,7 +22,7 @@ import SourcePanel, { type SourcePanelProps } from './SourcePanel';
 import {
   PX_PER_SEC, GAP, MIN_W, SLIDE_SEC, DEF_PHRASE_SEC, DEF_VIDEO_SEC, DEF_MUSIC_SEC,
   TRANSITION_SEC, EFFECT_SEC, TRANSITIONS, EFFECTS, TEXT_SEC, TEXT_PRESETS, DEFAULT_TEXT_FOR,
-  secToPx, masterSecOf, rulerTicks, appendX, reflow, buildPlan, effectAtPx, effectClass, presetLabel, textsAtPx, textPresetClass,
+  secToPx, masterSecOf, rulerTicks, appendX, reflow, buildPlan, effectAtPx, effectClass, transitionClass, presetLabel, textsAtPx, textPresetClass,
   type SlideClip, type RefClip, type PhraseClip, type PhraseAudio, type TextClip, type TrackKind,
 } from './lib/reelTimeline';
 import { buildSnapshot, loadMontage, saveMontage } from './lib/montageStore';
@@ -111,6 +111,10 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
   // efecto activo en el playhead (en reposo, el que arranca en 0) → clase CSS del preview.
   const activeEffect = effectAtPx(effectTrack, playing0 ? playPx : 0);
   const fxClass = effectClass(activeEffect);
+  // transición activa = la que cubre el inicio del slide actual (estable mientras dura el slide,
+  // así no se corta la animación a mitad de camino cuando el playhead avanza).
+  const activeTransition = playing0 && curSlide ? effectAtPx(transitionTrack, curSlide.x) : null;
+  const transClass = transitionClass(activeTransition);
   // textos activos en el playhead → overlays del preview.
   const activeTexts = textsAtPx(textTrack, playing0 ? playPx : 0);
   // marca del proyecto (logo/color) → overlay del preview, agnóstico (Fase 6).
@@ -601,11 +605,13 @@ export default function ReelEditor({ project, audioByReel, videos, videosLoading
                     <button className="rt-rail-toggle" onClick={() => setPreviewOpen(false)} title="Colapsar preview"><ChevronRight size={15} /></button>
                   </div>
                   <div className={`rt-rail-preview ${fxClass}`}>
-                    {activeVid ? (
-                      <video key={activeVidClip!.id} src={activeVid.url} autoPlay muted loop playsInline className="rt-preview-img" />
-                    ) : showS !== undefined && frames[showS] ? (
-                      <img src={frames[showS]} alt="" className="rt-preview-img" />
-                    ) : <div className="rt-preview-ph"><Film size={26} /></div>}
+                    <div key={activeVid ? `v${activeVidClip!.id}` : `s${showS}`} className={`rt-slide-layer ${transClass}`}>
+                      {activeVid ? (
+                        <video src={activeVid.url} autoPlay muted loop playsInline className="rt-preview-img" />
+                      ) : showS !== undefined && frames[showS] ? (
+                        <img src={frames[showS]} alt="" className="rt-preview-img" />
+                      ) : <div className="rt-preview-ph"><Film size={26} /></div>}
+                    </div>
                     {activeTexts.map((c) => (
                       <div key={c.id} className={`rt-txt ${textPresetClass(c.preset)}`}>{c.text}</div>
                     ))}

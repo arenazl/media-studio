@@ -188,6 +188,17 @@
 .rt-txt--cta { left: 50%; transform: translateX(-50%); right: auto; bottom: 11%; text-align: center; font-weight: 800; font-size: clamp(11px, 5cqw, 17px); color: var(--ink); background: var(--gold); padding: 7px 16px; border-radius: var(--pill); text-shadow: none; white-space: nowrap; }
 .rt-rail-preview { container-type: inline-size; }
 
+/* capa del slide: re-monta en cada cambio de slide → dispara la transición de ENTRADA.
+   Va aparte del img para no pisar la animación de Ken Burns (que vive en .rt-preview-img). */
+.rt-slide-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.rt-trans--fade { animation: rt-trans-fade 0.45s ease both; }
+.rt-trans--crossfade { animation: rt-trans-fade 0.6s ease both; }
+@keyframes rt-trans-fade { from { opacity: 0; } to { opacity: 1; } }
+.rt-trans--zoom { animation: rt-trans-zoom 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes rt-trans-zoom { from { opacity: 0; transform: scale(1.18); } to { opacity: 1; transform: scale(1); } }
+.rt-trans--wipe { animation: rt-trans-wipe 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes rt-trans-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
 /* overlay de LOGO de marca (por proyecto, agnóstico) */
 .rt-brand-logo { position: absolute; z-index: 4; width: 22cqw; max-width: 40%; height: auto; opacity: 0.92; pointer-events: none; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.45)); }
 .rt-brand--tl { top: 4%; left: 5%; }
