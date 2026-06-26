@@ -4,9 +4,15 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  # VITE_API_BASE se setea en Netlify UI → Site settings → Environment variables
-  # Valor: https://media-studio-api-XXXX.southamerica-east1.run.app
-  # (la URL del Cloud Run del backend)
+
+# Proxy same-origin: el front pega a /api/* (relativo) y Netlify reenvia
+# al backend Cloud Run. Sin URL en el bundle -> sin secrets scanning ni CORS.
+# DEBE ir ANTES del redirect SPA /*.
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://media-studio-api-vmpxsxe7ra-rj.a.run.app/api/:splat"
+  status = 200
+  force  = true
 
 [[redirects]]
   from   = "/*"
