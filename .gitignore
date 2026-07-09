@@ -13,6 +13,9 @@ server/*.db-shm
 server/*.db-wal
 *.log
 
+# Assets locales subidos (rodaje/voz/render) — viven en disco, no en el repo
+server/storage/
+
 # Material de trabajo pesado (videos crudos de prueba) — no se versiona
 shorts-nature/
 _shots/
