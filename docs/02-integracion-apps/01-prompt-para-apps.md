@@ -34,7 +34,7 @@ Por separado se adjunta una carpeta con CAPTURAS reales de la app/producto para 
 los mockups (pantallas reales, nítidas).
 ```
 
-La estructura detallada está en [`BRIEF_NEGOCIO.md`](./BRIEF_NEGOCIO.md) — este prompt
+La estructura detallada está en [`02-brief-negocio.md`](./02-brief-negocio.md) — este prompt
 es la versión "pedído" para que cualquiera (o la IA del cliente) genere ese brief.
 
 ---

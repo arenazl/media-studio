@@ -3,7 +3,7 @@
 > **Para qué:** tener en UN solo lugar todo lo aprendido generando reels verticales
 > 9:16 con **Google Flow (modelo Veo 3)**, para poder **generar varios videos** sin
 > volver a redescubrir la vuelta cada vez. Consolida lo que estaba disperso en:
-> `docs/agents/VEO_FLOW_PROMPTING.md`, `docs/VARIANTES_NARRACION_REELS.md`, el
+> `docs/agents/VEO_FLOW_PROMPTING.md`, `docs/historico/2026-06-variantes-narracion-munify.md`, el
 > generador `src/VideoPromptBuilder.tsx` y el `CONTEXT.md` de reels de Munify.
 >
 > **Reparto de roles:** yo (Claude) entrego **prompts + settings**; el video lo
@@ -261,7 +261,7 @@ Photorealistic, vertical 9:16, [DURACIÓN] seconds, no on-screen text, no captio
 ## 6. Narración (voz en off) — los 50 textos ya escritos
 
 Si el reel lleva **voz en off** (en vez de presentador a cámara), los textos están
-calibrados por duración en **`docs/VARIANTES_NARRACION_REELS.md`**: 5 reels × (5
+calibrados por duración en **`docs/historico/2026-06-variantes-narracion-munify.md`**: 5 reels × (5
 variantes de ~5s + 5 de ~12s) = **50 textos**. Calibre: ~2.7 pal/seg → **5s ≈ 13-15
 palabras**, **12s ≈ 32-36 palabras**.
 
@@ -308,7 +308,7 @@ movimiento con 3 frames sueltos: engañan.
 |---|---|
 | Técnica de prompting (principios, settings, verificación) | `docs/agents/VEO_FLOW_PROMPTING.md` |
 | Generador en la app (templates + builder) | `src/VideoPromptBuilder.tsx` |
-| 50 textos de narración | `docs/VARIANTES_NARRACION_REELS.md` |
+| 50 textos de narración | `docs/historico/2026-06-variantes-narracion-munify.md` |
 | Template ganador + prompts b-roll Munify + pipeline de reels | `sugerenciasMun/docs/reels/CONTEXT.md` (§5, §5-bis) |
 | Fórmula ganadora + gotchas (memoria) | memoria `reels-veo-prompts-flow` |
 

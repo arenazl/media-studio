@@ -103,5 +103,5 @@ Se queda, pero rediseñada (ver Fase 3). También accesible como panel del edito
 **Hecho (post-independización):**
 - Audio real (locutor): subir + grabar en la pestaña Audio, corte en segmentos sobre la onda,
   conectado al editor por `offset` (`lib/audioSource`, `lib/audioSlice`).
-- Orquestador `promo-producer` (skill) + `docs/CONTRATO_KIT.md` + workflow `promo-kit`
+- Orquestador `promo-producer` (skill) + `docs/03-kit/01-contrato-kit.md` + workflow `promo-kit`
   (modelos por rol + panel de jueces). Ver memoria del proyecto.

@@ -2,7 +2,7 @@
 
 > Salida real del panel de skills (estratega → director → mockup/veo → plataforma → QA),
 > con modelos por rol (Opus a juicio, Sonnet a ejecución) y panel de jueces adversarial.
-> Proyecto de ejemplo, end-to-end. Datos crudos completos en `DEMO_FITPASS_KIT.json`.
+> Proyecto de ejemplo, end-to-end. Datos crudos completos en `02-demo-fitpass.json`.
 
 ## Posicionamiento
 Una sola membresía, cientos de lugares, cero permanencia. FitPass es el pase libre para entrenar como quieras: musculación hoy, boxeo mañana, yoga el finde — todo con una app, una cuota y un QR, en CABA y GBA. Dejá de pagar un gym al que casi no vas y de estar atado a un solo lugar y horario. Reservás, hacés check-in y listo: variedad y flexibilidad sin atarte a nada. Primera semana gratis.
