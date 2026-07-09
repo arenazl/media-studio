@@ -161,6 +161,18 @@
 .rodaje-var { padding: 3px 9px; border-radius: 7px; cursor: pointer; font-size: 11px; background: var(--pipe-surface-2); border: 1px solid var(--pipe-border); color: var(--pipe-dim); }
 .rodaje-var--on { border-color: var(--pipe-ok); color: var(--pipe-ok); }
 
+/* montaje */
+.mont-select { width: 100%; margin-top: 4px; padding: 8px 10px; border-radius: 8px; background: var(--pipe-bg); border: 1px solid var(--pipe-border); color: var(--pipe-text); font: inherit; font-size: 13px; }
+.mont-select:focus { outline: none; border-color: var(--pipe-accent); }
+.mont-tr { font-size: 10.5px; color: var(--pipe-dim); text-transform: uppercase; letter-spacing: .03em; }
+.mont-nocl { font-size: 10.5px; color: #fca5a5; margin-left: 4px; }
+.mont-sil { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--pipe-dim); padding: 3px 0; }
+.mont-foot { justify-content: flex-start; }
+.mont-export { background: var(--pipe-accent); color: #08111f; border: none; }
+.mont-export:hover:not(:disabled) { filter: brightness(1.08); background: var(--pipe-accent); }
+.mont-result { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.mont-video { max-width: 260px; }
+
 /* textarea inline autoguardable */
 .paso-inline {
   width: 100%; resize: vertical; min-height: 40px; font: inherit; font-size: 13.5px; line-height: 1.5;

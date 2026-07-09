@@ -11,6 +11,7 @@ import PasoCast from './pasos/PasoCast';
 import PasoStoryboard from './pasos/PasoStoryboard';
 import PasoPack from './pasos/PasoPack';
 import PasoRodaje from './pasos/PasoRodaje';
+import PasoMontaje from './pasos/PasoMontaje';
 import type { PasoProps } from './pasos/pasoKit';
 import { saveProject, type Project } from './lib/projects';
 import { nuevoComercial, pasosVisibles, type Comercial, type PasoId } from './lib/comercial';
@@ -42,7 +43,7 @@ export default function Pipeline({ project: initial }: { project: Project }) {
     if (i >= 0 && i < vis.length - 1) setActivePaso(vis[i + 1]);
   };
 
-  const pasoProps: PasoProps = { project, comercial, setComercial, goNext };
+  const pasoProps: PasoProps = { project, reelId: reel?.id || '', comercial, setComercial, goNext };
 
   const renderPaso = () => {
     switch (activePaso) {
@@ -53,6 +54,7 @@ export default function Pipeline({ project: initial }: { project: Project }) {
       case 'storyboard': return <PasoStoryboard {...pasoProps} />;
       case 'pack': return <PasoPack {...pasoProps} />;
       case 'rodaje': return <PasoRodaje {...pasoProps} />;
+      case 'montaje': return <PasoMontaje {...pasoProps} />;
       default:
         return <div className="paso"><div className="paso-empty">Este paso llega en una próxima fase del rework.</div></div>;
     }

@@ -8,9 +8,10 @@ import type { Comercial } from '../lib/comercial';
 
 export const errMsg = (e: unknown): string => (e instanceof Error ? e.message : 'error');
 
-// Props comunes a las 4 pantallas de paso. `setComercial` crea el comercial si no existe (apply).
+// Props comunes a las pantallas de paso. `setComercial` crea el comercial si no existe (apply).
 export interface PasoProps {
   project: Project;
+  reelId: string;                    // el reel/comercial activo (lo usa el render del montaje)
   comercial: Comercial | undefined;
   setComercial: (updater: (c: Comercial) => Comercial) => void;
   goNext: () => void;

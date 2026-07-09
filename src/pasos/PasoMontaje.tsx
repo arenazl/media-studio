@@ -1,0 +1,143 @@
+// Paso 8 — MONTAJE + EXPORT (la Salida 2). "Armar desde el storyboard" arma el MontajePlan (escenas
+// en orden con su toma, audio keep/mute, música por mood, silencio antes del gag). "Exportar mp4"
+// llama al render server-side (video xfade + diálogo de clips + voz + música con ducking/silencio) y
+// registra el export en el comercial. Este es el botón de render que hoy NO existía.
+import { useState } from 'react';
+import { Loader2, Clapperboard, Film, Download, Music2, VolumeX } from 'lucide-react';
+import { API_BASE } from '../config';
+import { errMsg, type PasoProps } from './pasoKit';
+import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
+import { MUSIC_TRACKS } from '../lib/music';
+
+const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
+const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
+
+export default function PasoMontaje({ project, reelId, comercial, setComercial }: PasoProps) {
+  const [rendering, setRendering] = useState(false);
+  const [error, setError] = useState('');
+  const montaje = comercial?.montaje as MontajeState | undefined;
+  const plan = montaje?.plan;
+  const exports = montaje?.exports || [];
+  const ultimo = exports[exports.length - 1];
+  const conClip = plan ? plan.scenes.filter((s) => s.src).length : 0;
+
+  const armar = () => setComercial((c) => ({
+    ...c,
+    montaje: { plan: storyboardToMontaje(c), exports: (c.montaje as MontajeState | undefined)?.exports || [] },
+    estados: { ...c.estados, montaje: c.estados.montaje === 'aprobado' ? 'aprobado' : 'generado' },
+  }));
+
+  const setMusica = (url: string) => setComercial((c) => {
+    const m = c.montaje as MontajeState | undefined;
+    if (!m?.plan) return c;
+    const music = url ? { src: url, gain: 0.28, duck: true } : undefined;
+    return { ...c, montaje: { ...m, plan: { ...m.plan, music } } };
+  });
+
+  const patch = (up: (p: MontajePlan) => MontajePlan) => setComercial((c) => {
+    const m = c.montaje as MontajeState | undefined;
+    return m?.plan ? { ...c, montaje: { ...m, plan: up(m.plan) } } : c;
+  });
+
+  const exportar = async () => {
+    if (!plan) return;
+    setRendering(true); setError('');
+    try {
+      const r = await fetch(`${API_BASE}/api/render-comercial`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, projectId: project.id, reelId }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'no se pudo renderizar');
+      setComercial((c) => {
+        const m = c.montaje as MontajeState | undefined;
+        const exps = [...(m?.exports || []), { fileRef: d.fileRef, createdAt: Date.now() }];
+        return { ...c, montaje: { plan: m?.plan || plan, exports: exps }, estados: { ...c.estados, montaje: 'aprobado' } };
+      });
+    } catch (e) { setError(errMsg(e)); } finally { setRendering(false); }
+  };
+
+  return (
+    <div className="paso">
+      <div className="paso-head">
+        <div className="paso-head-txt">
+          <h2 className="paso-title">Montaje</h2>
+          <p className="paso-sub">Se arma solo desde el storyboard: clips en orden, diálogo de los actores, música con ducking y silencio antes del remate.</p>
+        </div>
+        <button className="paso-gen" onClick={armar} disabled={rendering}>
+          <Clapperboard size={15} /> {plan ? 'Rearmar desde el storyboard' : 'Armar desde el storyboard'}
+        </button>
+      </div>
+      {error && <div className="paso-error">{error}</div>}
+
+      {plan ? (
+        <div className="paso-body">
+          <div className="pack-bar">
+            <span className="pack-prog">{plan.scenes.length} escenas · {conClip} con clip · ~{totalDuration(plan).toFixed(1)}s</span>
+          </div>
+
+          {/* música */}
+          <div className="paso-card mont-music">
+            <div className="paso-card-h"><Music2 size={12} /> Música {plan.music ? `— ${trackLabel(plan.music.src) || 'elegida'} (con ducking)` : '— sin música'}</div>
+            <select className="mont-select" value={plan.music?.src || ''} onChange={(e) => setMusica(e.target.value)}>
+              <option value="">Sin música</option>
+              {MUSIC_TRACKS.map((t) => <option key={t.id} value={t.url}>{t.cat} · {t.label}</option>)}
+            </select>
+          </div>
+
+          {/* escenas */}
+          <div className="paso-cards">
+            {plan.scenes.map((s) => (
+              <article key={s.escenaN} className="paso-scene">
+                <div className="paso-scene-h">
+                  <span className="paso-scene-n">#{s.escenaN}</span>
+                  {s.rol && <span className="paso-scene-tag">{ROL_LABEL[s.rol] || s.rol}</span>}
+                  <span className="paso-t">{(s.out - s.in).toFixed(1)}s</span>
+                  <span className={`pack-estado pack-estado--${s.audio === 'keep' ? 'copiado' : 'pendiente'}`}>{s.audio === 'keep' ? 'con voz' : 'sin audio'}</span>
+                  <span className="mont-tr">{s.transition === 'cut' ? 'corte' : s.transition}</span>
+                  {!s.src && <span className="mont-nocl">falta clip</span>}
+                </div>
+                {s.dialogo && <div className="paso-block-visual">{s.dialogo}</div>}
+              </article>
+            ))}
+          </div>
+
+          {/* silencios */}
+          {plan.silences.length > 0 && (
+            <div className="paso-card">
+              <div className="paso-card-h"><VolumeX size={12} /> Silencio estratégico</div>
+              {plan.silences.map((sil, i) => (
+                <div key={i} className="mont-sil">
+                  {sil.durSec}s de silencio antes de la escena #{sil.antesDeEscena}
+                  <button className="rodaje-var" onClick={() => patch((pl) => ({ ...pl, silences: pl.silences.filter((_, j) => j !== i) }))}>quitar</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* export */}
+          <div className="paso-foot mont-foot">
+            <button className="paso-approve mont-export" onClick={exportar} disabled={rendering || !conClip}>
+              {rendering ? <><Loader2 size={15} className="paso-spin" /> Renderizando el mp4…</> : <><Film size={15} /> Exportar mp4</>}
+            </button>
+          </div>
+
+          {!conClip && <div className="paso-empty">Faltan clips importados en el Rodaje: el render necesita al menos una escena con clip.</div>}
+
+          {ultimo && (
+            <div className="paso-card mont-result">
+              <div className="paso-card-h">Último export</div>
+              <video className="rodaje-video mont-video" src={`${API_BASE}/api/storage/${ultimo.fileRef}`} controls playsInline preload="metadata" />
+              <a className="pack-export" href={`${API_BASE}/api/storage/${ultimo.fileRef}`} download>
+                <Download size={14} /> Descargar mp4
+              </a>
+              {exports.length > 1 && <span className="pack-prog">{exports.length} exports</span>}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="paso-empty">Armá el montaje desde el storyboard. Necesitás clips importados en el Rodaje.</div>
+      )}
+    </div>
+  );
+}

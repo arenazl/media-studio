@@ -39,6 +39,7 @@ import {
 import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS } from './functions.mjs';
 import { assemble } from './assemble.mjs';
 import { renderMockupReel } from './mockupReel.mjs';
+import { renderComercial } from './renderComercial.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
 // No pisa lo ya seteado en el entorno; ignora líneas vacías/comentadas.
@@ -854,6 +855,18 @@ ${src}`;
         const { text } = await runAI({ prompt, allowedTools: 'Read' });
         return json(res, 200, { functionId: body.functionId, mode, result: parseFunctionResult(body.functionId, text, body) });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error corriendo la función' }); }
+    }
+
+    // ── Render del comercial final (Fase 4): MontajePlan → mp4 persistido en server/storage ──
+    if (p === '/api/render-comercial' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!body.plan || !body.projectId) return json(res, 400, { error: 'falta plan o projectId' });
+      try {
+        const { buffer, durationSec } = await renderComercial(body.plan, { runFfmpeg, storageDir: STORAGE_DIR, probeDuration });
+        const folder = `${CLD_FOLDER}/${body.projectId}`;
+        const saved = await saveAsset(buffer, `comercial-${body.reelId || 'x'}-${Date.now()}.mp4`, folder, 'video/mp4');
+        return json(res, 200, { fileRef: saved.public_id, url: saved.secure_url, durationSec });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error renderizando el comercial' }); }
     }
 
     return json(res, 404, { error: 'not found' });
