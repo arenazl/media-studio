@@ -1,0 +1,98 @@
+.veo-root { padding: 20px 24px; max-width: 1200px; margin: 0 auto; color: #e8eaf0; }
+.veo-head { margin-bottom: 16px; }
+.veo-title { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; }
+.veo-sub { margin: 4px 0 0; color: #9aa3b2; font-size: 13px; }
+
+.veo-bar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;
+  padding: 14px 16px; background: #1a1f2b; border: 1px solid #2a3140; border-radius: 12px;
+}
+.veo-field { display: flex; flex-direction: column; gap: 6px; }
+.veo-field > span { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #8b94a6; }
+.veo-field select {
+  background: #0f131b; color: #e8eaf0; border: 1px solid #2a3140; border-radius: 8px; padding: 7px 10px; font-size: 13px;
+}
+.veo-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.veo-chip {
+  background: #0f131b; color: #c3cad8; border: 1px solid #2a3140; border-radius: 999px;
+  padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all .15s;
+}
+.veo-chip:hover { border-color: #3b4456; }
+.veo-chip--on { background: #2b6cff; border-color: #2b6cff; color: #fff; font-weight: 600; }
+
+.veo-run {
+  margin-left: auto; display: flex; align-items: center; gap: 7px;
+  background: #2b6cff; color: #fff; border: none; border-radius: 9px; padding: 9px 16px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.veo-run:disabled { opacity: .5; cursor: default; }
+
+.veo-error { margin-top: 14px; padding: 10px 14px; background: #3a1b22; border: 1px solid #6e2b38; border-radius: 8px; color: #ffb3c0; font-size: 13px; }
+.veo-loading { margin-top: 28px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #9aa3b2; }
+.veo-empty { padding: 40px; text-align: center; color: #9aa3b2; }
+
+.veo-result { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-top: 18px; }
+@media (max-width: 900px) { .veo-result { grid-template-columns: 1fr; } }
+
+.veo-clips { display: flex; flex-direction: column; gap: 12px; }
+.veo-clip { background: #141925; border: 1px solid #2a3140; border-radius: 10px; overflow: hidden; }
+.veo-clip-h { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #1a1f2b; border-bottom: 1px solid #2a3140; }
+.veo-role { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; padding: 3px 8px; border-radius: 5px; }
+.veo-role--hook { background: #2b6cff33; color: #7eaaff; }
+.veo-role--broll { background: #3a445633; color: #9aa3b2; }
+.veo-role--close { background: #c8a24e33; color: #e0c277; }
+.veo-clip-label { flex: 1; font-size: 13px; font-weight: 600; color: #dfe3ec; }
+.veo-clip-t { font-size: 12px; color: #8b94a6; }
+.veo-icon {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px;
+  background: #0f131b; color: #aeb6c5; border: 1px solid #2a3140; border-radius: 6px; cursor: pointer;
+}
+.veo-icon:hover { color: #fff; border-color: #3b4456; }
+.veo-icon:disabled { opacity: .5; cursor: default; }
+.veo-prompt {
+  margin: 0; padding: 12px; font-size: 12px; line-height: 1.5; color: #b9c1d1; white-space: pre-wrap;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; max-height: 220px; overflow: auto;
+}
+
+.veo-side { display: flex; flex-direction: column; gap: 12px; }
+.veo-card { background: #141925; border: 1px solid #2a3140; border-radius: 10px; padding: 12px 14px; }
+.veo-card-h { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #c3cad8; margin-bottom: 8px; }
+.veo-card p { margin: 0; font-size: 13px; color: #aeb6c5; line-height: 1.45; }
+.veo-narr { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0; border-top: 1px solid #232a37; }
+.veo-narr:first-of-type { border-top: none; }
+.veo-narr p { flex: 1; }
+
+/* tabs de funciones (GuidedPanel) */
+.veo-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0 14px; border-bottom: 1px solid #2a3140; margin-bottom: 14px; }
+.veo-tabs-grp { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #6b7488; margin: 0 6px 0 10px; }
+.veo-tabs-grp:first-child { margin-left: 0; }
+.veo-tab {
+  display: inline-flex; align-items: center; gap: 6px; background: #141925; color: #c3cad8;
+  border: 1px solid #2a3140; border-radius: 8px; padding: 7px 12px; font-size: 13px; cursor: pointer; transition: all .15s;
+}
+.veo-tab:hover { border-color: #3b4456; color: #fff; }
+.veo-tab--on { background: #2b6cff; border-color: #2b6cff; color: #fff; font-weight: 600; }
+.veo-fn-desc { margin: 0 0 12px; color: #9aa3b2; font-size: 13px; }
+.veo-reelpick { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.veo-reelpick > span { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #8b94a6; }
+.veo-reelpick select { background: #0f131b; color: #e8eaf0; border: 1px solid #2a3140; border-radius: 8px; padding: 7px 10px; font-size: 13px; }
+.veo-fn { /* runner embebido */ }
+.veo-fn-out { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+
+/* wizard de arranque */
+.wiz-root { position: relative; max-width: 760px; }
+.wiz-cancel { position: absolute; top: 0; right: 0; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; background: #141925; border: 1px solid #2a3140; border-radius: 8px; color: #9aa3b2; cursor: pointer; }
+.wiz-cancel:hover { color: #fff; border-color: #3b4456; }
+.wiz-step { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+.wiz-explain .wiz-list { margin: 6px 0 0; padding-left: 18px; color: #aeb6c5; font-size: 13px; line-height: 1.7; }
+.wiz-explain .wiz-list strong { color: #dfe3ec; }
+.wiz-cta { margin-left: 0; align-self: flex-start; padding: 11px 20px; font-size: 14px; }
+.wiz-pieces-h { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #8b94a6; margin-top: 4px; }
+.wiz-actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+
+.veo-spin { animation: veo-spin 1s linear infinite; }
+@keyframes veo-spin { to { transform: rotate(360deg); } }
+
+/* reel animado (mockup reel) generado desde la metadata */
+.fr-reel { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
+.fr-reel-video { width: auto; max-height: 520px; aspect-ratio: 9 / 16; border-radius: 14px; background: #000; box-shadow: 0 10px 36px rgba(0,0,0,.45); }

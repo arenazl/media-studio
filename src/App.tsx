@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import VoiceStudio from './VoiceStudio';
-import KbImport from './KbImport';
+import KbInspector from './KbInspector';
+import ProjectWizard from './ProjectWizard';
+import ProjectInfo from './ProjectInfo';
 import { Sparkles } from 'lucide-react';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
-import VideoPromptBuilder from './VideoPromptBuilder';
+import GuidedPanel from './GuidedPanel';
 import Topbar from './Topbar';
 import ProjectsABM from './ProjectsABM';
 import { listProjects, saveProject, type Project, type VoiceConfig } from './lib/projects';
@@ -15,20 +17,12 @@ export default function App() {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const embed = params.get('embed') === '1';
 
-  // Modo embed (otra app por iframe): solo el estudio de audio, sin chrome.
-  if (embed) {
-    return (
-      <div className="ms-embed">
-        <div className="ms-embed-inner"><VoiceStudio /></div>
-      </div>
-    );
-  }
-
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [section, setSection] = useState<Section>('editor');
   // audio generado por reel (objectURL del mp3) — se comparte entre solapas.
   const [audioByReel, setAudioByReel] = useState<Record<string, string>>({});
-  const [kbImport, setKbImport] = useState(false);
+  const [inspect, setInspect] = useState(false);   // visor de los KB de las Integraciones (+ Comenzar)
+  const [wizardProject, setWizardProject] = useState<Project | null>(null);   // proyecto recién creado, en el wizard
 
   const projects = listProjects();   // se relee en cada render → refleja altas/cambios
 
@@ -48,6 +42,16 @@ export default function App() {
 
   const openProject = (p: Project) => { setActiveProject(p); setSection(defaultSection(p)); };
 
+  // Modo embed (otra app por iframe): solo el estudio de audio, sin chrome. Va DESPUÉS de los hooks
+  // (jamás un early-return antes de los useState: cambiaría el orden de hooks → React #310).
+  if (embed) {
+    return (
+      <div className="ms-embed">
+        <div className="ms-embed-inner"><VoiceStudio /></div>
+      </div>
+    );
+  }
+
   return (
     <div className="ms-shell">
       <Topbar
@@ -59,19 +63,23 @@ export default function App() {
         onSection={setSection}
       />
       <main className="ms-main">
-        {!activeProject ? (
-          kbImport ? (
-            <KbImport onClose={() => setKbImport(false)} onCreated={(p) => { setKbImport(false); openProject(p); }} />
-          ) : (
-            <div className="ms-home">
-              <div className="ms-home-bar">
-                <button className="ms-kb-cta" onClick={() => setKbImport(true)}><Sparkles size={15} /> Importar de una Integración</button>
-              </div>
-              <ProjectsABM onOpen={openProject} />
-            </div>
-          )
-        ) : (
+        {activeProject ? (
           <SectionView section={section} project={activeProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
+        ) : wizardProject ? (
+          <ProjectWizard
+            project={wizardProject}
+            onDone={(p) => { setWizardProject(null); openProject(p); setSection('prompts'); }}
+            onCancel={() => setWizardProject(null)}
+          />
+        ) : inspect ? (
+          <KbInspector onClose={() => setInspect(false)} onComenzar={(p) => { setInspect(false); setWizardProject(p); }} />
+        ) : (
+          <div className="ms-home">
+            <div className="ms-home-bar">
+              <button className="ms-kb-cta" onClick={() => setInspect(true)}><Sparkles size={15} /> Nuevo proyecto desde una Integración</button>
+            </div>
+            <ProjectsABM onOpen={openProject} />
+          </div>
         )}
       </main>
     </div>
@@ -84,6 +92,7 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
     () => project.reels.map((r) => ({ id: r.id, label: r.nombre, text: r.guion.join('\n'), sub: `${r.guion.length} frases` })),
     [project],
   );
+  if (section === 'negocio') return <ProjectInfo project={project} />;
   if (section === 'audio') return (
     <VoiceStudio
       reelConfig={Object.fromEntries(project.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }]))}
@@ -93,6 +102,6 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
     />
   );
   if (section === 'videos') return <VideosTab />;
-  if (section === 'prompts') return <div className="vids-root"><VideoPromptBuilder /></div>;
+  if (section === 'prompts') return <GuidedPanel project={project} />;
   return <ReelTab project={project} audioByReel={audioByReel} />;   // 'editor' (integrador, default)
 }

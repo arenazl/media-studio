@@ -31,6 +31,9 @@ export default function Topbar({ projects, activeProject, section, onPickProject
     <header className="tb">
       <div className="tb-brand"><AudioLines size={19} className="tb-mark" /><span className="tb-brand-name">Media Studio</span></div>
 
+      {/* INICIO / home — ícono dedicado, al lado del combo (no hay que entrar al combo) */}
+      <button className="tb-icon-btn tb-home" onClick={onHome} title="Inicio · todos los proyectos"><Home size={17} /></button>
+
       {/* selector de proyectos */}
       <div className="tb-proj" ref={ref}>
         <button className="tb-proj-btn" onClick={() => setOpen((o) => !o)} title="Cambiar de proyecto">
@@ -47,8 +50,6 @@ export default function Topbar({ projects, activeProject, section, onPickProject
                 {p.id === activeProject?.id && <Check size={13} />}
               </button>
             ))}
-            <div className="tb-menu-sep" />
-            <button className="tb-menu-item" onClick={() => { onHome(); setOpen(false); }}><Home size={13} /> Ir a Home · todos / nuevo</button>
           </div>
         )}
       </div>

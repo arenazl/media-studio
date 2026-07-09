@@ -1,0 +1,29 @@
+.pi-root { padding: 20px 24px; max-width: 1180px; margin: 0 auto; color: #e8eaf0; }
+.pi-head { margin-bottom: 16px; }
+.pi-title { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 800; }
+.pi-sub { margin: 4px 0 0; color: #9aa3b2; font-size: 13px; }
+
+.pi-grid { display: grid; grid-template-columns: 1fr 320px; gap: 18px; }
+@media (max-width: 920px) { .pi-grid { grid-template-columns: 1fr; } }
+
+.pi-card { background: #141925; border: 1px solid #2a3140; border-radius: 12px; padding: 16px 18px; }
+.pi-card-h { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #c3cad8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .04em; }
+
+.pi-brief h2 { font-size: 18px; font-weight: 800; margin: 4px 0 6px; color: #fff; }
+.pi-brief h3 { font-size: 14px; font-weight: 700; margin: 16px 0 6px; color: #c8a24e; text-transform: uppercase; letter-spacing: .04em; }
+.pi-brief blockquote { margin: 4px 0 8px; padding-left: 12px; border-left: 3px solid #2b6cff; color: #aeb6c5; font-style: italic; }
+.pi-brief p { margin: 4px 0; font-size: 13.5px; line-height: 1.55; color: #c3cad8; }
+.pi-li { font-size: 13.5px; line-height: 1.5; color: #c3cad8; padding-left: 16px; position: relative; margin: 2px 0; }
+.pi-li::before { content: "·"; position: absolute; left: 4px; color: #6b7488; font-weight: 800; }
+.pi-li--sub { padding-left: 30px; color: #9aa3b2; font-size: 12.5px; }
+.pi-li--sub::before { left: 18px; content: "–"; }
+.pi-gap { height: 6px; }
+.pi-brief strong { color: #e8eaf0; }
+
+.pi-side { display: flex; flex-direction: column; gap: 14px; }
+.pi-brand { display: flex; gap: 12px; align-items: center; }
+.pi-swatch { width: 40px; height: 40px; border-radius: 9px; border: 1px solid #2a3140; flex: 0 0 auto; }
+.pi-brand-name { font-size: 15px; font-weight: 700; }
+.pi-logo { margin-top: 12px; max-width: 140px; max-height: 60px; object-fit: contain; }
+.pi-shots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pi-shot { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top; border-radius: 8px; border: 1px solid #2a3140; background: #0f131b; }

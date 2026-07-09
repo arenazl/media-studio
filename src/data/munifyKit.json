@@ -1,0 +1,1072 @@
+{
+  "project": "Munify",
+  "profile": "campaign",
+  "positioning": "Munify es la unica app que conecta al vecino con su municipio para reclamos, tramites y gestion financiera en un solo sistema con login unico, con validacion biometrica oficial RENAPER y trazabilidad total de cada gestion. Gratis para el vecino, en pesos, e implementada en 1 a 2 semanas.",
+  "audiences": [
+    {
+      "label": "Intendente / Jefe de Gabinete (la decision politica)",
+      "pain": "Lo miden por como se ve la gestion. Hoy el vecino reclama por redes o en el pasillo, no hay registro, no hay respuesta a tiempo y todo se vuelve un problema politico. Necesita mostrar que el municipio responde, con datos y en tiempo real, sin un proyecto de seis meses.",
+      "language": "gestion, vecino, respuesta, transparencia, resultados, en mi mandato, que se note"
+    },
+    {
+      "label": "Secretario de Gobierno / Hacienda (el circuito formal)",
+      "pain": "Maneja el municipio con Excel y planillas sueltas. Cada Orden de Pago, cada caja y cada liquidacion vive en archivos distintos, sin trazabilidad para el Tribunal de Cuentas. Vive con miedo a una observacion y a la doble carga entre Contaduria y Tesoreria.",
+      "language": "Orden de Pago, Tribunal de Cuentas, trazabilidad, cajas, coparticipacion, circuito, sin doble carga"
+    },
+    {
+      "label": "Director de Modernizacion / Sistemas (el que implementa)",
+      "pain": "Ya tiene sistemas legacy y un equipo que no es tecnologico. Le venden plataformas que obligan a tirar todo, que tardan meses y que cobran en dolares. Necesita algo que conviva via API, que arranque rapido y que el vecino realmente use.",
+      "language": "integracion via API, multi-tenant, multiplataforma, capacitacion, adopcion, sin tirar lo que tenemos"
+    }
+  ],
+  "pieces": [
+    {
+      "id": "aw-1",
+      "objective": "awareness",
+      "angle": "Problema -> agitacion -> solucion",
+      "format": "reel 9:16 talking head + b-roll Veo",
+      "platforms": [
+        "Instagram Reels",
+        "Facebook"
+      ],
+      "durationSec": 22,
+      "script": {
+        "blocks": [
+          {
+            "role": "hook",
+            "tStart": 0,
+            "tEnd": 2,
+            "narration": "Un reclamo entra... y se pierde.",
+            "visual": "Primerisimo plano (macro) de una pantalla de celular: chat de WhatsApp del municipio, un vecino mando la foto de un bache. La imagen esta apenas desenfocada / screen not clearly legible. Sobre ese plano, estampada GRANDE y fija, la frase mas fuerte del reel: 'Un reclamo perdido es un problema politico.' Sin logo, sin 'somos'. CLIP VEO 1 (b-roll, 0-2s)."
+          },
+          {
+            "role": "dolor",
+            "tStart": 2,
+            "tEnd": 6,
+            "narration": "Nadie sabe quien lo toma. Ni cuando se resuelve. Ni si se resolvio.",
+            "visual": "TALKING HEAD a camara (CLIP VEO 2, 2-6s, ~4s). Intendente/jefe de gabinete real, sobrio, en oficina municipal, luz natural. Habla a camara una sola vez. Tono institucional, sin marketing. Prompt se delega a veo-flow-prompter con: Rioplatense + voseo, 'only once and without repeating any words', punto antes del remate, 'an ordinary real-looking person, not a model', 'not over-rendered, not CGI-perfect', 9:16 seteado en el SELECTOR de aspect ratio de Flow + modelo Veo 3."
+          },
+          {
+            "role": "dolor",
+            "tStart": 6,
+            "tEnd": 9,
+            "narration": "El vecino reclama por el pasillo, por telefono, por redes. Y queda en la nada.",
+            "visual": "CLIP VEO 3 (b-roll, 6-9s, ~3s). Pasillo de municipalidad: un vecino le habla a un empleado mostrandole el celular, papeles sueltos, telefono que suena sin atender. Sensacion de reclamo que se diluye. 'No spoken dialogue, ambient only', 'single continuous take, no cut'."
+          },
+          {
+            "role": "solucion",
+            "tStart": 9,
+            "tEnd": 12,
+            "narration": "Con Munifai, el vecino reporta con foto y GPS. La inteligencia artificial lo deriva solo.",
+            "visual": "CLIP VEO 4 / mockup (9-12s, ~3s). Mockup animado de la app Munifai (logo grafico dice 'Munify'): pantalla de reclamo con foto del bache + pin de GPS, y la derivacion automatica a la dependencia. App en mano, plano cerrado. 'screen not clearly legible'. Mockup se delega a mockup-designer con la captura de Reclamos vecinales."
+          },
+          {
+            "role": "solucion",
+            "tStart": 12,
+            "tEnd": 16,
+            "narration": "Una cuadrilla lo resuelve. Foto antes y despues. El vecino sigue cada paso.",
+            "visual": "CLIP VEO 5 (b-roll + split, 12-16s, ~4s). Cuadrilla municipal arreglando el bache en la calle (real, ropa de trabajo). Split-screen sutil: a un lado el antes/despues, al otro el celular del vecino con la notificacion. 'No spoken dialogue, ambient only', 'single continuous take, no cut'. 'screen not clearly legible' donde se ve la app."
+          },
+          {
+            "role": "prueba",
+            "tStart": 16,
+            "tEnd": 20,
+            "narration": "Recibido, derivado, resuelto. Cada paso con su fecha y su numero de seguimiento.",
+            "visual": "CLIP VEO 6 / mockup (16-20s, ~4s). PRUEBA DE PROCESO VISIBLE (no se inventa numero): timeline vertical de un reclamo con tres hitos sellados con fecha/hora REAL del piloto: 'Recibido 14:02' > 'Derivado 14:09' > 'Resuelto'. En pantalla, el numero de seguimiento. PLACEHOLDER FLAGGED: si/ cuando exista el dato verificado del municipio piloto, reemplazar la linea por narracion 'En el municipio piloto, 8 de cada 10 reclamos resueltos y trazados' + ese numero en pantalla. HOY NO existe ese dato en el KB -> NO se locuta ni se estampa; va solo la prueba de proceso. 'screen not clearly legible' en la captura de fondo."
+          },
+          {
+            "role": "cta",
+            "tStart": 20,
+            "tEnd": 22,
+            "narration": "Cada reclamo, trazado de punta a punta. Munifai.",
+            "visual": "CLIP VEO 7 / cierre (20-22s, ~2s). Cierre limpio: logo grafico 'Munify' (lectura TTS = 'Munifai') sobre fondo institucional azul (#112a6c). En pantalla, CTA blando UNICO coherente con el link en bio: 'Conoce Munifai'. SIN las 4 features (biometrica/pesos/gratis/semanas) -> van a otra pieza, no a esta. Sin oferta, sin pedir nada."
+          }
+        ],
+        "music": {
+          "mood": "Cinematografica y sobria, de autoridad institucional. Arranca tensa y baja en el hook/dolor (problema politico, incertidumbre), gira a resolutiva y firme desde la solucion (9s) y asienta en calma confiable en el cierre. Sin percusion agresiva ni vibra startup; cuerdas/piano contenidos. Ducking -18dB bajo la voz. Tema libre CC-BY (Kevin MacLeod / incompetech), credito de 1 linea al publicar."
+        }
+      },
+      "slides": [],
+      "videoPrompts": [
+        {
+          "clipId": "VEO-1",
+          "role": "hook",
+          "tStart": 0,
+          "tEnd": 2,
+          "template": "C",
+          "flowSettings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "4s",
+            "nota": "Recortar a 2s en edición. Selector de aspect ratio en Flow puesto en 9:16 ANTES de generar."
+          },
+          "marcaFonetica": "Munifái (nunca 'Munify' en narración ni en texto del prompt)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Extreme macro close-up of a smartphone screen showing a WhatsApp chat from a municipal account — a resident just sent a photo of a pothole. The image on screen is very slightly out of focus, screen not clearly legible. The phone fills almost the entire frame. The shot is still and tight, no camera movement. No spoken dialogue, ambient notification sound only. 3–4 second clip, one brief moment, minimal camera motion. No logos, no on-screen text added by the camera.",
+          "overlayNote": "El texto 'Un reclamo perdido es un problema político.' se estampa en post-producción (edición), NO dentro del prompt de Veo — Veo no posiciona texto de forma confiable.",
+          "delegadoA": null
+        },
+        {
+          "clipId": "VEO-2",
+          "role": "dolor",
+          "tStart": 2,
+          "tEnd": 6,
+          "template": "A",
+          "flowSettings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "8s",
+            "nota": "Recortar a ~4s en edición (2s-6s del reel). Selector de aspect ratio en Flow puesto en 9:16 ANTES de generar."
+          },
+          "marcaFonetica": "Munifái (pronunciación TTS y en descripción interna del prompt)",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit with natural window light, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his 40s or 50s, natural and relatable, not a model, with short dark hair and a neutral collared shirt, seated at a plain municipal office desk — sparse decor, a window with soft natural light behind him. The camera holds at a medium shot from the waist up, not a close-up, steady and still. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Nadie sabe quién lo toma. Ni cuándo se resuelve. Ni si se resolvió.\" He delivers each clause calmly and soberly, with an institutional tone — no marketing energy, no smile. After speaking, he holds a quiet, serious expression until the end. Natural lip-sync, no on-screen text, no logos.",
+          "overlayNote": "Narración calibrada para rioplatense. Frase sin remate eufórico — tono es institucional/sobrio, no gancho comercial. El punto final cierra la frase antes de corte.",
+          "delegadoA": null
+        },
+        {
+          "clipId": "VEO-3",
+          "role": "dolor",
+          "tStart": 6,
+          "tEnd": 9,
+          "template": "B",
+          "flowSettings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "4s",
+            "nota": "Recortar a ~3s en edición. Selector de aspect ratio en Flow puesto en 9:16 ANTES de generar."
+          },
+          "marcaFonetica": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit with indoor fluorescent light, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. A municipal hallway: an ordinary real-looking resident, not a model, shows his smartphone to a municipal employee at a counter; loose papers scattered on the desk; a desk phone rings and goes unanswered. The mood is chaotic and dismissive — a complaint that goes nowhere. Natural ambient office sound only, no spoken dialogue, no talking. One single continuous take, same background the whole time, no cut. 3–4 second clip, one brief moment, minimal camera motion. No logos.",
+          "overlayNote": null,
+          "delegadoA": null
+        },
+        {
+          "clipId": "VEO-4",
+          "role": "solucion",
+          "tStart": 9,
+          "tEnd": 12,
+          "template": null,
+          "flowSettings": null,
+          "marcaFonetica": "Munifái",
+          "prompt": null,
+          "overlayNote": "Este clip NO es Veo. Es un mockup animado de la app. Delegado a mockup-designer con la captura de pantalla de 'Reclamos vecinales'. El prompt de Veo no aplica aquí.",
+          "delegadoA": "mockup-designer"
+        },
+        {
+          "clipId": "VEO-5",
+          "role": "solucion",
+          "tStart": 12,
+          "tEnd": 16,
+          "template": "B",
+          "flowSettings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3",
+            "duration": "8s",
+            "nota": "Recortar a ~4s en edición. El split-screen se monta en post (edición), no en Veo. Generar el b-roll de cuadrilla y el b-roll del vecino con celular como dos clips separados, luego componer en edición. Selector de aspect ratio en Flow puesto en 9:16 ANTES de generar."
+          },
+          "marcaFonetica": "Munifái",
+          "prompt": "CLIP 5A — Cuadrilla municipal:\nProfessional cinematic vertical 9:16 video, clean and well-lit with natural outdoor daylight, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. A small municipal road crew of 2–3 ordinary real-looking workers, not models, wearing orange safety vests and hard hats, filling a pothole on a regular neighborhood street. Shovels, asphalt, a small compactor. The mood is efficient and resolved. Natural ambient street sound only, no spoken dialogue, no talking. One single continuous take, same background the whole time, no cut. 4–5 second clip, one brief continuous moment, minimal camera motion. No logos.\n\nCLIP 5B — Vecino con notificación:\nProfessional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium close shot of an ordinary real-looking Argentine resident, not a model, holding a smartphone. The screen shows a push notification — screen not clearly legible. His face shows quiet relief and satisfaction. Natural ambient sound only, no spoken dialogue. 3–4 second clip, one brief moment. No logos.",
+          "overlayNote": "El split-screen antes/después se compone en edición (CapCut, Premiere, DaVinci). Veo no genera split-screen nativo confiable. Generar estos dos clips por separado y montar.",
+          "delegadoA": null
+        },
+        {
+          "clipId": "VEO-6",
+          "role": "prueba",
+          "tStart": 16,
+          "tEnd": 20,
+          "template": null,
+          "flowSettings": null,
+          "marcaFonetica": "Munifái",
+          "prompt": null,
+          "overlayNote": "Este clip NO es Veo. Es un mockup de timeline vertical con hitos del reclamo (fechas/horas reales del piloto). Delegado a mockup-designer. PLACEHOLDER FLAGGED: los datos 'Recibido 14:02 / Derivado 14:09 / Resuelto' son placeholders verificados — reemplazar con datos reales del municipio piloto cuando existan. El número de seguimiento también es placeholder; NO locar ni estampar hasta tener el dato real.",
+          "delegadoA": "mockup-designer"
+        },
+        {
+          "clipId": "VEO-7",
+          "role": "cta",
+          "tStart": 20,
+          "tEnd": 22,
+          "template": null,
+          "flowSettings": {
+            "nota": "Este clip NO requiere Veo. Es un cierre de motion graphics: logo Munify sobre fondo azul institucional #112a6c + texto 'Conocé Munifái'. Se genera en la herramienta de edición (CapCut, After Effects, Canva) o se monta como imagen estática con fade. No usar Veo para un slide de cierre — el resultado no vale el crédito."
+          },
+          "marcaFonetica": "Munifái (CTA en pantalla: 'Conocé Munifái' — con acento, como suena)",
+          "prompt": null,
+          "overlayNote": "CTA blando en pantalla: 'Conocé Munifái' (coherente con el link en bio). Sin las 4 features (biométrica/pesos/gratis/semanas) — van a otra pieza. Logo gráfico 'Munify' como imagen, lectura TTS 'Munifái'. Fondo: #112a6c.",
+          "delegadoA": "editor / motion-graphics"
+        }
+      ],
+      "narration": {
+        "mode": "tts",
+        "text": "Un reclamo entra... y se pierde. Nadie sabe quien lo toma. Ni cuando se resuelve. Ni si se resolvio. El vecino reclama por el pasillo, por telefono, por redes. Y queda en la nada. Con Munifai, el vecino reporta con foto y GPS. La inteligencia artificial lo deriva solo. Una cuadrilla lo resuelve. Foto antes y despues. El vecino sigue cada paso. Recibido, derivado, resuelto. Cada paso con su fecha y su numero de seguimiento. Cada reclamo, trazado de punta a punta. Munifai."
+      },
+      "publish": {
+        "hookOnScreen": "Un reclamo perdido. Problema politico.",
+        "caption": "Los reclamos vecinales no pueden perderse en un chat o un pasillo. Con Munifai, cada uno tiene foto, GPS, derivacion automatica y seguimiento de punta a punta. Conoce Munifai — link en bio.",
+        "hashtags": [
+          "#gestionmunicipal",
+          "#municipio",
+          "#tecnologiapublica",
+          "#reclamos",
+          "#munifai"
+        ],
+        "cta": "Conoce Munifai — link en bio"
+      },
+      "qa": {
+        "score": 47,
+        "verdict": "LISTO PARA PRODUCIR",
+        "issues": [
+          {
+            "severity": "MEDIUM",
+            "note": "Prueba (eje 6, 4/5): el timeline del clip 6 (16-20s) declara timestamps 'REAL del piloto' (Recibido 14:02 / Derivado 14:09). Misma trampa que evitaste con el '8 de 10': si esos horarios NO estan verificados en el KB del municipio piloto, son un dato inventado disfrazado de real. FIX: confirmar que 14:02/14:09 salen de un reclamo real del piloto; si no existen, tratarlos como el resto -> placeholder flaggeado y mostrar el timeline con hitos SIN hora concreta (solo 'Recibido > Derivado > Resuelto') hasta tener el dato."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "Solucion mostrada (eje 5, 4/5): los dos momentos donde se ve el producto (clip 4 mockup 9-12s y clip 6 mockup 16-20s) llevan ambos 'screen not clearly legible'. Riesgo: para awareness se ve 'una app', pero no se lee NADA reconocible del producto. FIX: en el clip 4, permitir que UN elemento sea legible y de marca (el pin de GPS sobre la foto del bache, o el chip de 'derivado a la dependencia'), manteniendo el resto desenfocado. El b-roll real (cuadrilla/antes-despues) ya carga el peso, pero un anclaje legible del producto sube el recuerdo."
+          },
+          {
+            "severity": "LOW",
+            "note": "Higiene (eje 10, 4/5): no se declara ducking de musica en ningun tramo. El talking head (2-6s) necesita voz limpia sin musica pisando, y el hook no especifica si va musica, silencio o ambient. FIX: agregar 'music with ducking under VO' global y 'no music bed during talking head, ambient only' en el clip 2; definir el audio del hook (recomendado: ambient del chat + sting corto, sin VO los primeros 2s para que pese la frase on-screen)."
+          },
+          {
+            "severity": "LOW",
+            "note": "Consistencia de texto on-screen: la frase del hook en el guion ('Un reclamo perdido es un problema politico.') no coincide literal con hookOnScreen de publicacion ('Un reclamo perdido. Problema politico.'). No rompe, pero conviene unificar la version estampada para que el frame del feed y el del video sean el mismo gancho."
+          },
+          {
+            "severity": "LOW",
+            "note": "CTA (eje 7, OK pero pulible): 'Conoce Munifai' sin tilde en 'Conoce'. Es texto en pantalla de marca; cuidar acentuacion ('Conoce'/'Conoce' -> 'Conoce' debe llevar tilde: 'Conoce'). Detalle de prolijidad para una pieza institucional B2G."
+          }
+        ]
+      }
+    },
+    {
+      "id": "aw-2",
+      "objective": "awareness",
+      "angle": "Lo que nadie te dice (insight de rubro)",
+      "format": "reel 9:16 talking head + b-roll Veo",
+      "platforms": [
+        "Instagram Reels",
+        "TikTok"
+      ],
+      "durationSec": 20,
+      "script": {
+        "blocks": [
+          {
+            "role": "hook",
+            "tStart": 0,
+            "tEnd": 3,
+            "narration": "La mayoría de las apps municipales no fracasan por la tecnología. Fracasan porque le cobran al vecino.",
+            "visual": "TALKING HEAD 9:16. Presentador sobrio (no logo, no 'somos X'). Lower-third tardío opcional; el peso está en la voz. PROMPT VEO (Flow 9:16, Veo 3): 'Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. An ordinary real-looking Argentine man in his 40s, natural and relatable, not a model, business-casual, standing in a bright municipal office. One single continuous take, same background the whole time, no cut. Medium shot from the waist up, not a close-up. He speaks in Argentine Rioplatense Spanish with voseo, only once and without repeating any words: \"La mayoría de las apps municipales no fracasan por la tecnología. Fracasan porque le cobran al vecino.\" Delivers it calmly and seriously, then stays quiet looking at camera until the end. Natural lip-sync, no on-screen text.' NOTA DE PRODUCCIÓN: selector de Flow en 9:16, modelo Veo 3, 4s."
+          },
+          {
+            "role": "dolor",
+            "tStart": 3,
+            "tEnd": 7,
+            "narration": "Si el vecino tuviera que pagar, la adopción sería cero. Y los proyectos que tardan seis meses en arrancar quedan trabados.",
+            "visual": "B-ROLL 9:16, sin presentador. Alinea dolor del DECISOR + vecino. PROMPT VEO (Flow 9:16, Veo 3): 'Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. Medium shot at a steady medium distance. A long line of ordinary everyday Argentine people, not models, waiting bored in the hallway of a municipal office; in the foreground a tired municipal official, not a model, frowning at a stalled project file on a desk, fluorescent light, slow heavy atmosphere. One single continuous take, same background, no cut. No spoken dialogue, no talking; ambient indoor sound only. Any screen not clearly legible.' NOTA DE PRODUCCIÓN: selector de Flow en 9:16, modelo Veo 3, 4s. Lower-third corto sobre el plano: 'El costo no es la app. Es a quién se la cobrás.'"
+          },
+          {
+            "role": "solucion",
+            "tStart": 7,
+            "tEnd": 10,
+            "narration": "Munifái es gratis para el vecino. Sin costo, en la app o en WhatsApp.",
+            "visual": "B-ROLL 9:16 — UNA sola idea (gratis para el vecino). LOWER-THIRD TEMPRANO ~8s para claridad muteada: 'Gratis para el vecino. Listo en 1-2 semanas.' (texto en pantalla puede decir 'Munify'). PROMPT VEO (Flow 9:16, Veo 3): 'Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. Medium over-the-shoulder shot at a steady medium distance. An ordinary real-looking Argentine resident, not a model, smiling while using a municipal app on their smartphone at a kitchen table with a mate gourd, soft morning light, phone screen not clearly legible. One single continuous take, same background, no cut. No spoken dialogue, no talking; ambient home sound only.' NOTA DE PRODUCCIÓN: selector de Flow en 9:16, modelo Veo 3, 3s."
+          },
+          {
+            "role": "prueba",
+            "tStart": 10,
+            "tEnd": 13,
+            "narration": "Se implementa en una a dos semanas, sobre los datos que el municipio ya tiene.",
+            "visual": "B-ROLL 9:16 — producto resolviendo algo concreto (no muro de logos, sin icono de API). PROMPT VEO (Flow 9:16, Veo 3): 'Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. Close-up over-the-shoulder of an ordinary real-looking hand holding a smartphone showing a municipal complaint card that visibly changes its status badge from pending to RESOLVED, clean modern UI, screen content stylized and not clearly legible, soft daylight on a wooden desk. One single continuous take, same background, no cut. No spoken dialogue, no talking; ambient sound only.' NOTA DE PRODUCCIÓN: selector de Flow en 9:16, modelo Veo 3, 3s. Mantener lower-third '1-2 semanas' visible."
+          },
+          {
+            "role": "cta",
+            "tStart": 13,
+            "tEnd": 20,
+            "narration": "Si modernizás tu municipio, que nadie quede afuera. Pedí la demo de Munifái.",
+            "visual": "CIERRE TALKING HEAD + último frame con UNA acción clara. PROMPT VEO (Flow 9:16, Veo 3): 'Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. The same ordinary real-looking Argentine man in his 40s, not a model, in the bright municipal office. One single continuous take, same background, no cut. Medium shot from the waist up, not a close-up. He speaks in Argentine Rioplatense Spanish with voseo, only once and without repeating any words: \"Si modernizás tu municipio, que nadie quede afuera. Pedí la demo de Munifái.\" Delivers it calmly and confidently, then stays quiet with a slight confident nod until the end. Natural lip-sync, no on-screen text.' NOTA DE PRODUCCIÓN: selector de Flow en 9:16, modelo Veo 3, 7s (recortar en edición). ÚLTIMO FRAME (overlay, no Veo): logo Munify centrado + LOWER-THIRD con verbo y acción única: 'Pedí la demo - link en bio'. El texto en pantalla puede decir 'Munify'; la voz dice 'Munifái'."
+          }
+        ],
+        "music": {
+          "mood": "Cinemático sobrio e institucional. Piano y cuerdas suaves con un pulso bajo y constante, sensación de seriedad y credibilidad (no épico, no festivo). En el hook un silencio o una nota tensa sostenida que abre dudas; en la transición a solución (7s) el pulso se aclara y entra una capa cálida y esperanzadora; en el CTA cierra con un acorde firme y resuelto bajo la voz, sin subir el volumen. Sin percusión marcada, sin drops, sin glitch. Tempo lento-medio, ~70-80 BPM."
+        }
+      },
+      "slides": [],
+      "videoPrompts": [
+        {
+          "clipIndex": 1,
+          "role": "hook",
+          "template": "A",
+          "tStart": 0,
+          "tEnd": 3,
+          "durationFlow": "4s",
+          "durationFinal": "3s",
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. An ordinary real-looking Argentine man in his 40s, natural and relatable, not a model, business-casual, standing in a bright municipal office. One single continuous take, same background the whole time, no cut. Medium shot from the waist up, not a close-up. He speaks in Argentine Rioplatense Spanish with voseo, only once and without repeating any words: \"La mayoría de las apps municipales no fracasan por la tecnología. Fracasan porque le cobran al vecino.\" Delivers it calmly and seriously, then stays quiet looking at camera until the end. Natural lip-sync, no on-screen text.",
+          "productionNote": "Sin lower-third en este clip. El peso lo lleva la voz.",
+          "phoneticMark": "Munifai"
+        },
+        {
+          "clipIndex": 2,
+          "role": "dolor",
+          "template": "B",
+          "tStart": 3,
+          "tEnd": 7,
+          "durationFlow": "4s",
+          "durationFinal": "4s",
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. Medium shot at a steady medium distance. A long line of ordinary everyday Argentine people, not models, waiting bored in the hallway of a municipal office; in the foreground a tired municipal official, not a model, frowning at a stalled project file on a desk, fluorescent light, slow heavy atmosphere. One single continuous take, same background, no cut. No spoken dialogue, no talking; ambient indoor sound only. Any screen not clearly legible.",
+          "productionNote": "Lower-third en edicion (no en Veo): 'El costo no es la app. Es a quien se la cobras.'",
+          "phoneticMark": "Munifai"
+        },
+        {
+          "clipIndex": 3,
+          "role": "solucion",
+          "template": "C",
+          "tStart": 7,
+          "tEnd": 10,
+          "durationFlow": "4s",
+          "durationFinal": "3s",
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. Medium over-the-shoulder shot at a steady medium distance. An ordinary real-looking Argentine resident, not a model, smiling while using a municipal app on their smartphone at a kitchen table with a mate gourd, soft morning light, phone screen not clearly legible. One single continuous take, same background, no cut. No spoken dialogue, no talking; ambient home sound only.",
+          "productionNote": "Lower-third temprano desde ~8s (edicion): 'Gratis para el vecino. Listo en 1-2 semanas.' Texto en pantalla puede decir Munify; voz dice Munifai.",
+          "phoneticMark": "Munifai"
+        },
+        {
+          "clipIndex": 4,
+          "role": "prueba",
+          "template": "C",
+          "tStart": 10,
+          "tEnd": 13,
+          "durationFlow": "4s",
+          "durationFinal": "3s",
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. Close-up over-the-shoulder of an ordinary real-looking hand holding a smartphone showing a municipal complaint card that visibly changes its status badge from pending to RESOLVED, clean modern UI, screen content stylized and not clearly legible, soft daylight on a wooden desk. One single continuous take, same background, no cut. No spoken dialogue, no talking; ambient sound only.",
+          "productionNote": "Mantener lower-third '1-2 semanas' visible desde el clip anterior.",
+          "phoneticMark": "Munifai"
+        },
+        {
+          "clipIndex": 5,
+          "role": "cta",
+          "template": "A",
+          "tStart": 13,
+          "tEnd": 20,
+          "durationFlow": "8s",
+          "durationFinal": "7s",
+          "settings": {
+            "aspectRatio": "9:16",
+            "model": "Veo 3"
+          },
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. The same ordinary real-looking Argentine man in his 40s, not a model, in the bright municipal office. One single continuous take, same background, no cut. Medium shot from the waist up, not a close-up. He speaks in Argentine Rioplatense Spanish with voseo, only once and without repeating any words: \"Si modernizas tu municipio, que nadie quede afuera. Pedi la demo de Munifai.\" Delivers it calmly and confidently, then stays quiet with a slight confident nod until the end. Natural lip-sync, no on-screen text.",
+          "productionNote": "Ultimo frame es overlay en edicion (no Veo): logo Munify centrado + lower-third 'Pedi la demo - link en bio'. Texto puede decir Munify; voz dice Munifai.",
+          "phoneticMark": "Munifai"
+        }
+      ],
+      "narration": {
+        "mode": "tts",
+        "text": "La mayoría de las apps municipales no fracasan por la tecnología. Fracasan porque le cobran al vecino. Si el vecino tuviera que pagar, la adopción sería cero. Y los proyectos que tardan seis meses en arrancar quedan trabados. Munifái es gratis para el vecino. Sin costo, en la app o en WhatsApp. Se implementa en una a dos semanas, sobre los datos que el municipio ya tiene. Si modernizás tu municipio, que nadie quede afuera. Pedí la demo de Munifái."
+      },
+      "publish": {
+        "hookOnScreen": "Apps municipales que fracasan por cobrar",
+        "caption": "La mayoria de las apps municipales fracasan porque le cobran al vecino. Munify es gratis para el vecino, listo en 1-2 semanas, sobre los datos que el municipio ya tiene. Si modernizas tu municipio, que nadie quede afuera.",
+        "hashtags": [
+          "#municipios",
+          "#transformaciondigital",
+          "#gobiernolocal",
+          "#Munify",
+          "#gestionmunicipal"
+        ],
+        "cta": "Demo gratuita - link en bio"
+      },
+      "qa": {
+        "score": 39,
+        "verdict": "LISTO PARA PRODUCIR",
+        "issues": [
+          {
+            "severity": "MEDIUM",
+            "note": "PRUEBA (eje 6, 2/5) es el eje mas debil. La pieza afirma '1-2 semanas', 'sobre datos que el municipio ya tiene' y 'la adopcion seria cero' pero NO hay un dato/numero/resultado concreto verificable (ni municipios usando, ni % de reclamos resueltos, ni tiempo medido). FIX: en el plano prueba (10-13s) reemplazar el lower-third generico por un dato real si existe, ej. 'X municipios ya lo usan' o 'Y% de reclamos resueltos en 48h'. Si NO hay dato real, NO inventarlo: mantener el claim cualitativo pero bajarle el tono de promesa ('en pocas semanas' en vez de un numero que parezca metrica). Que la tarjeta pending->RESOLVED quede como la 'prueba mostrada' y se le de mas tiempo en pantalla."
+          },
+          {
+            "severity": "HIGH",
+            "note": "UNA SOLA IDEA (eje 2, 3/5): el hook vende UN insight ('fracasan porque le cobran al vecino' -> gratis para el vecino) pero a partir del plano prueba la pieza se va a un segundo beneficio ('1-2 semanas' + 'datos que ya tiene'). Son dos promesas compitiendo. FIX: subordinar la velocidad al insight. En el plano solucion (7-10s) dejar SOLO 'Gratis para el vecino' como lower-third, y mover '1-2 semanas' a un unico beat de soporte en prueba, sin repetirlo en dos planos. La columna vertebral debe ser una sola: 'gratis para el vecino = adopcion real'."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "GANCHO (eje 1, 4/5): el punch real ('le cobran al vecino') cae ~3s; la primera frase es una negacion ('no fracasan por la tecnologia') que consume el segundo critico. FIX opcional para frenar scroll mas rapido: el hookOnScreen ya dice 'Apps municipales que fracasan por cobrar' (bien), pero considerar invertir la narracion para que 'le cobran al vecino' aparezca antes, ej: 'Tu app municipal va a fracasar. No por la tecnologia: porque le cobras al vecino.'"
+          },
+          {
+            "severity": "LOW",
+            "note": "FORMATO (eje 8, 4/5): el CTA ocupa 13-20s (7s) marcado como 'recortar en edicion'. 7s de talking head final arrastra. FIX: dejar el talking-head del CTA en ~4s y reservar los ultimos 2-3s para el frame de cierre (logo Munify + 'Pedi la demo - link en bio') con la voz ya terminada. No dejar al presentador en silencio mirando camara 3s, eso es plano muerto."
+          },
+          {
+            "severity": "LOW",
+            "note": "HIGIENE (eje 10, 4/5): el caption de publicacion tiene errores de tilde ('mayoria', 'modernizas') que no estan en la narracion. FIX: corregir a 'mayoria'->'mayoria' con tilde y 'modernizas'->'modernizas' con tilde en el caption. Coherencia de marca: confirmado correcto el manejo voz 'Munifai' / pantalla 'Munify' / logo solo en CTA."
+          },
+          {
+            "severity": "LOW",
+            "note": "VERIFICACION PROMPTS VEO (OK, sin accion): 9:16 pedido al selector en NOTA DE PRODUCCION ademas del texto, Veo 3, Rioplatense+voseo, 'only once and without repeating', marca fonetica 'Munifai', b-roll con 'No spoken dialogue / single continuous take / screen not clearly legible', realismo 'not a model / not over-rendered, not CGI-perfect', punto antes del remate en ambos talking heads. Todo correcto. FIX RAPIDO (orden de impacto): 1) consolidar UNA idea (gratis para el vecino) y dejar de competir con velocidad; 2) meter un dato real en prueba o bajar el tono de promesa si no lo hay (no inventar); 3) recortar el CTA a ~4s y cerrar con el frame de logo/CTA sin plano muerto."
+          }
+        ]
+      }
+    },
+    {
+      "id": "aw-3",
+      "objective": "awareness",
+      "angle": "Dato / autoridad (diferenciador fuerte, sin numeros inventados)",
+      "format": "reel 9:16 talking head + b-roll Veo",
+      "platforms": [
+        "Instagram Reels",
+        "YouTube Shorts"
+      ],
+      "durationSec": 21,
+      "script": {
+        "blocks": [
+          {
+            "role": "hook",
+            "narration": "Un trámite municipal online suele ser solo un formulario en internet. Sin validez real.",
+            "visual": "Talking head 9:16: secretario/a de gobierno frente a cámara, oficina municipal desenfocada atrás. Mira directo al lente, gesto de duda. Lower-third sutil aún sin marca. Tono autoridad, no postal.",
+            "tStart": 0,
+            "tEnd": 4
+          },
+          {
+            "role": "dolor",
+            "narration": "Si no sabés quién es el vecino del otro lado, ese trámite no vale nada.",
+            "visual": "B-roll Veo: pantalla de un formulario web genérico llenándose solo, campos vacíos de identidad. Corte a un mostrador municipal con cola de vecinos. Insinúa el problema de identidad sin resolver.",
+            "tStart": 4,
+            "tEnd": 8
+          },
+          {
+            "role": "solucion",
+            "narration": "Munify valida con DNI más selfie y prueba de vida, en menos de treinta segundos.",
+            "visual": "Mockup app 9:16: flujo de validación: foto del DNI, luego selfie con prueba de vida (girar la cabeza), check verde. Micro-animación del check. Overlay sutil de marca Munify aparece por primera vez.",
+            "tStart": 8,
+            "tEnd": 13
+          },
+          {
+            "role": "prueba",
+            "narration": "Lo verifica contra RENAPER. Eso le da validez gubernamental al trámite.",
+            "visual": "B-roll Veo + mockup: sello/insignia 'Validado RENAPER' encajando sobre el trámite. Trazabilidad visible: línea de tiempo de la gestión. Habilitación comercial, libre deuda, permiso de obra como íconos SVG que pasan.",
+            "tStart": 13,
+            "tEnd": 17
+          },
+          {
+            "role": "cta",
+            "narration": "El vecino no pisa el municipio hasta retirar. Munify: identidad oficial en cada gestión.",
+            "visual": "Talking head de cierre, presentador a cámara, sonrisa segura. Logo Munify fuerte en pantalla, lower-third con la marca. Cierre limpio sin precio ni oferta, solo posicionamiento de autoridad.",
+            "tStart": 17,
+            "tEnd": 21
+          }
+        ],
+        "music": {
+          "mood": "cinematografica / autoridad — base instrumental sobria con pulso ascendente y resolucion firme en el CTA; ducking -18dB bajo la voz. Estilo institucional-confiable, sin epica exagerada. Ref. tipo Kevin MacLeod (incompetech, CC-BY), credito de 1 linea al publicar."
+        }
+      },
+      "slides": [],
+      "videoPrompts": [
+        {
+          "id": "clip1_hook",
+          "segment": "hook",
+          "tStart": 0,
+          "tEnd": 4,
+          "template": "A",
+          "veo": true,
+          "settings": "Veo 3 · 9:16 · 8s",
+          "phonetic": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine woman in her 40s, natural and relatable, not a model, with dark hair pulled back, professional blazer, standing in front of a blurred municipal office interior — desks, filing cabinets slightly out of focus behind her. The camera performs a smooth dolly-out that starts at a medium shot from the waist up — not a close-up — and steadily pulls back to a wide full-body shot revealing the full office setting. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Un trámite municipal online suele ser solo un formulario en internet. Sin validez real.\" She delivers the line calmly, with the measured authority of a government official — not a TV presenter, not a model. After speaking, she holds a slight skeptical expression, looking directly at the lens until the end. Natural lip-sync, no on-screen text, no logos."
+        },
+        {
+          "id": "clip2a_dolor_formulario",
+          "segment": "dolor",
+          "tStart": 4,
+          "tEnd": 6,
+          "template": "C",
+          "veo": true,
+          "settings": "Veo 3 · 9:16 · 8s",
+          "phonetic": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A generic government web form filling itself out on a desktop monitor, white browser window, form fields for name and address left visibly blank — the identity fields are empty and highlighted in red. Camera steady, no movement. No spoken dialogue, no talking, ambient office ambience only. One single continuous take, no cut. Screen content not clearly legible. 4-second clip, one brief moment. No logos."
+        },
+        {
+          "id": "clip2b_dolor_cola",
+          "segment": "dolor",
+          "tStart": 6,
+          "tEnd": 8,
+          "template": "C",
+          "veo": true,
+          "settings": "Veo 3 · 9:16 · 8s",
+          "phonetic": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A queue of ordinary real-looking people — not models — waiting at a municipal service counter in a government building, fluorescent lighting, worn linoleum floor. A tired-looking woman at the front of the line holds a folder of papers. Camera slow gentle pan left. No spoken dialogue, ambient crowd murmur only. 4-second clip, one brief moment, no cut. No logos."
+        },
+        {
+          "id": "clip3_solucion_mockup",
+          "segment": "solucion",
+          "tStart": 8,
+          "tEnd": 13,
+          "template": "mockup-designer",
+          "veo": false,
+          "settings": "No es clip Veo — usar skill mockup-designer",
+          "phonetic": "Munifái",
+          "prompt": "NO GENERAR EN VEO. Este segmento es pantalla de app con micro-animación (flujo DNI → selfie → check verde). Delegarlo al skill mockup-designer. B-roll de envoltorio opcional abajo."
+        },
+        {
+          "id": "clip3b_solucion_broll",
+          "segment": "solucion_envoltorio",
+          "tStart": 8,
+          "tEnd": 13,
+          "template": "B",
+          "veo": true,
+          "settings": "Veo 3 · 9:16 · 8s (opcional, envuelve el mockup)",
+          "phonetic": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot. An ordinary real-looking Argentine person in their 30s, not a model, holding a smartphone upright with both hands, looking down at the screen with a focused expression, natural indoor light. Camera steady. No spoken dialogue, ambient sound only. Screen not clearly legible. 4-second clip, no cut. No logos."
+        },
+        {
+          "id": "clip4_prueba",
+          "segment": "prueba",
+          "tStart": 13,
+          "tEnd": 17,
+          "template": "C",
+          "veo": true,
+          "settings": "Veo 3 · 9:16 · 8s",
+          "phonetic": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A close-medium view of a printed government document — a municipal permit or certificate — on a desk. A bold official validation stamp in dark blue ink descends from above and presses onto the document in a single smooth motion. Beneath the stamp, small icon badges for habilitación comercial, libre deuda, permiso de obra arranged in a clean row. Camera very slow push-in. No spoken dialogue, ambient silence with a faint paper sound. One single continuous take, no cut. Screen content not clearly legible. 4-second clip. No logos."
+        },
+        {
+          "id": "clip5_cta",
+          "segment": "cta",
+          "tStart": 17,
+          "tEnd": 21,
+          "template": "A",
+          "veo": true,
+          "settings": "Veo 3 · 9:16 · 8s",
+          "phonetic": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. The same ordinary real-looking Argentine woman in her 40s as in the opening clip — dark hair pulled back, professional blazer — same blurred municipal office interior behind her. The camera performs a smooth dolly-out that starts at a medium shot from the waist up and steadily pulls back to a wide full-body shot. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"El vecino no pisa el municipio hasta retirar. Munifái: identidad oficial en cada gestión.\" She delivers the line calmly and confidently, with a warm, assured smile — not euphoric, positioning authority. After speaking, she holds the smile, looking directly at the lens until the end. Natural lip-sync, no on-screen text. Use the attached Munify logo as a small clean overlay in the top-right corner."
+        }
+      ],
+      "narration": {
+        "mode": "tts",
+        "text": "Un trámite municipal online suele ser solo un formulario en internet. Sin validez real. Si no sabés quién es el vecino del otro lado, ese trámite no vale nada. Munify valida con DNI más selfie y prueba de vida, en menos de treinta segundos. Lo verifica contra RENAPER. Eso le da validez gubernamental al trámite. El vecino no pisa el municipio hasta retirar. Munify: identidad oficial en cada gestión."
+      },
+      "publish": {
+        "hookOnScreen": "Ese tramite no vale nada",
+        "caption": "Sin validacion de identidad, un tramite digital no tiene validez real. Munify lo resuelve con DNI, selfie y respaldo RENAPER. Conoce mas en el link de bio.",
+        "hashtags": [
+          "#GobiernoDigital",
+          "#TramitesMunicipales",
+          "#IdentidadDigital",
+          "#TransformacionPublica",
+          "#Munify"
+        ],
+        "cta": "Link en bio"
+      },
+      "qa": {
+        "score": 38,
+        "verdict": "AJUSTAR",
+        "issues": [
+          {
+            "severity": "CRITICAL",
+            "note": "MARCA FONETICA (eje 9): la narracion hablada dice 'Munify' literal en los planos solucion (8-13s) y CTA (17-21s). La regla dura del proyecto (docs/PLAYBOOK_VIDEOS_FLOW.md y docs/agents/VEO_FLOW_PROMPTING.md) exige escribirla como suena: 'Munifai', nunca 'Munify', porque Veo/TTS la lee con acento ingles. FIX: en TODA narracion reemplazar Munify -> Munifai (mantener 'Munify' solo en el logo/overlay visual y en el caption escrito). Plano solucion: '...Munifai valida con DNI mas selfie...'. Plano CTA: 'Munifai. Identidad oficial en cada gestion.' con punto antes del remate."
+          },
+          {
+            "severity": "CRITICAL",
+            "note": "CTA ON-SCREEN AUSENTE (eje 7): la unica accion ('Link en bio') vive solo en el caption; el plano de cierre (17-21s) no la muestra en pantalla. Sin sonido nadie sabe que hacer. FIX: agregar lower-third de cierre con 'Link en bio' (o 'Conoce mas') junto al logo en el plano CTA. Una sola accion, clara, en pantalla."
+          },
+          {
+            "severity": "HIGH",
+            "note": "PLANO CTA CON DOS IDEAS (eje 7): 'El vecino no pisa el municipio hasta retirar' introduce un beneficio NUEVO en el ultimo plano y compite con el posicionamiento de marca, diluyendo la unica idea. FIX: sacar ese beneficio del CTA (o moverlo al plano solucion) y dejar el cierre limpio: solo marca fonetica + posicionamiento + accion. Ej cierre: 'Munifai. Identidad oficial en cada gestion. Link en bio.'"
+          },
+          {
+            "severity": "HIGH",
+            "note": "PROMPT VEO INCOMPLETO PARA HABLA (ejes 9/formato): los visuals con talking head (hook 0-4s y cierre 17-21s) no declaran 'Rioplatense + voseo', 'only once / no repeat' ni 'punto antes del remate', requisitos del PLAYBOOK para que el TTS suene bien y no repita. Los b-roll (dolor 4-8s, prueba 13-17s) no declaran 'No spoken dialogue', 'single continuous take', 'screen not clearly legible' ni 'not a model / not over-rendered, not CGI-perfect'. FIX: agregar esos tokens a cada visual segun sea talking head o b-roll."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "CLARIDAD SIN SONIDO (eje 3): solo hay 1 texto en pantalla (el hook inicial). La cadena logica 'online != valido -> RENAPER lo hace oficial' depende de la voz; el plano 2 (formulario llenandose solo) es ambiguo en mute. FIX: 1 lower-third corto por plano clave -> dolor: '?Quien esta del otro lado?'; solucion: 'DNI + selfie + prueba de vida'; prueba: 'Validado RENAPER'. Maximo 1 idea por plano, sin saturar."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "CLAIM CUANTITATIVO SIN FUENTE (ejes 6/10): 'en menos de treinta segundos' es un numero concreto sin respaldo declarado, en una pieza cuyo angulo es justamente 'sin numeros inventados'. FIX: o se respalda con dato real, o se suaviza a 'en segundos' / 'en una sola pasada' para no contradecir el angulo de autoridad."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "MARCA ADELANTADA AL CTA (eje 9): el visual del plano solucion (8-13s) dice 'Overlay de marca Munify aparece por primera vez', adelantando la marca antes del CTA y rozando la regla logo-solo-en-CTA. FIX: en solucion dejar el check verde como protagonista sin overlay de marca; reservar logo fuerte y lower-third de marca para el cierre."
+          },
+          {
+            "severity": "LOW",
+            "note": "GANCHO VERBAL (eje 1): la narracion del hook es larga y el remate fuerte ('Sin validez real') cae al final de los 4s; el 'hookOnScreen' \"Ese tramite no vale nada\" pega mas duro. FIX: arrancar la narracion por el golpe -> 'Ese tramite online no vale nada... aunque parezca un formulario oficial.' Frena el scroll en los primeros 2s."
+          },
+          {
+            "severity": "LOW",
+            "note": "PROLIJIDAD DE TEXTO (eje 10): hook y caption sin tildes ('tramite', 'validacion', 'Conoce', 'mas'). No rompe pero resta en una pieza de autoridad gubernamental, donde la prolijidad ES parte del mensaje. FIX: corregir acentos en hookOnScreen y caption."
+          },
+          {
+            "severity": "LOW",
+            "note": "MUSICA/DUCKING (eje 10): no se especifica pista ni ducking bajo la voz. En piezas con narracion el ducking es clave para inteligibilidad. FIX: declarar musica de fondo sobria (tono institucional) con ducking -6 a -9 dB bajo la voz."
+          }
+        ]
+      }
+    },
+    {
+      "id": "demo-1",
+      "objective": "consideracion",
+      "angle": "Demo en 15s",
+      "format": "reel 9:16 mockups de pantallas (mockup-designer) + voz",
+      "platforms": [
+        "Instagram Reels",
+        "YouTube Shorts"
+      ],
+      "durationSec": 24,
+      "script": {
+        "blocks": [
+          {
+            "role": "hook",
+            "tStart": 0,
+            "tEnd": 2.5,
+            "narration": "Reclamos por un lado. Trámites por otro. Plata por otro.",
+            "visual": "Pantalla partida en tres, frio: tres apps/planillas distintas y desconectadas (un mapa de reclamos, un formulario de tramite, una planilla financiera). Glitch de corte rapido entre las tres. SIN logo todavia. Texto on-screen minimo: 'Tres sistemas.'"
+          },
+          {
+            "role": "dolor",
+            "tStart": 2.5,
+            "tEnd": 6,
+            "narration": "Cada gestion en un lado distinto. Y al final, todo se carga dos veces.",
+            "visual": "Mano arrastrando un dato de una pantalla a otra a mano; aparece un cartel rojo sutil 'doble carga'. El espectador (secretario / director de modernizacion) reconoce su propio dia. Lower-third: 'Sin trazabilidad. Doble carga.'"
+          },
+          {
+            "role": "solucion",
+            "tStart": 6,
+            "tEnd": 10.2,
+            "narration": "Munifai junta todo en un solo sistema, con un unico login.",
+            "visual": "MOCKUP 9:16 (mockup-designer): login unico se abre y revela el dashboard en vivo. Pan suave al mapa con hotspots de reclamos que laten. Lower-third: 'Un login. Un sistema.' Overlay de marca sutil arriba a la derecha. Transicion: zoom-in al hotspot."
+          },
+          {
+            "role": "solucion",
+            "tStart": 10.2,
+            "tEnd": 14.5,
+            "narration": "Un tramite completo: documentacion, validacion oficial RENAPER, pago online y firma digital.",
+            "visual": "MOCKUP del detalle de un tramite: se encadenan en hotspots animados los pasos -> sube doc -> chequeo biometrico RENAPER (tilde verde) -> pago online -> firma digital. Cada paso se resalta al nombrarse. Texto on-screen por paso, 1 idea por plano."
+          },
+          {
+            "role": "prueba",
+            "tStart": 14.5,
+            "tEnd": 20,
+            "narration": "Una Orden de Pago con numero correlativo: pendiente, autorizada, pagada. Al pagarse impacta solo en Tesoreria, sin doble carga.",
+            "visual": "MOCKUP del modulo financiero: una OP con N correlativo recorre el circuito pendiente -> autorizada -> pagada (chips que se encienden). Al llegar a 'pagada', una flecha genera el movimiento en Tesoreria (un solo asiento, NO doble). Corte a las cajas FOFINDE, FODEMEP, coparticipacion y tesoro propio con saldo actualizandose en vivo. Texto: 'Saldo en vivo, sin doble carga.' (NO decir contable AFIP ni RRHH)."
+          },
+          {
+            "role": "cta",
+            "tStart": 20,
+            "tEnd": 24,
+            "narration": "Con los colores y el logo de tu municipio. Conocelo: es Munifai.",
+            "visual": "El mismo dashboard recolorea en vivo a la identidad de OTRO municipio (logo + paleta cambian = multi-tenant). Cierra con el logo Munify centrado, fondo limpio, CTA suave: 'Conoce mas'. Pie chico de convivencia: 'Convive con SIPAF / RAFAM via API.' Marca fuerte recien aca."
+          }
+        ],
+        "music": {
+          "mood": "Cinematografica de autoridad institucional: arranca con tension contenida y pulso bajo en el hook/dolor (pads graves, un tick ritmico), suma capas y se vuelve inspiradora y luminosa al revelar el sistema unico, y resuelve calida/confiada en el CTA. Ducking -18dB bajo la voz. Sin percusion agresiva: el tono es serio y de gestion publica, no hype comercial. Pista CC-BY (Kevin MacLeod / incompetech) con credito de 1 linea al publicar."
+        }
+      },
+      "slides": [
+        {
+          "slide": 1,
+          "role": "hook",
+          "tStart": 0,
+          "tEnd": 2.5,
+          "captura": "Dashboard municipal + Reclamos vecinales + Tesoreria (tres capturas en pantalla partida)",
+          "encuadre": "Split vertical 9:16 en tres franjas iguales: mapa de reclamos | formulario de tramite | planilla financiera. Cada franja ocupa un tercio del ancho.",
+          "frame": "ninguno",
+          "resaltar": "La desconexion entre los tres bloques — sin vinculo visual entre ellos",
+          "movimiento": "Glitch de corte rapido (flash cut) entre las tres franjas, 2-3 veces en 1.5s. Freeze final con las tres en pantalla.",
+          "tapar": "Nombres, montos y DNIs reales en todas las capturas — blur suave",
+          "copyPantalla": "Tres sistemas."
+        },
+        {
+          "slide": 2,
+          "role": "dolor",
+          "tStart": 2.5,
+          "tEnd": 6,
+          "captura": "Tramites municipales (detalle de formulario con campo de datos)",
+          "encuadre": "9:16 centrado en la zona del formulario, mano ingresando datos. Crop para que el campo de entrada sea el protagonista.",
+          "frame": "celular",
+          "resaltar": "Un campo de texto siendo re-ingresado a mano — dato copiado de otro sistema",
+          "movimiento": "Pan lento de arriba hacia abajo sobre el formulario mientras aparece un overlay rojo pulsante con el texto. Fin: freeze con el cartel visible.",
+          "tapar": "Cualquier dato personal real en el formulario — reemplazar con [DEMO]",
+          "copyPantalla": "Sin trazabilidad. Doble carga."
+        },
+        {
+          "slide": 3,
+          "role": "solucion",
+          "tStart": 6,
+          "tEnd": 10.2,
+          "captura": "Dashboard municipal (vista completa con KPIs y mapa de reclamos activos)",
+          "encuadre": "9:16 vertical: login ocupa el centro superior, luego zoom-out revela el dashboard completo. Mapa de reclamos en la mitad inferior con hotspots latiendo.",
+          "frame": "celular",
+          "resaltar": "Los hotspots del mapa que laten — todo en un solo sistema",
+          "movimiento": "Login aparece con fade-in (0.4s), luego zoom-out suave revela dashboard. Hotspots del mapa hacen pulse loop. Pan suave hacia un hotspot al final.",
+          "tapar": "Nombres de usuarios y montos en KPIs — blur o reemplazar con [DEMO]",
+          "copyPantalla": "Un login. Un sistema."
+        },
+        {
+          "slide": 4,
+          "role": "solucion",
+          "tStart": 10.2,
+          "tEnd": 14.5,
+          "captura": "Tramites municipales (vista de detalle de tramite con sus pasos / stepper)",
+          "encuadre": "9:16 vertical centrado en el stepper del tramite. Cada paso del flujo visible en la mitad inferior.",
+          "frame": "celular",
+          "resaltar": "El stepper de pasos avanzando: sube doc -> validacion RENAPER (tilde verde) -> pago -> firma",
+          "movimiento": "Cada paso se ilumina/activa secuencialmente al nombrarse en la narracion. Tilde verde aparece con pop en RENAPER. Cada activacion dura ~1s. Zoom-in suave al paso activo.",
+          "tapar": "DNIs y datos biometricos reales — reemplazar con [DEMO]",
+          "copyPantalla": "Cuatro pasos. Un tramite."
+        },
+        {
+          "slide": 5,
+          "role": "prueba",
+          "tStart": 14.5,
+          "tEnd": 20,
+          "captura": "Contaduria - Ordenes de pago (circuito de estados) + Tesoreria (cajas/saldos)",
+          "encuadre": "9:16 vertical: mitad superior = OP con chips de estado. Mitad inferior = cajas FOFINDE/FODEMEP/tesoreria con saldos. Transicion suave entre ambas zonas.",
+          "frame": "ninguno",
+          "resaltar": "Los chips de estado de la OP encendiendose uno a uno: pendiente -> autorizada -> pagada. Luego la flecha unica hacia Tesoreria.",
+          "movimiento": "Chips se encienden secuencialmente con glow (pendiente=gris, autorizada=amarillo, pagada=verde). Al llegar a 'pagada': una flecha animada baja hacia los saldos de cajas que se actualizan con contador. Todo en una sola accion (sin doble carga visible).",
+          "tapar": "Montos reales, N correlativos reales, nombres de proveedores — blur o [DEMO]",
+          "copyPantalla": "Saldo en vivo, sin doble carga."
+        },
+        {
+          "slide": 6,
+          "role": "cta",
+          "tStart": 20,
+          "tEnd": 24,
+          "captura": "Dashboard municipal (vista completa)",
+          "encuadre": "9:16 vertical: dashboard ocupa la pantalla completa. Logo Munify centrado al final sobre fondo limpio.",
+          "frame": "celular",
+          "resaltar": "La paleta de colores y el logo cambiando en vivo — efecto multi-tenant",
+          "movimiento": "Transicion de color: la paleta del dashboard hace crossfade a otra identidad municipal (colores + logo cambian en 1s con efecto de recolorizado). Luego fade-out al fondo limpio con logo Munify centrado. CTA 'Conoce mas' aparece con fade-in suave. Pie de pagina con texto chico fade-in al final.",
+          "tapar": "Datos de usuario en el dashboard — blur",
+          "copyPantalla": "Es Munifai."
+        }
+      ],
+      "videoPrompts": [
+        {
+          "clipIndex": 1,
+          "role": "hook",
+          "template": "B",
+          "durationSelector": "4s",
+          "aspectRatio": "9:16",
+          "model": "Veo 3",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance. Screen composition split into three vertical panels side by side: left panel shows a municipal complaint map with colored pins, center panel shows a blank government form on a browser, right panel shows a financial spreadsheet. Each panel looks like a real desktop screen capture, slightly different color temperature per panel — cold blue tones overall. Rapid glitch cut between the three panels twice, like a corrupted signal, each lasting half a second. No person visible. No spoken dialogue, no talking; ambient office silence with faint keyboard click only. One single continuous take, no cut. Screen content not clearly legible. No logos."
+        },
+        {
+          "clipIndex": 2,
+          "role": "dolor",
+          "template": "C",
+          "durationSelector": "4s",
+          "aspectRatio": "9:16",
+          "model": "Veo 3",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot at a steady medium distance, slightly over the shoulder. An ordinary real-looking Argentine woman in her 40s, natural and relatable, not a model, wearing a plain government-office blouse, seated at a municipal desk under cold fluorescent office light. She manually drags a sticky note with handwritten data from one open browser window toward another browser window on the same monitor — the gesture is tired, repetitive, resigned. A subtle red notification badge fades in on screen near the second window. No spoken dialogue, no talking; ambient office hum and faint mouse-drag sound only. One single continuous take, no cut. Screen text not clearly legible. No logos."
+        },
+        {
+          "clipIndex": 3,
+          "role": "solucion-1",
+          "template": "B",
+          "durationSelector": "8s",
+          "aspectRatio": "9:16",
+          "model": "Veo 3",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot of a vertical smartphone or tablet screen held steady, filling the frame. The screen shows a clean login form — single username and password field — on a neutral municipal-style interface. After a moment the login succeeds and the screen transitions with a smooth zoom-in reveal to a live dashboard: a full-screen map of an Argentine city district with glowing pulsing hotspots in green and amber indicating citizen complaints. The hotspots breathe with a soft pulse. Camera performs a very slow gentle pan downward revealing more hotspots on the lower part of the map. A small clean brand overlay appears top-right corner — placeholder colored badge, no legible text. Screen content not clearly legible beyond layout. No spoken dialogue, no talking; soft UI transition sound and ambient quiet only. One single continuous take, no cut."
+        },
+        {
+          "clipIndex": 4,
+          "role": "solucion-2",
+          "template": "B",
+          "durationSelector": "8s",
+          "aspectRatio": "9:16",
+          "model": "Veo 3",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot of a vertical smartphone or tablet screen held steady, filling the frame. The screen shows a citizen procedure detail view — a step-by-step flow. Four sequential steps animate one after another with a soft highlight ring appearing on each: first a document upload icon lights up, then a biometric face-check icon with a green checkmark appears (labeled with a small RENAPER-style badge, not legible), then an online payment confirmation chip lights up, then a digital signature icon completes with a final green checkmark. Each step is highlighted for about one second before the next activates — methodical, clear, reassuring. Warm neutral light on the screen. No spoken dialogue, no talking; soft UI tap sounds synced to each step only. One single continuous take, no cut. Screen text not clearly legible."
+        },
+        {
+          "clipIndex": 5,
+          "role": "prueba",
+          "template": "B",
+          "durationSelector": "8s",
+          "aspectRatio": "9:16",
+          "model": "Veo 3",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic, not over-rendered, not CGI-perfect. Medium shot of a vertical tablet screen held steady, filling most of the frame. The screen shows a financial module: a payment order with a visible sequential number travels through three status chips arranged vertically — Pendiente (grey, top), Autorizada (yellow, middle), Pagada (green, bottom) — each chip lighting up in sequence with a soft glow. When Pagada activates, a single animated arrow on the right side of the screen moves downward to a treasury section showing four fund boxes (labeled in indistinct municipal font, not legible) — each box balance number ticks upward slightly, live. The whole sequence feels automated, clean, no manual entry visible. Soft blue-green color palette. No spoken dialogue, no talking; gentle UI confirmation chime at each chip activation, ambient silence otherwise. One single continuous take, no cut. Screen text not clearly legible."
+        },
+        {
+          "clipIndex": 6,
+          "role": "cta",
+          "template": "A",
+          "durationSelector": "8s",
+          "aspectRatio": "9:16",
+          "model": "Veo 3",
+          "phonetic": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine man in his 35s, natural and relatable, not a model, with short dark hair, wearing a neat casual button-up shirt in a neutral color, standing in a clean modern office hallway with white walls. The camera performs a smooth dolly-out that starts at a medium shot from the waist up — not a close-up — and steadily pulls back to a wide full-body shot revealing the clean empty hallway behind him. He speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Con los colores y el logo de tu municipio. ¡Conocé Munifái!\" He delivers \"Con los colores y el logo de tu municipio.\" calmly and confidently, pauses for a beat, then exclaims \"¡Conocé Munifái!\" with euphoric, excited, high-energy delivery — voice rising while the face lights up in perfect sync. After speaking, stays quiet smiling until the end. Natural lip-sync, no on-screen text. No logos visible in scene."
+        }
+      ],
+      "narration": {
+        "mode": "tts",
+        "text": "Reclamos por un lado. Trámites por otro. Plata por otro. Cada gestion en un lado distinto. Y al final, todo se carga dos veces. Munifai junta todo en un solo sistema, con un unico login. Un tramite completo: documentacion, validacion oficial RENAPER, pago online y firma digital. Una Orden de Pago con numero correlativo: pendiente, autorizada, pagada. Al pagarse impacta solo en Tesoreria, sin doble carga. Con los colores y el logo de tu municipio. Conocelo: es Munifai."
+      },
+      "publish": {
+        "hookOnScreen": "Tres sistemas. Cero orden.",
+        "caption": "Reclamos, tramites y finanzas en un solo sistema. Un login. Sin doble carga. Conoce Munifai — link en bio.",
+        "hashtags": [
+          "#Munifai",
+          "#GestionMunicipal",
+          "#ModernizacionEstatal",
+          "#TramitesDigitales",
+          "#FinanzasPublicas"
+        ],
+        "cta": "Link en bio para agendar una demo."
+      },
+      "qa": {
+        "score": 42,
+        "verdict": "LISTO PARA PRODUCIR",
+        "issues": [
+          {
+            "severity": "CRITICAL",
+            "note": "Ninguno que rompa la promo. Gancho presente y fuerte, una idea sostenida, CTA claro con marca, formato dentro de rango. La pieza es producible."
+          },
+          {
+            "severity": "HIGH",
+            "note": "Marca fonetica incorrecta en la NARRACION (eje Marca 3/5). El guion escribe 'Munifai' sin tilde en los planos solucion (6-10.2s) y CTA (20-24s). Si esa narracion va a TTS/Veo, lo lee en ingles ('Myunifai'). El PLAYBOOK (docs/PLAYBOOK_VIDEOS_FLOW.md, regla 1.4 y el esencial) es taxativo: SIEMPRE 'Munifai' con tilde -> Munifai fonetico. FIX: reemplazar las 3 ocurrencias de 'Munifai' por 'Munifai' (con tilde) en el campo narration; el on-screen/caption pueden quedar 'Munify' (marca legal escrita), pero lo que se LEE en voz debe ir fonetico."
+          },
+          {
+            "severity": "HIGH",
+            "note": "Prueba floja (eje Prueba 3/5). No hay NI UN dato/numero/resultado concreto de outcome. El 'numero correlativo' de la OP y el 'saldo en vivo' son features mostradas, no prueba de resultado. FIX: meter UN dato real al plano prueba (14.5-20s) o al lower-third, p.ej. 'De 3 sistemas a 1' o un KPI verificable del municipio piloto (horas/mes ahorradas, % menos doble carga). NO inventar el numero: si no hay dato medido, dejar el 'de 3 sistemas a 1' que ya se deduce del propio guion (es factual, no inflado), y no pretender que la demo equivale a prueba dura."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "Plano de prueba financiera sobrecargado (ejes Una-idea 4/5, Claridad 4/5, Formato 4/5). El bloque 14.5-20s (5.5s) encadena: OP correlativa + 3 estados + flecha a Tesoreria + 4 cajas (FOFINDE/FODEMEP/coparticipacion/tesoro) actualizandose. Es demasiada sub-feature para 5.5s y se entiende mal muteado. FIX: cortar las 4 cajas nominadas; quedarse con OP pendiente->autorizada->pagada + 'un solo asiento en Tesoreria' y el lower-third 'Saldo en vivo, sin doble carga'. Las cajas FOFINDE/FODEMEP son ruido para un reel de consideracion."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "Planos largos en la segunda mitad (eje Formato 4/5). Cuatro planos seguidos por encima del rango 2-4s: 4.2 / 4.3 / 5.5 / 4s. No hay plano vacio, pero el de prueba arriesga sentirse 'muerto' por densidad, no por quietud. FIX: subdividir el tramite (10.2-14.5s) o la prueba en 2 micro-planos de ~2.5s cada uno con un corte/hotspot, para mantener el pulso de la primera mitad."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "Mezcla de audio sin especificar (eje Higiene 4/5). El guion no menciona ducking de musica bajo la narracion. Con 6 planos de voz continua, si la musica no baja, pisa el mensaje. FIX: anotar 'musica con ducking -6 a -9 dB bajo la voz' en la nota de produccion."
+          },
+          {
+            "severity": "LOW",
+            "note": "CTA con dos formulaciones (eje CTA 5/5, no descuenta pero pulir). El visual cierra con 'Conoce mas' y la caption pide 'agendar una demo'. Mismo destino, distinto verbo. FIX: unificar a una sola accion, preferentemente 'Agenda una demo' tambien en el on-screen del cierre para que la accion sea identica en pantalla y caption."
+          },
+          {
+            "severity": "LOW",
+            "note": "Hook on-screen vs narracion: el on-screen dice 'Tres sistemas. Cero orden.' y el plano dice solo 'Tres sistemas.'. Esta bien (el on-screen del post puede ser mas punchy), pero conviene que el texto del plano 1 tambien sea 'Tres sistemas. Cero orden.' para reforzar el remate del gancho en pantalla desde el segundo 0."
+          }
+        ]
+      }
+    },
+    {
+      "id": "conv-1",
+      "objective": "conversion",
+      "angle": "FOMO / oferta",
+      "format": "reel 9:16 talking head + b-roll Veo",
+      "platforms": [
+        "Instagram Reels",
+        "Facebook"
+      ],
+      "durationSec": 18,
+      "script": {
+        "blocks": [
+          {
+            "role": "hook",
+            "tStart": 0,
+            "tEnd": 3,
+            "narration": "Probar Munify tres meses, sin pagar nada y sin tarjeta.",
+            "visual": "Talking head (Veo): presentador/a a camara, mirada directa, sin logo todavia. Plano medio 9:16, oficina municipal de fondo desenfocada. Tono sereno, de autoridad. Overlay sutil: '3 meses' aparece al cierre de la linea."
+          },
+          {
+            "role": "dolor",
+            "tStart": 3,
+            "tEnd": 6,
+            "narration": "Sabemos que firmar algo nuevo, sin verlo funcionar, da vertigo.",
+            "visual": "B-roll (Veo): manos de un funcionario sobre un escritorio dudando frente a un expediente en papel; corte a una pantalla de sistema viejo. Luz natural, ritmo pausado. Lower-third: 'sin compromiso'."
+          },
+          {
+            "role": "solucion",
+            "tStart": 6,
+            "tEnd": 11,
+            "narration": "Por eso lo implementamos en una o dos semanas, con capacitacion por videollamada incluida.",
+            "visual": "Mockups animados de la app: reclamos, tramites y gestion financiera en un solo login. Split rapido vecino/municipio. B-roll de videollamada de capacitacion. Overlay: 'reclamos · tramites · gestion financiera'."
+          },
+          {
+            "role": "prueba",
+            "tStart": 11,
+            "tEnd": 15,
+            "narration": "El municipio prueba con datos reales y decide recien cuando ve los resultados.",
+            "visual": "Pantalla con datos del municipio cargandose (validacion biometrica RENAPER, trazabilidad de cada gestion). Plano de un vecino resolviendo un tramite desde el celular en la plaza. Overlay: 'gratis para el vecino · en pesos'."
+          },
+          {
+            "role": "cta",
+            "tStart": 15,
+            "tEnd": 18,
+            "narration": "Agenda la demo con un asesor. El precio lo confirma segun tu municipio.",
+            "visual": "Vuelve el talking head, cierre directo a camara. Logo Munify fuerte + boton CTA unico 'Hablar con un asesor'. Overlay final: 'sin permanencia'. Sin precios en pantalla."
+          }
+        ],
+        "music": {
+          "mood": "cinematografica de autoridad, calida y de confianza: piano y cuerdas suaves en construccion, sin percusion agresiva; sube apenas en la prueba y resuelve limpio en el CTA. Ducking -18dB bajo la voz. Nada de urgencia comercial chillona: la urgencia es honesta (probar ahora sin riesgo), no FOMO de descuento."
+        }
+      },
+      "slides": [],
+      "videoPrompts": [
+        {
+          "id": "clip1",
+          "role": "hook",
+          "tStart": 0,
+          "tEnd": 3,
+          "template": "A",
+          "type": "talking_head",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "phoneticBrand": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. An ordinary real-looking Argentine woman in her 40s, natural and relatable, not a model, with straight dark hair pulled back, wearing a simple blazer, standing inside a municipal office — warm natural light from a side window, blurred background of desks and folders. The camera performs a smooth dolly-out that starts at a medium shot from the waist up — not a close-up — and steadily pulls back to a wide full-body shot revealing the tidy but modest office behind her. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Probá Munifái tres meses. Sin pagar nada. ¡Sin tarjeta!\" She delivers the first part calmly and with quiet authority, pauses for a beat, then exclaims \"¡Sin tarjeta!\" with euphoric, excited, high-energy delivery — voice rising while the face lights up in perfect sync. After speaking, stays quiet smiling until the end. Natural lip-sync, no on-screen text, no logos.",
+          "notes": "Misma persona que clip 5. Generar este primero y usar un frame como referencia image-to-video para el clip 5."
+        },
+        {
+          "id": "clip2a",
+          "role": "dolor",
+          "tStart": 3,
+          "tEnd": 6,
+          "template": "C",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "phoneticBrand": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. A municipal official's hands resting on a wooden desk, hesitating over a thick paper dossier — fingers tapping slowly, not turning the page; the stack of folders beside him slightly out of focus. Natural warm office light. No spoken dialogue, no talking, ambient office sound only — faint paper rustle, distant keyboard. Very short 3–4 second clip, one brief moment, minimal camera motion. No logos, no on-screen text.",
+          "notes": "Variante A: manos con expediente. Usar solo 3-4s del clip de 8s."
+        },
+        {
+          "id": "clip2b",
+          "role": "dolor",
+          "tStart": 3,
+          "tEnd": 6,
+          "template": "C",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "phoneticBrand": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. Close-enough view of an old desktop monitor showing an outdated green-on-black legacy system interface — screen not clearly legible — a government worker's hand moves the mouse slowly, looking unsure. Fluorescent office lighting, slightly overexposed. No spoken dialogue, ambient office hum only. 3–4 second clip, one brief moment, no logos.",
+          "notes": "Variante B: pantalla de sistema viejo. Elegir una de las dos variantes del clip2."
+        },
+        {
+          "id": "clip3",
+          "role": "solucion",
+          "tStart": 6,
+          "tEnd": 11,
+          "template": "B",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "phoneticBrand": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking Argentine woman in her 30s, not a model, sitting at a tidy desk with a laptop open, attending a video call — on the laptop screen a blurred trainer is visible but the screen content is not clearly legible. She nods and takes notes in a notebook, expression focused and relaxed. Warm natural light from a window on her left. No spoken dialogue, ambient soft office sound only. One single continuous take, same background, no cut. 4–5 second clip, gentle slow pan toward her. No logos, no on-screen text.",
+          "notes": "Mockups animados de la app (reclamos, tramites, gestion financiera) se insertan en edicion como overlay. NO pedir a Veo que muestre la UI real."
+        },
+        {
+          "id": "clip4",
+          "role": "prueba",
+          "tStart": 11,
+          "tEnd": 15,
+          "template": "C",
+          "type": "broll",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "phoneticBrand": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean, sharp and well-lit, smooth steady camera, high production quality, realistic. Medium shot at a steady medium distance. An ordinary real-looking Argentine man in his 50s, not a model, sitting on a bench in a sunny Argentine town square, looking at his smartphone with a relaxed, satisfied expression — a municipal building visible but blurred in the background. He taps the phone screen once and nods with mild relief, not exaggerated. Natural outdoor midday light, soft ambient sounds of birds and distant street. No spoken dialogue, ambient sound only. One single continuous take, no cut. 3–4 second clip, minimal camera motion. No logos, no on-screen text.",
+          "notes": "Vecino en la plaza. Usar solo 3-4s del clip de 8s."
+        },
+        {
+          "id": "clip5",
+          "role": "cta",
+          "tStart": 15,
+          "tEnd": 18,
+          "template": "A",
+          "type": "talking_head",
+          "settings": {
+            "model": "Veo 3",
+            "aspectRatio": "9:16",
+            "duration": "8s"
+          },
+          "phoneticBrand": "Munifái",
+          "prompt": "Professional cinematic vertical 9:16 video, clean and well-lit, smooth steady camera, high production quality, realistic, not over-rendered and not CGI-perfect. One single continuous take, same background the whole time, no cut. The same ordinary real-looking Argentine woman in her 40s from the opening clip — straight dark hair pulled back, simple blazer — same municipal office background, same side-window light, now framed in a medium shot from the waist up, not a close-up, camera held steady without pulling back. She speaks in Argentine Rioplatense Spanish, only once and without repeating any words: \"Agendá la demo con un asesor. El precio lo confirmamos según tu municipio. ¡Sin permanencia!\" She delivers the first part calmly and directly into the lens, pauses for a beat, then exclaims \"¡Sin permanencia!\" with confident, warm, high-energy delivery — voice rising while the face lights up in perfect sync. After speaking, holds a steady, direct-to-camera smile until the end. Natural lip-sync, no on-screen text. Use the attached Munify logo as a small clean overlay in the top-right corner.",
+          "notes": "Misma presentadora que clip 1. Adjuntar frame del clip 1 como referencia image-to-video para consistencia de cara. Logo Munify adjuntar como imagen."
+        }
+      ],
+      "narration": {
+        "mode": "tts",
+        "text": "Probar Munify tres meses, sin pagar nada y sin tarjeta. Sabemos que firmar algo nuevo, sin verlo funcionar, da vertigo. Por eso lo implementamos en una o dos semanas, con capacitacion por videollamada incluida. El municipio prueba con datos reales y decide recien cuando ve los resultados. Agenda la demo con un asesor. El precio lo confirma segun tu municipio."
+      },
+      "publish": {
+        "hookOnScreen": "3 meses gratis, sin tarjeta",
+        "caption": "Probar Munify no requiere firma ni presupuesto inicial. Lo implementamos en tu municipio en una o dos semanas, con capacitacion incluida, y decides cuando ves los resultados. Agenda la demo con un asesor hoy.",
+        "hashtags": [
+          "#gestionmunicipal",
+          "#transformaciondigital",
+          "#municipios",
+          "#softwaremunicipal",
+          "#Munify"
+        ],
+        "cta": "Hablá con un asesor — link en bio / DM directo"
+      },
+      "qa": {
+        "score": 40,
+        "verdict": "LISTO PARA PRODUCIR",
+        "issues": [
+          {
+            "severity": "CRITICAL",
+            "note": "PRUEBA (eje 6, 2/5): el plano prueba (11-15s) NO tiene prueba real, solo la promesa 'decide recien cuando ve los resultados' presentada como si lo fuera. No hay dato/numero/resultado/testimonial. FIX (sin inventar numeros): si existe el dato, meter uno duro como overlay en 11-15s, ej. 'X municipios ya lo usan' o '-NN% en tiempo de tramite' con narracion 'Hoy lo usan X municipios y resolvieron N reclamos.'. Si NO hay dato disponible, cambiar el eje: convertir el plano en prueba de bajo riesgo concreta (overlay 'datos reales de TU municipio · vos decidis') y asumir explicitamente que la prueba es el trial, no metricas. Hoy queda en tierra de nadie."
+          },
+          {
+            "severity": "HIGH",
+            "note": "MARCA / TTS-Veo (eje 9, 3/5): la narracion del hook (0-3s) y del CTA (15-18s) dice 'Munify' en texto plano. El propio PLAYBOOK del proyecto manda fonetica para marca leida en ingles o Veo/TTS la pronuncia mal. FIX: en el campo narration escribir 'Munifai' (o 'Munifái') SOLO en la narracion; dejar 'Munify' en overlays/logo/caption. Hook -> 'Probar Munifai tres meses...'; CTA -> 'Agenda la demo...' (ahi no nombra marca, ok)."
+          },
+          {
+            "severity": "HIGH",
+            "note": "PROMPT VEO incompleto en 4 planos (gotchas del PLAYBOOK no aplicados). FIX: (1) recordar pedir 9:16 al SELECTOR de Flow, no solo en el texto. (2) Talking head (planos hook y cta): agregar al prompt Rioplatense + voseo, 'only once, no repeat', punto antes del remate, y realismo 'real person, not a model, not over-rendered, not CGI-perfect, medium distance'. (3) B-roll (planos dolor, solucion, prueba): agregar 'No spoken dialogue, no talking', 'single continuous take' y 'screen not clearly legible' para los mockups/datos, si no Veo mete dialogo en ingles encima del b-roll."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "GANCHO (eje 1): el hookOnScreen '3 meses gratis, sin tarjeta' NO esta sincronizado en el frame 0. El visual del plano hook solo muestra 'el overlay 3 meses al cierre de la linea'. Para frenar scroll el texto fuerte tiene que estar arriba ya en el primer segundo. FIX: poner el overlay completo '3 MESES GRATIS · sin tarjeta' desde 0:00, no al cierre."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "PLANO SOLUCION sobrecargado (11s? no, 6-11s = 5s, el mas largo) y CLARIDAD del plano prueba. El de solucion apila split vecino/municipio + 3 mockups + b-roll videollamada + overlay de 3 features en 5s. El de prueba mete jerga 'validacion biometrica RENAPER, trazabilidad' que no aporta a 'sin riesgo' y rompe la 1-idea-por-plano. FIX: en solucion bajar a 2 mockups y dejar el overlay 'reclamos · tramites · gestion' sin la videollamada compitiendo; en prueba sacar 'RENAPER/biometrica/trazabilidad' del overlay (es ruido para el mensaje de oferta) y dejar solo 'datos reales · vos decidis'."
+          },
+          {
+            "severity": "MEDIUM",
+            "note": "HIGIENE (eje 10): musica con ducking no esta especificada en ningun plano; el plano prueba tiene dos overlays compitiendo ('gratis para el vecino · en pesos' encima de la jerga RENAPER). FIX: declarar 'musica con ducking bajo la narracion' en el kit y dejar 1 overlay por plano."
+          },
+          {
+            "severity": "LOW",
+            "note": "CAPTION/CTA wording: el caption usa 'decides' (tuteo) mientras el registro target es voseo rioplatense ('Hablá con un asesor' ya esta en voseo). Unificar a voseo: 'decidis cuando ves los resultados. Agenda -> Agenda la demo'. Coherencia de registro."
+          }
+        ]
+      }
+    }
+  ]
+}

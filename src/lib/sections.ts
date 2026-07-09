@@ -1,13 +1,14 @@
 // Secciones del proyecto, en ORDEN DE USO (insumos → armado): Audio · Prompts ·
 // Videos · Editor. El Editor es el integrador (default al abrir). Antes esto vivía en
 // Sidebar; ahora la navegación es una topbar y la lógica vive acá (neutral).
-import { Mic, Wand2, Video, Clapperboard } from 'lucide-react';
+import { Mic, Wand2, Video, Clapperboard, Building2 } from 'lucide-react';
 import type { Project } from './projects';
 import type { ContentType } from '../NewProjectWizard';
 
-export type Section = 'audio' | 'prompts' | 'videos' | 'editor';
+export type Section = 'negocio' | 'audio' | 'prompts' | 'videos' | 'editor';
 
 export const ALL_SECTIONS: { id: Section; label: string; Icon: typeof Mic }[] = [
+  { id: 'negocio', label: 'Negocio', Icon: Building2 },
   { id: 'audio',   label: 'Audio',   Icon: Mic },
   { id: 'prompts', label: 'Prompts', Icon: Wand2 },
   { id: 'videos',  label: 'Videos',  Icon: Video },
@@ -15,10 +16,10 @@ export const ALL_SECTIONS: { id: Section; label: string; Icon: typeof Mic }[] = 
 ];
 
 const LAYOUT: Record<ContentType, Section[]> = {
-  reels:     ['audio', 'prompts', 'videos', 'editor'],
-  video:     ['audio', 'videos', 'prompts', 'editor'],
-  audio:     ['audio'],
-  combinado: ['audio', 'prompts', 'videos', 'editor'],
+  reels:     ['negocio', 'audio', 'prompts', 'videos', 'editor'],
+  video:     ['negocio', 'audio', 'videos', 'prompts', 'editor'],
+  audio:     ['negocio', 'audio'],
+  combinado: ['negocio', 'audio', 'prompts', 'videos', 'editor'],
 };
 
 export function sectionsFor(p: Project | null) {

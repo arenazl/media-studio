@@ -1,14 +1,30 @@
 // Consumidor del Knowledge Share Protocol (KSP). Media Studio es el 2º consumidor:
 // lee el KB de una app (GET /api/knowledge-base, vía nuestro backend por el X-KB-Key) y
 // lo convierte en lo que ya consume el pipeline: un brief + la marca + las pantallas.
-// Contrato completo: D:\Code\base-compartida\KNOWLEDGE_SHARE_PROTOCOL.md (v1.1).
+// Contrato completo: D:\Code\base-compartida\3-PROTOCOLO-COMPLETO.md (v1.1).
 import type { BrandKit } from './brandKit';
 
-export interface KBScreen { label: string; url: string; route?: string }
+// Pantalla como METADATA (contrato 1.2): la app la DESCRIBE (no manda HTML ni URL). Media Studio
+// la recrea como motion graphics. La `route` es informativa; `url` puede venir (legacy 1.1) pero no se usa.
+export interface KBScreen {
+  label: string;
+  kind?: string;            // list | dashboard | form | wizard | timeline | detail | map | feed
+  headline?: string;
+  framework?: string;       // stack de UI (ej. "Tailwind CSS") — pista de cómo dibujarla
+  nav?: string[];           // labels REALES de la pantalla (header/tabs/botones)
+  components?: string[];    // qué controles/componentes tiene
+  layout?: string;          // cómo está distribuida
+  style?: string;           // notas de estilo (además de brand)
+  data?: unknown;           // datos demo (forma libre según kind)
+  flow?: string;            // qué hace el usuario ahí
+  route?: string;
+  url?: string;             // legacy 1.1 (ya no se usa)
+}
 export interface KBBrand {
-  logo?: { primary?: string; light?: string; dark?: string; isotype?: string };
+  logo?: { primary?: string; light?: string; dark?: string; isotype?: string; svg?: string };
   colors?: { primary?: string; accent?: string; secondary?: string; ink?: string; surface?: string };
   fonts?: { display?: string; text?: string };
+  style?: { radius?: string; density?: string; vibe?: string };
   icons?: string | string[];
   phonetic?: string;
   tone?: string;
@@ -18,7 +34,8 @@ export interface KBOffering { id?: string; name: string; description: string; ke
 export interface KnowledgeBase {
   contract_version: string;
   last_updated?: string;
-  business: { name: string; tagline?: string; description: string; industry?: string; target_audience?: string; website?: string };
+  business: { name: string; tagline?: string; description: string; value_story?: string; industry?: string; target_audience?: string; website?: string };
+  key_messages?: string[];          // 1.2: mensajes centrales que van en CADA reel (enfoque global)
   offerings: KBOffering[];
   pricing?: { model?: string; summary?: string; promotions?: string[] };
   differentiators?: string[];
@@ -27,6 +44,7 @@ export interface KnowledgeBase {
   do_not_say?: string[];
   screens?: KBScreen[];
   brand?: KBBrand;
+  // capabilities/entities/tools (1.2) son de SalesBot — Media Studio los ignora.
 }
 
 // El KB → el brief markdown (los "hechos") que consume social-marketing-strategist / promo-kit.
@@ -39,8 +57,14 @@ export function kbToBrief(kb: KnowledgeBase): string {
   L.push('');
   L.push('## El negocio');
   L.push(b.description);
+  if (b.value_story) { L.push(''); L.push('### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)'); L.push(b.value_story); }
   if (b.industry) L.push(`- Rubro: ${b.industry}`);
   if (b.target_audience) L.push(`- Público: ${b.target_audience}`);
+  if (kb.key_messages?.length) {
+    L.push('');
+    L.push('## Mensajes clave (van en CADA reel)');
+    for (const m of kb.key_messages) L.push(`- ${m}`);
+  }
   L.push('');
   L.push('## Qué ofrece');
   for (const o of kb.offerings || []) {

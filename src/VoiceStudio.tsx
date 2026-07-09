@@ -8,9 +8,9 @@
 // por config (postMessage `mediastudio:config` o window.MEDIASTUDIO_CONFIG), con
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check, Upload, Trash2, AudioLines, Scissors } from 'lucide-react';
+import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check, Upload, Trash2, AudioLines, Scissors, Sparkles, X } from 'lucide-react';
 import { BRAND } from './lib/brand';
-import { TTS_SERVICE_URL } from './config';
+import { TTS_SERVICE_URL, API_BASE } from './config';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
 import ScriptText from './ScriptText';
 import { MUSIC_TRACKS, type MusicTrack } from './lib/music';
@@ -95,6 +95,12 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   const [speed, setSpeed] = useState(1.0);
   const [boost, setBoost] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [vida, setVida] = useState(false); // "Agregar vida": marcando el guion con cadencia
+  const [vidaOpts, setVidaOpts] = useState<string[] | null>(null); // las 2-3 variantes para elegir
+  // presets de voz GUARDADOS por el usuario (config buena con nombre) — persisten en localStorage.
+  const [myPresets, setMyPresets] = useState<{ label: string; voice_id?: string; stability: number; similarity: number; style: number; speed: number }[]>(
+    () => { try { return JSON.parse(localStorage.getItem('ms.voicepresets.v1') || '[]'); } catch { return []; } },
+  );
   const [err, setErr] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -136,6 +142,20 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   const tg = (id: string) => setOpen((o) => ({ ...o, [id]: o[id] === false }));
   // el texto es solo referencia; editarlo invalida el audio y recorta markers fuera de rango.
   const applyText = (t: string) => { setText(t); setPeaks(null); setCursor(0); setPending(null); setMarkers((ms) => ms.filter((m) => m.end <= t.length)); };
+  // "Agregar vida": el backend (Claude headless) marca el guion con cadencia (… pausas, MAYÚSCULAS, [tono]) y lo aplica.
+  const agregarVida = async () => {
+    if (!text.trim() || vida) return;
+    setVida(true); setErr(null);
+    try {
+      const r = await fetch(`${API_BASE}/api/tts/cadence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'no se pudo');
+      const opts = (d.variants || []).filter((v: string) => v && v.trim());
+      if (opts.length === 1) applyText(opts[0]);
+      else if (opts.length) setVidaOpts(opts);
+    } catch (e) { setErr(e instanceof Error ? e.message : 'error'); } finally { setVida(false); }
+  };
+  const pickVida = (t: string) => { applyText(t); setVidaOpts(null); };
   // markers = capa propia; mutación con historial para Undo.
   const mutate = (next: PlacedMarker[]) => { setMHist((h) => [...h.slice(-49), markers]); setMarkers(next); };
   const undo = () => { setMHist((h) => { if (!h.length) return h; setMarkers(h[h.length - 1]); return h.slice(0, -1); }); };
@@ -186,6 +206,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     // avisar al host (ej. Munify) para que sincronice su canvas/preview.
     try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'mediastudio:file', id: f.id }, '*'); } catch { /* noop */ }
   };
+
   // Auto-guarda el settings del reel (voz + cadencia + pausas + markers + texto) al
   // generar — sin botón. Lo usa la solapa Reel para saber qué reel ya tiene audio.
   const autosave = () => { if (activeFile && onGrabar) onGrabar(activeFile, { voice_id: voiceId, stability, similarity, style, speed, model, markers, text }); };
@@ -243,6 +264,15 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   const applyPreset = (p: { stability: number; similarity: number; style: number; speed: number }) => {
     setStability(p.stability); setSimilarity(p.similarity); setStyle(p.style); setSpeed(p.speed);
   };
+  // guardar la config actual (voz + sliders) como preset con nombre — para reusar cuando lográs una buena.
+  const persistPresets = (next: typeof myPresets) => { setMyPresets(next); try { localStorage.setItem('ms.voicepresets.v1', JSON.stringify(next)); } catch { /* noop */ } };
+  const savePreset = () => {
+    const label = (window.prompt('Nombre del preset de voz (ej. "Narrador Munify"):') || '').trim();
+    if (!label) return;
+    persistPresets([...myPresets.filter((x) => x.label !== label), { label, voice_id: voiceId, stability, similarity, style, speed }]);
+  };
+  const applyMyPreset = (p: typeof myPresets[number]) => { if (p.voice_id) setVoiceId(p.voice_id); setStability(p.stability); setSimilarity(p.similarity); setStyle(p.style); setSpeed(p.speed); };
+  const deleteMyPreset = (label: string) => persistPresets(myPresets.filter((x) => x.label !== label));
   const rewind = () => { const a = audioRef.current; if (!a) return; a.currentTime = 0; setCursor(0); a.play().then(() => setPlaying(true)).catch(() => {}); };
   const stopMusic = () => { const m = musicRef.current; if (m) m.pause(); setMusicOn(false); setTrack(null); };
   const stopAll = () => {
@@ -462,7 +492,10 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
 
   // ---- fuentes (control genérico) ----
   const fileItems = cfg.files.map((f) => ({ id: f.id, label: f.label, sub: f.sub, data: f }));
-  const voiceItems = voices.map((v) => ({
+  // SOLO voces en español (latinoamericano / argentino). El resto (inglés, portugués) se ocultan:
+  // los reels son en rioplatense. Si querés más, ampliás la API key de ElevenLabs.
+  const esEspanol = (a?: string) => /latin|argentin|spanish|español|castell|mexic|colomb|chilen|peruan|uruguay/i.test(a || '');
+  const voiceItems = voices.filter((v) => esEspanol(v.accent)).map((v) => ({
     id: v.voice_id, label: v.name,
     meta: { gender: v.gender || '', age: v.age || '', lang: langGroup(v.accent) },
     searchText: `${v.accent || ''} ${v.use_case || ''} ${v.description || ''}`,
@@ -503,8 +536,15 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
             <div className="vs-sound-scroll">
               <div className="vs-presets">
                 {VOICE_PRESETS.map((p) => (
-                  <button key={p.label} onClick={() => applyPreset(p)} className="vs-preset" title={`estab ${p.stability} · estilo ${p.style} · cadencia ${p.speed}×`}>{p.label}</button>
+                  <button key={p.label} onClick={() => applyPreset(p)} className="vs-preset" title={`estab ${p.stability} · estilo ${p.style} · velocidad ${p.speed}×`}>{p.label}</button>
                 ))}
+                {myPresets.map((p) => (
+                  <span key={p.label} className="vs-preset vs-preset--mine" title="Tu preset guardado (voz + settings)">
+                    <button className="vs-preset-apply" onClick={() => applyMyPreset(p)}>{p.label}</button>
+                    <button className="vs-preset-del" title="Borrar preset" onClick={() => deleteMyPreset(p.label)}>×</button>
+                  </span>
+                ))}
+                <button className="vs-preset vs-preset--save" onClick={savePreset} title="Guardar la config actual (voz + sliders) como preset">+ Guardar</button>
               </div>
               <div className="vs-models">
                 {[{ id: 'eleven_v3', label: 'v3' }, { id: 'eleven_multilingual_v2', label: 'v2' }, { id: 'eleven_flash_v2_5', label: 'flash' }].map((m) => (
@@ -513,8 +553,8 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
               </div>
               <Slider label="Estabilidad" val={stability} set={setStability} min={0} max={1} step={0.05} hint="bajo = más expresivo" fmt={(v) => v.toFixed(2)} />
               <Slider label="Similitud" val={similarity} set={setSimilarity} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
+              <Slider label="Velocidad" val={speed} set={setSpeed} min={0.7} max={1.2} step={0.05} hint="0.7 lento — 1.2 rápido" fmt={(v) => `${v.toFixed(2)}×`} />
               <Slider label="Estilo" val={style} set={setStyle} min={0} max={1} step={0.05} fmt={(v) => v.toFixed(2)} />
-              <Slider label="Cadencia" val={speed} set={setSpeed} min={0.7} max={1.2} step={0.05} hint="0.7 lento — 1.2 rápido" fmt={(v) => `${v.toFixed(2)}×`} />
               <Slider label="Volumen voz" val={voiceVol} set={(v) => { setVoiceVol(v); const a = audioRef.current; if (a) a.volume = v; }} min={0} max={1} step={0.05} hint="volumen de reproducción local" fmt={(v) => `${Math.round(v * 100)}%`} />
               <label className="vs-check">
                 <input type="checkbox" checked={boost} onChange={(e) => setBoost(e.target.checked)} className="vs-check-box" /> Speaker boost
@@ -552,7 +592,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
           items={fileItems} activeId={activeFile ?? undefined} onPick={(it) => loadFile(it.data as SourceFile)}
           open={isOpen('src')} onToggle={() => tg('src')} emptyText="sin guiones" />
 
-        <SourcePanel title={`Voces (${voices.length})`} accent={BRAND.azure} icon={<Mic size={13} />} grow={282} view="chips"
+        <SourcePanel title={`Voces (${voiceItems.length})`} accent={BRAND.azure} icon={<Mic size={13} />} grow={282} view="chips"
           items={voiceItems} search activeId={voiceId}
           filters={[{ key: 'gender', label: 'Todas', options: GENDER_OPTS }, { key: 'age', label: 'Toda edad', options: AGE_OPTS }, { key: 'lang', label: 'Todo idioma' }]}
           onPick={(it) => previewVoice(it.data as Voice)} footer={voiceFooter}
@@ -572,6 +612,10 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
         <div className="vs-card vs-texto" style={{ ['--texto-w']: textoW + 'px' } as React.CSSProperties}>
           <div className="vs-texto-tabs">
             <button className="vs-texto-tab vs-texto-tab--on">GUIÓN</button>
+            <button className="vs-vida" onClick={agregarVida} disabled={vida || !text.trim()}
+              title="Marca el guion con pausas, énfasis y tono — para que la voz no suene de corrido">
+              {vida ? <Loader2 size={12} className="vs-spin" /> : <Sparkles size={12} />} {vida ? 'Dando vida…' : 'Agregar vida'}
+            </button>
           </div>
           {(peaks && !editingText) ? (
             <>
@@ -583,6 +627,19 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
               <textarea ref={taRef} value={text} onChange={(e) => applyText(e.target.value)} spellCheck={false} className="vs-textarea" />
               <div className="vs-texto-hint">Solo el guión + puntuación (, ? !). La entonación, énfasis y pausas se marcan en la onda →{peaks ? ' · al generar/play se pinta solo.' : ''}</div>
             </>
+          )}
+          {vidaOpts && (
+            <div className="vs-vida-pop">
+              <div className="vs-vida-pop-h"><Sparkles size={12} /> Elegí la versión
+                <button className="vs-vida-x" onClick={() => setVidaOpts(null)} title="Cerrar"><X size={13} /></button>
+              </div>
+              {vidaOpts.map((v, i) => (
+                <button key={i} className="vs-vida-opt" onClick={() => pickVida(v)} title="Usar esta versión">
+                  <span className="vs-vida-opt-n">{['Locución sobria', 'Vendedora enérgica', 'Cercana e intrigante'][i] || `Variante ${i + 1}`}</span>
+                  <pre>{v}</pre>
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

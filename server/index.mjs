@@ -36,12 +36,29 @@ import {
   getAppConfig, listAppConfigs, saveAppConfig, deleteAppConfig,
   DB_PATH,
 } from './db.mjs';
+import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS } from './functions.mjs';
+import { assemble } from './assemble.mjs';
+import { renderMockupReel } from './mockupReel.mjs';
+
+// .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
+// No pisa lo ya seteado en el entorno; ignora líneas vacías/comentadas.
+try {
+  const envPath = path.resolve('.env');
+  if (fs.existsSync(envPath)) {
+    for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
+      const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*?)\s*$/);
+      if (m && !line.trim().startsWith('#') && process.env[m[1]] === undefined) {
+        process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+      }
+    }
+  }
+} catch { /* noop */ }
 
 const PORT      = Number(process.env.STUDIO_PORT || 5301);
 const VIDEOS_DIR = process.env.VIDEOS_DIR || 'D:/Code/sugerenciasMun/reels/videos';
 const REPO_CWD  = process.env.STUDIO_CWD  || 'D:/Code';
 const IS_WIN    = process.platform === 'win32';
-const IS_PROD   = process.env.IS_PROD === 'true' || process.env.NODE_ENV === 'production';
+const IS_PROD   = process.env.IS_PROD === 'true';   // LOCAL (Claude headless) por default; prod (Gemini) SOLO con IS_PROD=true
 
 // Cloudinary (solo en prod o si están las vars seteadas)
 const CLD_CLOUD  = process.env.CLOUDINARY_CLOUD_NAME || '';
@@ -51,6 +68,10 @@ const CLD_FOLDER = process.env.CLOUDINARY_FOLDER     || 'media-studio';
 
 // Gemini (prod)
 const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
+
+// ElevenLabs (TTS local — antes vivía en el Cloud Run tts-service; lo incorporamos para no salir afuera)
+const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY || '';
+const ELEVEN_API = 'https://api.elevenlabs.io/v1';
 
 const VIDEO_EXT = new Set(['.mp4', '.mov', '.webm', '.m4v']);
 const MIME      = { '.mp4': 'video/mp4', '.mov': 'video/quicktime', '.webm': 'video/webm', '.m4v': 'video/mp4' };
@@ -65,22 +86,45 @@ const readBody = (req) => new Promise((resolve) => { let b = ''; req.on('data', 
 // El registro (apps.json) tiene la base_url + key de cada Integración. La key vive
 // SOLO acá (backend); el front nunca la ve. Media Studio = consumidor: lee el registro
 // y hace el GET a cada Integración con su X-KB-Key.
-const KB_REGISTRY = process.env.KB_REGISTRY || 'D:/Code/base-compartida/apps.json';
-function loadKbRegistry() {
+// Registro del ecosistema (modelo nuevo): { generadores, aplicaciones }. Soy Media Studio,
+// un GENERADOR: mi clave fija vive en generadores.mediastudio; las apps van en aplicaciones
+// (id, nombre, servidor) SIN key — todas validan contra las dos claves de generadores.
+const KB_REGISTRY = process.env.KB_REGISTRY || 'D:/Code/base-compartida/2-APPS-ENTRADAS.json';
+const KB_GENERATOR = 'mediastudio';
+function loadRegistry() {
   try {
-    // prod: el registro (con las keys) se inyecta por env desde Secret Manager.
-    if (process.env.KB_REGISTRY_JSON) return JSON.parse(process.env.KB_REGISTRY_JSON).apps || [];
-    return JSON.parse(fs.readFileSync(KB_REGISTRY, 'utf8')).apps || [];
-  } catch { return []; }
+    if (process.env.KB_REGISTRY_JSON) return JSON.parse(process.env.KB_REGISTRY_JSON);
+    return JSON.parse(fs.readFileSync(KB_REGISTRY, 'utf8'));
+  } catch { return { generadores: {}, aplicaciones: [] }; }
 }
+const loadKbApps = () => loadRegistry().aplicaciones || [];
+// mi clave de generador: env (prod, desde Secret Manager) o el registro (local). El front nunca la ve.
+const myKbKey = () => process.env.KB_CLAVE_MEDIASTUDIO || loadRegistry().generadores?.[KB_GENERATOR]?.clave || '';
+
 async function fetchKbFor(app) {
-  const base = (app.base_url || '').replace(/\/+$/, '');
-  if (!base) throw new Error(`${app.name || app.id}: sin base_url en el registro`);
-  const r = await fetch(`${base}/api/knowledge-base`, { headers: { 'X-KB-Key': app.key || '' } });
-  if (!r.ok) throw new Error(`${app.name || app.id}: HTTP ${r.status}${r.status === 401 ? ' (key inválida)' : ''}`);
+  const base = (app.servidor || '').replace(/\/+$/, '');
+  if (!base) throw new Error(`${app.nombre || app.id}: sin servidor en el registro`);
+  const r = await fetch(`${base}/api/knowledge-base`, { headers: { 'X-KB-Key': myKbKey() } });
+  if (!r.ok) throw new Error(`${app.nombre || app.id}: HTTP ${r.status}${r.status === 401 || r.status === 403 ? ' (clave inválida)' : ''}`);
   const ct = r.headers.get('content-type') || '';
-  if (!ct.includes('json')) throw new Error(`${app.name || app.id}: la URL no devolvió JSON (¿la base_url apunta al front en vez del backend?)`);
+  if (!ct.includes('json')) throw new Error(`${app.nombre || app.id}: la URL no devolvió JSON (¿el servidor apunta al front en vez del backend?)`);
   return await r.json();
+}
+
+// inspecciona una URL de asset (logo SVG o pantalla HTML): ¿está subida de verdad o cae al
+// index de look-guides (fallback)? Devuelve { ok, reason }. El front pinta el semáforo.
+async function inspectUrl(url, expect) {
+  try {
+    const r = await fetch(url, { redirect: 'follow' });
+    if (!r.ok) return { ok: false, reason: `HTTP ${r.status}` };
+    const bodyText = await r.text();
+    if (bodyText.includes('Centro de Documentaci')) return { ok: false, reason: 'no subido (cae al index de look-guides)' };
+    if (expect === 'svg') {
+      const t = bodyText.trimStart();
+      if (!t.startsWith('<svg') && !t.startsWith('<?xml')) return { ok: false, reason: 'la URL no devuelve un SVG' };
+    }
+    return { ok: true, bytes: bodyText.length };
+  } catch (e) { return { ok: false, reason: e instanceof Error ? e.message : 'error' }; }
 }
 
 // extrae el primer objeto JSON de una respuesta de IA (que a veces trae texto alrededor).
@@ -212,6 +256,23 @@ async function fetchToBuffer(src) {
   const r = await fetch(src);
   if (!r.ok) throw new Error(`no se pudo bajar (${r.status})`);
   return Buffer.from(await r.arrayBuffer());
+}
+
+// resuelve los `file` de un plan de ensamblado: URL/dataURL → baja a un temp; path local → lo deja.
+let _refSeq = 0;
+async function resolveFileRefs(node, dir) {
+  if (Array.isArray(node)) { for (const x of node) await resolveFileRefs(x, dir); return; }
+  if (node && typeof node === 'object') {
+    if (typeof node.file === 'string' && /^(https?:|data:)/i.test(node.file)) {
+      const ext = node.file.startsWith('data:')
+        ? (node.file.slice(5).split(';')[0].split('/')[1] || 'bin')
+        : (node.file.split('?')[0].split('.').pop() || 'bin').slice(0, 4);
+      const f = path.join(dir, `in-${_refSeq++}.${ext}`);
+      fs.writeFileSync(f, await fetchToBuffer(node.file));
+      node.file = f;
+    }
+    for (const k of Object.keys(node)) if (k !== 'file') await resolveFileRefs(node[k], dir);
+  }
 }
 function runFfmpeg(args) {
   return new Promise((resolve, reject) => {
@@ -364,6 +425,43 @@ async function uploadToCloudinary(buffer, filename, folder = CLD_FOLDER) {
   return await r.json();
 }
 
+// ── Storage de assets: LOCAL (disco) en dev, Cloudinary en prod (switch por IS_PROD) ──
+// saveAsset devuelve el MISMO shape que Cloudinary (secure_url, public_id, bytes…) para no tocar
+// el front. En local los archivos viven en STORAGE_DIR y se sirven por /api/storage/<ruta>.
+// El día que vayas online: IS_PROD=true → Cloudinary; o el botón "Actualizar nube" sincroniza.
+const STORAGE_DIR = process.env.STORAGE_DIR || path.resolve('server/storage');
+const MIME_MORE = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4' };
+
+async function saveAsset(buffer, filename, folder = CLD_FOLDER, contentType = '') {
+  if (IS_PROD) return uploadToCloudinary(buffer, filename, folder);   // online → Cloudinary
+  const dir = path.join(STORAGE_DIR, folder);                          // local → disco
+  fs.mkdirSync(dir, { recursive: true });
+  const safe = `${Date.now()}-${path.basename(filename).replace(/[^\w.\-]+/g, '_')}`;
+  fs.writeFileSync(path.join(dir, safe), buffer);
+  const rel = `${folder}/${safe}`.replace(/\\/g, '/');
+  const url = `http://localhost:${PORT}/api/storage/${rel}`;
+  return { secure_url: url, url, public_id: rel, bytes: buffer.length, duration: null, local: true,
+    resource_type: /^video/.test(contentType) ? 'video' : /^audio/.test(contentType) ? 'video' : 'image' };
+}
+
+// stream genérico de un archivo del disco (con range para seek de video/audio).
+function streamFile(req, res, file) {
+  const st = fs.statSync(file);
+  const ext = path.extname(file).toLowerCase();
+  const type = MIME[ext] || MIME_MORE[ext] || 'application/octet-stream';
+  const range = req.headers.range;
+  if (range) {
+    const m = /bytes=(\d+)-(\d*)/.exec(range);
+    const start = m ? Number(m[1]) : 0;
+    const end = m && m[2] ? Number(m[2]) : st.size - 1;
+    res.writeHead(206, { 'Content-Type': type, 'Content-Range': `bytes ${start}-${end}/${st.size}`, 'Accept-Ranges': 'bytes', 'Content-Length': end - start + 1, 'Access-Control-Allow-Origin': '*' });
+    fs.createReadStream(file, { start, end }).pipe(res);
+  } else {
+    res.writeHead(200, { 'Content-Type': type, 'Content-Length': st.size, 'Accept-Ranges': 'bytes', 'Access-Control-Allow-Origin': '*' });
+    fs.createReadStream(file).pipe(res);
+  }
+}
+
 // ── HTTP server ──────────────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -377,7 +475,16 @@ const server = http.createServer(async (req, res) => {
   try {
     // ── health ──────────────────────────────────────────────────────────────
     if (p === '/api/health') {
-      return json(res, 200, { ok: true, env: IS_PROD ? 'prod' : 'local', videosDir: VIDEOS_DIR, db: DB_PATH, cloudinary: !!CLD_CLOUD, gemini: !!GEMINI_KEY });
+      return json(res, 200, { ok: true, env: IS_PROD ? 'prod' : 'local', videosDir: VIDEOS_DIR, db: DB_PATH, cloudinary: !!CLD_CLOUD, gemini: !!GEMINI_KEY, functions: IMPLEMENTED_FUNCTIONS, storage: IS_PROD ? 'cloudinary' : 'local' });
+    }
+
+    // ── assets locales (storage en dev) — sirve lo que guardó saveAsset ───────
+    if (p.startsWith('/api/storage/') && req.method === 'GET') {
+      const rel = decodeURIComponent(p.slice('/api/storage/'.length));
+      const file = path.join(STORAGE_DIR, rel);
+      if (!path.resolve(file).startsWith(path.resolve(STORAGE_DIR))) return json(res, 403, { error: 'ruta inválida' });
+      if (!fs.existsSync(file)) return json(res, 404, { error: 'no existe' });
+      return streamFile(req, res, file);
     }
 
     // ── AI pipeline ──────────────────────────────────────────────────────────
@@ -435,15 +542,15 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
-      const cldRes = await uploadToCloudinary(fileBuffer, filename);
+      const cldRes = await saveAsset(fileBuffer, filename, CLD_FOLDER, 'video/mp4');
       const saved  = saveCloudVideo({
         public_id:    cldRes.public_id,
         name:         filename,
         url:          cldRes.secure_url,
-        thumbnail:    cldRes.secure_url.replace('/upload/', '/upload/so_0/').replace(/\.\w+$/, '.jpg'),
+        thumbnail:    cldRes.local ? cldRes.secure_url : cldRes.secure_url.replace('/upload/', '/upload/so_0/').replace(/\.\w+$/, '.jpg'),
         duration_sec: cldRes.duration,
         size_bytes:   cldRes.bytes,
-        source:       'cloudinary',
+        source:       cldRes.local ? 'local' : 'cloudinary',
       });
       return json(res, 200, { video: saved });
     }
@@ -468,6 +575,122 @@ const server = http.createServer(async (req, res) => {
       const mp4 = await renderMp4(body);
       res.writeHead(200, { 'Content-Type': 'video/mp4', 'Content-Length': mp4.length, 'Access-Control-Allow-Origin': '*' });
       return res.end(mp4);
+    }
+
+    // ── ENSAMBLADO del reel final (familias A/B del mkreels) a mp4 ─────────────
+    // body.plan = { family:'A'|'B', presenter/mid/broll/music/voice/logo: {file} }. Cada `file`
+    // puede ser path local, URL (Cloudinary) o dataURL → se baja a temp. Devuelve el mp4.
+    if (p === '/api/assemble' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mstudio-asmin-'));
+      try {
+        await resolveFileRefs(body.plan, dir);
+        const mp4 = await assemble(body.plan, runFfmpeg);
+        res.writeHead(200, { 'Content-Type': 'video/mp4', 'Content-Length': mp4.length, 'Access-Control-Allow-Origin': '*' });
+        return res.end(mp4);
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error ensamblando' }); }
+      finally { try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* noop */ } }
+    }
+
+    // ── TTS (ElevenLabs, LOCAL) ───────────────────────────────────────────────
+    // Antes salía a un Cloud Run (tts-service); ahora el backend pega directo a ElevenLabs con tu key.
+    // Lista de voces de TU API key — mapea las labels de ElevenLabs al shape plano que usa el front.
+    if (p === '/api/tts/voices' && req.method === 'GET') {
+      if (!ELEVEN_KEY) return json(res, 503, { error: 'falta ELEVENLABS_API_KEY (.env)' });
+      try {
+        const r = await fetch(`${ELEVEN_API}/voices`, { headers: { 'xi-api-key': ELEVEN_KEY } });
+        if (!r.ok) return json(res, 502, { error: `ElevenLabs ${r.status}` });
+        const d = await r.json();
+        const voices = (d.voices || []).map((v) => ({
+          voice_id: v.voice_id, name: v.name,
+          accent: v.labels?.accent || '', gender: v.labels?.gender || '', age: v.labels?.age || '',
+          use_case: v.labels?.use_case || v.labels?.['use case'] || '',
+          description: v.labels?.description || v.description || '',
+          preview_url: v.preview_url || '',
+        }));
+        return json(res, 200, { voices });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error voces' }); }
+    }
+    // Genera el audio de una voz — mismo body que iba al Cloud Run; devuelve audio/mpeg.
+    if (p === '/api/tts/generate' && req.method === 'POST') {
+      if (!ELEVEN_KEY) return json(res, 503, { error: 'falta ELEVENLABS_API_KEY (.env)' });
+      const b = JSON.parse((await readBody(req)) || '{}');
+      if (!b.text || !b.voice_id) return json(res, 400, { error: 'faltan text/voice_id' });
+      try {
+        const r = await fetch(`${ELEVEN_API}/text-to-speech/${b.voice_id}`, {
+          method: 'POST',
+          headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+          body: JSON.stringify({
+            text: b.text,
+            model_id: b.model_id || 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: b.stability ?? 0.4,
+              similarity_boost: b.similarity_boost ?? 0.8,
+              style: b.style ?? 0.5,
+              use_speaker_boost: b.use_speaker_boost ?? true,
+              speed: b.speed ?? 1.0,
+            },
+          }),
+        });
+        if (!r.ok) { const t = await r.text(); return json(res, 502, { error: `ElevenLabs ${r.status} · ${t.slice(0, 160)}` }); }
+        const buf = Buffer.from(await r.arrayBuffer());
+        res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Content-Length': buf.length, 'Access-Control-Allow-Origin': '*' });
+        return res.end(buf);
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error generando' }); }
+    }
+    // "Agregar vida": toma el guion plano y le mete cadencia (pausas …, ÉNFASIS, tags de tono) que el
+    // VoiceStudio ya convierte a <break>/mayúsculas para ElevenLabs. On-demand, 1 llamada a Claude headless.
+    if (p === '/api/tts/cadence' && req.method === 'POST') {
+      const b = JSON.parse((await readBody(req)) || '{}');
+      const src = (b.text || '').trim();
+      if (!src) return json(res, 400, { error: 'falta text' });
+      const prompt = `Sos director de doblaje. Te paso un guion para voz en off (TTS). Devolvé TRES variantes del MISMO texto "actuado" con marcas, cada una con un carácter distinto:
+- Variante 1 — LOCUCIÓN sobria: pausas justas, énfasis solo en lo esencial, poco o ningún tag de tono.
+- Variante 2 — VENDEDORA enérgica: más énfasis y ritmo, [excited] donde sube la energía.
+- Variante 3 — CERCANA/intrigante: tonos variados ([curious], [whispers], [sighs]) y pausas más dramáticas.
+Marcas que entiende el motor de voz:
+- Pausas: poné "…" en los cortes naturales (respiración, antes de un giro o del cierre).
+- Énfasis: palabras CLAVE en MAYÚSCULAS.
+- Tono: arrancá una frase con UN tag entre corchetes: [excited], [serious], [whispers], [curious], [sighs].
+En las TRES: NO cambies las palabras, el orden ni agregues frases — SOLO agregás marcas. Una frase por línea (mantené los saltos). Rioplatense, sin emojis.
+Devolvé SOLO JSON: { "variants": ["variante 1 con \\n entre frases", "variante 2", "variante 3"] }
+
+GUION:
+${src}`;
+      try {
+        const { text } = await runAI({ prompt, allowedTools: 'Read' });
+        const o = extractJson(text);
+        const variants = Array.isArray(o?.variants) ? o.variants.filter((v) => typeof v === 'string' && v.trim())
+          : (o && typeof o.text === 'string' && o.text.trim() ? [o.text] : []);
+        return json(res, 200, { variants: variants.length ? variants : [src] });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error cadencia' }); }
+    }
+    // REEL ANIMADO (mockup reel) — genera el boceto en VIDEO desde la metadata 1.2 que MANDA LA APP
+    // (slides del mockup + brand del KB). NADA hardcodeado. Render HTML→mp4 (Playwright + ffmpeg).
+    if (p === '/api/mockup-reel' && req.method === 'POST') {
+      const b = JSON.parse((await readBody(req)) || '{}');
+      const slides = Array.isArray(b.slides) ? b.slides : [];
+      if (!slides.length) return json(res, 400, { error: 'sin slides en la metadata' });
+      const badge = (s) => String(s || '').split(/[—·-]/)[0].trim()
+        .replace(/^(list|timeline|grid|form|detail|view|screen)[_\s]/i, '').replace(/_/g, ' ').toUpperCase().slice(0, 20);
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mreel-'));
+      try {
+        const data = {
+          brand: b.brand || {},
+          footer: b.footer || '',
+          slides: slides.map((s) => ({
+            badge: badge(s.badge || s.screen || s.label),
+            title: s.title || s.highlight || s.copy || '',
+            accent: s.accent || s.copy || '',
+          })),
+        };
+        const out = path.join(dir, 'reel.mp4');
+        await renderMockupReel(data, out, { runFfmpeg, tmpDir: dir });
+        const mp4 = fs.readFileSync(out);
+        res.writeHead(200, { 'Content-Type': 'video/mp4', 'Content-Length': mp4.length, 'Access-Control-Allow-Origin': '*' });
+        return res.end(mp4);
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error render reel animado' }); }
+      finally { try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* noop */ } }
     }
 
     // ── proyectos ────────────────────────────────────────────────────────────
@@ -510,7 +733,8 @@ const server = http.createServer(async (req, res) => {
       const ext = path.extname(filename).toLowerCase();
       const tipo = ['.mp3', '.wav', '.ogg', '.m4a'].includes(ext) ? 'audio' : ['.jpg', '.jpeg', '.png', '.webp'].includes(ext) ? 'image' : 'video';
       const folder = `${CLD_FOLDER}/${projId}`;
-      const cldRes = await uploadToCloudinary(fileBuffer, filename, folder);
+      const mime = tipo === 'video' ? 'video/mp4' : tipo === 'audio' ? 'audio/mpeg' : 'image/png';
+      const cldRes = await saveAsset(fileBuffer, filename, folder, mime);
       const asset = { tipo, name: filename, cloudinaryUrl: cldRes.secure_url, createdAt: Date.now() };
       const assets = [...(proj.data.assets || []), asset];
       saveProject({ id: projId, name: proj.name, data: { ...proj.data, assets } });
@@ -558,15 +782,38 @@ const server = http.createServer(async (req, res) => {
 
     // ── Integraciones (KSP): lista del registro + traer el KB ────────────────
     if (p === '/api/kb/apps' && req.method === 'GET') {
-      const apps = loadKbRegistry().map((a) => ({ id: a.id, name: a.name, base_url: a.base_url || '', ready: !!a.base_url }));
+      const apps = loadKbApps().map((a) => ({ id: a.id, name: a.nombre, base_url: a.servidor || '', ready: !!a.servidor }));
       return json(res, 200, { apps });
     }
     if (p === '/api/kb/fetch' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
-      const app = loadKbRegistry().find((a) => a.id === body.appId);
+      const app = loadKbApps().find((a) => a.id === body.appId);
       if (!app) return json(res, 404, { error: 'esa Integración no está en el registro' });
-      try { return json(res, 200, { app: { id: app.id, name: app.name }, kb: await fetchKbFor(app) }); }
+      try { return json(res, 200, { app: { id: app.id, name: app.nombre }, kb: await fetchKbFor(app) }); }
       catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error trayendo el KB' }); }
+    }
+    // trae el KB + chequea la salud (1.2: pantallas = METADATA descriptiva, no URLs; logo inline/URL).
+    if (p === '/api/kb/inspect' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const app = loadKbApps().find((a) => a.id === body.appId);
+      if (!app) return json(res, 404, { error: 'esa Integración no está en el registro' });
+      try {
+        const kb = await fetchKbFor(app);
+        // logo: 1.2 puede venir SVG inline (brand.logo.svg) o URL propia. inline = ok directo.
+        const logoSvg = kb.brand?.logo?.svg;
+        const logoUrl = kb.brand?.logo?.primary || kb.brand?.logo?.isotype || '';
+        const logo = logoSvg ? { ok: true, inline: true }
+          : logoUrl ? { url: logoUrl, ...(await inspectUrl(logoUrl, 'svg')) }
+          : { ok: false, reason: 'sin logo en el KB' };
+        // screens 1.2 = metadata: ok si está bien descrita (kind + components/data/layout). NO se chequea URL.
+        const screens = (kb.screens || []).map((s) => {
+          const dataN = Array.isArray(s.data) ? s.data.length : (s.data ? 1 : 0);
+          const ok = !!(s.kind && ((s.components || []).length || dataN || s.layout));
+          return { label: s.label, kind: s.kind, headline: s.headline, components: (s.components || []).length, data: dataN, ok, reason: ok ? undefined : 'falta metadata (kind/components/data)' };
+        });
+        const encodingOk = !JSON.stringify(kb).includes('â€');
+        return json(res, 200, { app: { id: app.id, name: app.nombre }, kb, health: { logo, screens, encodingOk } });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error inspeccionando' }); }
     }
     // del KB → prospecto + propuesta de trabajo (con IA).
     if (p === '/api/kb/plan' && req.method === 'POST') {
@@ -576,6 +823,20 @@ const server = http.createServer(async (req, res) => {
         const { text } = await runAI({ prompt: KB_PLAN_PROMPT(body.kb), allowedTools: 'Read' });
         return json(res, 200, { plan: extractJson(text) });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error armando el plan' }); }
+    }
+
+    // ── Proceso guiado: corre UNA función del catálogo on-demand (1 llamada IA) ───
+    // El front manda { functionId, context, options, regenerate }. El backend arma el
+    // prompt (molde de la función) y lo corre con la IA. regenerate = { clipId, sequence }
+    // rehace solo ese ítem. Barato: 1 llamada por botón, nunca el panel completo.
+    if (p === '/api/run-function' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!body.functionId) return json(res, 400, { error: 'falta functionId' });
+      try {
+        const { prompt, mode } = buildFunctionPrompt(body);
+        const { text } = await runAI({ prompt, allowedTools: 'Read' });
+        return json(res, 200, { functionId: body.functionId, mode, result: parseFunctionResult(body.functionId, text, body) });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error corriendo la función' }); }
     }
 
     return json(res, 404, { error: 'not found' });
