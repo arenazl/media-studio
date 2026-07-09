@@ -217,27 +217,30 @@ BRIEF (los hechos): ${x.brief}` };
   },
 
   // ── GUION (nivel pieza) — guion por bloques, narración calibrada para TTS ──
+  // ── GUION (nivel pieza) — adaptado al rework: GuionEstructurado (hook|desarrollo|gag|cta + durSec) ──
+  // Lee `context.piece.concepto` (el elegido) como dirección creativa. Conserva: regla GLOBAL,
+  // calibración TTS ~2.7 pal/seg, regen por bloque, music.mood. El shape lo consume PasoGuion (Fase 2).
   script: {
     build({ context, options = {}, regenerate }) {
       const x = ctx(context);
+      const piece = (context && context.piece) || {};
+      const concepto = piece.concepto ? JSON.stringify(piece.concepto) : '';
       const tono = options.tono || 'cercano';
       const dur = options.duracion || x.durationSec;
-      const angulos = { 'dolor-solucion': 'arrancá del dolor del cliente y resolvé con el producto', dato: 'abrí con un dato/autoridad fuerte (sin inventar números)', fomo: 'jugá con la oferta/urgencia (FOMO)', 'como-funciona': 'mostrá el paso a paso de cómo funciona' };
-      const ang = angulos[options.estructura] || angulos['dolor-solucion'];
       if (regenerate && regenerate.index != null) {
         const cur = (regenerate.blocks || [])[regenerate.index] || {};
         return { mode: 'item', prompt: `Actuás como promo-director. Rehacé SOLO ESTE bloque del guion (tono ${tono}), con una propuesta DISTINTA y mejor. Mantené su rol.
-Devolvé SOLO el JSON del bloque: { "role": "${cur.role || 'hook'}", "narration": "lo que se DICE", "visual": "lo que se VE" }
+Devolvé SOLO el JSON del bloque: { "role": "${cur.role || 'hook'}", "narration": "lo que se DICE", "visual": "lo que se VE", "durSec": <segundos estimados a ~2.7 palabras/seg> }
 NEGOCIO: ${x.name} · BLOQUE ACTUAL (hacelo distinto): ${JSON.stringify(cur)}
 Rioplatense, sin emojis, no inventes datos.` };
       }
-      return { mode: 'set', prompt: `Actuás como promo-director. Escribí el guion de una pieza de ${dur}s para un reel 9:16, tono ${tono}, approach "${ang}"${x.angulo ? ` (versión: "${x.angulo}")` : ''}.
-ENFOQUE GLOBAL (clave): contá TODA la propuesta del negocio en ESTE video — no un solo módulo/producto. Enganchá explicando el funcionamiento de forma dinámica, CONECTÁ los puntos fuertes entre sí en un hilo, reforzá con la prueba/beneficio y cerrá reforzando la idea de la campaña.
-Estructura por bloques: hook -> funcionamiento -> beneficio/prueba -> cierre/cta. El hook (primeros 2s) roba la atención, sin logo ni "somos X". CTA claro al final.
-Narración calibrada para TTS a ~2.7 palabras/seg (que entre en ${dur}s). Rioplatense (voseo), sin emojis.
-Devolvé SOLO JSON: { "blocks": [{ "role": "hook|funcionamiento|beneficio|cierre", "narration": "lo que se DICE (voz)", "visual": "lo que se VE en pantalla" }], "music": { "mood": "el mood de la música en 1 frase" } }
+      return { mode: 'set', prompt: `Actuás como promo-director. Escribí el guion de un comercial de ${dur}s para un reel 9:16, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
+${concepto ? `CONCEPTO ELEGIDO (respetalo, es la dirección creativa del comercial): ${concepto}\n` : ''}ENFOQUE GLOBAL (clave): contá TODA la propuesta del negocio en ESTE video — no un solo módulo/producto. Enganchá explicando el funcionamiento, CONECTÁ los puntos fuertes en un hilo, reforzá con la prueba y cerrá con el CTA.
+Estructura NARRATIVA por bloques con estos roles EXACTOS: hook (primeros 2s, roba la atención, sin logo ni "somos X") -> desarrollo (cómo funciona / la propuesta en vivo) -> gag (el REMATE: el momento más fuerte — humor si el concepto es humorístico, si no la prueba/beneficio contundente) -> cta (llamado a la acción claro). El gag va SIEMPRE ANTES del cta.
+Narración calibrada para TTS a ~2.7 palabras/seg (que entre en ${dur}s); estimá el durSec de cada bloque.
+Devolvé SOLO JSON: { "blocks": [{ "role": "hook|desarrollo|gag|cta", "narration": "lo que se DICE (voz)", "visual": "lo que se VE en pantalla", "durSec": <segundos> }], "music": { "mood": "el mood de la música en 1 frase" } }
 NEGOCIO: ${x.name}
-BRIEF: ${x.brief}${x.guion ? `\nGUION ACTUAL (devolvé una VARIANTE distinta): ${x.guion}` : ''}
+BRIEF: ${x.brief}
 No inventes precios/cifras/integraciones como reales. Es GLOBAL: cuenta TODO el negocio.` };
     },
     parse(text) {

@@ -7,6 +7,7 @@ import { Sparkles } from 'lucide-react';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
 import GuidedPanel from './GuidedPanel';
+import Pipeline from './Pipeline';
 import Topbar from './Topbar';
 import ProjectsABM from './ProjectsABM';
 import { listProjects, saveProject, type Project, type VoiceConfig } from './lib/projects';
@@ -68,7 +69,7 @@ export default function App() {
         ) : wizardProject ? (
           <ProjectWizard
             project={wizardProject}
-            onDone={(p) => { setWizardProject(null); openProject(p); setSection('prompts'); }}
+            onDone={(p) => { setWizardProject(null); openProject(p); setSection('pipeline'); }}
             onCancel={() => setWizardProject(null)}
           />
         ) : inspect ? (
@@ -92,6 +93,7 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
     () => project.reels.map((r) => ({ id: r.id, label: r.nombre, text: r.guion.join('\n'), sub: `${r.guion.length} frases` })),
     [project],
   );
+  if (section === 'pipeline') return <Pipeline project={project} />;
   if (section === 'negocio') return <ProjectInfo project={project} />;
   if (section === 'audio') return (
     <VoiceStudio
