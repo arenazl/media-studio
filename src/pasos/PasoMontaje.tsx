@@ -3,18 +3,22 @@
 // llama al render server-side (video xfade + diálogo de clips + voz + música con ducking/silencio) y
 // registra el export en el comercial. Este es el botón de render que hoy NO existía.
 import { useState } from 'react';
-import { Loader2, Clapperboard, Film, Download, Music2, VolumeX } from 'lucide-react';
+import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Gauge } from 'lucide-react';
 import { API_BASE } from '../config';
-import { errMsg, type PasoProps } from './pasoKit';
+import { errMsg, runMolde, type PasoProps } from './pasoKit';
 import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
 import { MUSIC_TRACKS } from '../lib/music';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
 const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
 
+interface QaResult { score: number; verdict: string; issues?: { severity: string; note: string }[] }
+
 export default function PasoMontaje({ project, reelId, comercial, setComercial }: PasoProps) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState('');
+  const [qa, setQa] = useState<QaResult | null>(null);
+  const [qaBusy, setQaBusy] = useState(false);
   const montaje = comercial?.montaje as MontajeState | undefined;
   const plan = montaje?.plan;
   const exports = montaje?.exports || [];
@@ -38,6 +42,18 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
     const m = c.montaje as MontajeState | undefined;
     return m?.plan ? { ...c, montaje: { ...m, plan: up(m.plan) } } : c;
   });
+
+  const chequear = async () => {
+    if (!comercial) return;
+    setQaBusy(true); setError('');
+    try {
+      const res = await runMolde('qa', project, {
+        concepto: comercial.concepto, guion: comercial.guion, cast: comercial.cast,
+        storyboard: comercial.storyboard, packFlow: comercial.packFlow, objetivo: comercial.concepto?.idea,
+      }, { foco: 'todo' });
+      setQa(res as unknown as QaResult);
+    } catch (e) { setError(errMsg(e)); } finally { setQaBusy(false); }
+  };
 
   const exportar = async () => {
     if (!plan) return;
@@ -115,8 +131,22 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
             </div>
           )}
 
-          {/* export */}
+          {/* QA holístico */}
+          {qa && (
+            <div className={`paso-card mont-qa${qa.score < 38 ? ' mont-qa--warn' : ' mont-qa--ok'}`}>
+              <div className="paso-card-h"><Gauge size={12} /> Calidad del comercial</div>
+              <p className="mont-qa-score">{qa.score}<span>/50</span> · {qa.verdict}{qa.score < 38 ? ' — conviene ajustar antes de exportar (no bloquea)' : ''}</p>
+              {!!qa.issues?.length && qa.issues.map((it, i) => (
+                <div key={i} className="mont-qa-issue"><strong>[{it.severity}]</strong> {it.note}</div>
+              ))}
+            </div>
+          )}
+
+          {/* acciones: chequear calidad + exportar */}
           <div className="paso-foot mont-foot">
+            <button className="rodaje-import mont-qa-btn" onClick={chequear} disabled={qaBusy || rendering}>
+              {qaBusy ? <Loader2 size={13} className="paso-spin" /> : <Gauge size={13} />} Chequear calidad
+            </button>
             <button className="paso-approve mont-export" onClick={exportar} disabled={rendering || !conClip}>
               {rendering ? <><Loader2 size={15} className="paso-spin" /> Renderizando el mp4…</> : <><Film size={15} /> Exportar mp4</>}
             </button>

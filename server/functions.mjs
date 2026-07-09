@@ -300,12 +300,26 @@ GUION: ${x.guion || x.brief}` };
   qa: {
     build({ context, options = {} }) {
       const x = ctx(context);
+      const piece = (context && context.piece) || {};
       const focos = { todo: 'los 10 ejes', hook: 'sobre todo el hook (primeros 2s)', claridad: 'sobre todo la claridad (una sola idea)', cta: 'sobre todo el CTA' };
-      return { prompt: `Actuás como promo-critic. Evaluá la pieza con tu rúbrica de 10 ejes (gancho, claridad, una idea, CTA, formato, marca, duración, ritmo, prueba, originalidad), 0-5 cada uno = total /50. NO la juzgues por un solo aspecto: puntuá los 10 y sumá. Mirá ${focos[options.foco] || focos.todo}.
+      // rework: si viene el comercial COMPLETO (concepto/guion/cast/storyboard/pack), QA holístico.
+      const holistico = !!(piece.storyboard || piece.cast || piece.concepto || piece.packFlow);
+      const material = holistico
+        ? `COMERCIAL COMPLETO A EVALUAR:
+CONCEPTO: ${piece.concepto ? JSON.stringify(piece.concepto) : '(sin concepto)'}
+GUION: ${pieceGuionText(piece) || '(sin guion)'}
+CAST: ${piece.cast ? JSON.stringify(piece.cast) : '(sin cast — puede ser animado)'}
+STORYBOARD: ${piece.storyboard ? JSON.stringify(piece.storyboard) : '(sin storyboard)'}
+PACK MASTER: ${piece.packFlow?.master || '(sin pack)'}`
+        : `GUION DE LA PIEZA: ${x.guion || x.brief}`;
+      const extra = holistico
+        ? ` Para el comercial entero, pesá MUY fuerte estos criterios profesionales DENTRO de los ejes: CONTINUIDAD (el fisicoEn del cast va VERBATIM en todos los prompts del pack; la continuidad entre escenas cierra: ropa/luz/lugar), ARCO (hook ≤2s de gancho, gag/remate ANTES del CTA, cuenta TODA la propuesta — regla GLOBAL, jamás un solo módulo), TÉCNICA (talking heads ≥8s, diálogos de ~24-30 palabras, marca fonética en TODO lo hablado).`
+        : '';
+      return { prompt: `Actuás como promo-critic. Evaluá ${holistico ? 'el COMERCIAL entero' : 'la pieza'} con tu rúbrica de 10 ejes (gancho, claridad, una idea, CTA, formato, marca, duración, ritmo, prueba, originalidad), 0-5 cada uno = total /50. NO lo juzgues por un solo aspecto: puntuá los 10 y sumá.${extra} Mirá ${focos[options.foco] || focos.todo}.
 Devolvé SOLO JSON: { "score": <0-50>, "verdict": "LISTO PARA PRODUCIR|AJUSTAR|REHACER", "issues": [{ "severity": "alta|media|baja", "note": "el problema + el fix concreto" }] }
 LISTO PARA PRODUCIR si score >= 38. Español rioplatense, sin emojis.
 OBJETIVO: ${x.objetivo || '(inferilo)'} · NEGOCIO: ${x.name}
-GUION DE LA PIEZA: ${x.guion || x.brief}` };
+${material}` };
     },
     parse(text) { const o = extractJson(text); if (typeof o.score !== 'number') throw new Error('el QA no trajo score'); return o; },
   },
