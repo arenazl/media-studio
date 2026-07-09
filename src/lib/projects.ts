@@ -7,6 +7,7 @@ import { fitpassProject } from '../data/demoFitpass';
 import type { BrandKit } from './brandKit';
 import type { MontageSnapshot } from './montageStore';
 import type { Comercial } from './comercial';
+import { API_BASE } from '../config';
 
 // un recorte del audio real (locutor) — metadata; el blob vive en IndexedDB por reel.
 export interface AudioSegment {
@@ -99,6 +100,21 @@ function load(): Project[] {
 }
 function persist(ps: Project[]) { try { localStorage.setItem(LS_KEY, JSON.stringify(ps)); } catch { /* noop */ } }
 
+// DUAL-WRITE: además de localStorage, empuja el proyecto al backend (SQLite) sin bloquear ni
+// romper si el server no está (la app es local y anda solo con localStorage). El proyecto ENTERO
+// va como `data`; el server lo upsertea por id (POST /api/projects, sin id en el path).
+function syncToServer(proj: Project) {
+  try {
+    void fetch(`${API_BASE}/api/projects`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: proj.id, name: proj.name, data: proj }),
+    }).catch(() => { /* server opcional */ });
+  } catch { /* noop */ }
+}
+function syncDeleteServer(id: string) {
+  try { void fetch(`${API_BASE}/api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => {}); } catch { /* noop */ }
+}
+
 const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export function listProjects(): Project[] {
@@ -124,6 +140,7 @@ export function saveProject(input: { id?: string; name: string; type?: string; p
     created_at: existing?.created_at ?? now, updated_at: now,
   };
   persist(existing ? ps.map((p) => (p.id === id ? proj : p)) : [...ps, proj]);
+  syncToServer(proj);
   return proj;
 }
-export function deleteProject(id: string) { persist(load().filter((p) => p.id !== id)); }
+export function deleteProject(id: string) { persist(load().filter((p) => p.id !== id)); syncDeleteServer(id); }

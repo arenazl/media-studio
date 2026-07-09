@@ -694,7 +694,7 @@ ${src}`;
     }
 
     // ── proyectos ────────────────────────────────────────────────────────────
-    if (p === '/api/projects' && req.method === 'GET')  return json(res, 200, { projects: listProjects() });
+    if (p === '/api/projects' && req.method === 'GET')  return json(res, 200, { projects: listProjects(url.searchParams.get('full') === '1') });
     if (p === '/api/projects' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
       return json(res, 200, { project: saveProject({ id: body.id, name: body.name, data: body.data }) });

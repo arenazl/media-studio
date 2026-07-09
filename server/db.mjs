@@ -55,12 +55,24 @@ db.exec(`
 `);
 
 // ── PROJECTS ────────────────────────────────────────────────────────────────
-export function listProjects() {
-  return db.prepare('SELECT id, name, created_at, updated_at FROM projects ORDER BY updated_at DESC').all();
+// `full` incluye `data` (el proyecto entero) — lo usa la hidratación server-first del front
+// (GET /api/projects?full=1). Sin `full`, solo el resumen (más liviano para listar).
+export function listProjects(full = false) {
+  const cols = full ? 'id, name, data, created_at, updated_at' : 'id, name, created_at, updated_at';
+  const rows = db.prepare(`SELECT ${cols} FROM projects ORDER BY updated_at DESC`).all();
+  return full ? rows.map((r) => ({ ...r, data: JSON.parse(r.data || '{}') })) : rows;
+}
+
+// OJO node:sqlite (Node 22.5.x): `.get()` devuelve una fila con TODAS las columnas en null en vez
+// de `undefined` cuando no hay match (bug de esa versión, arreglado más adelante). Por eso NO
+// alcanza con la truthiness de `.get()` — hay que chequear la PK. `rowOrNull` lo centraliza.
+const rowOrNull = (row, pk) => (row && row[pk] != null ? row : null);
+function existsBy(table, pk, val) {
+  return rowOrNull(db.prepare(`SELECT ${pk} FROM ${table} WHERE ${pk} = ?`).get(val), pk) != null;
 }
 
 export function getProject(id) {
-  const row = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
+  const row = rowOrNull(db.prepare('SELECT * FROM projects WHERE id = ?').get(id), 'id');
   if (!row) return null;
   return { ...row, data: JSON.parse(row.data || '{}') };
 }
@@ -69,7 +81,7 @@ export function saveProject({ id, name, data }) {
   const now = Date.now();
   const json = JSON.stringify(data ?? {});
   const safeName = (name && String(name).trim()) || 'Proyecto sin título';
-  if (id && db.prepare('SELECT 1 FROM projects WHERE id = ?').get(id)) {
+  if (id && existsBy('projects', 'id', id)) {
     db.prepare('UPDATE projects SET name = ?, data = ?, updated_at = ? WHERE id = ?').run(safeName, json, now, id);
     return getProject(id);
   }
@@ -102,7 +114,7 @@ export function deleteCloudVideo(id) {
 
 // ── APP CONFIGS ─────────────────────────────────────────────────────────────
 export function getAppConfig(app_id) {
-  return db.prepare('SELECT * FROM app_configs WHERE app_id = ?').get(app_id) || null;
+  return rowOrNull(db.prepare('SELECT * FROM app_configs WHERE app_id = ?').get(app_id), 'app_id');
 }
 
 export function listAppConfigs() {
@@ -112,7 +124,7 @@ export function listAppConfigs() {
 export function saveAppConfig({ app_id, name, api_url, voice_id, stability, similarity, style, speed, model, extra }) {
   const now = Date.now();
   const extraJson = JSON.stringify(extra ?? {});
-  const existing = db.prepare('SELECT 1 FROM app_configs WHERE app_id = ?').get(app_id);
+  const existing = existsBy('app_configs', 'app_id', app_id);
   if (existing) {
     db.prepare(
       'UPDATE app_configs SET name=?, api_url=?, voice_id=?, stability=?, similarity=?, style=?, speed=?, model=?, extra=?, updated_at=? WHERE app_id=?'
