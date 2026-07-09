@@ -2,7 +2,8 @@
 // por tipo + wizard de creación + editar (sheet lateral) + borrar (confirm). Estilos en ProjectsABM.css.
 import { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Pencil, FolderKanban, Film, Clock, X, Sparkles, Mic } from 'lucide-react';
-import { listProjects, saveProject, deleteProject, type Project } from './lib/projects';
+import { saveProject, deleteProject, type Project } from './lib/projects';
+import { useProjects } from './lib/useProjects';
 import NewProjectWizard from './NewProjectWizard';
 import './ProjectsABM.css';
 
@@ -27,7 +28,7 @@ const fmtDate = (ms: number) =>
 const reelsGrabados = (p: Project) => p.reels.filter((r) => r.voiceConfig?.voice_id).length;
 
 export default function ProjectsABM({ onOpen }: Props) {
-  const [projects, setProjects] = useState<Project[]>(() => listProjects());
+  const { projects, refresh } = useProjects();   // server-first: localStorage + hidratación del server
   const [q, setQ] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
@@ -37,7 +38,6 @@ export default function ProjectsABM({ onOpen }: Props) {
 
   useEffect(() => { const t = setTimeout(() => setLoading(false), 420); return () => clearTimeout(t); }, []);
 
-  const refresh = () => setProjects(listProjects());
   const fil = projects.filter((p) => `${p.name} ${p.type}`.toLowerCase().includes(q.toLowerCase()));
 
   const totalReels = projects.reduce((s, p) => s + p.reels.length, 0);

@@ -10,7 +10,8 @@ import GuidedPanel from './GuidedPanel';
 import Pipeline from './Pipeline';
 import Topbar from './Topbar';
 import ProjectsABM from './ProjectsABM';
-import { listProjects, saveProject, type Project, type VoiceConfig } from './lib/projects';
+import { saveProject, type Project, type VoiceConfig } from './lib/projects';
+import { useProjects } from './lib/useProjects';
 import { defaultSection, type Section } from './lib/sections';
 import './App.css';
 
@@ -25,7 +26,7 @@ export default function App() {
   const [inspect, setInspect] = useState(false);   // visor de los KB de las Integraciones (+ Comenzar)
   const [wizardProject, setWizardProject] = useState<Project | null>(null);   // proyecto recién creado, en el wizard
 
-  const projects = listProjects();   // se relee en cada render → refleja altas/cambios
+  const { projects } = useProjects();   // server-first: estado inicial de localStorage + hidratación del server
 
   // "Grabar" desde el editor: persiste el settings de voz del reel y refresca el proyecto.
   const grabarReel = (reelId: string, vc: VoiceConfig) => {

@@ -144,3 +144,18 @@ export function saveProject(input: { id?: string; name: string; type?: string; p
   return proj;
 }
 export function deleteProject(id: string) { persist(load().filter((p) => p.id !== id)); syncDeleteServer(id); }
+
+// HIDRATACIÓN server-first (read-side del dual-write): mergea los proyectos del server con los
+// locales — gana el de `updated_at` más nuevo — y persiste el resultado en localStorage. NO
+// re-sincroniza al server (evita loops). La usa el hook useProjects al montar.
+export function mergeServerProjects(serverProjects: Project[]): Project[] {
+  const byId = new Map(load().map((p) => [p.id, p]));
+  for (const sp of serverProjects) {
+    if (!sp || !sp.id) continue;
+    const local = byId.get(sp.id);
+    if (!local || (sp.updated_at || 0) > (local.updated_at || 0)) byId.set(sp.id, normProject(sp));
+  }
+  const merged = Array.from(byId.values()).sort((a, b) => b.updated_at - a.updated_at);
+  persist(merged);
+  return merged;
+}
