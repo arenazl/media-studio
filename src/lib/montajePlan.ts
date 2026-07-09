@@ -61,9 +61,33 @@ export function pickMusic(mood: string | undefined): string | undefined {
   return MUSIC_TRACKS.find((t) => t.cat === cat)?.url;
 }
 
-// MontajePlan inicial desde el storyboard + las tomas importadas.
+// mapper mecánico storyboard(animado) → slides del reel animado (mockupReel). El molde storyboard
+// ya generó escenas orientadas a pantalla (screen + accion=título + continuidad=palabra a resaltar).
+export function escenasToSlides(comercial: Comercial): { badge: string; title: string; accent: string; durSec: number }[] {
+  return (comercial.storyboard || []).map((e) => ({
+    badge: e.screen || e.rol || '',
+    title: e.accion || '',
+    accent: e.continuidad || '',
+    durSec: e.durSec || 4,
+  }));
+}
+
+// MontajePlan inicial desde el storyboard + las tomas importadas (filmado) o el render (animado).
 export function storyboardToMontaje(comercial: Comercial): MontajePlan {
   const escenas = comercial.storyboard || [];
+  // ANIMADO: el reel ya está renderizado (comercial.renderRef); el montaje le pone voz + música.
+  if (comercial.tipo === 'animado') {
+    const total = escenas.reduce((s, e) => s + (e.durSec || 4), 0) || 8;
+    const scenes: MontajeScene[] = comercial.renderRef
+      ? [{ escenaN: 1, src: comercial.renderRef, in: 0, out: total, audio: 'mute', audioGain: 1, transition: 'cut', rol: 'animado' }]
+      : [];
+    const musicUrl = pickMusic(comercial.guion?.music?.mood);
+    return {
+      width: 1080, height: 1920, fps: 30, scenes,
+      music: musicUrl ? { src: musicUrl, gain: MUSIC_GAIN, duck: true } : undefined,
+      silences: [], texts: [],
+    };
+  }
   const scenes: MontajeScene[] = escenas.map((e, i) => {
     const toma = tomaActiva(comercial, e.n);
     const realDur = toma?.durSec || 0;

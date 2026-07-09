@@ -12,6 +12,8 @@ import PasoStoryboard from './pasos/PasoStoryboard';
 import PasoPack from './pasos/PasoPack';
 import PasoRodaje from './pasos/PasoRodaje';
 import PasoMontaje from './pasos/PasoMontaje';
+import PasoPublicar from './pasos/PasoPublicar';
+import PasoRender from './pasos/PasoRender';
 import type { PasoProps } from './pasos/pasoKit';
 import { saveProject, type Project } from './lib/projects';
 import { nuevoComercial, pasosVisibles, type Comercial, type PasoId } from './lib/comercial';
@@ -54,7 +56,9 @@ export default function Pipeline({ project: initial }: { project: Project }) {
       case 'storyboard': return <PasoStoryboard {...pasoProps} />;
       case 'pack': return <PasoPack {...pasoProps} />;
       case 'rodaje': return <PasoRodaje {...pasoProps} />;
+      case 'render': return <PasoRender {...pasoProps} />;
       case 'montaje': return <PasoMontaje {...pasoProps} />;
+      case 'publicar': return <PasoPublicar {...pasoProps} />;
       default:
         return <div className="paso"><div className="paso-empty">Este paso llega en una próxima fase del rework.</div></div>;
     }

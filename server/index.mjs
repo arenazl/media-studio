@@ -694,11 +694,17 @@ ${src}`;
             badge: badge(s.badge || s.screen || s.label),
             title: s.title || s.highlight || s.copy || '',
             accent: s.accent || s.copy || '',
+            durSec: Number(s.durSec) || undefined,
           })),
         };
         const out = path.join(dir, 'reel.mp4');
         await renderMockupReel(data, out, { runFfmpeg, tmpDir: dir });
         const mp4 = fs.readFileSync(out);
+        // Fase 5: si viene projectId, PERSISTIR (patrón render-comercial) y devolver fileRef (no bytes efímeros).
+        if (b.projectId) {
+          const saved = await saveAsset(mp4, `render-${b.reelId || 'x'}-${Date.now()}.mp4`, `${CLD_FOLDER}/${b.projectId}`, 'video/mp4');
+          return json(res, 200, { fileRef: saved.public_id, url: saved.secure_url });
+        }
         res.writeHead(200, { 'Content-Type': 'video/mp4', 'Content-Length': mp4.length, 'Access-Control-Allow-Origin': '*' });
         return res.end(mp4);
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error render reel animado' }); }

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   storyboardToMontaje, sceneStarts, totalDuration, duckRanges, silenceRanges, pickMusic,
-  transitionDur, type MontajePlan,
+  transitionDur, escenasToSlides, type MontajePlan,
 } from './montajePlan';
 import { nuevoComercial, type Comercial, type Escena, type Toma } from './comercial';
 
@@ -85,6 +85,31 @@ describe('derivación de tiempos', () => {
     const conSil: MontajePlan = { ...plan, silences: [{ antesDeEscena: 3, durSec: 0.8 }] };
     const st = sceneStarts(conSil);
     expect(silenceRanges(conSil)).toEqual([[st[2] - 0.8, st[2]]]);
+  });
+});
+
+describe('animado', () => {
+  const escAnim = (n: number, screen: string, title: string, resaltar: string, durSec = 4): Escena => ({
+    n, rol: 'desarrollo', durSec, plano: '', angulo: '', personajes: [], accion: title, dialogo: '', continuidad: resaltar, screen,
+  });
+
+  it('escenasToSlides mapea screen/accion/continuidad → badge/title/accent', () => {
+    const c = { ...nuevoComercial('a', 'animado'), storyboard: [escAnim(1, 'Trámites', 'Todo en el celu', 'celu', 5)] };
+    expect(escenasToSlides(c)).toEqual([{ badge: 'Trámites', title: 'Todo en el celu', accent: 'celu', durSec: 5 }]);
+  });
+
+  it('storyboardToMontaje (animado) usa el renderRef como única escena, muteada', () => {
+    const c = { ...nuevoComercial('a', 'animado'), renderRef: 'reel.mp4', storyboard: [escAnim(1, 'a', 't', 'x', 4), escAnim(2, 'b', 't2', 'y', 5)] };
+    const plan = storyboardToMontaje(c);
+    expect(plan.scenes).toHaveLength(1);
+    expect(plan.scenes[0].src).toBe('reel.mp4');
+    expect(plan.scenes[0].audio).toBe('mute');
+    expect(plan.scenes[0].out).toBe(9);   // suma de durSec del storyboard
+  });
+
+  it('storyboardToMontaje (animado) sin renderRef aún → sin escenas', () => {
+    const c = { ...nuevoComercial('a', 'animado'), storyboard: [escAnim(1, 'a', 't', 'x')] };
+    expect(storyboardToMontaje(c).scenes).toHaveLength(0);
   });
 });
 
