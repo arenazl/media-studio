@@ -36,7 +36,7 @@ import {
   getAppConfig, listAppConfigs, saveAppConfig, deleteAppConfig,
   DB_PATH,
 } from './db.mjs';
-import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS } from './functions.mjs';
+import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS, extractJson } from './functions.mjs';
 import { assemble } from './assemble.mjs';
 import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
@@ -128,12 +128,8 @@ async function inspectUrl(url, expect) {
   } catch (e) { return { ok: false, reason: e instanceof Error ? e.message : 'error' }; }
 }
 
-// extrae el primer objeto JSON de una respuesta de IA (que a veces trae texto alrededor).
-function extractJson(text) {
-  const s = (text || '').indexOf('{'); const e = (text || '').lastIndexOf('}');
-  if (s === -1 || e <= s) throw new Error('la IA no devolvió JSON');
-  return JSON.parse(text.slice(s, e + 1));
-}
+// extractJson (balanceado) se importa de functions.mjs — reemplaza al naive de acá (Fase 5):
+// maneja JSON anidado y basura posterior; lo usan /api/tts/cadence y /api/kb/plan.
 
 // Prompt: del KB → prospecto (resumen del negocio) + propuesta de trabajo (qué campaña).
 // NO genera los reels (eso es la 2da etapa); arma la propuesta para que el dueño la apruebe.
