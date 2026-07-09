@@ -283,6 +283,17 @@ function runFfmpeg(args) {
     proc.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exit ${code}: ${err.slice(-500)}`))));
   });
 }
+// Duración real de un video/audio con ffprobe (segundos, o null si falla). La usa el upload de tomas
+// del RODAJE — sin esto el editor cae a 3s default y el montaje por escenas queda descalibrado.
+function probeDuration(filePath) {
+  return new Promise((resolve) => {
+    const proc = spawn('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', filePath]);
+    let out = '';
+    proc.stdout.on('data', (d) => (out += d));
+    proc.on('error', () => resolve(null));
+    proc.on('close', () => { const n = parseFloat(String(out).trim()); resolve(Number.isFinite(n) ? n : null); });
+  });
+}
 // efectos soportados (mismos ids que el editor) y mapeo transición→nombre de xfade.
 const EFFECT_IDS = new Set(['kenburns', 'vignette', 'grain', 'glow', 'bw', 'sepia', 'vivid', 'blur']);
 const XFADE_MAP = { fade: 'fade', crossfade: 'dissolve', wipe: 'wipeleft', zoom: 'zoomin' };
@@ -735,7 +746,13 @@ ${src}`;
       const folder = `${CLD_FOLDER}/${projId}`;
       const mime = tipo === 'video' ? 'video/mp4' : tipo === 'audio' ? 'audio/mpeg' : 'image/png';
       const cldRes = await saveAsset(fileBuffer, filename, folder, mime);
-      const asset = { tipo, name: filename, cloudinaryUrl: cldRes.secure_url, createdAt: Date.now() };
+      // duración REAL del clip (ffprobe) — la necesita el montaje por escenas; sin esto cae a 3s.
+      let duration_sec = null;
+      if (tipo === 'video' && cldRes.local) {
+        try { duration_sec = await probeDuration(path.join(STORAGE_DIR, cldRes.public_id)); } catch { /* noop */ }
+      }
+      // fileRef = public_id RELATIVO (lo que se persiste como Toma.fileRef); se sirve por /api/storage/<rel>.
+      const asset = { tipo, name: filename, cloudinaryUrl: cldRes.secure_url, fileRef: cldRes.public_id, duration_sec, createdAt: Date.now() };
       const assets = [...(proj.data.assets || []), asset];
       saveProject({ id: projId, name: proj.name, data: { ...proj.data, assets } });
       return json(res, 200, { asset });
