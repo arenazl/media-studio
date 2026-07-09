@@ -135,6 +135,21 @@
 .paso-char-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--pipe-dim); display: flex; gap: 8px; align-items: center; }
 .paso-warn { text-transform: none; letter-spacing: 0; color: var(--pipe-warn); font-size: 10.5px; }
 
+/* pack flow */
+.pack-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pack-prog { font-size: 12.5px; color: var(--pipe-dim); font-variant-numeric: tabular-nums; }
+.pack-export { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 9px; cursor: pointer; font-size: 12.5px; font-weight: 600; background: var(--pipe-surface-2); border: 1px solid var(--pipe-border); color: var(--pipe-text); transition: all .16s ease; }
+.pack-export:hover { border-color: var(--pipe-accent); }
+.pack-master-h { display: flex; align-items: center; gap: 8px; width: 100%; cursor: pointer; background: transparent; border: none; color: var(--pipe-text); font-size: 12.5px; font-weight: 600; text-align: left; }
+.pack-master-h > span:first-of-type { flex: 1; }
+.pack-copy-inline { margin-left: auto; }
+.pack-prompt { margin: 10px 0 0; padding: 11px 13px; border-radius: 9px; background: var(--pipe-bg); border: 1px solid var(--pipe-border); color: #c8d0de; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: 12px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; overflow-x: auto; }
+.pack-estado { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; padding: 2px 7px; border-radius: 5px; margin-left: auto; }
+.pack-estado--pendiente { background: var(--pipe-surface-2); color: var(--pipe-dim); }
+.pack-estado--copiado { background: rgba(91,157,255,.16); color: #8fbcff; }
+.pack-estado--importado { background: rgba(74,222,128,.16); color: var(--pipe-ok); }
+.pack-estado + .paso-icon { margin-left: 0; }
+
 /* textarea inline autoguardable */
 .paso-inline {
   width: 100%; resize: vertical; min-height: 40px; font: inherit; font-size: 13.5px; line-height: 1.5;

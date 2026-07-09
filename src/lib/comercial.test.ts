@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  nuevoComercial, avanzarEstado, pasoHabilitado, pasosVisibles, escenasAPrompts,
-  type Escena, type Cast,
+  nuevoComercial, avanzarEstado, pasoHabilitado, pasosVisibles, escenasAPrompts, packProgress,
+  type Escena, type Cast, type PackFlow,
 } from './comercial';
 
 describe('pasosVisibles', () => {
@@ -118,5 +118,22 @@ describe('escenasAPrompts', () => {
   it('tolera storyboard/cast vacíos o indefinidos', () => {
     expect(escenasAPrompts(undefined, undefined).ok).toBe(true);
     expect(escenasAPrompts([escena(1, ['p1'])], undefined).ok).toBe(false);
+  });
+});
+
+describe('packProgress', () => {
+  const pack = (estados: PackFlow['clips'][number]['estado'][]): PackFlow => ({
+    master: 'm',
+    clips: estados.map((estado, i) => ({ escenaN: i + 1, prompt: 'p', estado })),
+  });
+
+  it('cuenta copiados (no pendientes) e importados sobre el total', () => {
+    const r = packProgress(pack(['pendiente', 'copiado', 'importado', 'importado']));
+    expect(r).toEqual({ total: 4, copiados: 3, importados: 2 });
+  });
+
+  it('pack indefinido/vacío da todo en cero', () => {
+    expect(packProgress(undefined)).toEqual({ total: 0, copiados: 0, importados: 0 });
+    expect(packProgress(pack([]))).toEqual({ total: 0, copiados: 0, importados: 0 });
   });
 });

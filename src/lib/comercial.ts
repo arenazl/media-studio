@@ -179,3 +179,13 @@ export function escenasAPrompts(
   }
   return { ok: faltantes.length === 0, faltantes };
 }
+
+// Progreso del Pack Flow: clips copiados (o importados) e importados sobre el total.
+export function packProgress(pack: PackFlow | undefined): { total: number; copiados: number; importados: number } {
+  const clips = pack?.clips ?? [];
+  return {
+    total: clips.length,
+    copiados: clips.filter((c) => c.estado !== 'pendiente').length,
+    importados: clips.filter((c) => c.estado === 'importado').length,
+  };
+}
