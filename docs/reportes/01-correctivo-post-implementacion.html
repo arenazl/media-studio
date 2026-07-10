@@ -52,7 +52,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;paddi
   <svg class="ic" style="width:28px;height:28px;stroke:var(--accent)" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z"/></svg>
   Media Studio — Correctivo post-implementación
 </h1>
-<div class="sub">Cierre del rework <code>docs/07-rework</code> · 11 WOs (C1–C11) + test integral + ejemplo Munify end-to-end · ejecutado por Opus · 2026-07-10</div>
+<div class="sub">Cierre del rework <code>docs/07-rework</code> · 11 WOs (C1–C11) + test integral + ejemplo Munify + chequeo de arbitraje (Fable) y 2 fixes · Opus · 2026-07-10</div>
 
 <section>
   <h2><span class="num">0</span> Resumen ejecutivo</h2>
@@ -175,8 +175,44 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;paddi
   </div>
 </section>
 
+<section>
+  <h2><span class="num">6</span> Chequeo de arbitraje (Fable) + fixes post-review</h2>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Fable revisó C1–C11 como árbitro de solo-lectura (no codea). Cada hallazgo se <b>re-verificó</b> antes de actuar — no se tomó por default.</p>
+  <div class="grid g3">
+    <div class="card"><div class="label">Veredicto Fable</div><div class="val amber">1 crítico</div><div class="hint">+ 1 alto · 3 medios · 6 bajos</div></div>
+    <div class="card"><div class="label">Crítico verificado y</div><div class="val green">corregido</div><div class="hint">commit 6b3fd0b</div></div>
+    <div class="card"><div class="label">"Alto" (npm test)</div><div class="val accent">mal atribuido</div><div class="hint">era entorno, no el código</div></div>
+  </div>
+  <div class="callout red">
+    <b>CRÍTICO (real) — grabar la voz pisaba el comercial del pipeline.</b> <code>persistVoice</code>/<code>grabarReel</code>
+    (<code>App.tsx</code>) escribían los reels desde el estado stale de React, que no ve los writes del Pipeline;
+    con <code>saveProject</code> reemplazando reels, grabar la voz tras armar el comercial en la misma sesión lo
+    <b>borraba</b> (localStorage + server). <b>Fix (6b3fd0b):</b> read-modify-write sobre el proyecto fresco de
+    localStorage (<code>getProject</code>) + rehidratar al cambiar de sección. Verificado: tsc + 174 tests verdes.
+  </div>
+  <div class="callout green">
+    <b>MEDIO (real, estaba dormido) — escaping del apóstrofe en <code>drawtext</code>.</b> <code>escDrawText</code> escapaba
+    <code>'</code> como <code>\'</code>, que ffmpeg no acepta dentro de <code>text='…'</code> → un apóstrofe rompía el
+    export. <b>Fix (b07f341):</b> patrón <code>'\''</code>. Verificado con ffmpeg real: <code>it's</code>, <code>50%</code>
+    y <code>: , [ ]</code> generan sin error.
+  </div>
+  <div class="callout accent">
+    <b>El "ALTO" de Fable no era del código.</b> Reportó <code>npm test</code> roto por node 22.5.1 &lt; 22.12. Pero la
+    suite pasa <b>174/174</b> con <code>--pool=vmThreads</code> y este mismo node la corrió verde 5 veces; el fallo era
+    <b>saturación de procesos</b> (19 node vivos, workers zombie de las corridas) agotando el pool default en Windows.
+    Ejemplo de por qué los hallazgos de un árbitro se verifican, no se copian.
+  </div>
+  <div class="callout">
+    <b>Deuda anotada (no bloqueante).</b> La causa raíz del crítico es un <b>multi-writer sin fuente única</b> (App,
+    Pipeline y Wizard escriben reels con bases distintas); el fix mínimo cierra el vector actual, pero una fuente única
+    (App dueño + <code>onChange</code> del Pipeline) sería lo de fondo. Además: <code>logoUrl</code> fantasma
+    (<code>logoSvg</code>) en el reel animado (preexistente, otra fase); y el gate <code>npm test</code> conviene
+    fijarlo con pin de node o <code>pool: vmThreads</code> en la config.
+  </div>
+</section>
+
 <footer>
-  Media Studio · rework <code>docs/07-rework</code> · reporte de cierre generado por Opus · 2026-07-10 · datos medidos contra el sistema vivo
+  Media Studio · rework <code>docs/07-rework</code> · reporte de cierre + chequeo de arbitraje (Fable) · Opus · 2026-07-10 · datos medidos contra el sistema vivo
 </footer>
 
 </body>
