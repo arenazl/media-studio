@@ -33,7 +33,13 @@ export default function Pipeline({ project: initial }: { project: Project }) {
     if (!reel) return;
     const base = reel.comercial ?? nuevoComercial(reel.angulo || reel.nombre || 'Comercial', 'filmado');
     const next = updater(base);
-    const reels = project.reels.map((r) => (r.id === reel.id ? { ...r, comercial: next } : r));
+    // Sincroniza el guion legacy (reel.guion) con las narraciones del guion nuevo → la tab Audio
+    // (VoiceStudio) ve el guion del comercial sin tocar su contrato. Cualquier cambio del guion
+    // (generar, editar, regenerar bloque) pasa por acá, así siempre queda en sync.
+    const narraciones = next.guion?.blocks?.map((b) => b.narration).filter(Boolean);
+    const reels = project.reels.map((r) => (r.id === reel.id
+      ? { ...r, comercial: next, ...(narraciones?.length ? { guion: narraciones, frases: narraciones.length } : {}) }
+      : r));
     setProject(saveProject({ id: project.id, name: project.name, reels }));
   };
 
