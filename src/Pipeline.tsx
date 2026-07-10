@@ -2,7 +2,7 @@
 // PROCESO. Selector de comercial (los reels del proyecto) + stepper de pasos + la pantalla del
 // paso activo. TODO lo generado/editado se persiste al instante (saveProject = localStorage +
 // dual-write al server). Los pasos pack/render/rodaje/montaje/publicar llegan en fases 3-5.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PipelineStepper from './PipelineStepper';
 import ProjectInfo from './ProjectInfo';
 import PasoConcepto from './pasos/PasoConcepto';
@@ -24,32 +24,70 @@ export default function Pipeline({ project: initial }: { project: Project }) {
   const [reelId, setReelId] = useState<string>(initial.reels[0]?.id || '');
   const [activePaso, setActivePaso] = useState<PasoId>('concepto');
 
+  // Persistencia DEBOUNCED: el estado en memoria (setProject) es instantáneo; el write a disco/servidor
+  // (saveProject = localStorage + dual-write) se agenda con trailing 500ms — tipear 50 chars = 1 POST,
+  // no 50. `projectRef` es el último proyecto en memoria (fuente del flush). Flush obligatorio en
+  // unmount y antes de navegar (cambiar de paso/reel, Aprobar) para no perder lo pendiente.
+  const projectRef = useRef<Project>(initial);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // persiste YA lo último en memoria. `syncState`=true refresca el estado con el updated_at que genera
+  // saveProject (flush en vivo); en el unmount va false (no se puede setState desmontado).
+  const persist = (syncState: boolean) => {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    const p = projectRef.current;
+    const saved = saveProject({ id: p.id, name: p.name, reels: p.reels });
+    projectRef.current = saved;
+    if (syncState) setProject(saved);
+  };
+  const scheduleSave = () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => persist(true), 500);
+  };
+  // aplica el cambio en memoria (UI instantánea) y agenda la persistencia debounced.
+  const applyProject = (next: Project) => { projectRef.current = next; setProject(next); scheduleSave(); };
+  const flush = () => persist(true);   // flush en vivo (navegación / botones)
+
+  // unmount (cambio de sección/proyecto): persistir lo pendiente. No usa `persist` (evita setState
+  // desmontado y deps de efecto); saveProject sobre el último proyecto en memoria.
+  useEffect(() => () => {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    const p = projectRef.current;
+    saveProject({ id: p.id, name: p.name, reels: p.reels });
+  }, []);
+
   const reel = project.reels.find((r) => r.id === reelId) || project.reels[0];
   const comercial = reel?.comercial;
   const tipo = comercial?.tipo ?? 'filmado';
 
-  // apply: crea el comercial si el reel no tenía, aplica el cambio y PERSISTE (dual-write).
+  // apply: crea el comercial si el reel no tenía, aplica el cambio EN MEMORIA (persistencia debounced).
   const setComercial = (updater: (c: Comercial) => Comercial) => {
-    if (!reel) return;
-    const base = reel.comercial ?? nuevoComercial(reel.angulo || reel.nombre || 'Comercial', 'filmado');
+    const cur = projectRef.current;
+    const rl = cur.reels.find((r) => r.id === reelId) || cur.reels[0];
+    if (!rl) return;
+    const base = rl.comercial ?? nuevoComercial(rl.angulo || rl.nombre || 'Comercial', 'filmado');
     const next = updater(base);
     // Sincroniza el guion legacy (reel.guion) con las narraciones del guion nuevo → la tab Audio
     // (VoiceStudio) ve el guion del comercial sin tocar su contrato. Cualquier cambio del guion
     // (generar, editar, regenerar bloque) pasa por acá, así siempre queda en sync.
     const narraciones = next.guion?.blocks?.map((b) => b.narration).filter(Boolean);
-    const reels = project.reels.map((r) => (r.id === reel.id
+    const reels = cur.reels.map((r) => (r.id === rl.id
       ? { ...r, comercial: next, ...(narraciones?.length ? { guion: narraciones, frases: narraciones.length } : {}) }
       : r));
-    setProject(saveProject({ id: project.id, name: project.name, reels }));
+    applyProject({ ...cur, reels });
   };
 
-  // Aprobar y seguir: marca el paso actual 'aprobado' y avanza al siguiente visible.
+  // Aprobar y seguir: marca el paso actual 'aprobado', PERSISTE inmediato (flush) y avanza.
   const goNext = () => {
     const vis = pasosVisibles(tipo);
     const i = vis.indexOf(activePaso);
     setComercial((c) => ({ ...c, estados: { ...c.estados, [activePaso]: 'aprobado' } }));
+    flush();
     if (i >= 0 && i < vis.length - 1) setActivePaso(vis[i + 1]);
   };
+  // navegar (cambiar de paso / de comercial): flush de lo pendiente antes de moverse.
+  const pickPaso = (p: PasoId) => { flush(); setActivePaso(p); };
+  const pickReel = (id: string) => { flush(); setReelId(id); };
 
   const pasoProps: PasoProps = { project, reelId: reel?.id || '', comercial, setComercial, goNext };
 
@@ -75,7 +113,7 @@ export default function Pipeline({ project: initial }: { project: Project }) {
       {project.reels.length > 1 && (
         <div className="pipe-comerciales">
           {project.reels.map((r) => (
-            <button key={r.id} className={r.id === reel?.id ? 'pipe-com pipe-com--on' : 'pipe-com'} onClick={() => setReelId(r.id)}>
+            <button key={r.id} className={r.id === reel?.id ? 'pipe-com pipe-com--on' : 'pipe-com'} onClick={() => pickReel(r.id)}>
               <span className="pipe-com-name">{r.nombre || r.angulo || 'Comercial'}</span>
               {r.comercial && <span className={`pipe-com-tipo pipe-com-tipo--${r.comercial.tipo}`}>{r.comercial.tipo}</span>}
             </button>
@@ -83,7 +121,7 @@ export default function Pipeline({ project: initial }: { project: Project }) {
         </div>
       )}
 
-      <PipelineStepper tipo={tipo} estados={comercial?.estados} activePaso={activePaso} onPick={setActivePaso} />
+      <PipelineStepper tipo={tipo} estados={comercial?.estados} activePaso={activePaso} onPick={pickPaso} />
 
       {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
     </div>
