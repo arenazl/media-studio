@@ -1,4 +1,4 @@
-// Biblioteca de videos en Cloudinary — fuente compartida (VideosTab + MontajeTab).
+// Biblioteca de videos en Cloudinary — fuente compartida (VideosTab).
 // Mergea el manifest estático (/cloud-videos.json, se ve sin backend) con el
 // backend dinámico (/api/cloud-videos, uploads nuevos), dedup por URL, ordenado
 // por fecha desc.

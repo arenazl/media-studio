@@ -12,7 +12,7 @@
 //   POST   /api/cloud-videos/upload       → sube a Cloudinary, persiste en DB
 //   DELETE /api/cloud-videos/<id>         → elimina de Cloudinary + DB
 //   POST   /api/classify-video            → clasifica un video por tipo (Gemini Vision)
-//   POST   /api/render                     → arma el mp4 del montaje (ffmpeg)
+//   POST   /api/render                     → [DEPRECATED] mp4 del montaje viejo (usar /api/render-comercial o /api/mockup-reel)
 //   GET    /api/projects                  → lista proyectos SQLite
 //   POST   /api/projects                  → crear proyecto
 //   GET    /api/projects/<id>             → detalle con data JSON
@@ -577,7 +577,9 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { tags });
     }
 
-    // ── render del montaje a mp4 (ffmpeg) ─────────────────────────────────────
+    // ── [DEPRECATED] render del montaje a mp4 (ffmpeg) ────────────────────────
+    // El pipeline del rework NO lo usa: montaje filmado → /api/render-comercial · reel animado → /api/mockup-reel.
+    // Queda montado por compatibilidad (bytes efímeros, sin persistir); no construir nada nuevo sobre él.
     if (p === '/api/render' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
       const mp4 = await renderMp4(body);

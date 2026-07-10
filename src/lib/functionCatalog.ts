@@ -86,35 +86,6 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     ],
   },
   {
-    id: 'mockup',
-    label: 'Mockups',
-    icon: 'MonitorSmartphone',
-    level: 'piece',
-    description: 'Arma los planos a partir de las pantallas reales del producto.',
-    model: 'sonnet',
-    options: [
-      { id: 'pantalla', label: 'Pantalla', type: 'screens' },
-      {
-        id: 'encuadre', label: 'Encuadre', type: 'choice', default: 'device',
-        choices: [c('device', 'En el celular'), c('full', 'Pantalla completa'), c('detalle', 'Detalle / zoom')],
-      },
-    ],
-  },
-  {
-    id: 'veo',
-    label: 'Prompts Veo',
-    icon: 'Clapperboard',
-    level: 'piece',
-    description: 'Genera los prompts de video b-roll / talking head para Veo 3 (Flow).',
-    model: 'sonnet',
-    options: [
-      {
-        id: 'tipo', label: 'Tipo de plano', type: 'choice', default: 'mixto',
-        choices: [c('talking-head', 'Presentador a cámara'), c('broll', 'B-roll'), c('mixto', 'Mixto')],
-      },
-    ],
-  },
-  {
     id: 'publish',
     label: 'Publicación',
     icon: 'Megaphone',

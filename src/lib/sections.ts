@@ -1,28 +1,27 @@
-// Secciones del proyecto, en ORDEN DE USO (insumos → armado): Audio · Prompts ·
-// Videos · Editor. El Editor es el integrador (default al abrir). Antes esto vivía en
-// Sidebar; ahora la navegación es una topbar y la lógica vive acá (neutral).
-import { Mic, Wand2, Video, Clapperboard, Building2, Workflow } from 'lucide-react';
+// Secciones del proyecto, en ORDEN DE USO (insumos → armado): Audio · Videos · Editor.
+// El Editor es el integrador (default al abrir). Antes esto vivía en Sidebar; ahora la
+// navegación es una topbar y la lógica vive acá (neutral).
+import { Mic, Video, Clapperboard, Building2, Workflow } from 'lucide-react';
 import type { Project } from './projects';
 import type { ContentType } from '../NewProjectWizard';
 
 // 'pipeline' = el PROCESO de producción del comercial (rework, Fase 2): el camino principal.
-// Las demás (audio/prompts/videos/editor) quedan como herramientas hasta que las absorba el pipeline.
-export type Section = 'pipeline' | 'negocio' | 'audio' | 'prompts' | 'videos' | 'editor';
+// Las demás (audio/videos/editor) quedan como herramientas hasta que las absorba el pipeline.
+export type Section = 'pipeline' | 'negocio' | 'audio' | 'videos' | 'editor';
 
 export const ALL_SECTIONS: { id: Section; label: string; Icon: typeof Mic }[] = [
   { id: 'pipeline', label: 'Comercial', Icon: Workflow },
   { id: 'negocio', label: 'Negocio', Icon: Building2 },
   { id: 'audio',   label: 'Audio',   Icon: Mic },
-  { id: 'prompts', label: 'Prompts', Icon: Wand2 },
   { id: 'videos',  label: 'Videos',  Icon: Video },
   { id: 'editor',  label: 'Editor',  Icon: Clapperboard },
 ];
 
 const LAYOUT: Record<ContentType, Section[]> = {
-  reels:     ['pipeline', 'negocio', 'audio', 'prompts', 'videos', 'editor'],
-  video:     ['pipeline', 'negocio', 'audio', 'videos', 'prompts', 'editor'],
+  reels:     ['pipeline', 'negocio', 'audio', 'videos', 'editor'],
+  video:     ['pipeline', 'negocio', 'audio', 'videos', 'editor'],
   audio:     ['negocio', 'audio'],
-  combinado: ['pipeline', 'negocio', 'audio', 'prompts', 'videos', 'editor'],
+  combinado: ['pipeline', 'negocio', 'audio', 'videos', 'editor'],
 };
 
 export function sectionsFor(p: Project | null) {

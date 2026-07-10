@@ -44,57 +44,6 @@ const VEO_RULES = `REGLAS DE CADA prompt (battle-tested; van en INGLES salvo el 
 - B-roll: "No spoken dialogue, ambient sound only" y "one single continuous take, same background, no cut". Si se ve una pantalla de app: "screen not clearly legible".
 - Sin texto en pantalla dentro del prompt (el overlay se agrega en edicion).`;
 
-const VEO_OUTPUT = `Devolvé SOLO este JSON (sin texto ni markdown alrededor):
-{
-  "clips": [
-    { "id": "clip-1", "role": "hook", "tStart": 0, "tEnd": 8, "durationSec": 8, "label": "que se ve, 1 linea en español", "prompt": "el prompt COMPLETO para Flow (segun las reglas, talking head de 8s con frase entera)" }
-  ],
-  "music": { "mood": "mood de la musica, 1 frase" },
-  "narration": ["3 variantes de voz en off para el medio, ~30 palabras c/u, rioplatense, sin emojis, una sola idea"]
-}`;
-
-function veoFocus(tipo) {
-  if (tipo === 'talking-head') return 'Priorizá planos de la persona hablando; el b-roll es secundario.';
-  if (tipo === 'broll') return 'Priorizá b-roll; minimo el hook y el cierre con la persona a camara.';
-  return 'Mezclá talking head (hook + cierre) con b-roll en el medio.';
-}
-
-function veoSequencePrompt({ name, phonetic, durationSec, tipo, guion, screens, brief }) {
-  return `Sos un director de reels verticales 9:16 que escribe prompts para Google Flow (modelo Veo 3).
-Armá la SECUENCIA de clips de un "human reel" de ${durationSec}s para el negocio de abajo.
-
-FORMATO: persona a camara (HOOK que roba la atencion Y comenta el producto) -> b-roll en secuencia con voz en off -> CIERRE con la MISMA persona (remate). Flow/Veo genera clips de hasta 8s. El HOOK y el CIERRE (talking head) duran 8s CADA UNO — MINIMO 8s, es lo que tarda en decirse una frase entera del producto; NUNCA los recortes por debajo. El b-roll del medio, 4-8s por clip. Sumá lo que haga falta (la duracion total puede pasar de ${durationSec}s antes que recortar el talking head). Encuadre de plano: ${veoFocus(tipo)}
-
-${VEO_RULES}
-
-NEGOCIO: ${name}
-MARCA FONETICA (como la lee el TTS/Veo, NUNCA escribas el nombre de marca en el dialogo, usá esto): ${phonetic}
-GUION DE LA PIEZA (de aca sale el hook, el arco y la frase de cierre): ${guion}
-PANTALLAS DISPONIBLES (para los planos de la app): ${screens || '(sin pantallas)'}
-BRIEF (contexto del negocio): ${brief || '(sin brief)'}
-
-${VEO_OUTPUT}
-Reglas duras: español rioplatense, sin emojis, NO inventes datos/numeros/precios como reales.
-IMPORTANTE: las reglas y ejemplos son DISPARADORES, no un molde a copiar. Generá una VARIANTE propia y DISTINTA (otra persona, otro encuadre dentro de las reglas, otra locacion del rubro, otra frase de venta). Si te piden regenerar, devolvé algo CLARAMENTE diferente a lo anterior.`;
-}
-
-function veoRegenClipPrompt({ name, phonetic, tipo, sequence, clipId }) {
-  const clip = (sequence?.clips || []).find((c) => c.id === clipId) || {};
-  const isHead = clip.role === 'hook' || clip.role === 'close';
-  const dur = isHead ? Math.max(8, Number(clip.durationSec) || 8) : (Number(clip.durationSec) || 4);
-  const tStart = Number(clip.tStart) || 0;
-  return `Sos un director de reels 9:16 (Flow / Veo 3). Te paso una secuencia ya hecha y UN clip a REHACER.
-Devolvé SOLO ese clip como JSON: { "id": "${clipId}", "role": "${clip.role || 'broll'}", "tStart": ${tStart}, "tEnd": ${tStart + dur}, "durationSec": ${dur}, "label": "...", "prompt": "..." }
-${isHead ? 'Es un TALKING HEAD: dura 8s MINIMO (nunca menos) y la persona dice una frase ENTERA de ~24-30 palabras que comenta el producto. ' : ''}Mantené su ROL, pero proponé algo DISTINTO (otra idea visual) que siga encajando en la secuencia. Encuadre: ${veoFocus(tipo)}
-
-${VEO_RULES}
-
-NEGOCIO: ${name} · MARCA FONETICA: ${phonetic}
-SECUENCIA ACTUAL (para que el nuevo clip pegue con los demas): ${JSON.stringify(sequence?.clips || [])}
-CLIP A REHACER: ${clipId}
-Reglas: español rioplatense, sin emojis. Devolvé SOLO el JSON del clip, nada mas.`;
-}
-
 // extrae del context los campos comunes que usan los moldes (project + piece).
 function ctx(context) {
   const project = (context && context.project) || {};
@@ -165,31 +114,6 @@ function verificarConsistenciaFlowpack(clips, storyboard, cast) {
 }
 
 const RUNNERS = {
-  veo: {
-    build({ context = {}, options = {}, regenerate }) {
-      const project = context.project || {};
-      const piece = context.piece || {};
-      const name = project.name || 'el producto';
-      const phonetic = project.phonetic || name;
-      const durationSec = Number(piece.durationSec) || 17;
-      const tipo = options.tipo || 'mixto';
-      const guion = Array.isArray(piece.guion) && piece.guion.length ? piece.guion.join(' · ') : '(usá el brief para inferir el arco)';
-      const screens = Array.isArray(project.screens) ? project.screens.map((s) => s.label || s).join(', ') : '';
-      const brief = (project.brief || '').slice(0, 2500);
-
-      if (regenerate && regenerate.clipId && regenerate.sequence) {
-        return { prompt: veoRegenClipPrompt({ name, phonetic, tipo, sequence: regenerate.sequence, clipId: regenerate.clipId }), mode: 'clip' };
-      }
-      return { prompt: veoSequencePrompt({ name, phonetic, durationSec, tipo, guion, screens, brief }), mode: 'sequence' };
-    },
-    parse(text) {
-      const obj = extractJson(text);
-      // regenerar-clip devuelve el clip suelto; secuencia devuelve { clips, ... }
-      if (obj && obj.prompt && obj.id && !obj.clips) return { clip: obj };
-      if (!Array.isArray(obj.clips) || !obj.clips.length) throw new Error('la secuencia no trajo clips');
-      return obj;
-    },
-  },
 
   // ── ESTRATEGIA (nivel proyecto) — del brief: posicionamiento + público + plan de piezas ──
   strategy: {
@@ -247,34 +171,6 @@ No inventes precios/cifras/integraciones como reales. Es GLOBAL: cuenta TODO el 
       const o = extractJson(text);
       if (o && o.narration && !Array.isArray(o.blocks)) return { item: o };
       if (!Array.isArray(o.blocks) || !o.blocks.length) throw new Error('el guion no trajo bloques');
-      return o;
-    },
-  },
-
-  // ── MOCKUPS (nivel pieza) — planos a partir de las pantallas reales del producto ──
-  mockup: {
-    build({ context, options = {}, regenerate }) {
-      const x = ctx(context);
-      if (regenerate && regenerate.index != null) {
-        const cur = (regenerate.slides || [])[regenerate.index] || {};
-        return { mode: 'item', prompt: `Actuás como mockup-designer. Rehacé SOLO ESTE slide con una propuesta DISTINTA (otro encuadre, highlight o copy), para un reel 9:16.
-Devolvé SOLO el JSON del slide: { "screen": "qué pantalla", "framing": "device|full|detalle", "highlight": "qué se resalta", "copy": "<=5 palabras", "motion": "la micro-animación" }
-PANTALLAS DISPONIBLES: ${x.screens}
-SLIDE ACTUAL (hacelo claramente distinto): ${JSON.stringify(cur)}
-Español rioplatense, sin emojis.` };
-      }
-      return { mode: 'set', prompt: `Actuás como mockup-designer. Armá los PLANOS (slides) de la pieza usando las pantallas reales del producto, para un reel 9:16.
-Cada slide: una pantalla, un encuadre, UN highlight (no sobrecargar), copy corto y una micro-animación.
-Encuadre pedido por defecto: ${options.encuadre || 'device'} (device = en el celular · full = pantalla completa · detalle = zoom a una parte).${options.pantalla ? ` Priorizá la pantalla: ${options.pantalla}.` : ''}
-Devolvé SOLO JSON: { "slides": [{ "screen": "qué pantalla", "framing": "device|full|detalle", "highlight": "qué se resalta", "copy": "<=5 palabras", "motion": "la micro-animación" }] }
-PANTALLAS DISPONIBLES: ${x.screens || '(sin pantallas en el KB: proponé pantallas recreadas y marcalas [demo])'}
-GUION DE LA PIEZA: ${x.guion || x.brief}
-Español rioplatense, sin emojis.` };
-    },
-    parse(text) {
-      const o = extractJson(text);
-      if (o && (o.screen || o.framing || o.copy) && !Array.isArray(o.slides)) return { item: o };
-      if (!Array.isArray(o.slides)) throw new Error('no trajo slides');
       return o;
     },
   },

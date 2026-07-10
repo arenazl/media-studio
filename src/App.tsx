@@ -6,7 +6,6 @@ import ProjectInfo from './ProjectInfo';
 import { Sparkles } from 'lucide-react';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
-import GuidedPanel from './GuidedPanel';
 import Pipeline from './Pipeline';
 import Topbar from './Topbar';
 import ProjectsABM from './ProjectsABM';
@@ -156,6 +155,5 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
     />
   );
   if (section === 'videos') return <VideosTab />;
-  if (section === 'prompts') return <GuidedPanel project={project} />;
   return <ReelTab key={project.id} project={project} audioByReel={audioByReel} />;   // 'editor' (integrador, default)
 }

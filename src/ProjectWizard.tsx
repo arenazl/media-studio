@@ -8,7 +8,7 @@ import { API_BASE } from './config';
 import { getFunction } from './lib/functionCatalog';
 import { saveProject, type Project, type ProjectReel } from './lib/projects';
 import { nuevoComercial } from './lib/comercial';
-import './VeoPanel.css';
+import './ProjectWizard.css';
 
 interface Piece { id: string; objective?: string; angle?: string; durationSec?: number; creativeBrief?: string }
 interface Strategy { positioning?: string; pieces: Piece[] }
