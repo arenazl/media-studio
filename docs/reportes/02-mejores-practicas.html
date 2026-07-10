@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Mejores prácticas del pipeline</title>
+<style>
+:root{
+  --bg:#0f1419; --panel:#1a2027; --panel2:#222b34; --line:#2d3742;
+  --text:#e6edf3; --muted:#8b97a3; --accent:#4f9cf9; --accent2:#7c5cff;
+  --green:#3fb950; --amber:#d29922; --red:#f85149; --teal:#39c5bb; --gold:#d4a559;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;padding:32px 20px;max-width:1080px;margin:0 auto;font-size:15px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px;display:flex;align-items:center;gap:12px}
+h2{font-size:19px;font-weight:650;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+h2 .num{width:26px;height:26px;border-radius:7px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
+h3{font-size:14.5px;font-weight:650;margin:14px 0 6px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:20px}
+.grid{display:grid;gap:14px}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:720px){.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.card .val{font-size:19px;font-weight:700;margin-top:6px;letter-spacing:-.3px;line-height:1.3}
+.card .hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}.accent{color:var(--accent)}.teal{color:var(--teal)}.gold{color:var(--gold)}.purple{color:var(--accent2)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-ok{background:rgba(63,185,80,.15);color:var(--green)}
+.b-warn{background:rgba(210,153,34,.15);color:var(--amber)}
+.b-info{background:rgba(79,156,249,.15);color:var(--accent)}
+.b-gold{background:rgba(212,165,89,.15);color:var(--gold)}
+.callout{border-left:3px solid var(--amber);background:rgba(210,153,34,.07);padding:12px 16px;border-radius:0 8px 8px 0;font-size:13.5px;margin-top:14px}
+.callout.green{border-left-color:var(--green);background:rgba(63,185,80,.07)}
+.callout.red{border-left-color:var(--red);background:rgba(248,81,73,.07)}
+.callout.accent{border-left-color:var(--accent);background:rgba(79,156,249,.07)}
+.callout.gold{border-left-color:var(--gold);background:rgba(212,165,89,.07)}
+code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--teal);font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+ul.tips{margin:6px 0 0 18px;font-size:13.5px}
+ul.tips li{margin-bottom:7px;line-height:1.5}
+ul.tips li strong{color:var(--text)}
+.donts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+@media(max-width:720px){.donts{grid-template-columns:1fr}}
+.do,.dont{border-radius:10px;padding:13px 16px;font-size:13.5px;line-height:1.55}
+.do{background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.25)}
+.dont{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.22)}
+.do b{color:var(--green)}.dont b{color:var(--red)}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd}.card{border-color:#ddd}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg class="ic" style="width:28px;height:28px;stroke:var(--gold)" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z"/></svg>
+  Media Studio — Mejores prácticas del pipeline
+</h1>
+<div class="sub">Cómo producir un comercial con CALIDAD en cada paso — no un tutorial de botones: dónde se juega el resultado y por qué · Fable · 2026-07-10</div>
+
+<section>
+  <h2><span class="num">0</span> Las 3 ideas que gobiernan todo</h2>
+  <div class="grid g3">
+    <div class="card"><div class="label">La columna vertebral</div><div class="val gold">El storyboard manda</div><div class="hint">Todo lo de después (prompts, clips, montaje, tiempos del mp4) se deriva de las escenas. Un storyboard flojo no se arregla en el montaje.</div></div>
+    <div class="card"><div class="label">La economía del error</div><div class="val accent">Corregí temprano</div><div class="hint">Arreglar el concepto cuesta 1 regeneración; arreglarlo después del pack cuesta regenerar TODO lo de abajo. La edición barata es la de más arriba.</div></div>
+    <div class="card"><div class="label">La regla creativa central</div><div class="val green">Cada pieza cuenta TODO</div><div class="hint">Enfoque GLOBAL: cada comercial cuenta la propuesta completa del negocio con un ÁNGULO distinto. Jamás una pieza por módulo/producto.</div></div>
+  </div>
+  <div class="callout gold">
+    <b>Cómo trabaja el botón "Generar con IA":</b> en cada paso le pide al modelo que produzca ESA sección usando
+    el brief del negocio + lo aprobado en los pasos anteriores (el concepto elegido alimenta al guion; el guion al
+    cast; cast + guion al storyboard; storyboard + cast al pack). <b>La máquina propone, vos dirigís:</b> generás,
+    editás a mano, aprobás. El único paso donde la elección es 100% tuya por diseño es el CONCEPTO — el sistema
+    jamás lo auto-elige porque es EL momento de dirección creativa.
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> El flujo de un vistazo — dónde se juega la calidad en cada paso</h2>
+  <table>
+    <thead><tr><th style="width:110px">Paso</th><th>Qué produce</th><th>La decisión que define la calidad</th><th>El error típico</th></tr></thead>
+    <tbody>
+      <tr><td><b>1 Negocio</b></td><td>El brief (los hechos)</td><td>Hechos completos y honestos; marca fonética definida</td><td>Brief flojo → todo lo de abajo sale genérico</td></tr>
+      <tr><td><b>2 Concepto</b></td><td>2-3 ideas de comercial</td><td><b>Elegir vos</b> la idea + decidir filmado/animado</td><td>Elegir el primero sin comparar; conceptos parecidos sin regenerar</td></tr>
+      <tr><td><b>3 Guion</b></td><td>Bloques hook→desarrollo→remate→CTA</td><td>Leer la narración EN VOZ ALTA y ajustar</td><td>Hook tibio; remate después del CTA; narración que no entra en el tiempo</td></tr>
+      <tr><td><b>4 Cast</b></td><td>Personajes + locación (fichas exactas)</td><td>Pulir la descripción física UNA vez, con detalle quirúrgico</td><td>Descripciones vagas → el actor cambia de cara entre clips</td></tr>
+      <tr><td><b>5 Storyboard</b></td><td>Escenas numeradas con diálogo y tiempos</td><td>Diálogos que se digan en el tiempo asignado; continuidad entre escenas</td><td>Talking heads de menos de 8s; diálogo sin la marca fonética</td></tr>
+      <tr><td><b>6 Pack Flow</b></td><td>Prompt maestro + 1 prompt por clip</td><td>Respetar el ritual de pegado en Flow (abajo, §6)</td><td>Editar los prompts a mano y romper la consistencia del cast</td></tr>
+      <tr><td><b>7 Rodaje</b></td><td>Los clips importados, escena por escena</td><td>Generar 2-3 tomas por clip en Flow y elegir la mejor</td><td>Importar la primera toma; clips más cortos que la escena</td></tr>
+      <tr><td><b>8 Montaje</b></td><td>El plan de edición + el mp4</td><td>Chequear calidad (QA) ANTES de exportar; voz + música</td><td>Exportar sin pasar el QA; música que tapa el diálogo (el ducking es automático, pero elegí bien el mood)</td></tr>
+      <tr><td><b>9 Publicar</b></td><td>Caption, hashtags, CTA, hook en pantalla</td><td>La primera línea del caption ES el hook</td><td>Enterrar el CTA; hashtags genéricos</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">2</span> Negocio — el techo de calidad se fija acá</h2>
+  <p style="font-size:13.5px">El brief son <b>los hechos</b> del negocio, no marketing. Todo lo que el modelo no sepa, lo va a esquivar (bien) o inventar (mal — y el sistema le prohíbe inventar, así que un brief pobre da piezas vagas).</p>
+  <ul class="tips">
+    <li><strong>La propuesta completa como hilo:</strong> escribí explícito cómo se conectan los puntos fuertes entre sí (el "value story"). Cada reel va a contar ESE hilo.</li>
+    <li><strong>Marca fonética SIEMPRE</strong> (ej. "Munifái" para Munify): es como el TTS y los actores de Veo van a PRONUNCIAR la marca. Sin ella, la voz dice cualquier cosa.</li>
+    <li><strong>Dolores en palabras del cliente:</strong> las objeciones reales ("me da miedo que sea difícil") valen oro — el guion las usa como ganchos.</li>
+    <li><strong>Qué NO decir:</strong> si hay temas prohibidos (precios viejos, features que no salieron), listalos. El sistema los respeta.</li>
+    <li><strong>Pantallas con metadata</strong> (qué es cada una, qué componentes tiene, datos demo): son la materia prima del comercial animado.</li>
+  </ul>
+  <div class="callout red"><b>Regla dura del sistema:</b> ningún paso inventa datos, precios ni cifras como reales. Si el brief no lo dice, la pieza no lo afirma. No intentes que "quede lindo" con números truchos — es deshonesto con tu audiencia y el sistema está calibrado para negarse.</div>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Concepto — el único paso donde la elección es tuya por diseño</h2>
+  <ul class="tips">
+    <li><strong>Compará las 2-3 propuestas de verdad.</strong> Un buen concepto tiene: una SITUACIÓN concreta (no una abstracción), un formato reconocible de publicidad (la "referencia"), y un "por qué funciona" que te convence. Si las tres se parecen, <b>regenerá</b> — es una llamada barata.</li>
+    <li><strong>Filmado vs animado, acá se decide:</strong> <span class="badge b-info">filmado</span> personas, emoción, confianza — ideal para vender a decisores. <span class="badge b-gold">animado</span> las pantallas reales del producto como motion graphics — ideal para demo de funcionamiento, sin actores ni Flow.</li>
+    <li><strong>El tono y la estética que elijas acá arrastran todo:</strong> el guion hereda el tono; el pack hereda la estética (luz, paleta). Elegí pensando en el video final, no en el texto.</li>
+  </ul>
+  <div class="donts">
+    <div class="do"><b>BIEN:</b> "pantalla partida: el mismo lunes en dos municipios, uno en caos y otro ordenado" — situación concreta, contraste visible, formato conocido (los split-screen de Slack).</div>
+    <div class="dont"><b>MAL:</b> "mostrar los beneficios de la modernización municipal" — eso no es un concepto, es un tema. No se puede filmar "la modernización".</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Guion — se escribe para el OÍDO, no para leer</h2>
+  <ul class="tips">
+    <li><strong>Leé cada narración en voz alta.</strong> La narración está calibrada a ~2.7 palabras por segundo (el ritmo real del TTS). Si al leerla te quedás sin aire o suena robótica, editala — el textarea guarda solo.</li>
+    <li><strong>El hook son los primeros 2 segundos:</strong> roba la atención SIN logo y sin "somos X". Si tu hook arranca presentando la empresa, ya perdiste el scroll.</li>
+    <li><strong>El remate (gag) va SIEMPRE antes del CTA:</strong> es el momento más fuerte — el humor si el concepto es humorístico, la prueba contundente si no. Un comercial que termina en el CTA sin remate previo se olvida.</li>
+    <li><strong>Regenerá por bloque, no todo:</strong> si solo el hook está flojo, el botón de regenerar del bloque rehace SOLO ese (y sale distinto a propósito). No tires un guion entero por un bloque.</li>
+    <li><strong>El "visual" de cada bloque es la semilla del storyboard:</strong> si ya te imaginás el plano, escribilo ahí — el storyboard lo va a respetar.</li>
+  </ul>
+  <div class="callout accent"><b>La voz se graba DESPUÉS de cerrar el guion</b> (tab Audio): el guion aprobado baja automáticamente al estudio de voz. Grabá una vez, queda persistida, y el montaje la ofrece con un click ("usar la voz grabada").</div>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Cast — la clave de consistencia de TODO el sistema</h2>
+  <p style="font-size:13.5px">El problema número uno de generar video con IA es que <b>el actor cambia de cara entre clips</b>. La solución de Media Studio es mecánica: la descripción física exacta (en inglés) de cada personaje se pega <b>PALABRA POR PALABRA en todos los prompts</b>, y el sistema <b>rechaza</b> cualquier prompt donde la IA la haya resumido. Eso convierte tu ficha de personaje en un contrato.</p>
+  <ul class="tips">
+    <li><strong>Pulila UNA vez, con detalle quirúrgico:</strong> edad, corte y color de pelo, rasgos de la cara, tono de piel, contextura, vestuario completo CON colores. "Una mujer joven" no identifica a nadie; "pelo negro lacio hasta los hombros con raya al medio, piel caramelo claro, pómulos altos, sweater gris claro" sí.</li>
+    <li><strong>Vestuario según el rubro:</strong> el casting automático ya viste al personaje para tu industria — verificá que tenga sentido (un intendente en blazer, no en remera).</li>
+    <li><strong>La locación es un personaje más:</strong> su descripción exacta (ambiente, mobiliario, luz, hora del día) también va verbatim en los clips sin gente. Cuidala igual.</li>
+    <li><strong>Si cambiás el cast DESPUÉS de generar el pack → regenerá el pack.</strong> Los prompts viejos quedaron con la ficha vieja; el sistema no los va a dejar pasar, pero no pierdas tiempo: regenerá directo.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">6</span> Storyboard + Pack Flow + el ritual de Google Flow</h2>
+  <h3>Storyboard (la columna vertebral)</h3>
+  <ul class="tips">
+    <li><strong>Talking heads: 8 segundos MÍNIMO, siempre.</strong> Es lo que tarda una persona en decir una frase entera de ~24-30 palabras. El sistema corrige a 8s si la IA pone menos — no lo bajes a mano: un talking head de 4s es una frase cortada.</li>
+    <li><strong>El diálogo lleva SIEMPRE la marca fonética</strong> (jamás el nombre escrito) — así el actor de Veo la pronuncia bien.</li>
+    <li><strong>La continuidad entre escenas es tu guardia de montaje:</strong> qué debe matchear con la escena anterior (ropa, luz, posición). Cuando revises los clips generados, esa nota es tu checklist.</li>
+    <li><strong>La suma de tiempos puede pasarse del objetivo</strong> antes que recortar un talking head. Mejor un comercial de 24s bien dicho que uno de 20s con frases cortadas.</li>
+  </ul>
+  <h3>Pack Flow — pegar en Google Flow (Veo 3) con método</h3>
+  <ul class="tips">
+    <li><strong>El MASTER va primero y una sola vez:</strong> consolida estilo + personajes + locación. Los prompts por clip lo asumen — no lo saltees.</li>
+    <li><strong>Un clip por vez, 2-3 generaciones por clip, elegí la mejor.</strong> Veo es una lotería controlada: la ficha verbatim te garantiza el QUIÉN; las tomas múltiples te dan a elegir el CÓMO.</li>
+    <li><strong>No edites los prompts a mano en Flow:</strong> si querés otra idea visual para una escena, usá el botón de REGENERAR de ese clip en Media Studio — mantiene la ficha del personaje intacta (el sistema lo verifica) y te da una variante real.</li>
+    <li><strong>Clips 9:16, ~8s:</strong> bajalos y importalos en Rodaje escena por escena. El b-roll viene marcado "sin diálogo, sonido ambiente" — no elijas tomas donde alguien habla mudo.</li>
+  </ul>
+  <div class="callout"><b>Si el regenerado te devuelve un error de "la IA resumió la hoja de personaje":</b> no es un bug — es la garantía de consistencia trabajando. Reintentá: prefiere rechazarte un prompt a dejarte filmar un actor con otra cara.</div>
+</section>
+
+<section>
+  <h2><span class="num">7</span> Rodaje + Montaje — donde el material se convierte en comercial</h2>
+  <h3>Rodaje</h3>
+  <ul class="tips">
+    <li><strong>Duración real vs objetivo:</strong> el sistema te avisa si un clip quedó más corto que su escena — corta el diálogo, volvé a generar en Flow.</li>
+    <li><strong>En escenas con diálogo el audio del clip ES el audio del comercial</strong> (lip-sync incluido): elegí tomas con voz limpia. Las escenas mudas van como b-roll y el sistema las silencia.</li>
+  </ul>
+  <h3>Montaje</h3>
+  <ul class="tips">
+    <li><strong>"Armar desde el storyboard" hace el trabajo pesado solo:</strong> ordena las escenas, decide qué audio se conserva y cuál se silencia, elige música según el mood del guion, y coloca el silencio estratégico antes del remate (el "toque de dirección" que hace aterrizar el gag). Revisá, no rearmes.</li>
+    <li><strong>La voz en off:</strong> "usar la voz grabada" trae la del estudio de voz; la música baja sola debajo de la voz y de los diálogos (ducking automático). Tu única perilla fina es DÓNDE arranca la voz (el "empieza en X segundos").</li>
+    <li><strong>Chequeá calidad ANTES de exportar:</strong> el QA puntúa el comercial completo sobre 50 (rúbrica de 10 ejes: gancho, claridad, una sola idea, CTA, formato, marca, duración, ritmo, prueba, originalidad). <span class="badge b-ok">38+ = listo para producir</span> <span class="badge b-warn">menos = ajustar primero los issues de severidad alta</span>. El puntaje queda guardado.</li>
+    <li><strong>El export se bloquea si falta un clip — a propósito:</strong> exportar con escenas vacías te correría todos los tiempos. Completá el rodaje o sacá la escena del plan.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">8</span> Reglas transversales — válidas en todos los pasos</h2>
+  <table>
+    <thead><tr><th style="width:210px">Regla</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge b-gold">Global, jamás por módulo</span></td><td>Cada comercial cuenta TODA la propuesta con un ángulo distinto. Tres piezas = tres ángulos del mismo todo, no tres features. Es la regla creativa central del sistema y está inyectada en todos los moldes.</td></tr>
+      <tr><td><span class="badge b-info">Editá temprano, regenerá por ítem</span></td><td>Cada paso tiene regeneración fina (un bloque, una escena, un clip). Usá eso antes que regenerar secciones enteras, y corregí en el paso MÁS ALTO posible: lo de abajo se deriva.</td></tr>
+      <tr><td><span class="badge b-ok">Todo se guarda solo</span></td><td>Cada edición persiste automáticamente (con medio segundo de gracia mientras tipeás) en tu máquina Y en el servidor local. F5, cambiar de pantalla o de proyecto no pierde nada. Aprobar un paso lo deja fijado al instante.</td></tr>
+      <tr><td><span class="badge b-warn">Aprobar = avanzar con intención</span></td><td>El paso aprobado marca el progreso real en el riel. No aprietes "listo" para sacarte el paso de encima: lo que apruebes es lo que los pasos siguientes toman como verdad.</td></tr>
+      <tr><td><span class="badge b-info">El proyecto ejemplo es tu referencia</span></td><td><code>Munify — ejemplo pipeline</code> tiene los 6 primeros pasos completos generados con el flujo real (concepto de pantalla partida, cast con fichas verbatim, pack de 4 clips). Cuando dudes de "cómo se ve un buen X", miralo ahí.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">9</span> Referencias (dónde profundizar)</h2>
+  <table>
+    <thead><tr><th style="width:280px">Documento</th><th>Qué tiene</th></tr></thead>
+    <tbody>
+      <tr><td><code>docs/07-rework/01-vision-y-pipeline.md</code></td><td>La visión completa del pipeline, los tipos de datos y las reglas de cada paso.</td></tr>
+      <tr><td><code>docs/06-video-referencia-stotyboard/</code></td><td>El workflow de referencia del que sale el método (storyboard-driven, silencio antes del gag).</td></tr>
+      <tr><td>PLAYBOOK Veo / Flow (base compartida)</td><td>Fuente única del prompting para Veo 3: talking heads, b-roll, gotchas de generación.</td></tr>
+      <tr><td><code>docs/reportes/01-correctivo-post-implementacion.html</code></td><td>El estado técnico real del sistema: qué se corrigió, qué se verificó y la deuda conocida.</td></tr>
+      <tr><td><code>docs/08-rework-ui/01-rework-visual.md</code></td><td>La spec del rediseño visual pendiente (consola de estudio) — el botón "horrendo" tiene su destino escrito ahí.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  Media Studio · mejores prácticas del pipeline de producción · reporte 02 · Fable · 2026-07-10
+</footer>
+
+</body>
+</html>

@@ -136,12 +136,12 @@ vista en un monitor común (el problema actual: superficies a 3% de delta que de
 | **UI-2** | PasoShell (patrón único) + Concepto + Guion | `pasoKit.tsx`, `PasoConcepto`, `PasoGuion`, CSS de pasos |
 | **UI-3** | Cast + Storyboard | `PasoCast`, `PasoStoryboard` |
 | **UI-4** | Pack Flow + Rodaje | `PasoPack`, `PasoRodaje` |
-| **UI-5** | Montaje + Publicar + pasada Home/ABM/Wizard + **reporte visual de cierre** (estándar `14-REPORTES-VISUALES.md`: antes/después por pantalla con las capturas) en `docs/reportes/02-rework-ui.html` (+PDF) | `PasoMontaje`, `PasoPublicar`, `ProjectsABM`, `ProjectWizard.css`, reporte |
+| **UI-5** | Montaje + Publicar + pasada Home/ABM/Wizard + **reporte visual de cierre** (estándar `14-REPORTES-VISUALES.md`: antes/después por pantalla con las capturas) en `docs/reportes/03-rework-ui.html` (+PDF; el 02 es el de mejores prácticas) | `PasoMontaje`, `PasoPublicar`, `ProjectsABM`, `ProjectWizard.css`, reporte |
 
 ## 8. Verificación final (después de UI-5)
 
 1. Suite completa verde + build sin warnings (salida completa) + stylelint verde.
 2. Recorrido Playwright del pipeline entero con el proyecto `munify-ejemplo` a 1440 y 3440:
    captura por paso, 0 errores de consola, columna centrada, tarjetas visibles.
-3. El reporte 02 con el antes/después queda generado y commiteado — es el gate del dueño: él mira
+3. El reporte 03 con el antes/después queda generado y commiteado — es el gate del dueño: él mira
    las capturas y decide si la vara se cumplió.
