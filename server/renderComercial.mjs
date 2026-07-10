@@ -87,7 +87,8 @@ function resolveFont() {
   for (const f of cands) { try { if (fs.existsSync(f)) return f; } catch { /* noop */ } }
   return null;
 }
-const escDrawText = (s) => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/:/g, '\\:').replace(/%/g, '\\%');
+// El apóstrofe se cierra-escapa-reabre ('\'') — dentro de text='…' un \' NO funciona y rompe el filtergraph.
+const escDrawText = (s) => String(s).replace(/\\/g, '\\\\').replace(/'/g, "'\\''").replace(/:/g, '\\:').replace(/%/g, '\\%');
 
 export async function renderComercial(plan, { runFfmpeg, storageDir, probeDuration }) {
   // Escenas sin clip: ERROR claro, no filtrado silencioso — si se descartara una escena del medio,
