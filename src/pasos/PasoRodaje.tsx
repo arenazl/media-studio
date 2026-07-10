@@ -1,15 +1,15 @@
-// Paso 7 — RODAJE (solo filmado). Una fila por escena del storyboard: importás el clip que bajaste
+// Paso 7 — RODAJE (solo filmado). Un BIN por escena del storyboard: importás el clip que bajaste
 // de Flow → POST /api/projects/<id>/assets (server/storage, con duración real por ffprobe) → se crea
 // la Toma vinculada a la escena y el clip del pack pasa a 'importado'. Preview inline + aviso de duración.
 import { useRef, useState } from 'react';
-import { Upload, Loader2, Check } from 'lucide-react';
-import { errMsg } from './pasoKit';
+import { Upload, Loader2, Check, Video } from 'lucide-react';
+import { errMsg, PasoEmpty } from './pasoKit';
 import type { PasoProps } from './pasoKit';
 import { API_BASE } from '../config';
 import type { Toma } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
-const roleClass = (r: string) => (r === 'hook' ? 'paso-role--hook' : r === 'cta' ? 'paso-role--cta' : 'paso-role--mid');
+const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 const DUR_TOLERANCIA = 1.5;
 
 export default function PasoRodaje({ project, comercial, setComercial, goNext }: PasoProps) {
@@ -57,50 +57,67 @@ export default function PasoRodaje({ project, comercial, setComercial, goNext }:
         <span className="pack-prog">{conClip}/{escenas.length} escenas con clip</span>
       </div>
       {error && <div className="paso-error">{error}</div>}
-      <div className="paso-body">
-        {escenas.map((e) => {
-          const act = activaDe(e.n);
-          const variantes = tomasDe(e.n);
-          const warn = act && act.durSec > 0 && Math.abs(act.durSec - e.durSec) > DUR_TOLERANCIA;
-          return (
-            <article key={e.n} className="paso-scene">
-              <div className="paso-scene-h">
-                <span className="paso-scene-n">#{e.n}</span>
-                <span className={`paso-role ${roleClass(e.rol)}`}>{ROL_LABEL[e.rol] || e.rol}</span>
-                <span className="paso-t">{e.durSec}s</span>
-                <span className={`pack-estado pack-estado--${act ? 'importado' : 'pendiente'}`}>{act ? 'importado' : 'pendiente'}</span>
-                <button className="rodaje-import" onClick={() => inputs.current[e.n]?.click()} disabled={busyN === e.n}>
-                  {busyN === e.n ? <Loader2 size={13} className="paso-spin" /> : act ? <Check size={13} /> : <Upload size={13} />}
-                  {busyN === e.n ? 'Subiendo…' : act ? 'Reemplazar' : 'Importar clip'}
-                </button>
-                <input
-                  ref={(el) => { inputs.current[e.n] = el; }}
-                  type="file" accept="video/*" hidden
-                  onChange={(ev) => { const f = ev.target.files?.[0]; if (f) importar(e.n, f); ev.target.value = ''; }}
-                />
-              </div>
-              {e.dialogo && <div className="paso-block-visual">{e.dialogo}</div>}
-              {act && <video className="rodaje-video" src={`${API_BASE}/api/storage/${act.fileRef}`} controls playsInline preload="metadata" />}
-              {act && act.durSec > 0 && (
-                <div className={warn ? 'rodaje-dur rodaje-dur--warn' : 'rodaje-dur'}>
-                  clip: {act.durSec.toFixed(1)}s{warn ? ` — la escena pide ${e.durSec}s (se ajusta en el montaje o regenerá en Flow)` : ''}
-                </div>
-              )}
-              {variantes.length > 1 && (
-                <div className="rodaje-variantes">
-                  {variantes.length} tomas:
-                  {variantes.map((t, i) => (
-                    <button key={t.id} className={t.id === act?.id ? 'rodaje-var rodaje-var--on' : 'rodaje-var'} onClick={() => usarToma(t)}>
-                      toma {i + 1}{t.id === act?.id ? ' (activa)' : ''}
+      {escenas.length > 0 ? (
+        <div className="paso-body">
+          <div className="rodaje-bins">
+            {escenas.map((e) => {
+              const act = activaDe(e.n);
+              const variantes = tomasDe(e.n);
+              const warn = act && act.durSec > 0 && Math.abs(act.durSec - e.durSec) > DUR_TOLERANCIA;
+              return (
+                <article key={e.n} className={`rodaje-bin${act ? ' rodaje-bin--filled' : ''}`}>
+                  <div className="rodaje-bin-top">
+                    <span className="rodaje-bin-n">#{e.n}</span>
+                    <span className={`paso-role paso-role--${roleKind(e.rol)}`}>{ROL_LABEL[e.rol] || e.rol}</span>
+                    <span className="paso-t">{e.durSec}s</span>
+                    <span className={`pack-estado pack-estado--${act ? 'importado' : 'pendiente'}`}>{act ? 'importado' : 'pendiente'}</span>
+                  </div>
+
+                  {act ? (
+                    <>
+                      <video className="rodaje-video rodaje-bin-video" src={`${API_BASE}/api/storage/${act.fileRef}`} controls playsInline preload="metadata" />
+                      {act.durSec > 0 && (
+                        <div className={warn ? 'rodaje-dur rodaje-dur--warn' : 'rodaje-dur'}>
+                          clip {act.durSec.toFixed(1)}s{warn ? ` · la escena pide ${e.durSec}s` : ''}
+                        </div>
+                      )}
+                      <button className="rodaje-import rodaje-bin-replace" onClick={() => inputs.current[e.n]?.click()} disabled={busyN === e.n}>
+                        {busyN === e.n ? <Loader2 size={13} className="paso-spin" /> : <Check size={13} />} {busyN === e.n ? 'Subiendo…' : 'Reemplazar'}
+                      </button>
+                    </>
+                  ) : (
+                    <button className="rodaje-drop" onClick={() => inputs.current[e.n]?.click()} disabled={busyN === e.n}>
+                      {busyN === e.n ? <Loader2 size={22} className="paso-spin" /> : <Upload size={22} />}
+                      <span className="rodaje-drop-t">{busyN === e.n ? 'Subiendo…' : 'Importar clip'}</span>
+                      <span className="rodaje-drop-sub">escena #{e.n} · {e.durSec}s objetivo</span>
                     </button>
-                  ))}
-                </div>
-              )}
-            </article>
-          );
-        })}
-        {!escenas.length && <div className="paso-empty">Primero generá el storyboard y el pack.</div>}
-      </div>
+                  )}
+
+                  {e.dialogo && <div className="rodaje-bin-dlg">{e.dialogo}</div>}
+
+                  <input
+                    ref={(el) => { inputs.current[e.n] = el; }}
+                    type="file" accept="video/*" hidden
+                    onChange={(ev) => { const f = ev.target.files?.[0]; if (f) importar(e.n, f); ev.target.value = ''; }}
+                  />
+
+                  {variantes.length > 1 && (
+                    <div className="rodaje-variantes">
+                      {variantes.map((t, i) => (
+                        <button key={t.id} className={t.id === act?.id ? 'rodaje-var rodaje-var--on' : 'rodaje-var'} onClick={() => usarToma(t)}>
+                          toma {i + 1}{t.id === act?.id ? ' (activa)' : ''}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <PasoEmpty icon={Video}>Primero generá el storyboard y el pack: acá vas a importar el clip que bajaste de Flow por cada escena.</PasoEmpty>
+      )}
       <div className="paso-foot">
         <button className="paso-approve" disabled={!tomas.length} onClick={goNext}>Rodaje listo, al montaje →</button>
       </div>

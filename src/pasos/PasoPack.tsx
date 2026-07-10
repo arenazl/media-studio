@@ -2,12 +2,12 @@
 // muestra el MASTER + un prompt por escena con Copiar/Regenerar/estado, y exporta el pack a .txt.
 // Es la SALIDA 1: lo que el usuario pega a mano en Google Flow (no hay API de Flow).
 import { useState } from 'react';
-import { Copy, Check, RefreshCw, Loader2, Download, ChevronDown, ChevronRight } from 'lucide-react';
-import { PasoShell, runMolde, errMsg, type PasoProps } from './pasoKit';
+import { Copy, Check, RefreshCw, Loader2, Download, ChevronDown, ChevronRight, PackageOpen } from 'lucide-react';
+import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
 import { packProgress, type ClipFlow } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
-const roleClass = (r: string) => (r === 'hook' ? 'paso-role--hook' : r === 'cta' ? 'paso-role--cta' : 'paso-role--mid');
+const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 
 function downloadTxt(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
@@ -40,7 +40,7 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
 
-  const flash = (id: string) => { setCopied(id); setTimeout(() => setCopied(''), 1400); };
+  const flash = (id: string) => { setCopied(id); setTimeout(() => setCopied(''), 2000); };
 
   const copyMaster = async () => {
     if (!pack) return;
@@ -91,46 +91,53 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
             <button className="pack-export" onClick={exportTxt}><Download size={14} /> Exportar .txt</button>
           </div>
 
-          <div className="paso-card">
-            <button className="pack-master-h" onClick={() => setOpenMaster((o) => !o)}>
-              {openMaster ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-              <span>MASTER — estilo + personajes + locación</span>
-              <span className="paso-icon pack-copy-inline" title="Copiar master" onClick={(e) => { e.stopPropagation(); copyMaster(); }}>
-                {copied === 'master' ? <Check size={12} /> : <Copy size={12} />}
-              </span>
-            </button>
+          {/* MASTER como consola */}
+          <div className="pack-master">
+            <div className="pack-master-head">
+              <button className="pack-master-toggle" onClick={() => setOpenMaster((o) => !o)} aria-expanded={openMaster}>
+                {openMaster ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                <span className="pack-master-title">MASTER</span>
+                <span className="pack-master-sub">estilo · personajes · locación</span>
+              </button>
+              <button className="pack-master-copy" onClick={copyMaster}>
+                {copied === 'master' ? <><Check size={14} /> Copiado</> : <><Copy size={14} /> Copiar master</>}
+              </button>
+            </div>
             {openMaster && <pre className="pack-prompt">{pack.master}</pre>}
           </div>
 
-          <div className="paso-cards">
+          {/* clips como filas de pipeline */}
+          <div className="pack-clips">
             {pack.clips.map((clip) => {
               const esc = escenas.find((e) => e.n === clip.escenaN);
               const open = openClip === clip.escenaN;
               return (
-                <article key={clip.escenaN} className="paso-scene">
-                  <div className="paso-scene-h">
-                    <span className="paso-scene-n">#{clip.escenaN}</span>
-                    {esc && <span className={`paso-role ${roleClass(esc.rol)}`}>{ROL_LABEL[esc.rol] || esc.rol}</span>}
+                <div key={clip.escenaN} className={`pack-clip${open ? ' pack-clip--open' : ''}`}>
+                  <div className="pack-clip-row">
+                    <span className="pack-clip-n">#{clip.escenaN}</span>
+                    {esc && <span className={`paso-role paso-role--${roleKind(esc.rol)}`}>{ROL_LABEL[esc.rol] || esc.rol}</span>}
                     {esc && <span className="paso-t">{esc.durSec}s</span>}
                     <span className={`pack-estado pack-estado--${clip.estado}`}>{clip.estado}</span>
-                    <button className="paso-icon" title="Copiar prompt" onClick={() => copyClip(clip)}>
-                      {copied === 'c' + clip.escenaN ? <Check size={12} /> : <Copy size={12} />}
-                    </button>
-                    <button className="paso-icon" title="Regenerar (mismo personaje, otra idea visual)" disabled={busyN !== null} onClick={() => regenClip(clip.escenaN)}>
-                      {busyN === clip.escenaN ? <Loader2 size={12} className="paso-spin" /> : <RefreshCw size={12} />}
-                    </button>
-                    <button className="paso-icon" title={open ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenClip(open ? null : clip.escenaN)}>
-                      {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                    </button>
+                    <div className="pack-clip-actions">
+                      <button className="paso-icon" title="Copiar prompt" onClick={() => copyClip(clip)}>
+                        {copied === 'c' + clip.escenaN ? <Check size={13} /> : <Copy size={13} />}
+                      </button>
+                      <button className="paso-icon" title="Regenerar (mismo personaje, otra idea visual)" disabled={busyN !== null} onClick={() => regenClip(clip.escenaN)}>
+                        {busyN === clip.escenaN ? <Loader2 size={13} className="paso-spin" /> : <RefreshCw size={13} />}
+                      </button>
+                      <button className="paso-icon" title={open ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenClip(open ? null : clip.escenaN)}>
+                        {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      </button>
+                    </div>
                   </div>
                   {open && <pre className="pack-prompt">{clip.prompt}</pre>}
-                </article>
+                </div>
               );
             })}
           </div>
         </>
       ) : (
-        !busy && <div className="paso-empty">Generá el pack desde el storyboard y el cast. Cada clip lleva el personaje verbatim (consistencia garantizada por el motor).</div>
+        !busy && <PasoEmpty icon={PackageOpen}>Generá el pack desde el storyboard y el cast. Cada clip lleva el personaje verbatim: la consistencia la garantiza el motor.</PasoEmpty>
       )}
     </PasoShell>
   );

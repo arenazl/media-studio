@@ -359,6 +359,32 @@
 .pack-estado--importado { background: color-mix(in srgb, var(--st-ok) 18%, transparent); color: var(--st-ok); }
 .pack-estado + .paso-icon { margin-left: 0; }
 
+/* MASTER como consola (UI-4) */
+.pack-master { background: var(--st-bg-1); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l); overflow: hidden; box-shadow: var(--st-shadow-1); }
+.pack-master-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+.pack-master-toggle { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; background: transparent; border: none; cursor: pointer; color: var(--st-text-1); text-align: left; }
+.pack-master-title { font-family: var(--st-font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--st-gold); }
+.pack-master-sub { font-size: 11.5px; color: var(--st-text-3); }
+.pack-master-copy {
+  display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
+  padding: 8px 14px; border-radius: var(--st-r-s); cursor: pointer; font-size: 12.5px; font-weight: 700;
+  background: var(--st-bg-3); border: 1px solid var(--st-line-2); color: var(--st-text-1);
+  transition: color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease), background var(--st-dur) var(--st-ease);
+}
+.pack-master-copy:hover { border-color: var(--st-blue); background: color-mix(in srgb, var(--st-blue) 12%, transparent); }
+.pack-master .pack-prompt { margin: 0; border-radius: 0; border-inline: 0; border-bottom: 0; }
+
+/* clips como filas de pipeline (UI-4) */
+.pack-clips { display: flex; flex-direction: column; gap: 8px; }
+.pack-clip { background: var(--st-bg-2); border: 1px solid var(--st-line-1); border-radius: var(--st-r-m); box-shadow: var(--st-shadow-1); transition: border-color var(--st-dur) var(--st-ease); }
+.pack-clip:hover, .pack-clip--open { border-color: var(--st-line-2); }
+.pack-clip-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; }
+.pack-clip-n { font-family: var(--st-font-display); font-size: 18px; font-weight: 600; color: var(--st-text-1); line-height: 1; }
+.pack-clip-row .pack-estado { margin-left: 0; }
+.pack-clip-actions { margin-left: auto; display: inline-flex; gap: 6px; }
+.pack-clip-actions .paso-icon { margin-left: 0; }
+.pack-clip .pack-prompt { margin: 0 14px 14px; }
+
 /* ── rodaje ─────────────────────────────────────────────────────────────── */
 .rodaje-import {
   margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: var(--st-r-s); cursor: pointer;
@@ -379,6 +405,33 @@
 }
 .rodaje-var:hover { border-color: var(--st-line-2); color: var(--st-text-1); }
 .rodaje-var--on { border-color: color-mix(in srgb, var(--st-ok) 45%, transparent); color: var(--st-ok); }
+
+/* bins de media (UI-4) */
+.rodaje-bins { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--st-sp-4); align-items: start; }
+.rodaje-bin {
+  background: var(--st-bg-2); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l);
+  padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 11px; box-shadow: var(--st-shadow-1);
+  transition: border-color var(--st-dur) var(--st-ease);
+}
+.rodaje-bin:hover { border-color: var(--st-line-2); }
+.rodaje-bin--filled { border-color: color-mix(in srgb, var(--st-ok) 30%, var(--st-line-1)); }
+.rodaje-bin-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rodaje-bin-n { font-family: var(--st-font-display); font-size: 17px; font-weight: 600; color: var(--st-text-1); line-height: 1; }
+.rodaje-bin-top .pack-estado { margin-left: auto; }
+.rodaje-bin-video { width: 100%; max-width: 100%; max-height: 300px; }
+.rodaje-bin-replace { align-self: flex-start; margin-left: 0; }
+.rodaje-bin-dlg { font-size: 12px; color: var(--st-text-2); line-height: 1.45; }
+.rodaje-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  min-height: 132px; padding: 20px; cursor: pointer; width: 100%;
+  background: color-mix(in srgb, var(--st-blue) 4%, transparent);
+  border: 1.5px dashed var(--st-line-2); border-radius: var(--st-r-m); color: var(--st-text-3);
+  transition: color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease), background var(--st-dur) var(--st-ease);
+}
+.rodaje-drop:hover:not(:disabled) { border-color: var(--st-blue); color: var(--st-text-1); background: color-mix(in srgb, var(--st-blue) 9%, transparent); }
+.rodaje-drop:disabled { cursor: default; opacity: 0.7; }
+.rodaje-drop-t { font-size: 13px; font-weight: 700; color: var(--st-text-2); }
+.rodaje-drop-sub { font-size: 11px; color: var(--st-text-3); font-family: var(--st-font-mono); }
 
 /* ── montaje ────────────────────────────────────────────────────────────── */
 .mont-select {
