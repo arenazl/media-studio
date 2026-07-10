@@ -749,9 +749,10 @@ ${src}`;
       const folder = `${CLD_FOLDER}/${projId}`;
       const mime = tipo === 'video' ? 'video/mp4' : tipo === 'audio' ? 'audio/mpeg' : 'image/png';
       const cldRes = await saveAsset(fileBuffer, filename, folder, mime);
-      // duración REAL del clip (ffprobe) — la necesita el montaje por escenas; sin esto cae a 3s.
+      // duración REAL del clip/voz (ffprobe) — la necesita el montaje por escenas y el ducking de la
+      // voz en off; sin esto el video cae a 3s y la voz no aporta su duración al render.
       let duration_sec = null;
-      if (tipo === 'video' && cldRes.local) {
+      if ((tipo === 'video' || tipo === 'audio') && cldRes.local) {
         try { duration_sec = await probeDuration(path.join(STORAGE_DIR, cldRes.public_id)); } catch { /* noop */ }
       }
       // fileRef = public_id RELATIVO (lo que se persiste como Toma.fileRef); se sirve por /api/storage/<rel>.

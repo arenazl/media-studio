@@ -30,6 +30,7 @@ export interface VoiceConfig {
   text?: string;
   audioMode?: 'tts' | 'real';   // sintética (default) o locutor real (subido/grabado)
   segments?: AudioSegment[];    // recortes del audio real (modo 'real')
+  audioRef?: string;            // fileRef del mp3 subido al server (voz en off persistente) — lo usa el render del comercial
 }
 // Material que produce el panel de skills (promo-kit) por pieza — TODO opcional, para no
 // perder lo generado (mockups, prompts Veo, copy de publicación, QA). El editor lo usa de

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import VoiceStudio from './VoiceStudio';
 import KbInspector from './KbInspector';
 import ProjectWizard from './ProjectWizard';
@@ -13,6 +13,7 @@ import ProjectsABM from './ProjectsABM';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
 import { useProjects } from './lib/useProjects';
 import { defaultSection, type Section } from './lib/sections';
+import { API_BASE } from './config';
 import './App.css';
 
 export default function App() {
@@ -37,12 +38,58 @@ export default function App() {
       preloaded: activeProject.preloaded, reels,
     }));
   };
-  // VoiceStudio avisa cuando generó el mp3 → lo guardamos por reel (revoca el viejo).
+  // VoiceStudio avisa cuando generó el mp3 → lo guardamos por reel (revoca el viejo) y lo persistimos.
   const onAudio = (reelId: string, blob: Blob) => {
     setAudioByReel((m) => { if (m[reelId]) URL.revokeObjectURL(m[reelId]); return { ...m, [reelId]: URL.createObjectURL(blob) }; });
+    void persistVoice(reelId, blob);
+  };
+  // Sube el mp3 de la voz al server (asset del proyecto) y guarda su fileRef en el reel
+  // (voiceConfig.audioRef) — así sobrevive F5 y lo puede usar el render del comercial (voz en off).
+  const persistVoice = async (reelId: string, blob: Blob) => {
+    const proj = activeProject;
+    if (!proj) return;
+    try {
+      const fd = new FormData();
+      fd.append('file', new File([blob], `voz-${reelId}.mp3`, { type: blob.type || 'audio/mpeg' }));
+      const r = await fetch(`${API_BASE}/api/projects/${encodeURIComponent(proj.id)}/assets`, { method: 'POST', body: fd });
+      const d = await r.json();
+      if (!r.ok || !d.asset?.fileRef) return;
+      setActiveProject((prev) => {
+        if (!prev || prev.id !== proj.id) return prev;
+        const reels = prev.reels.map((rl) => {
+          if (rl.id !== reelId) return rl;
+          const base: VoiceConfig = rl.voiceConfig ?? { voice_id: '', stability: 0.4, similarity: 0.8, style: 0.5, speed: 1.0, model: 'eleven_v3' };
+          return { ...rl, voiceConfig: { ...base, audioRef: d.asset.fileRef as string } };
+        });
+        return saveProject({ id: prev.id, name: prev.name, type: prev.type, preloaded: prev.preloaded, reels });
+      });
+    } catch { /* server opcional */ }
   };
 
   const openProject = (p: Project) => { setActiveProject(p); setSection(defaultSection(p)); };
+
+  // Al abrir/cambiar de proyecto, rehidrata el cache de audio de sesión (audioByReel) desde la voz
+  // persistida de cada reel (voiceConfig.audioRef → /api/storage/<ref> → objectURL). Fija el bug del
+  // mp3 que moría como objectURL en F5: el editor y el preview recuperan la voz grabada.
+  useEffect(() => {
+    if (!activeProject) return;
+    let cancelled = false;
+    (async () => {
+      for (const r of activeProject.reels) {
+        const ref = r.voiceConfig?.audioRef;
+        if (!ref) continue;
+        try {
+          const res = await fetch(`${API_BASE}/api/storage/${ref}`);
+          if (!res.ok || cancelled) continue;
+          const blob = await res.blob();
+          if (cancelled) return;
+          setAudioByReel((m) => (m[r.id] ? m : { ...m, [r.id]: URL.createObjectURL(blob) }));
+        } catch { /* server opcional */ }
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProject?.id]);
 
   // Modo embed (otra app por iframe): solo el estudio de audio, sin chrome. Va DESPUÉS de los hooks
   // (jamás un early-return antes de los useState: cambiaría el orden de hooks → React #310).

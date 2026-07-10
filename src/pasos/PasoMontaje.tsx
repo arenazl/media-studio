@@ -2,8 +2,8 @@
 // en orden con su toma, audio keep/mute, música por mood, silencio antes del gag). "Exportar mp4"
 // llama al render server-side (video xfade + diálogo de clips + voz + música con ducking/silencio) y
 // registra el export en el comercial. Este es el botón de render que hoy NO existía.
-import { useState } from 'react';
-import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Gauge } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Gauge, Mic, Upload, X } from 'lucide-react';
 import { API_BASE } from '../config';
 import { errMsg, runMolde, type PasoProps } from './pasoKit';
 import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
@@ -19,11 +19,15 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
   const [error, setError] = useState('');
   const [qa, setQa] = useState<QaResult | null>(null);
   const [qaBusy, setQaBusy] = useState(false);
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const voiceInput = useRef<HTMLInputElement | null>(null);
   const montaje = comercial?.montaje as MontajeState | undefined;
   const plan = montaje?.plan;
   const exports = montaje?.exports || [];
   const ultimo = exports[exports.length - 1];
   const conClip = plan ? plan.scenes.filter((s) => s.src).length : 0;
+  const reel = project.reels.find((r) => r.id === reelId);
+  const voiceGrabada = reel?.voiceConfig?.audioRef;   // voz persistida desde la tab Audio
 
   const armar = () => setComercial((c) => ({
     ...c,
@@ -42,6 +46,24 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
     const m = c.montaje as MontajeState | undefined;
     return m?.plan ? { ...c, montaje: { ...m, plan: up(m.plan) } } : c;
   });
+
+  // ── Voz en off ──────────────────────────────────────────────────────────────
+  const setVoice = (src: string, at = 0) => patch((pl) => ({ ...pl, voice: { src, at } }));
+  const usarVozGrabada = () => { if (voiceGrabada) setVoice(voiceGrabada, plan?.voice?.at || 0); };
+  const setVoiceAt = (at: number) => patch((pl) => (pl.voice ? { ...pl, voice: { ...pl.voice, at } } : pl));
+  const quitarVoz = () => patch((pl) => ({ ...pl, voice: undefined }));
+  // subir un mp3/wav propio como voz en off: va por el mismo endpoint de assets (fileRef) que el rodaje.
+  const subirVoz = async (file: File) => {
+    setVoiceBusy(true); setError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch(`${API_BASE}/api/projects/${encodeURIComponent(project.id)}/assets`, { method: 'POST', body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'no se pudo subir la voz');
+      setVoice(d.asset.fileRef, plan?.voice?.at || 0);
+    } catch (e) { setError(errMsg(e)); } finally { setVoiceBusy(false); }
+  };
 
   const chequear = async () => {
     if (!comercial) return;
@@ -99,6 +121,34 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
               <option value="">Sin música</option>
               {MUSIC_TRACKS.map((t) => <option key={t.id} value={t.url}>{t.cat} · {t.label}</option>)}
             </select>
+          </div>
+
+          {/* voz en off — la música baja debajo de ella (ducking) */}
+          <div className="paso-card mont-music">
+            <div className="paso-card-h"><Mic size={12} /> Voz en off {plan.voice ? '— cargada (la música baja debajo)' : '— sin voz'}</div>
+            <div className="mont-voice">
+              {voiceGrabada && (
+                <button className="rodaje-var" onClick={usarVozGrabada} disabled={voiceBusy}>
+                  Usar la voz grabada del comercial
+                </button>
+              )}
+              <button className="rodaje-var" onClick={() => voiceInput.current?.click()} disabled={voiceBusy}>
+                {voiceBusy ? <Loader2 size={12} className="paso-spin" /> : <Upload size={12} />} Subir mp3/wav
+              </button>
+              <input ref={voiceInput} type="file" accept="audio/*" hidden
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) subirVoz(f); e.target.value = ''; }} />
+              {plan.voice && (
+                <>
+                  <label className="mont-voice-at">
+                    empieza en
+                    <input type="number" min={0} step={0.5} value={plan.voice.at}
+                      onChange={(e) => setVoiceAt(Math.max(0, Number(e.target.value) || 0))} /> s
+                  </label>
+                  <button className="rodaje-var" onClick={quitarVoz} title="Quitar la voz en off"><X size={12} /> quitar voz</button>
+                </>
+              )}
+            </div>
+            {!voiceGrabada && !plan.voice && <div className="mont-voice-hint">Grabá la voz en la tab Audio (queda guardada) o subí un mp3 acá.</div>}
           </div>
 
           {/* escenas */}

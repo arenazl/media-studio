@@ -345,8 +345,10 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   const stopRec = () => { const r = recorderRef.current; if (r && r.state !== 'inactive') r.stop(); setRecording(false); };
 
   // Cargar el audio real guardado del reel (al cambiar de reel) — pinta la onda sin autoplay.
+  // share:false = NO re-dispara onAudio (no re-sube el asset al server en cada cambio de reel; ya
+  // se subió al grabarlo y el cache de sesión se rehidrata desde audioRef al abrir el proyecto).
   const loadRealAudio = async (fileId: string) => {
-    try { const blob = await getRealAudioBlob(fileId); if (blob) await loadBlobIntoWave(blob, { autoplay: false }); } catch { /* noop */ }
+    try { const blob = await getRealAudioBlob(fileId); if (blob) await loadBlobIntoWave(blob, { autoplay: false, share: false }); } catch { /* noop */ }
   };
 
   // Quitar el audio real del reel → vuelve a modo sintético.
