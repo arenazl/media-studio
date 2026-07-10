@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getAiModel, setAiModel, effectiveModel } from './settings';
+import { getAiModel, setAiModel, effectiveModel, getCopilotOpen, setCopilotOpen } from './settings';
 
 // entorno vitest = node puro (sin jsdom): no hay `localStorage` global — se stubea acá,
 // mismo patrón que el resto de src/lib (kits.ts/audioSource.ts usan localStorage sin mock
@@ -65,5 +65,22 @@ describe('effectiveModel', () => {
   it('función inexistente en "auto" → undefined (el server usa el default del CLI)', () => {
     setAiModel('auto');
     expect(effectiveModel('no-existe')).toBeUndefined();
+  });
+});
+
+describe('copiloto abierto/cerrado', () => {
+  it('default abierto (usuario nuevo, sin ajuste)', () => {
+    expect(getCopilotOpen()).toBe(true);
+  });
+  it('persiste cerrado y abierto', () => {
+    setCopilotOpen(false);
+    expect(getCopilotOpen()).toBe(false);
+    setCopilotOpen(true);
+    expect(getCopilotOpen()).toBe(true);
+  });
+  it('tolera la ausencia de localStorage (no rompe, cae a abierto)', () => {
+    vi.stubGlobal('localStorage', undefined);
+    expect(getCopilotOpen()).toBe(true);
+    expect(() => setCopilotOpen(false)).not.toThrow();
   });
 });

@@ -10,6 +10,39 @@
   width: 100%;
   color: var(--st-text-1);
 }
+/* con el copiloto abierto el area respira mas ancha (2 columnas en monitores grandes) */
+.pipe--copilot { max-width: 1440px; }
+
+/* area de trabajo del paso: contenido (flexible) + copiloto (columna derecha) */
+.pipe-work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;   /* cerrado: la 2da col la ocupa el boton "Guia" */
+  gap: var(--st-sp-6);
+  align-items: start;
+}
+.pipe--copilot .pipe-work { grid-template-columns: minmax(0, 1fr) 360px; }
+.pipe-main { min-width: 0; }
+
+/* boton para reabrir el copiloto cuando esta plegado */
+.copilot-reopen {
+  position: sticky; top: var(--st-sp-4); align-self: start;
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  padding: 9px 13px; border-radius: var(--st-r-m); cursor: pointer;
+  background: var(--st-bg-1); border: 1px solid var(--st-line-1); color: var(--st-text-2);
+  font-size: 12px; font-weight: 700;
+  box-shadow: var(--st-shadow-1);
+  transition: color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease), background var(--st-dur) var(--st-ease);
+}
+.copilot-reopen:hover { color: var(--st-text-1); border-color: var(--st-blue); background: color-mix(in srgb, var(--st-blue) 10%, transparent); }
+
+/* responsive: el copiloto pasa ABAJO del contenido (sin scroll horizontal, sin tapar nada) */
+@media (max-width: 960px) {
+  .pipe--copilot { max-width: var(--st-col-max); }
+  .pipe-work,
+  .pipe--copilot .pipe-work { grid-template-columns: minmax(0, 1fr); }
+  .copilot { position: static; max-height: none; }
+  .copilot-reopen { position: static; align-self: flex-start; }
+}
 
 /* ── selector de comercial (multi-reel) ─────────────────────────────────── */
 .pipe-comerciales { display: flex; gap: var(--st-sp-2); flex-wrap: wrap; }
@@ -348,9 +381,6 @@
   transition: border-color var(--st-dur) var(--st-ease), background var(--st-dur) var(--st-ease);
 }
 .pack-export:hover { border-color: var(--st-blue); }
-.pack-master-h { display: flex; align-items: center; gap: 8px; width: 100%; cursor: pointer; background: transparent; border: none; color: var(--st-text-1); font-size: 12.5px; font-weight: 700; text-align: left; }
-.pack-master-h > span:first-of-type { flex: 1; }
-.pack-copy-inline { margin-left: auto; }
 .pack-prompt {
   margin: 12px 0 0; padding: 13px 15px; border-radius: var(--st-r-s);
   background: var(--st-bg-0); border: 1px solid var(--st-line-1); color: var(--st-text-2);
@@ -363,22 +393,23 @@
 .pack-estado--importado { background: color-mix(in srgb, var(--st-ok) 18%, transparent); color: var(--st-ok); }
 .pack-estado + .paso-icon { margin-left: 0; }
 
-/* MASTER como consola (UI-4) */
-.pack-master { background: var(--st-bg-1); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l); overflow: hidden; box-shadow: var(--st-shadow-1); }
-.pack-master-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
-.pack-master-toggle { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; background: transparent; border: none; cursor: pointer; color: var(--st-text-1); text-align: left; }
-.pack-master-title { font-family: var(--st-font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--st-gold); }
-.pack-master-sub { font-size: 11.5px; color: var(--st-text-3); }
-.pack-master-copy {
-  display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
-  padding: 8px 14px; border-radius: var(--st-r-s); cursor: pointer; font-size: 12.5px; font-weight: 700;
-  background: var(--st-bg-3); border: 1px solid var(--st-line-2); color: var(--st-text-1);
-  transition: color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease), background var(--st-dur) var(--st-ease);
+/* C4: leyenda de estados (qué significan pendiente / copiado / importado) */
+.pack-legend {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 9px 13px; border-radius: var(--st-r-m);
+  background: var(--st-bg-1); border: 1px dashed var(--st-line-2);
+  font-size: 11.5px; color: var(--st-text-3);
 }
-.pack-master-copy:hover { border-color: var(--st-blue); background: color-mix(in srgb, var(--st-blue) 12%, transparent); }
-.pack-master .pack-prompt { margin: 0; border-radius: 0; border-inline: 0; border-bottom: 0; }
+.pack-legend-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 800; color: var(--st-text-3); }
+.pack-legend-i { display: inline-flex; align-items: center; gap: 6px; }
+.pack-legend-i .pack-estado { margin-left: 0; }
 
-/* clips como filas de pipeline (UI-4) */
+/* C4: grupo master / clips con su lead (explica el modelo mental) */
+.pack-group { display: flex; flex-direction: column; gap: 9px; }
+.pack-group-lead { margin: 0; font-size: 12.5px; color: var(--st-text-2); line-height: 1.5; }
+.pack-group-lead strong { color: var(--st-text-1); font-weight: 700; }
+
+/* clips y master = MISMO sistema de fila colapsable (UI-4 + C4) */
 .pack-clips { display: flex; flex-direction: column; gap: 8px; }
 .pack-clip { background: var(--st-bg-2); border: 1px solid var(--st-line-1); border-radius: var(--st-r-m); box-shadow: var(--st-shadow-1); transition: border-color var(--st-dur) var(--st-ease); }
 .pack-clip:hover, .pack-clip--open { border-color: var(--st-line-2); }
@@ -388,6 +419,19 @@
 .pack-clip-actions { margin-left: auto; display: inline-flex; gap: 6px; }
 .pack-clip-actions .paso-icon { margin-left: 0; }
 .pack-clip .pack-prompt { margin: 0 14px 14px; }
+
+/* master = fila DESTACADA del mismo sistema (filete dorado = identidad) */
+.pack-clip--master { border-left: 3px solid var(--st-gold); background: color-mix(in srgb, var(--st-gold) 7%, var(--st-bg-2)); }
+.pack-clip-tag { font-family: var(--st-font-mono); font-size: 12px; font-weight: 800; letter-spacing: 0.06em; color: var(--st-gold); }
+.pack-clip-desc { font-size: 11.5px; color: var(--st-text-3); }
+
+/* clip "el que sigue" = próximo sin copiar, resaltado en azul (ritual de Flow) */
+.pack-clip--next { border-color: color-mix(in srgb, var(--st-blue) 45%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--st-blue) 22%, transparent), var(--st-shadow-1); }
+.pack-clip-next-tag {
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--st-blue); background: color-mix(in srgb, var(--st-blue) 16%, transparent);
+  border-radius: var(--st-pill); padding: 2px 8px;
+}
 
 /* ── rodaje ─────────────────────────────────────────────────────────────── */
 .rodaje-import {

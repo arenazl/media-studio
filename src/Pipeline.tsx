@@ -4,7 +4,9 @@
 // datos); acá solo vive el estado de navegación (reel/paso activo). Escribe vía `onChange`, el
 // mutador único de App — así ninguna otra pantalla puede pisar lo que se arma acá con una copia vieja.
 import { useState } from 'react';
+import { PanelRightOpen } from 'lucide-react';
 import PipelineStepper from './PipelineStepper';
+import Copiloto from './Copiloto';
 import ProjectInfo from './ProjectInfo';
 import PasoConcepto from './pasos/PasoConcepto';
 import PasoGuion from './pasos/PasoGuion';
@@ -18,6 +20,7 @@ import PasoRender from './pasos/PasoRender';
 import type { PasoProps } from './pasos/pasoKit';
 import type { Project } from './lib/projects';
 import { nuevoComercial, pasosVisibles, type Comercial, type PasoId } from './lib/comercial';
+import { getCopilotOpen, setCopilotOpen } from './lib/settings';
 import './Pipeline.css';
 
 // El guardado lo maneja App: 'debounced' (tipear = 1 POST a los 500ms) o 'flush' (ya, botones/navegación).
@@ -26,6 +29,9 @@ type ChangeFn = (updater: (p: Project) => Project, mode?: 'debounced' | 'flush')
 export default function Pipeline({ project, onChange }: { project: Project; onChange: ChangeFn }) {
   const [reelId, setReelId] = useState<string>(project.reels[0]?.id || '');
   const [activePaso, setActivePaso] = useState<PasoId>('concepto');
+  // copiloto: panel de guia a la derecha. Su estado abierto/cerrado persiste (settings.ts). Solo UI.
+  const [copilotOpen, setCopilotOpenState] = useState<boolean>(getCopilotOpen);
+  const toggleCopilot = (open: boolean) => { setCopilotOpenState(open); setCopilotOpen(open); };
 
   const reel = project.reels.find((r) => r.id === reelId) || project.reels[0];
   const comercial = reel?.comercial;
@@ -78,7 +84,7 @@ export default function Pipeline({ project, onChange }: { project: Project; onCh
   };
 
   return (
-    <div className="pipe">
+    <div className={`pipe${copilotOpen ? ' pipe--copilot' : ''}`}>
       {project.reels.length > 1 && (
         <div className="pipe-comerciales">
           {project.reels.map((r) => (
@@ -92,7 +98,18 @@ export default function Pipeline({ project, onChange }: { project: Project; onCh
 
       <PipelineStepper tipo={tipo} estados={comercial?.estados} activePaso={activePaso} onPick={pickPaso} />
 
-      {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
+      <div className="pipe-work">
+        <div className="pipe-main">
+          {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
+        </div>
+        {copilotOpen ? (
+          <Copiloto paso={activePaso} comercial={comercial} project={project} onClose={() => toggleCopilot(false)} />
+        ) : (
+          <button className="copilot-reopen" onClick={() => toggleCopilot(true)} title="Mostrar el copiloto">
+            <PanelRightOpen size={16} /> <span className="copilot-reopen-lbl">Guía</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

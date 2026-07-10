@@ -42,3 +42,22 @@ export function effectiveModel(functionId: string): ModelTier | undefined {
   const setting = getAiModel();
   return setting === 'auto' ? getFunction(functionId)?.model : setting;
 }
+
+// ── Copiloto del pipeline: abierto/cerrado (persistente) ─────────────────────
+// El panel de guía del pipeline arranca ABIERTO; el usuario lo puede plegar y su preferencia
+// persiste (mismo patrón localStorage-first y tolerante a su ausencia que getAiModel). Es sólo
+// estado de PRESENTACIÓN — no toca datos del comercial.
+const LS_COPILOT = 'ms.settings.copilotOpen';
+
+export function getCopilotOpen(): boolean {
+  try {
+    const raw = localStorage.getItem(LS_COPILOT);
+    if (raw === '0') return false;
+    if (raw === '1') return true;
+  } catch { /* noop */ }
+  return true;   // default: abierto (llena el vacío y guía desde el arranque)
+}
+
+export function setCopilotOpen(open: boolean): void {
+  try { localStorage.setItem(LS_COPILOT, open ? '1' : '0'); } catch { /* noop */ }
+}
