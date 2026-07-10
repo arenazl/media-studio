@@ -97,6 +97,8 @@ export interface Comercial {
   id: string;
   titulo: string;                    // "problema-solución: el caos vs el orden"
   tipo: TipoComercial;               // bifurcación del paso 6 (filmado → Flow · animado → render)
+  angulo?: string;                   // C7: ángulo estratégico (de `strategy`) — proxy de diferenciación que alimenta el concepto
+  creativeBrief?: string;            // C7: brief creativo por pieza (de `strategy`)
   estados: Record<PasoId, EstadoPaso>;
   concepto?: Concepto;               // paso 2
   guion?: GuionEstructurado;         // paso 3

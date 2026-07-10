@@ -1,12 +1,13 @@
-// WIZARD de arranque — EL FLUJO: importar → analizar el KB → generar el TEMPLATE DE SALIDA
-// (por pieza: guion de audio + mockups + prompts de human reels) → dejarlo como base editable.
-// Barato: 1 estrategia + por pieza guion+mockups+veo, llamadas simples a Claude headless (NO el
-// panel de 30 agentes). El usuario después edita; "regenerar" por pieza queda para variantes.
+// WIZARD de arranque (rework fase 2 §Generación) — EL FLUJO: importar → analizar el KB → correr
+// SOLO `strategy` (Claude headless, 1 llamada) → sembrar un comercial por pieza (con su ángulo y
+// creativeBrief). El contenido (concepto, guion, cast, storyboard, pack…) lo produce el PIPELINE
+// paso a paso, on-demand. Barato y rápido; el usuario dirige cada paso desde el stepper.
 import { useState } from 'react';
 import { Rocket, Loader2, Sparkles, ArrowRight, Check, X } from 'lucide-react';
 import { API_BASE } from './config';
 import { getFunction } from './lib/functionCatalog';
 import { saveProject, type Project, type ProjectReel } from './lib/projects';
+import { nuevoComercial } from './lib/comercial';
 import './VeoPanel.css';
 
 interface Piece { id: string; objective?: string; angle?: string; durationSec?: number; creativeBrief?: string }
@@ -37,39 +38,35 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
     return d.result;
   };
 
-  // EL FLUJO: estrategia → por pieza genera el template (guion + mockups + prompts veo) → guarda.
-  const generarTemplate = async () => {
+  // EL FLUJO (fase 2 §Generación): corre SOLO `strategy` → siembra un comercial por pieza
+  // (nuevoComercial + angulo/creativeBrief). El resto del contenido lo genera el PIPELINE paso a
+  // paso, on-demand. Una sola llamada headless; el usuario dirige desde el stepper.
+  const comenzar = async () => {
     setPhase('working'); setErr('');
     try {
       setProgress('Analizando el negocio y armando el plan de piezas…');
-      const strat: Strategy = await runFn('strategy', undefined, { perfil });
-      const pieces = strat?.pieces || [];
-      if (!pieces.length) throw new Error('la estrategia no devolvió piezas');
-
-      const reels: ProjectReel[] = [];
-      for (let i = 0; i < pieces.length; i++) {
-        const p = pieces[i];
-        setProgress(`Pieza ${i + 1}/${pieces.length} — "${p.angle}": guion, mockups y prompts de video…`);
-        const piece = { angulo: p.angle, objetivo: p.objective, durationSec: p.durationSec };
-        const script = await runFn('script', piece);
-        const guion = (script?.blocks || []).map((b: { narration: string }) => b.narration).filter(Boolean);
-        const [mockup, veo] = await Promise.all([
-          runFn('mockup', { ...piece, guion }).catch(() => null),
-          runFn('veo', { ...piece, guion }).catch(() => null),
-        ]);
-        reels.push({
-          id: p.id, nombre: p.angle || p.objective || p.id, guion, frases: guion.length,
-          objetivo: p.objective, angulo: p.angle, durationSec: p.durationSec,
-          musicMood: script?.music?.mood,
-          slides: mockup?.slides?.length ? mockup.slides : undefined,
-          videoPrompts: veo?.clips?.length ? veo.clips : undefined,
+      let reels: ProjectReel[] = [];
+      try {
+        const strat: Strategy = await runFn('strategy', undefined, { perfil });
+        reels = (strat?.pieces || []).map((p, i) => {
+          const titulo = p.angle || p.objective || `Pieza ${i + 1}`;
+          return {
+            id: p.id || `reel-${i + 1}`, nombre: titulo, frases: 0, guion: [],
+            objetivo: p.objective, angulo: p.angle, durationSec: p.durationSec,
+            // El comercial nace con su ángulo → PasoConcepto lo usa como proxy diferenciado (no el título genérico).
+            comercial: { ...nuevoComercial(titulo, 'filmado'), angulo: p.angle, creativeBrief: p.creativeBrief },
+          };
         });
-      }
+      } catch { /* strategy falló → no bloquear el import; abajo se siembra un comercial base */ }
 
-      setProgress('Guardando el template…');
+      // Sin piezas (strategy caído o vacío): 1 comercial base para que el pipeline arranque igual.
+      if (!reels.length) reels = [{ id: `reel-${project.id}`, nombre: project.name, frases: 0, guion: [], comercial: nuevoComercial(project.name, 'filmado') }];
+
+      setProgress('Guardando el proyecto…');
       const proj = saveProject({
         id: project.id, name: project.name, type: project.type, brief: project.brief,
-        brandKit: project.brandKit, screenshots: project.screenshots, contentType: 'combinado', reels,
+        brandKit: project.brandKit, screenshots: project.screenshots, screens: project.screens,
+        contentType: 'combinado', reels,
       });
       onDone(proj);
     } catch (e) { setErr(e instanceof Error ? e.message : 'error'); setPhase('error'); }
@@ -79,7 +76,7 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
     <div className="veo-root wiz-root">
       <header className="veo-head">
         <div className="veo-title"><Rocket size={18} /> Empezá tu campaña — {project.name}</div>
-        <p className="veo-sub">{project.type || 'proyecto'} · elegí el tipo y armo el template (guiones + mockups + prompts de los reels)</p>
+        <p className="veo-sub">{project.type || 'proyecto'} · elegí el tipo y armo las piezas de la campaña (cada una con su ángulo, lista para el pipeline)</p>
         <button className="wiz-cancel" onClick={onCancel} title="Cancelar"><X size={15} /></button>
       </header>
 
@@ -94,12 +91,12 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
         </div>
 
         <div className="veo-card wiz-explain">
-          <div className="veo-card-h"><Sparkles size={14} /> Qué te dejo armado (la base, después editás)</div>
+          <div className="veo-card-h"><Sparkles size={14} /> Qué te dejo armado (la base, después producís cada paso)</div>
           <ul className="wiz-list">
-            <li>Las <strong>piezas</strong> de la campaña (según el tipo elegido)</li>
-            <li>El <strong>guion para audio</strong> de cada pieza (para probar voces)</li>
-            <li>Los <strong>mockups</strong> desde tus pantallas reales</li>
-            <li>Los <strong>prompts de los human reels</strong> (secuencia de Flow, 17s)</li>
+            <li>Las <strong>piezas</strong> de la campaña, cada una con su <strong>ángulo</strong> (según el tipo elegido)</li>
+            <li>Cada pieza queda como un <strong>comercial</strong> listo para producir en el <strong>pipeline</strong></li>
+            <li>Concepto → guion → cast → storyboard → video: lo generás (y editás) paso a paso</li>
+            <li>Rápido: una sola pasada de estrategia, sin gastar tokens de más</li>
           </ul>
         </div>
 
@@ -107,8 +104,8 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
 
         {phase === 'working'
           ? <div className="veo-loading"><Loader2 size={26} className="veo-spin" /> {progress}</div>
-          : <button className="veo-run wiz-cta" onClick={generarTemplate}>
-              {phase === 'error' ? 'Reintentar' : <><Check size={15} /> Comenzar — armar el template <ArrowRight size={14} /></>}
+          : <button className="veo-run wiz-cta" onClick={comenzar}>
+              {phase === 'error' ? 'Reintentar' : <><Check size={15} /> Comenzar — armar las piezas <ArrowRight size={14} /></>}
             </button>}
       </div>
     </div>

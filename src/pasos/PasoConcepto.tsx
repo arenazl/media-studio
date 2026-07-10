@@ -16,7 +16,8 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const piece = { angulo: comercial?.titulo || '', creativeBrief: comercial?.titulo || '', durationSec: 20 };
+      // C7: el ángulo/brief sembrados por strategy diferencian el concepto; el título es solo fallback.
+      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', durationSec: 20 };
       const res = await runMolde('concept', project, piece, { perfil: 'campaña' });
       setOpciones((res.conceptos as Concepto[]) || []);
       setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
