@@ -461,8 +461,14 @@ NEGOCIO: ${name}${brandTxt}` };
     // parse recibe el `body` (contrato extendido) para acceder al storyboard/cast y GARANTIZAR consistencia.
     parse(text, body) {
       const o = extractJson(text);
-      // regen: clip suelto
-      if (o && o.clip && o.clip.prompt) return { clip: { escenaN: Number(o.clip.escenaN), prompt: o.clip.prompt } };
+      // regen: clip suelto — PASA POR LA GARANTÍA (antes se retornaba temprano y bypaseaba la
+      // consistencia: un prompt regenerado que resumía la hoja de personaje entraba sin rechazo).
+      if (o && o.clip && o.clip.prompt) {
+        const piece = (body && body.context && body.context.piece) || {};
+        const clip = { escenaN: Number(o.clip.escenaN), prompt: o.clip.prompt };
+        verificarConsistenciaFlowpack([clip], Array.isArray(piece.storyboard) ? piece.storyboard : [], piece.cast || null);
+        return { clip };
+      }
       if (!o.master || !Array.isArray(o.clips) || !o.clips.length) throw new Error('el molde flowpack no trajo master/clips');
       const piece = (body && body.context && body.context.piece) || {};
       const storyboard = Array.isArray(piece.storyboard) ? piece.storyboard : [];
