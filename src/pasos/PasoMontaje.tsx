@@ -26,6 +26,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
   const exports = montaje?.exports || [];
   const ultimo = exports[exports.length - 1];
   const conClip = plan ? plan.scenes.filter((s) => s.src).length : 0;
+  const sinClip = plan ? plan.scenes.filter((s) => !s.src).map((s) => s.escenaN) : [];
   const reel = project.reels.find((r) => r.id === reelId);
   const voiceGrabada = reel?.voiceConfig?.audioRef;   // voz persistida desde la tab Audio
 
@@ -197,12 +198,15 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
             <button className="rodaje-import mont-qa-btn" onClick={chequear} disabled={qaBusy || rendering}>
               {qaBusy ? <Loader2 size={13} className="paso-spin" /> : <Gauge size={13} />} Chequear calidad
             </button>
-            <button className="paso-approve mont-export" onClick={exportar} disabled={rendering || !conClip}>
+            <button className="paso-approve mont-export" onClick={exportar} disabled={rendering || !conClip || sinClip.length > 0}>
               {rendering ? <><Loader2 size={15} className="paso-spin" /> Renderizando el mp4…</> : <><Film size={15} /> Exportar mp4</>}
             </button>
           </div>
 
           {!conClip && <div className="paso-empty">Faltan clips importados en el Rodaje: el render necesita al menos una escena con clip.</div>}
+          {conClip > 0 && sinClip.length > 0 && (
+            <div className="paso-empty">Faltan clips en las escenas {sinClip.join(', ')} — importalos en Rodaje o sacalas del montaje antes de exportar.</div>
+          )}
 
           {ultimo && (
             <div className="paso-card mont-result">

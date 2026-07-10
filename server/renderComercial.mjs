@@ -68,8 +68,12 @@ async function resolveSrc(src, storageDir, tmpDir, i) {
 const volEnables = (ranges, gain) => ranges.map(([a, b]) => `volume=${gain}:enable='between(t,${a.toFixed(3)},${b.toFixed(3)})'`);
 
 export async function renderComercial(plan, { runFfmpeg, storageDir, probeDuration }) {
-  const scenes = (plan.scenes || []).filter((s) => s.src);
+  // Escenas sin clip: ERROR claro, no filtrado silencioso — si se descartara una escena del medio,
+  // los silencios/duración del mp4 se corren respecto de lo que la UI estimó (cuenta TODAS).
+  const scenes = plan.scenes || [];
   if (!scenes.length) throw new Error('el montaje no tiene escenas con clip importado');
+  const sinClip = scenes.filter((s) => !s.src).map((s) => s.escenaN);
+  if (sinClip.length) throw new Error(`faltan clips en las escenas ${sinClip.join(',')} — importalos en Rodaje o sacalas del montaje`);
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mstudio-render-'));
   try {
     // 1. resolver inputs (una entrada -i por escena, + música + voz + logo)
