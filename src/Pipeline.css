@@ -110,6 +110,16 @@
 .paso-gen:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
 .paso-gen:disabled { opacity: 0.5; cursor: default; }
 
+/* Regenerar: ghost con icono (nunca compite con el azul sólido de Generar) */
+.paso-regen {
+  display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto;
+  padding: 10px 16px; border-radius: var(--st-r-s); cursor: pointer; font-size: 13px; font-weight: 600;
+  background: transparent; color: var(--st-text-2); border: 1px solid var(--st-line-2);
+  transition: color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease), background var(--st-dur) var(--st-ease);
+}
+.paso-regen:hover:not(:disabled) { color: var(--st-text-1); border-color: var(--st-blue); background: color-mix(in srgb, var(--st-blue) 10%, transparent); }
+.paso-regen:disabled { opacity: 0.5; cursor: default; }
+
 .paso-body { display: flex; flex-direction: column; gap: var(--st-sp-4); }
 .paso-foot { display: flex; justify-content: flex-end; }
 
@@ -170,25 +180,37 @@
 .paso-chip--on { color: var(--st-text-1); background: var(--st-bg-3); box-shadow: var(--st-shadow-1); }
 
 /* ── concepto ───────────────────────────────────────────────────────────── */
+.concept-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: var(--st-sp-4); align-items: start;
+}
 .paso-concept {
+  position: relative;
   background: var(--st-bg-2); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l);
   padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;
   box-shadow: var(--st-shadow-1);
   transition: border-color var(--st-dur) var(--st-ease), box-shadow var(--st-dur) var(--st-ease), transform var(--st-dur) var(--st-ease);
 }
+.paso-concept-badge {
+  position: absolute; top: 14px; right: 14px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--st-bg-0); background: var(--st-ok); border-radius: var(--st-pill); padding: 4px 9px;
+}
+.paso-concept--on .paso-concept-idea { padding-right: 74px; }
 .paso-concept:hover { border-color: var(--st-line-2); transform: translateY(-2px); box-shadow: var(--st-shadow-2); }
 .paso-concept--on {
   border-color: color-mix(in srgb, var(--st-ok) 55%, transparent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--st-ok) 30%, transparent), var(--st-shadow-2);
 }
-.paso-concept-idea { font-size: 16px; line-height: 1.55; color: var(--st-text-1); }
+.paso-concept-idea { margin: 0; font-size: 16px; line-height: 1.55; color: var(--st-text-1); }
 .paso-concept-meta { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--st-text-2); line-height: 1.5; }
 .paso-concept-meta strong { color: var(--st-text-1); font-weight: 600; }
 .paso-concept-row { display: flex; gap: 10px; align-items: baseline; }
 .paso-concept-k { flex: 0 0 84px; font-family: var(--st-font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--st-text-3); padding-top: 1px; }
 .paso-concept-v { font-size: 13px; color: var(--st-text-2); line-height: 1.5; }
 .paso-concept-why {
-  font-style: italic; color: var(--st-gold-soft); font-size: 13.5px; line-height: 1.55;
+  margin: 0; font-style: italic; color: var(--st-gold-soft); font-size: 13.5px; line-height: 1.55;
   padding: 4px 0 4px 14px; border-left: 2px solid color-mix(in srgb, var(--st-gold) 55%, transparent);
 }
 .paso-pick {
@@ -211,6 +233,12 @@
   transition: border-color var(--st-dur) var(--st-ease);
 }
 .paso-block:hover, .paso-scene:hover, .paso-char:hover { border-color: var(--st-line-2); }
+/* guion: filete lateral de color por rol */
+.paso-block { border-left-width: 3px; }
+.paso-block--hook { border-left-color: var(--st-warn); }
+.paso-block--mid { border-left-color: var(--st-blue); }
+.paso-block--gag { border-left-color: var(--st-violet); }
+.paso-block--cta { border-left-color: var(--st-ok); }
 .paso-block-h, .paso-scene-h { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 .paso-role { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
 .paso-role--hook { background: color-mix(in srgb, var(--st-warn) 18%, transparent); color: var(--st-warn); }

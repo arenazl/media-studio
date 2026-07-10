@@ -1,8 +1,8 @@
 // Paso 2 — CONCEPTO. Corre el molde `concept` (2-3 propuestas para el ángulo del comercial),
 // el usuario elige una (persiste), y ACÁ vive el selector de TIPO (filmado/animado).
 import { useState } from 'react';
-import { Check } from 'lucide-react';
-import { PasoShell, runMolde, errMsg, type PasoProps } from './pasoKit';
+import { Check, Users, Monitor, Lightbulb } from 'lucide-react';
+import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
 import type { Concepto, TipoComercial } from '../lib/comercial';
 
 export default function PasoConcepto({ project, comercial, setComercial, goNext }: PasoProps) {
@@ -40,31 +40,39 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       <div className="paso-tipo">
         <span className="paso-tipo-lbl">Tipo de comercial</span>
         <div className="paso-chips">
-          <button className={tipo === 'filmado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('filmado')}>Filmado (personas)</button>
-          <button className={tipo === 'animado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('animado')}>Animado (pantallas)</button>
+          <button className={tipo === 'filmado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('filmado')}>
+            <Users size={14} /> Filmado
+          </button>
+          <button className={tipo === 'animado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('animado')}>
+            <Monitor size={14} /> Animado
+          </button>
         </div>
       </div>
 
-      <div className="paso-cards">
-        {opciones.map((cpt) => {
-          const on = elegido?.id === cpt.id;
-          return (
-            <article key={cpt.id} className={`paso-concept${on ? ' paso-concept--on' : ''}`}>
-              <div className="paso-concept-idea">{cpt.idea}</div>
-              <div className="paso-concept-meta">
-                <span><strong>Tono:</strong> {cpt.tono}</span>
-                <span><strong>Estética:</strong> {cpt.estetica}</span>
-                <span><strong>Referencia:</strong> {cpt.referencia}</span>
-                {cpt.porQueFunciona && <span className="paso-concept-why">{cpt.porQueFunciona}</span>}
-              </div>
-              <button className={on ? 'paso-pick paso-pick--on' : 'paso-pick'} onClick={() => elegir(cpt)}>
-                {on ? <><Check size={13} /> Elegido</> : 'Elegir este'}
-              </button>
-            </article>
-          );
-        })}
-        {!opciones.length && !busy && <div className="paso-empty">Todavía no generaste conceptos. Tocá «Generar con IA».</div>}
-      </div>
+      {opciones.length > 0 ? (
+        <div className="concept-grid">
+          {opciones.map((cpt) => {
+            const on = elegido?.id === cpt.id;
+            return (
+              <article key={cpt.id} className={`paso-concept${on ? ' paso-concept--on' : ''}`}>
+                {on && <span className="paso-concept-badge"><Check size={12} /> Elegido</span>}
+                <p className="paso-concept-idea">{cpt.idea}</p>
+                <div className="paso-concept-meta">
+                  <div className="paso-concept-row"><span className="paso-concept-k">Tono</span><span className="paso-concept-v">{cpt.tono}</span></div>
+                  <div className="paso-concept-row"><span className="paso-concept-k">Estética</span><span className="paso-concept-v">{cpt.estetica}</span></div>
+                  <div className="paso-concept-row"><span className="paso-concept-k">Referencia</span><span className="paso-concept-v">{cpt.referencia}</span></div>
+                </div>
+                {cpt.porQueFunciona && <p className="paso-concept-why">{cpt.porQueFunciona}</p>}
+                <button className={on ? 'paso-pick paso-pick--on' : 'paso-pick'} onClick={() => elegir(cpt)}>
+                  {on ? <><Check size={13} /> Elegido</> : 'Elegir este'}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        !busy && <PasoEmpty icon={Lightbulb}>Todavía no generaste conceptos. Tocá «Generar con IA» y vas a ver 2-3 propuestas con tono, estética y referencia para elegir.</PasoEmpty>
+      )}
     </PasoShell>
   );
 }

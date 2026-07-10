@@ -1,7 +1,7 @@
 // Kit compartido de las pantallas de PASO del pipeline (Fase 2): el runner de moldes contra el
 // backend + el shell visual común (título + Generar/Regenerar + Aprobar y seguir) + helpers.
 import type { ReactNode } from 'react';
-import { Loader2, Wand2, RefreshCw, ArrowRight } from 'lucide-react';
+import { Loader2, Wand2, RefreshCw, ArrowRight, type LucideIcon } from 'lucide-react';
 import { API_BASE } from '../config';
 import type { Project } from '../lib/projects';
 import type { Comercial } from '../lib/comercial';
@@ -65,7 +65,7 @@ export function PasoShell({
           <h2 className="paso-title">{titulo}</h2>
           <p className="paso-sub">{sub}</p>
         </div>
-        <button className="paso-gen" onClick={onGenerate} disabled={busy}>
+        <button className={hasContent && !busy ? 'paso-regen' : 'paso-gen'} onClick={onGenerate} disabled={busy}>
           {busy ? <Loader2 size={15} className="paso-spin" /> : hasContent ? <RefreshCw size={15} /> : <Wand2 size={15} />}
           {busy ? 'Generando…' : generarLabel || (hasContent ? 'Regenerar' : 'Generar con IA')}
         </button>
@@ -79,6 +79,16 @@ export function PasoShell({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// Empty state diseñado (icono lucide grande + una línea de qué es el paso). El CTA vive en el header.
+export function PasoEmpty({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
+  return (
+    <div className="paso-empty">
+      <Icon size={34} strokeWidth={1.5} className="paso-empty-ico" />
+      <span>{children}</span>
     </div>
   );
 }
