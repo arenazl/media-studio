@@ -4,8 +4,11 @@
 // graba a mp4 9:16 con Playwright (chrome headless) + ffmpeg. NO es screenshot ni dibujito: es la UI
 // de marca recreada en codigo. Parametrico: sirve para cualquier app (sale del brand + slides del KB).
 
-const PER_SLIDE = 3.4;   // segundos por slide
+const PER_SLIDE = 3.4;   // fallback de segundos por slide (cuando el slide no trae durSec)
 const FPS = 30;
+
+// C10: duración de un slide = su `durSec` explícito (del storyboard) o el fallback fijo. Mata el 3.4s hardcodeado.
+const durOf = (s) => { const d = Number(s?.durSec); return d > 0 ? d : PER_SLIDE; };
 
 // dots/particulas del fondo, deterministas (sin Math.random, para que el render sea reproducible).
 function dots(n = 26) {
@@ -43,16 +46,17 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
   const gold = c.accent || '#d4a559';
   const logoSvg = brand.logo?.svg || '';
   const list = (slides.length ? slides : [{ badge: 'PANTALLA', title: 'Tu producto, claro', accent: 'claro' }]);
-  const total = list.length * PER_SLIDE;
+  // C10: cada slide corre su `durSec`; el offset (delay) es la suma de las duraciones anteriores.
+  let acc = 0;
+  const timed = list.map((s) => { const off = acc; const d = durOf(s); acc += d; return { s, off, d }; });
 
-  const segs = list.map((_, i) =>
-    `<span class="seg"><span class="fill" style="animation-delay:${(i * PER_SLIDE).toFixed(2)}s"></span></span>`).join('');
+  const segs = timed.map(({ off, d }) =>
+    `<span class="seg"><span class="fill" style="--off:${off.toFixed(2)}s;--dur:${d.toFixed(2)}s"></span></span>`).join('');
 
-  const cards = list.map((s, i) => {
+  const cards = timed.map(({ s, off, d }) => {
     const badge = esc(s.badge || s.screen || s.label || '');
     const { head, tail } = splitTitle(s.title || s.highlight || s.copy || '', s.accent || s.copy);
-    const delay = (i * PER_SLIDE).toFixed(2);
-    return `<div class="slide" style="animation-delay:${delay}s;--d:${delay}s">
+    return `<div class="slide" style="--off:${off.toFixed(2)}s;--dur:${d.toFixed(2)}s">
       ${badge ? `<div class="badge">${badge}</div>` : ''}
       <h1 class="title">${head ? `<span class="head">${esc(head)}</span> ` : ''}<span class="tail">${esc(tail)}</span></h1>
     </div>`;
@@ -73,7 +77,7 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
     .progress { position:absolute; top:48px; left:64px; right:64px; display:flex; gap:10px; z-index:5; }
     .seg { flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.18); overflow:hidden; }
     .seg .fill { display:block; width:100%; height:100%; background:#fff; transform:translateX(-100%);
-      animation:fill ${PER_SLIDE}s linear forwards; }
+      animation:fill var(--dur,3.4s) linear forwards; animation-delay:var(--off,0s); }
     @keyframes fill { to { transform:translateX(0); } }
     .logo { position:absolute; top:120px; left:0; right:0; display:flex; justify-content:center; align-items:center;
       gap:16px; z-index:5; animation:logoIn 1s ease forwards; opacity:0; }
@@ -81,7 +85,7 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
     .logo svg, .logo img { height:88px; width:auto; }
     .logo .wm { font-size:64px; font-weight:800; letter-spacing:.5px; }
     .slide { position:absolute; left:64px; right:64px; bottom:360px; opacity:0;
-      animation:slideInOut ${PER_SLIDE}s ease forwards; }
+      animation:slideInOut var(--dur,3.4s) ease forwards; animation-delay:var(--off,0s); }
     @keyframes slideInOut {
       0% { opacity:0; transform:translateY(34px); }
       9% { opacity:1; transform:translateY(0); }
@@ -109,7 +113,8 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
 }
 
 export function reelDuration(slides = []) {
-  return Math.max(PER_SLIDE, (slides.length || 1) * PER_SLIDE);
+  const total = (slides || []).reduce((t, s) => t + durOf(s), 0);
+  return Math.max(PER_SLIDE, total || PER_SLIDE);
 }
 
 // Graba el HTML animado a mp4 9:16. runFfmpeg lo inyecta index.mjs (mismo que /api/render).
