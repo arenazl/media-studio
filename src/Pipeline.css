@@ -542,3 +542,12 @@
   .paso-title { font-size: 24px; }
   .paso-head { flex-direction: column; gap: 12px; }
 }
+
+/* Grid de tarjetas con 1 SOLO ítem (ej. concepto ya elegido → queda 1 propuesta): el auto-fill
+   reserva columnas para 3 y deja la única tarjeta a 1/3 del ancho con el resto vacío (se veía como
+   un fideo). Con :has(:only-child) le damos un ancho cómodo de ficha; con 2+ ítems vuelve al grid. */
+.concept-grid:has(> :only-child) { grid-template-columns: minmax(0, 720px); }
+.cast-grid:has(> :only-child)    { grid-template-columns: minmax(0, 620px); }
+.sb-grid:has(> :only-child)      { grid-template-columns: minmax(0, 460px); }
+.rodaje-bins:has(> :only-child)  { grid-template-columns: minmax(0, 360px); }
+.pub-grid:has(> :only-child)     { grid-template-columns: minmax(0, 520px); }
