@@ -29,6 +29,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import dns from 'node:dns/promises';
 import { spawn } from 'node:child_process';
 import {
   listProjects, getProject, saveProject, deleteProject,
@@ -126,6 +127,67 @@ async function inspectUrl(url, expect) {
     }
     return { ok: true, bytes: bodyText.length };
   } catch (e) { return { ok: false, reason: e instanceof Error ? e.message : 'error' }; }
+}
+
+// ── anti-SSRF del proxy de assets de marca (GET /api/brand-asset) ─────────────
+// ESPEJO de src/lib/brandAsset.ts::isAllowedBrandUrl (el server no importa TS). Si tocás las reglas
+// allá, tocalas ACÁ. Mismo patrón "garantía duplicada con referencia cruzada" que
+// comercial.escenasAPrompts ↔ functions.mjs. Además del literal, re-chequea la IP RESUELTA por DNS.
+const BRAND_INTERNAL_SUFFIX = ['.localhost', '.local', '.internal', '.lan', '.home', '.corp'];
+
+function brandIpv4Blocked(host) {
+  const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!m) return null;
+  const o = m.slice(1).map(Number);
+  if (o.some((n) => n > 255)) return true;
+  const [a, b] = o;
+  if (a === 0 || a === 10 || a === 127) return true;
+  if (a === 169 && b === 254) return true;               // link-local (incl. 169.254.169.254 = metadata cloud)
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true;     // CGNAT
+  if (a >= 224) return true;                             // multicast/reservado + broadcast
+  return false;
+}
+
+function brandIpv6Blocked(host) {
+  const h = host.replace(/^\[|\]$/g, '').toLowerCase();
+  if (!h.includes(':')) return false;
+  if (h === '::1' || h === '::') return true;
+  const head = h.split(':')[0];
+  if (head.startsWith('fc') || head.startsWith('fd')) return true;   // ULA
+  if (/^fe[89ab]/.test(head)) return true;                          // link-local
+  const mapped = h.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (mapped && brandIpv4Blocked(mapped[1])) return true;
+  return true;   // cualquier otro literal IPv6: bloquear (los logos son FQDN/IPv4 públicas)
+}
+
+// chequeo LITERAL (sin red): esquema http/https + host público.
+function brandUrlLiteral(raw) {
+  let u;
+  try { u = new URL((raw || '').trim()); } catch { return { ok: false, reason: 'URL inválida' }; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return { ok: false, reason: `esquema no permitido: ${u.protocol}` };
+  const host = u.hostname.toLowerCase();
+  if (!host) return { ok: false, reason: 'sin host' };
+  if (host === 'localhost' || BRAND_INTERNAL_SUFFIX.some((s) => host.endsWith(s))) return { ok: false, reason: 'host interno' };
+  if (/^\d+$/.test(host) || /^0x[0-9a-f]+$/i.test(host)) return { ok: false, reason: 'host numérico (posible IP ofuscada)' };
+  if (brandIpv4Blocked(host) === true) return { ok: false, reason: 'IP privada/loopback' };
+  if (host.includes(':') && brandIpv6Blocked(host)) return { ok: false, reason: 'IPv6 interna/no permitida' };
+  return { ok: true, url: u };
+}
+
+// garantía COMPLETA: literal + la IP que resuelve el DNS (evita hostname público que apunta a interno).
+async function assertBrandUrlSafe(raw) {
+  const lit = brandUrlLiteral(raw);
+  if (!lit.ok) return lit;
+  try {
+    const addrs = await dns.lookup(lit.url.hostname, { all: true });
+    for (const a of addrs) {
+      if (a.family === 4 && brandIpv4Blocked(a.address) === true) return { ok: false, reason: 'el host resuelve a una IP privada' };
+      if (a.family === 6 && brandIpv6Blocked(a.address)) return { ok: false, reason: 'el host resuelve a una IPv6 interna' };
+    }
+  } catch { return { ok: false, reason: 'no se pudo resolver el host' }; }
+  return lit;
 }
 
 // extractJson (balanceado) se importa de functions.mjs — reemplaza al naive de acá (Fase 5):
@@ -866,6 +928,40 @@ ${src}`;
         const { text } = await runAI({ prompt, allowedTools: 'Read', model });
         return json(res, 200, { functionId: body.functionId, mode, result: parseFunctionResult(body.functionId, text, body) });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error corriendo la función' }); }
+    }
+
+    // ── Proxy de assets de marca (C3): baja una URL de logo y la sirve como attachment ──────
+    // Motivo: el logo externo (host sin CORS, caso Munify) no se puede descargar directo desde el
+    // front. Este proxy lo baja y lo devuelve con Content-Disposition: attachment. Superficie de
+    // SSRF → assertBrandUrlSafe valida esquema + host + IP resuelta; redirect:'error' corta rebotes.
+    if (p === '/api/brand-asset' && req.method === 'GET') {
+      const raw = url.searchParams.get('url') || '';
+      const chk = await assertBrandUrlSafe(raw);
+      if (!chk.ok) return json(res, 400, { error: `URL no permitida: ${chk.reason}` });
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 15_000);
+        let r;
+        try {
+          r = await fetch(chk.url, { redirect: 'error', signal: controller.signal });   // 30x → error (evita rebote a interno)
+        } finally { clearTimeout(timer); }
+        if (!r.ok) return json(res, 502, { error: `el asset respondió HTTP ${r.status}` });
+        const buf = Buffer.from(await r.arrayBuffer());
+        const MAX = 8 * 1024 * 1024;
+        if (buf.length > MAX) return json(res, 413, { error: 'el asset supera 8MB' });
+        const upstream = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+        // sólo dejamos pasar tipos de imagen; cualquier otra cosa se sirve como binario opaco (no se interpreta)
+        const ct = /^image\//.test(upstream) ? upstream : 'application/octet-stream';
+        const name = (chk.url.pathname.split('/').pop() || 'brand-asset').replace(/[^\w.\-]+/g, '_') || 'brand-asset';
+        res.writeHead(200, {
+          'Content-Type': ct,
+          'Content-Disposition': `attachment; filename="${name}"`,
+          'Content-Length': buf.length,
+          'X-Content-Type-Options': 'nosniff',
+          'Access-Control-Allow-Origin': '*',
+        });
+        return res.end(buf);
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error bajando el asset' }); }
     }
 
     // ── Render del comercial final (Fase 4): MontajePlan → mp4 persistido en server/storage ──

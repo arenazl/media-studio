@@ -1,0 +1,50 @@
+/* Bloque "Marca" (assets de branding descargables). Consume var(--st-...), nunca hex suelto.
+   Se usa en el copiloto (variante panel) y en el Pack Flow (variante pack, destacada). */
+
+.brand-block {
+  display: flex; flex-direction: column; gap: 11px;
+  border-radius: var(--st-r-m);
+}
+.brand-block--panel {
+  padding: 12px; background: var(--st-bg-2); border: 1px solid var(--st-line-1);
+}
+.brand-block--pack {
+  padding: 14px 16px; background: var(--st-bg-1); border: 1px solid var(--st-line-1);
+  box-shadow: var(--st-shadow-1);
+}
+.brand-block-h {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--st-gold);
+}
+
+.brand-logo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand-logo-prev {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 60px; height: 60px; padding: 8px; border-radius: var(--st-r-m);
+  background: var(--st-text-1); border: 1px solid var(--st-line-2);
+}
+.brand-logo-prev img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.brand-logo-dl {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 13px; border-radius: var(--st-r-s); cursor: pointer;
+  font-size: 12px; font-weight: 700; text-decoration: none;
+  background: var(--st-bg-3); border: 1px solid var(--st-line-2); color: var(--st-text-1);
+  transition: border-color var(--st-dur) var(--st-ease), background var(--st-dur) var(--st-ease);
+}
+.brand-logo-dl:hover { border-color: var(--st-gold); background: color-mix(in srgb, var(--st-gold) 12%, transparent); }
+
+.brand-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.brand-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 10px; border-radius: var(--st-pill); cursor: pointer;
+  font-size: 11.5px; font-weight: 600;
+  background: var(--st-field); border: 1px solid var(--st-line-1); color: var(--st-text-2);
+  transition: color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease);
+}
+.brand-chip:hover { color: var(--st-text-1); border-color: var(--st-line-2); }
+.brand-chip-txt { font-family: var(--st-font-mono); }
+.brand-swatch {
+  width: 14px; height: 14px; border-radius: 4px; flex: 0 0 auto;
+  background: var(--brand-swatch, var(--st-gold)); border: 1px solid var(--st-line-2);
+}
