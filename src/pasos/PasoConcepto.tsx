@@ -36,6 +36,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       hasContent={opciones.length > 0}
       busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
+      functionId="concept"
     >
       <div className="paso-tipo">
         <span className="paso-tipo-lbl">Tipo de comercial</span>

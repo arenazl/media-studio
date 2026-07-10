@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AudioLines, ChevronDown, Settings, FolderKanban, Check, Home } from 'lucide-react';
 import { sectionsFor, type Section } from './lib/sections';
 import type { Project } from './lib/projects';
+import { getAiModel, setAiModel, type AiModelSetting } from './lib/settings';
 import './Topbar.css';
 
 interface Props {
@@ -17,14 +18,29 @@ interface Props {
   onSection: (s: Section) => void;
 }
 
+// opciones del ajuste "Modelo de IA" (M2) — leyenda de costo visible para elegir con criterio.
+const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[] = [
+  { value: 'auto', label: 'Auto', hint: 'recomendado — cada paso usa su modelo' },
+  { value: 'opus', label: 'Opus', hint: 'máxima calidad, caro' },
+  { value: 'sonnet', label: 'Sonnet', hint: 'equilibrado' },
+  { value: 'haiku', label: 'Haiku', hint: 'económico' },
+];
+
 export default function Topbar({ projects, activeProject, section, onPickProject, onHome, onSection }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const [aiModel, setAiModelState] = useState<AiModelSetting>(() => getAiModel());
   useEffect(() => {
-    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) setSettingsOpen(false);
+    };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
+  const pickModel = (v: AiModelSetting) => { setAiModel(v); setAiModelState(v); setSettingsOpen(false); };
   const sections = sectionsFor(activeProject);
 
   return (
@@ -66,7 +82,27 @@ export default function Topbar({ projects, activeProject, section, onPickProject
       )}
 
       <div className="tb-right">
-        <button className="tb-icon-btn" title="Ajustes y tema (próximamente)"><Settings size={16} /></button>
+        <div className="tb-settings" ref={settingsRef}>
+          <button className="tb-icon-btn" title="Ajustes" onClick={() => setSettingsOpen((o) => !o)}><Settings size={16} /></button>
+          {settingsOpen && (
+            <div className="tb-menu tb-menu--right">
+              <div className="tb-menu-lbl">Modelo de IA</div>
+              {AI_MODEL_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  className={aiModel === o.value ? 'tb-menu-item tb-menu-item--on' : 'tb-menu-item'}
+                  onClick={() => pickModel(o.value)}
+                >
+                  <span className="tb-menu-item-model">
+                    <span className="tb-menu-item-name">{o.label}</span>
+                    <span className="tb-menu-item-hint">{o.hint}</span>
+                  </span>
+                  {aiModel === o.value && <Check size={13} />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

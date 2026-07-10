@@ -1,10 +1,11 @@
 // Kit compartido de las pantallas de PASO del pipeline (Fase 2): el runner de moldes contra el
 // backend + el shell visual común (título + Generar/Regenerar + Aprobar y seguir) + helpers.
-import type { ReactNode } from 'react';
+import { useSyncExternalStore, type ReactNode } from 'react';
 import { Loader2, Wand2, RefreshCw, ArrowRight, type LucideIcon } from 'lucide-react';
 import { API_BASE } from '../config';
 import type { Project } from '../lib/projects';
 import type { Comercial } from '../lib/comercial';
+import { effectiveModel, subscribeAiModel } from '../lib/settings';
 
 export const errMsg = (e: unknown): string => (e instanceof Error ? e.message : 'error');
 
@@ -41,6 +42,7 @@ export async function runMolde(
       piece,
     },
     options,
+    model: effectiveModel(functionId),
     ...(regenerate ? { regenerate } : {}),
   };
   const r = await fetch(`${API_BASE}/api/run-function`, {
@@ -51,13 +53,22 @@ export async function runMolde(
   return d.result as Record<string, unknown>;
 }
 
+// se suscribe al ajuste de modelo (settings.ts) para que el hint se repinte EN VIVO al cambiarlo
+// desde el popover de la Topbar, sin esperar un F5 (árboles de componentes distintos → sin esto
+// quedaba stale: localStorage cambiaba pero nada disparaba un re-render acá).
+function useEffectiveModel(functionId: string | undefined) {
+  return useSyncExternalStore(subscribeAiModel, () => (functionId ? effectiveModel(functionId) : undefined));
+}
+
 export function PasoShell({
-  titulo, sub, hasContent, busy, onGenerate, generarLabel, error, children, onApprove, canApprove, approveLabel,
+  titulo, sub, hasContent, busy, onGenerate, generarLabel, error, children, onApprove, canApprove, approveLabel, functionId,
 }: {
   titulo: string; sub: string; hasContent: boolean; busy: boolean; onGenerate: () => void;
   generarLabel?: string; error?: string; children: ReactNode;
   onApprove?: () => void; canApprove?: boolean; approveLabel?: string;
+  functionId?: string;   // id del molde (functionCatalog) — pinta el hint "IA: <modelo efectivo>" bajo el botón
 }) {
+  const modelHint = useEffectiveModel(functionId);
   return (
     <div className="paso">
       <div className="paso-head">
@@ -65,10 +76,13 @@ export function PasoShell({
           <h2 className="paso-title">{titulo}</h2>
           <p className="paso-sub">{sub}</p>
         </div>
-        <button className={hasContent && !busy ? 'paso-regen' : 'paso-gen'} onClick={onGenerate} disabled={busy}>
-          {busy ? <Loader2 size={15} className="paso-spin" /> : hasContent ? <RefreshCw size={15} /> : <Wand2 size={15} />}
-          {busy ? 'Generando…' : generarLabel || (hasContent ? 'Regenerar' : 'Generar con IA')}
-        </button>
+        <div className="paso-head-actions">
+          <button className={hasContent && !busy ? 'paso-regen' : 'paso-gen'} onClick={onGenerate} disabled={busy}>
+            {busy ? <Loader2 size={15} className="paso-spin" /> : hasContent ? <RefreshCw size={15} /> : <Wand2 size={15} />}
+            {busy ? 'Generando…' : generarLabel || (hasContent ? 'Regenerar' : 'Generar con IA')}
+          </button>
+          {modelHint && <span className="paso-model-hint">IA: {modelHint}</span>}
+        </div>
       </div>
       {error && <div className="paso-error">{error}</div>}
       <div className="paso-body">{children}</div>

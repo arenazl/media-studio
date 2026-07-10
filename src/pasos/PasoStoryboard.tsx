@@ -32,6 +32,7 @@ export default function PasoStoryboard({ project, comercial, setComercial, goNex
       titulo="Storyboard" sub="Escenas numeradas: plano, ángulo, duración, acción, diálogo, continuidad."
       hasContent={escenas.length > 0} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={escenas.length > 0} approveLabel="Storyboard listo"
+      functionId="storyboard"
     >
       {!refCheck.ok && (
         <div className="paso-error">

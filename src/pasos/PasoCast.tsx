@@ -30,6 +30,7 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
       titulo="Cast" sub="Personajes con descripción física exacta (se pega verbatim en cada prompt) y la locación."
       hasContent={!!cast} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!cast?.personajes?.length} approveLabel="Cast listo, al storyboard"
+      functionId="cast"
     >
       {cast ? (
         <>

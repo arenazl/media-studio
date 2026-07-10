@@ -98,6 +98,10 @@
 }
 .paso-sub { margin: 6px 0 0; font-size: 13.5px; color: var(--st-text-2); line-height: 1.5; max-width: 62ch; }
 
+/* columna del CTA de generación: botón + hint chico del modelo efectivo (transparencia de gasto) */
+.paso-head-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex: 0 0 auto; }
+.paso-model-hint { font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; color: var(--st-text-3); padding-right: 2px; }
+
 /* botón primario: "Generar con IA" (el único azul sólido de la pantalla) */
 .paso-gen {
   display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto;

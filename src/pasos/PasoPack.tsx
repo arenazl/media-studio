@@ -83,6 +83,7 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
       sub="Pegá cada prompt en Google Flow (Veo 3, 9:16, 8s), bajá el clip y volvé a Rodaje para importarlo."
       hasContent={!!pack} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!pack?.clips?.length} approveLabel="Pack listo, al rodaje"
+      functionId="flowpack"
     >
       {pack ? (
         <>

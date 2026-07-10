@@ -59,6 +59,13 @@
 }
 .tb-icon-btn:hover { color: var(--st-text-1); border-color: var(--st-line-2); background: var(--st-bg-3); }
 
+/* popover de ajustes (engranaje) — cuelga del borde derecho, mismo lenguaje visual que tb-menu */
+.tb-settings { position: relative; }
+.tb-menu--right { left: auto; right: 0; min-width: 266px; }
+.tb-menu-item-model { flex: 1; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.tb-menu-item-hint { font-size: 10.5px; font-weight: 500; color: var(--st-text-3); }
+.tb-menu-item--on .tb-menu-item-hint { color: color-mix(in srgb, var(--st-gold) 55%, var(--st-text-2)); }
+
 @media (max-width: 860px) {
   .tb { height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 8px; }
   .tb-tabs { order: 3; width: 100%; }

@@ -38,6 +38,7 @@ export default function PasoPublicar({ project, comercial, setComercial }: PasoP
     <PasoShell
       titulo="Publicar" sub="El copy del posteo + el paquete final (mp4 + texto) para subir a la red."
       hasContent={!!pub} busy={busy} onGenerate={generar} error={error}
+      functionId="publish"
     >
       {pub ? (
         <div className="pub-grid">
