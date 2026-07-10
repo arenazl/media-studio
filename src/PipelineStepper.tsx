@@ -40,10 +40,13 @@ export default function PipelineStepper({ tipo, estados, activePaso, onPick }: P
             className={`pipe-step pipe-step--${est}${on ? ' pipe-step--active' : ''}`}
             onClick={() => onPick(p)}
             title={M.label}
+            aria-current={on ? 'step' : undefined}
           >
-            <span className="pipe-step-n">{est === 'aprobado' ? <Check size={12} /> : i + 1}</span>
-            <span className="pipe-step-ico"><M.Icon size={14} /></span>
-            <span className="pipe-step-lbl">{M.label}</span>
+            <span className="pipe-step-n">{est === 'aprobado' ? <Check size={16} /> : i + 1}</span>
+            <span className="pipe-step-foot">
+              <span className="pipe-step-ico"><M.Icon size={13} /></span>
+              <span className="pipe-step-lbl">{M.label}</span>
+            </span>
           </button>
         );
       })}

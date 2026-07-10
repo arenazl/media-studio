@@ -184,7 +184,7 @@
 .rt-fx--blur { filter: blur(3px); }
 
 /* overlays de TEXTO sobre el preview (posición/estilo por preset) */
-.rt-txt { position: absolute; z-index: 3; padding: 0 8%; color: #fff; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,0.6); pointer-events: auto; cursor: grab; touch-action: none; max-width: 100%; word-break: break-word; }
+.rt-txt { position: absolute; z-index: 3; padding: 0 8%; color: #fff; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,0.6); pointer-events: auto; cursor: grab; touch-action: none; max-width: 100%; overflow-wrap: break-word; }
 .rt-txt:active { cursor: grabbing; }
 /* texto reubicado a mano (nx/ny): padding compacto y ancho acotado para que el centro caiga en el punto */
 .rt-txt--free { padding: 2px 8px; width: max-content; max-width: 84%; }

@@ -112,7 +112,7 @@
 .stage-result-pre {
   margin: 0;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
   font-size: 13px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.85);
