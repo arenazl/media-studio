@@ -141,10 +141,14 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
     () => project.reels.map((r) => ({ id: r.id, label: r.nombre, text: r.guion.join('\n'), sub: `${r.guion.length} frases` })),
     [project],
   );
-  if (section === 'pipeline') return <Pipeline project={project} />;
+  // key={project.id} en los que cachean estado derivado del proyecto en useState (Pipeline: el
+  // comercial/paso activo; ReelTab/ReelEditor: el reel activo): fuerza remount al cambiar de proyecto
+  // por la Topbar y evita quedar viendo el proyecto anterior (estado stale).
+  if (section === 'pipeline') return <Pipeline key={project.id} project={project} />;
   if (section === 'negocio') return <ProjectInfo project={project} />;
   if (section === 'audio') return (
     <VoiceStudio
+      key={project.id}
       reelConfig={Object.fromEntries(project.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }]))}
       files={voiceFiles}
       onGrabar={onGrabar}
@@ -153,5 +157,5 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
   );
   if (section === 'videos') return <VideosTab />;
   if (section === 'prompts') return <GuidedPanel project={project} />;
-  return <ReelTab project={project} audioByReel={audioByReel} />;   // 'editor' (integrador, default)
+  return <ReelTab key={project.id} project={project} audioByReel={audioByReel} />;   // 'editor' (integrador, default)
 }
