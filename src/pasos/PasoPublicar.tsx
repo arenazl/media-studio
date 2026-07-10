@@ -1,8 +1,8 @@
 // Paso 9 — PUBLICAR. Corre el molde `publish` (PERSISTIENDO el resultado, que antes se perdía) y
 // muestra el paquete final: caption/hashtags/CTA con Copiar + el mp4 exportado del montaje.
 import { useState } from 'react';
-import { Copy, Check, Download } from 'lucide-react';
-import { PasoShell, runMolde, errMsg, type PasoProps } from './pasoKit';
+import { Copy, Check, Download, Megaphone, Film } from 'lucide-react';
+import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
 import { API_BASE } from '../config';
 import type { PublishPack } from '../lib/comercial';
 import type { MontajeState } from '../lib/montajePlan';
@@ -26,9 +26,13 @@ export default function PasoPublicar({ project, comercial, setComercial }: PasoP
 
   const copy = async (id: string, text: string) => {
     try { await navigator.clipboard.writeText(text); } catch { /* noop */ }
-    setCopied(id); setTimeout(() => setCopied(''), 1400);
+    setCopied(id); setTimeout(() => setCopied(''), 2000);
   };
-  const ic = (id: string) => (copied === id ? <Check size={12} /> : <Copy size={12} />);
+  const CopyBtn = ({ id, text }: { id: string; text: string }) => (
+    <button className="pub-copy" onClick={() => copy(id, text)}>
+      {copied === id ? <><Check size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
+    </button>
+  );
 
   return (
     <PasoShell
@@ -36,28 +40,42 @@ export default function PasoPublicar({ project, comercial, setComercial }: PasoP
       hasContent={!!pub} busy={busy} onGenerate={generar} error={error}
     >
       {pub ? (
-        <div className="paso-cards">
-          {pub.hookOnScreen && <div className="paso-card"><div className="paso-card-h">Hook en pantalla (primeros 2s)</div><p>{pub.hookOnScreen}</p></div>}
-          <div className="paso-card">
-            <div className="paso-card-h">Caption <button className="paso-icon" onClick={() => copy('cap', pub.caption)}>{ic('cap')}</button></div>
-            <p>{pub.caption}</p>
-          </div>
-          {!!pub.hashtags?.length && (
-            <div className="paso-card">
-              <div className="paso-card-h">Hashtags <button className="paso-icon" onClick={() => copy('ht', pub.hashtags.join(' '))}>{ic('ht')}</button></div>
-              <p>{pub.hashtags.join('  ')}</p>
+        <div className="pub-grid">
+          {pub.hookOnScreen && (
+            <div className="pub-card">
+              <div className="pub-card-h"><span>Hook en pantalla · primeros 2s</span><CopyBtn id="hook" text={pub.hookOnScreen} /></div>
+              <p className="pub-card-body">{pub.hookOnScreen}</p>
             </div>
           )}
-          {pub.cta && <div className="paso-card"><div className="paso-card-h">CTA</div><p>{pub.cta}</p></div>}
+          <div className="pub-card">
+            <div className="pub-card-h"><span>Caption</span><CopyBtn id="cap" text={pub.caption} /></div>
+            <p className="pub-card-body">{pub.caption}</p>
+          </div>
+          {!!pub.hashtags?.length && (
+            <div className="pub-card">
+              <div className="pub-card-h"><span>Hashtags</span><CopyBtn id="ht" text={pub.hashtags.join(' ')} /></div>
+              <div className="pub-tags">
+                {pub.hashtags.map((h, i) => <span key={i} className="pub-tag">{h.startsWith('#') ? h : `#${h}`}</span>)}
+              </div>
+            </div>
+          )}
+          {pub.cta && (
+            <div className="pub-card">
+              <div className="pub-card-h"><span>CTA</span><CopyBtn id="cta" text={pub.cta} /></div>
+              <p className="pub-card-body">{pub.cta}</p>
+            </div>
+          )}
         </div>
       ) : (
-        !busy && <div className="paso-empty">Generá el copy de publicación para la red elegida.</div>
+        !busy && <PasoEmpty icon={Megaphone}>Generá el copy de publicación para la red elegida: hook en pantalla, caption, hashtags y CTA listos para copiar.</PasoEmpty>
       )}
 
       {ultimo && (
-        <div className="paso-card mont-result">
-          <div className="paso-card-h">Paquete final — el comercial{exports.length > 1 ? ` (${exports.length} exports)` : ''}</div>
-          <video className="rodaje-video mont-video" src={`${API_BASE}/api/storage/${ultimo.fileRef}`} controls playsInline preload="metadata" />
+        <div className="mont-export-card">
+          <div className="paso-card-h"><Film size={12} /> Paquete final — el comercial{exports.length > 1 ? ` (${exports.length} exports)` : ''}</div>
+          <div className="mont-export-frame">
+            <video className="mont-export-video" src={`${API_BASE}/api/storage/${ultimo.fileRef}`} controls playsInline preload="metadata" />
+          </div>
           <a className="pack-export" href={`${API_BASE}/api/storage/${ultimo.fileRef}`} download><Download size={14} /> Descargar el comercial</a>
         </div>
       )}

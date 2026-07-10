@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Rework visual del pipeline</title>
+<style>
+:root{
+  --bg:#0b0e14; --panel:#141926; --panel2:#1c2231; --panel3:#272f40; --line:#2a3342;
+  --text:#eef1f7; --muted:#aab3c5; --dim:#707a8d; --accent:#4d8dff; --violet:#a78bfa;
+  --green:#3ddc97; --amber:#f5a623; --red:#f2555a; --gold:#d3ad5b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;padding:32px 20px;max-width:1120px;margin:0 auto;font-size:15px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;display:flex;align-items:center;gap:13px}
+h2{font-size:19px;font-weight:650;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2 .num{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#08111f;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:none}
+.sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+.qc{color:var(--muted);font-size:13.5px;margin:2px 0 14px;line-height:1.5}
+.qc b{color:var(--text)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+.card .label{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.card .val{font-size:22px;font-weight:800;margin-top:6px;letter-spacing:-.4px;line-height:1.15}
+.card .hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}.accent{color:var(--accent)}.gold{color:var(--gold)}.violet{color:var(--violet)}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+@media(max-width:760px){.ba{grid-template-columns:1fr}}
+.shot{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel2)}
+.shot .cap{font-size:11px;padding:9px 13px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.shot.before .cap{color:var(--dim)}
+.shot.after .cap{color:var(--green)}
+.shot .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.shot.before .dot{background:var(--dim)}
+.shot.after .dot{background:var(--green)}
+.shot img{display:block;width:100%;height:auto}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-ok{background:rgba(61,220,151,.15);color:var(--green)}
+.b-info{background:rgba(77,141,255,.15);color:var(--accent)}
+.b-gold{background:rgba(211,173,91,.15);color:var(--gold)}
+.b-warn{background:rgba(245,166,35,.15);color:var(--amber)}
+.callout{border-left:3px solid var(--gold);background:rgba(211,173,91,.07);padding:13px 16px;border-radius:0 9px 9px 0;font-size:13.5px;margin-top:14px;line-height:1.55}
+.callout.accent{border-left-color:var(--accent);background:rgba(77,141,255,.07)}
+.callout.green{border-left-color:var(--green);background:rgba(61,220,151,.07)}
+.callout.amber{border-left-color:var(--amber);background:rgba(245,166,35,.07)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+th,td{padding:10px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+code{background:var(--panel3);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--violet);font-family:ui-monospace,"Cascadia Code",Menlo,monospace}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+ul.tips{margin:8px 0 0 18px;font-size:13.5px}
+ul.tips li{margin-bottom:7px;line-height:1.5}
+ul.tips li strong{color:var(--text)}
+footer{text-align:center;color:var(--dim);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd;background:#fafafa}.card,.shot{border-color:#ddd}.ba{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg class="ic" style="width:30px;height:30px;stroke:var(--gold)" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20M8 4v5M8 15v5M16 15v5M16 4v5"/></svg>
+  Media Studio — Rework visual del pipeline
+</h1>
+<div class="sub">De "un ASP clásico de 2005" a una consola de estudio de producción · antes/después por pantalla · Opus implementó, Fable especificó · 2026-07-10</div>
+
+<section>
+  <h2><span class="num">0</span> Qué se hizo, de un vistazo</h2>
+  <div class="qc">El rework funcional (docs/07) definió comportamiento y datos pero <b>nunca una dirección visual</b>, y ningún gate obligaba a mirar la pantalla. Este rework cierra ese hueco: <b>solo presentación</b> (CSS, estructura JSX, iconos, micro-interacciones) — cero lógica, cero endpoints, los 174 tests intactos.</div>
+  <div class="grid g4">
+    <div class="card"><div class="label">Work orders</div><div class="val gold">5</div><div class="hint">UI-1 tokens+shell+stepper · UI-2 Concepto/Guion · UI-3 Cast/Storyboard · UI-4 Pack/Rodaje · UI-5 Montaje/Publicar/ABM</div></div>
+    <div class="card"><div class="label">Pantallas rediseñadas</div><div class="val accent">10</div><div class="hint">Home/ABM + 9 pasos del pipeline, más el shell (topbar, columna, stepper) y el wizard de arranque.</div></div>
+    <div class="card"><div class="label">Sistema de tokens</div><div class="val violet">--st-*</div><div class="hint">Un archivo nuevo (studio.css): capas de elevación, acentos por semántica, serif display, mono. Prohibido hex suelto.</div></div>
+    <div class="card"><div class="label">Tests</div><div class="val green">174 / 174</div><div class="hint">Verdes sin tocar un solo test. La lógica no se movió.</div></div>
+  </div>
+  <div class="callout gold"><b>La vara — "consola de estudio de producción":</b> referencia mental DaVinci Resolve / Frame.io / Linear. Dark cinematográfico con profundidad REAL por capas (fondo → panel → tarjeta → activo), <b>dorado = identidad/creativo</b> (escaso, vale porque no se repite), acentos por semántica fija (azul = IA · verde = aprobado · ámbar = hook · violeta = remate · rojo = error), tipografía con carácter (serif display para títulos y números grandes).</div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> El sistema — lo que gobierna todas las pantallas</h2>
+  <div class="grid g3">
+    <div class="card"><div class="label">Profundidad por capas</div><div class="val" style="font-size:17px">4 superficies visibles</div><div class="hint">El problema viejo: tarjetas a 3% de delta que se fundían con el fondo. Ahora fondo → panel → tarjeta → elevado se distinguen a simple vista, con borde sutil + sombra.</div></div>
+    <div class="card"><div class="label">Stepper → riel de producción</div><div class="val" style="font-size:17px">nodos + progreso</div><div class="hint">Dejaron de ser pills sueltas que se cortaban. Riel conectado: cada paso un nodo (número o check), la línea se pinta por estado, el paso activo se eleva. "Estoy en el 8 de 9 y aprobé 6" de un vistazo.</div></div>
+    <div class="card"><div class="label">Patrón de paso único</div><div class="val" style="font-size:17px">PasoShell</div><div class="hint">Título serif 29px + subtítulo · "Generar con IA" el ÚNICO azul sólido, "Regenerar" ghost · CTA de aprobación verde outline→filled · empty states con icono grande.</div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span> Home / Proyectos <span class="badge b-info">UI-5</span></h2>
+  <div class="qc">Pasada liviana: el ABM ahora respira sobre la base fría del sistema; dorado unificado con la topbar; el CTA de integración destacado.</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-home.png" alt="Home antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui5-home.png" alt="Home después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Concepto <span class="badge b-info">UI-2</span></h2>
+  <div class="qc">De un bloque full-width a un <b>grid de tarjetas comparables</b>: idea protagonista, meta en filas etiquetadas (tono/estética/referencia como label mono), el "por qué funciona" como cita dorada, la elegida con borde verde + badge. Selector filmado/animado como segmented control con iconos.</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-01-concepto.png" alt="Concepto antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui2-01-concepto.png" alt="Concepto después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Guion <span class="badge b-info">UI-2</span></h2>
+  <div class="qc">Bloques como tarjetas de <b>timeline</b> con filete lateral de color por rol (hook ámbar · desarrollo azul · remate violeta · CTA verde), chip de duración mono, narración como textarea integrada (sin look de form), el visual como caption con icono de cámara, la música al cierre como tarjeta.</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-02-guion.png" alt="Guion antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui2-02-guion.png" alt="Guion después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Cast <span class="badge b-info">UI-3</span></h2>
+  <div class="qc">Grid de personajes con <b>avatar circular</b> (inicial sobre fondo dorado/violeta), nombre grande + rol, físico legible, y el <code>fisicoEn</code> en bloque mono colapsable con badge ámbar "se pega VERBATIM en todos los prompts". La locación como tarjeta ancha con icono map-pin y la luz como metadato.</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-03-cast.png" alt="Cast antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui3-03-cast.png" alt="Cast después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">6</span> Storyboard <span class="badge b-info">UI-3</span></h2>
+  <div class="qc"><b>Filmstrip</b>: tira de escenas en grid, "#N" grande en serif, borde superior de color por rol, badge + chip de duración, el diálogo editable como cita, la continuidad como nota al pie con icono link.</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-04-storyboard.png" alt="Storyboard antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui3-04-storyboard.png" alt="Storyboard después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">7</span> Pack Flow <span class="badge b-info">UI-4</span></h2>
+  <div class="qc">El MASTER como <b>consola</b>: bloque mono sobre el fondo más oscuro, colapsable, con botón "Copiar master" prominente. Los clips como filas de pipeline: #escena + rol + estado semántico (pendiente/copiado/importado) + copiar/regenerar/expandir.</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-05-pack-flow.png" alt="Pack Flow antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui4-05-pack-flow.png" alt="Pack Flow después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">8</span> Rodaje <span class="badge b-info">UI-4</span></h2>
+  <div class="qc"><b>Bins de media</b> en grid por escena: sin clip = dropzone punteada con icono upload + número de escena + duración objetivo; con clip = thumbnail del video con la duración real (warn ámbar si se aleja del objetivo).</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-06-rodaje.png" alt="Rodaje antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui4-06-rodaje.png" alt="Rodaje después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">9</span> Montaje <span class="badge b-info">UI-5</span></h2>
+  <div class="qc">Lo más "NLE" posible sin tocar lógica: las escenas como <b>mini-timeline</b> horizontal (bloques proporcionales a la duración, color por rol, icono de audio on/mute, silencio marcado en la pista), música y voz como pistas debajo, el QA como tarjeta de score con <b>gauge</b> (n/50) e issues por severidad, el export enmarcado 9:16.</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-07-montaje.png" alt="Montaje antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui5-07-montaje.png" alt="Montaje después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">10</span> Publicar <span class="badge b-info">UI-5</span></h2>
+  <div class="qc">El paquete de publicación como <b>tarjetas copiables</b> (hook en pantalla / caption / hashtags como chips / CTA), cada una con su botón copiar con feedback "Copiado".</div>
+  <div class="ba">
+    <div class="shot before"><div class="cap"><span class="dot"></span>Antes</div><img src="../08-rework-ui/capturas/antes-08-publicar.png" alt="Publicar antes"></div>
+    <div class="shot after"><div class="cap"><span class="dot"></span>Después</div><img src="../08-rework-ui/capturas/ui5-08-publicar.png" alt="Publicar después"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">11</span> Gates y hallazgos</h2>
+  <table>
+    <thead><tr><th style="width:180px">Gate</th><th>Resultado</th><th>Detalle</th></tr></thead>
+    <tbody>
+      <tr><td><b>tsc --noEmit</b></td><td><span class="badge b-ok">verde</span></td><td>0 errores de tipos en cada WO.</td></tr>
+      <tr><td><b>eslint src/</b></td><td><span class="badge b-ok">0 errores</span></td><td>9 warnings preexistentes (react-refresh/only-export-components y unused-vars en archivos fuera de scope); ninguno nuevo.</td></tr>
+      <tr><td><b>vitest (vmThreads)</b></td><td><span class="badge b-ok">174 / 174</span></td><td>Suite completa verde en cada WO, sin tocar tests.</td></tr>
+      <tr><td><b>build</b></td><td><span class="badge b-ok">sin warnings nuevos</span></td><td>Salida leída completa filtrada por error|warning. El único warning (chunk &gt; 500 kB) es preexistente del bundle JS.</td></tr>
+      <tr><td><b>stylelint</b></td><td><span class="badge b-ok">verde en todo src</span></td><td>Instalado en UI-1 (config standard + relajaciones del estilo del codebase) + script <code>lint:css</code>.</td></tr>
+      <tr><td><b>hex suelto</b></td><td><span class="badge b-ok">0 nuevos</span></td><td>Todo el CSS tocado consume <code>var(--st-*)</code>; grep limpio.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout green"><b>Licencia de reparación (fuera de scope, ≤10 líneas):</b> se dejó <code>stylelint</code> verde en TODO el proyecto arreglando 4 issues triviales preexistentes — <code>word-break: break-word</code> deprecado → <code>overflow-wrap</code> en ReelTab/StageTab/ScriptText y <code>#ffffff</code> → <code>#fff</code> en tokens.css. Se relajaron dos reglas con uso legítimo en el codebase (vendor-prefix de <code>background-clip</code> para texto con gradiente, selectores duplicados).</div>
+  <div class="callout amber"><b>Hallazgo reportado (no bloqueante):</b> el logo del proyecto ejemplo se sirve desde un host externo sin CORS, así que el overlay del render lo rasteriza y falla en silencio (ya cae a "sin logo", no rompe). No es del scope visual; queda anotado.</div>
+</section>
+
+<footer>Media Studio · Rework visual del pipeline · el gate del dueño es mirar estas capturas y decidir si la vara se cumplió.</footer>
+
+</body>
+</html>
