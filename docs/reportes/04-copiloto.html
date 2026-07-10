@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Copiloto del pipeline</title>
+<style>
+:root{
+  --bg:#0b0e14; --panel:#141926; --panel2:#1c2231; --panel3:#272f40; --line:#2a3342;
+  --text:#eef1f7; --muted:#aab3c5; --dim:#707a8d; --accent:#4d8dff; --violet:#a78bfa;
+  --green:#3ddc97; --amber:#f5a623; --red:#f2555a; --gold:#d3ad5b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;padding:32px 20px;max-width:1120px;margin:0 auto;font-size:15px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;display:flex;align-items:center;gap:13px}
+h2{font-size:19px;font-weight:650;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2 .num{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#08111f;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:none}
+.sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+.qc{color:var(--muted);font-size:13.5px;margin:2px 0 14px;line-height:1.5}
+.qc b{color:var(--text)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+.card .label{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.card .val{font-size:22px;font-weight:800;margin-top:6px;letter-spacing:-.4px;line-height:1.15}
+.card .hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}.accent{color:var(--accent)}.gold{color:var(--gold)}.violet{color:var(--violet)}
+.shot{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel2);margin-top:14px}
+.shot .cap{font-size:11px;padding:9px 13px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--green)}
+.shot .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--green)}
+.shot img{display:block;width:100%;height:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-ok{background:rgba(61,220,151,.15);color:var(--green)}
+.b-info{background:rgba(77,141,255,.15);color:var(--accent)}
+.b-gold{background:rgba(211,173,91,.15);color:var(--gold)}
+.b-warn{background:rgba(245,166,35,.15);color:var(--amber)}
+.callout{border-left:3px solid var(--gold);background:rgba(211,173,91,.07);padding:13px 16px;border-radius:0 9px 9px 0;font-size:13.5px;margin-top:14px;line-height:1.55}
+.callout.accent{border-left-color:var(--accent);background:rgba(77,141,255,.07)}
+.callout.green{border-left-color:var(--green);background:rgba(61,220,151,.07)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+th,td{padding:10px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+code{background:var(--panel3);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--violet);font-family:ui-monospace,"Cascadia Code",Menlo,monospace}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+ul.tips{margin:8px 0 0 18px;font-size:13.5px}
+ul.tips li{margin-bottom:7px;line-height:1.5}
+ul.tips li strong{color:var(--text)}
+.ok{color:var(--green);font-weight:700}
+footer{text-align:center;color:var(--dim);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd;background:#fafafa}.card,.shot{border-color:#ddd}.two{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg class="ic" style="width:30px;height:30px;stroke:var(--accent)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/></svg>
+  Media Studio — Copiloto del pipeline
+</h1>
+<div class="sub">Un panel de guía contextual que llena el vacío de la derecha y explica, paso por paso, qué copiar y dónde pegarlo en Flow · Opus implementó, Fable especificó · 2026-07-10</div>
+
+<section>
+  <h2><span class="num">0</span> Qué se hizo, de un vistazo</h2>
+  <div class="qc">El dueño en el Pack Flow: <b>"media pantalla vacía al pedo"</b> + <b>"no entiendo qué tengo que hacer, hay un master y abajo más cosas… necesito que me vaya guiando"</b>. Dos problemas de una: el contenido dejaba un hueco a la derecha, y la app no explicaba el proceso. El copiloto resuelve ambos. <b>Solo presentación</b> — un componente nuevo + datos puros + un endpoint proxy; cero lógica de estado/persistencia/moldes tocada.</div>
+  <div class="grid g4">
+    <div class="card"><div class="label">Work orders</div><div class="val gold">4</div><div class="hint">C1 layout 2 columnas · C2 Copiloto + datos · C3 Marca + proxy anti-SSRF · C4 claridad Pack Flow</div></div>
+    <div class="card"><div class="label">Datos puros nuevos</div><div class="val accent">2</div><div class="hint"><code>lib/copiloto.ts</code> (guía + progreso por paso) · <code>lib/brandAsset.ts</code> (validador anti-SSRF + href de descarga), ambos con test.</div></div>
+    <div class="card"><div class="label">Tests</div><div class="val green">219 / 219</div><div class="hint">+45 nuevos (copiloto, brandAsset, settings). Verdes sin tocar un test previo. La lógica no se movió.</div></div>
+    <div class="card"><div class="label">Gates</div><div class="val green">5 / 5</div><div class="hint">tsc 0 · eslint 0 err · stylelint 0 · build ok · visual (1440 · 1040 · 820) sin scroll horizontal.</div></div>
+  </div>
+  <div class="callout accent"><b>Qué es:</b> un aside sticky a la derecha que acompaña TODO el pipeline y, para el paso activo, explica en criollo <b>qué es</b>, <b>qué hizo la IA</b> y —sobre todo— <b>qué tenés que hacer vos</b> (numerado, con los ítems cumplidos tildados y el próximo resaltado). Es dinámico: refleja el estado real (progreso, "0/4 copiados") y se pliega si molesta (preferencia persistida).</div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> Pack Flow — el que disparó todo <span class="badge b-info">C1·C2·C3·C4</span></h2>
+  <div class="qc">El hueco de la derecha se llena con la guía; el <b>ritual de Flow</b> queda explícito (copiá el MASTER una vez → copiá cada clip → bajá el mp4 → importá en Rodaje); el <b>MASTER</b> es una fila DESTACADA del mismo sistema colapsable que los clips (no un widget aparte); una <b>leyenda de estados</b> explica pendiente/copiado/importado; y el <b>bloque Marca</b> deja el logo descargable a mano.</div>
+  <div class="shot"><div class="cap"><span class="dot"></span>Pack Flow · 1440px · copiloto al costado · proyecto munify-ejemplo (estado persistido)</div><img src="../10-copiloto/capturas/01-packflow-1440.png" alt="Pack Flow a 1440 con copiloto"></div>
+  <ul class="tips">
+    <li><strong>Copiloto (derecha):</strong> el MASTER ya tildado, <em>"Copiá el clip #1"</em> resaltado como próximo, contador <code>0/4 copiados</code>, el tip de no editar a mano, y la nota honesta de que el logo final se quema en el Montaje.</li>
+    <li><strong>Bloque Marca:</strong> logo (vista previa) + <b>Descargar logo</b>, el color <code>#18a24d</code> y la fonética <em>Munifai</em> copiables con un click.</li>
+    <li><strong>Leyenda de estados + MASTER unificado:</strong> el filete dorado marca identidad; <code>#1</code> lleva el badge azul <b>el que sigue</b>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">2</span> El panel guía incluso VACÍO <span class="badge b-info">C2</span></h2>
+  <div class="qc">Regla del gate: capturar el estado <b>vacío</b>, no solo el happy path. Abriendo un reel sin generar (FitPass · Concepto), el paso muestra su empty state y el copiloto <b>igual guía</b>: sin "Qué hizo la IA" (no hay contenido), con el primer paso resaltado — <em>"Generá las propuestas con IA"</em>.</div>
+  <div class="shot"><div class="cap"><span class="dot"></span>Concepto vacío · 1440px · el copiloto orienta desde cero</div><img src="../10-copiloto/capturas/03-empty-concepto-1440.png" alt="Concepto vacío con copiloto guiando"></div>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Responsive y plegado <span class="badge b-info">C1</span></h2>
+  <div class="qc">Bajo 960px el copiloto pasa <b>abajo</b> del contenido (sin tapar nada, sin scroll horizontal). Y si molesta, se pliega: queda un botón <b>Guía</b> para reabrirlo, y el contenido recupera todo el ancho. La preferencia abierto/cerrado persiste en <code>settings.ts</code>.</div>
+  <div class="two">
+    <div class="shot"><div class="cap"><span class="dot"></span>820px · copiloto ABAJO</div><img src="../10-copiloto/capturas/04-packflow-820-stacked.png" alt="Pack Flow angosto, copiloto abajo"></div>
+    <div class="shot"><div class="cap"><span class="dot"></span>1440px · copiloto PLEGADO</div><img src="../10-copiloto/capturas/05-packflow-1440-collapsed.png" alt="Pack Flow con copiloto plegado"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Assets de marca descargables <span class="badge b-gold">C3</span></h2>
+  <div class="qc">Pedido del dueño: <em>"todo lo que sea branding me lo tiene que dejar DENTRO de la app, no tengo que ir a una carpeta a buscar el logo — para poder mandárselo a Flow"</em>. El logo con dataURL se baja directo; el logo <b>externo</b> (host sin CORS, caso Munify) pasa por un <b>proxy del server</b> que lo sirve como <code>Content-Disposition: attachment</code>. Verificado end-to-end contra el logo real.</div>
+  <table>
+    <tr><th>Chequeo</th><th>Resultado</th></tr>
+    <tr><td>Descarga del logo externo real de Munify (svg)</td><td><span class="ok">HTTP 200 · image/svg+xml · attachment · nosniff · 958 bytes</span></td></tr>
+    <tr><td>Color de marca / marca fonética</td><td>chips copiables al portapapeles (1 click)</td></tr>
+    <tr><td>Proyecto sin branding</td><td>el bloque no aparece (sin placeholders vacíos)</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Proxy anti-SSRF — qué rechaza <span class="badge b-warn">seguridad</span></h2>
+  <div class="qc">El proxy <code>GET /api/brand-asset?url=</code> descarga una URL <b>arbitraria</b> → superficie de SSRF. La garantía es pura (<code>lib/brandAsset.ts::isAllowedBrandUrl</code>, testeada) y el server la <b>espeja</b> agregando re-chequeo de la IP resuelta por DNS y <code>redirect:'error'</code> (corta rebotes a interno). Resultado real contra el endpoint vivo:</div>
+  <table>
+    <tr><th>URL de prueba</th><th>Respuesta</th><th>Motivo</th></tr>
+    <tr><td><code>http://localhost:5301/api/health</code></td><td class="red">400 rechazado</td><td>host interno</td></tr>
+    <tr><td><code>http://127.0.0.1/x</code></td><td class="red">400 rechazado</td><td>IP privada/loopback</td></tr>
+    <tr><td><code>http://169.254.169.254/latest/meta-data</code></td><td class="red">400 rechazado</td><td>IP privada/loopback (metadata cloud)</td></tr>
+    <tr><td><code>http://192.168.1.1/x</code> · <code>http://10.0.0.5/x</code></td><td class="red">400 rechazado</td><td>IP privada/loopback</td></tr>
+    <tr><td><code>file:///etc/passwd</code></td><td class="red">400 rechazado</td><td>esquema no permitido</td></tr>
+    <tr><td><code>http://2130706433/x</code> (IP como entero)</td><td class="red">400 rechazado</td><td>normaliza a 127.0.0.1 → loopback</td></tr>
+    <tr><td><code>http://db.internal/x</code></td><td class="red">400 rechazado</td><td>host interno (sufijo)</td></tr>
+    <tr><td><code>https://look-guides.netlify.app/…/logo.svg</code></td><td class="green">200 servido</td><td>host público → attachment</td></tr>
+  </table>
+  <div class="callout green">Cubre además IPv6 loopback/ULA/link-local (<code>[::1]</code>, <code>[fc00::1]</code>, <code>[fe80::1]</code>), CGNAT (100.64/10), hex ofuscado y basura. El validador tiene <b>18 aserciones</b> en el suite de vitest.</div>
+</section>
+
+<section>
+  <h2><span class="num">6</span> Estado de los gates</h2>
+  <div class="grid g3">
+    <div class="card"><div class="label">tsc --noEmit</div><div class="val green">0</div><div class="hint">Sin errores de tipo.</div></div>
+    <div class="card"><div class="label">eslint src/</div><div class="val green">0 err</div><div class="hint">9 warnings, todos preexistentes; ninguno en los archivos nuevos.</div></div>
+    <div class="card"><div class="label">stylelint</div><div class="val green">0</div><div class="hint">CSS con tokens <code>--st-*</code>, jamás hex suelto.</div></div>
+    <div class="card"><div class="label">vitest</div><div class="val green">219</div><div class="hint">16 archivos. +45 tests nuevos.</div></div>
+    <div class="card"><div class="label">build</div><div class="val green">ok</div><div class="hint">Sin warnings nuevos (solo el chunk-size preexistente).</div></div>
+    <div class="card"><div class="label">visual (Playwright)</div><div class="val green">0px</div><div class="hint">overflow horizontal en 1440 · 1040 · 820. Capturas miradas una por una.</div></div>
+  </div>
+</section>
+
+<footer>Media Studio · Copiloto del pipeline (C1–C4) · docs/10-copiloto · 2026-07-10</footer>
+
+</body>
+</html>
