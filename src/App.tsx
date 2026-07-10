@@ -9,7 +9,7 @@ import ReelTab from './ReelTab';
 import Pipeline from './Pipeline';
 import Topbar from './Topbar';
 import ProjectsABM from './ProjectsABM';
-import { saveProject, type Project, type VoiceConfig } from './lib/projects';
+import { saveProject, getProject, type Project, type VoiceConfig } from './lib/projects';
 import { useProjects } from './lib/useProjects';
 import { defaultSection, type Section } from './lib/sections';
 import { API_BASE } from './config';
@@ -29,12 +29,15 @@ export default function App() {
   const { projects } = useProjects();   // server-first: estado inicial de localStorage + hidratación del server
 
   // "Grabar" desde el editor: persiste el settings de voz del reel y refresca el proyecto.
+  // read-modify-write sobre el proyecto FRESCO de localStorage: el Pipeline persiste sus cambios ahí
+  // sin notificar a App, así que escribir desde el `activeProject` de React (stale) pisaría el comercial.
   const grabarReel = (reelId: string, vc: VoiceConfig) => {
     if (!activeProject) return;
-    const reels = activeProject.reels.map((r) => (r.id === reelId ? { ...r, voiceConfig: vc } : r));
+    const fresh = getProject(activeProject.id) || activeProject;
+    const reels = fresh.reels.map((r) => (r.id === reelId ? { ...r, voiceConfig: vc } : r));
     setActiveProject(saveProject({
-      id: activeProject.id, name: activeProject.name, type: activeProject.type,
-      preloaded: activeProject.preloaded, reels,
+      id: fresh.id, name: fresh.name, type: fresh.type,
+      preloaded: fresh.preloaded, reels,
     }));
   };
   // VoiceStudio avisa cuando generó el mp3 → lo guardamos por reel (revoca el viejo) y lo persistimos.
@@ -55,12 +58,15 @@ export default function App() {
       if (!r.ok || !d.asset?.fileRef) return;
       setActiveProject((prev) => {
         if (!prev || prev.id !== proj.id) return prev;
-        const reels = prev.reels.map((rl) => {
+        // read-modify-write sobre el proyecto FRESCO de localStorage (no el estado stale de React, que no ve
+        // los writes del Pipeline) — si no, guardar la voz pisaría el comercial armado en la misma sesión.
+        const fresh = getProject(proj.id) || prev;
+        const reels = fresh.reels.map((rl) => {
           if (rl.id !== reelId) return rl;
           const base: VoiceConfig = rl.voiceConfig ?? { voice_id: '', stability: 0.4, similarity: 0.8, style: 0.5, speed: 1.0, model: 'eleven_v3' };
           return { ...rl, voiceConfig: { ...base, audioRef: d.asset.fileRef as string } };
         });
-        return saveProject({ id: prev.id, name: prev.name, type: prev.type, preloaded: prev.preloaded, reels });
+        return saveProject({ id: fresh.id, name: fresh.name, type: fresh.type, preloaded: fresh.preloaded, reels });
       });
     } catch { /* server opcional */ }
   };
@@ -89,6 +95,16 @@ export default function App() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeProject?.id]);
+
+  // Al cambiar de sección, rehidratar el proyecto activo desde localStorage: el Pipeline persiste sus
+  // cambios ahí (no le avisa a App), así que sin esto App quedaría con una copia vieja y VoiceStudio
+  // mostraría el guion viejo. Toma la versión con `updated_at` más nuevo.
+  useEffect(() => {
+    if (!activeProject) return;
+    const fresh = getProject(activeProject.id);
+    if (fresh && (fresh.updated_at || 0) > (activeProject.updated_at || 0)) setActiveProject(fresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section]);
 
   // Modo embed (otra app por iframe): solo el estudio de audio, sin chrome. Va DESPUÉS de los hooks
   // (jamás un early-return antes de los useState: cambiaría el orden de hooks → React #310).
