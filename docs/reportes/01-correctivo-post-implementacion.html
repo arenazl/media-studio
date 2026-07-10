@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Correctivo post-implementación (C1–C11)</title>
+<style>
+:root{
+  --bg:#0f1419; --panel:#1a2027; --panel2:#222b34; --line:#2d3742;
+  --text:#e6edf3; --muted:#8b97a3; --accent:#4f9cf9; --accent2:#7c5cff;
+  --green:#3fb950; --amber:#d29922; --red:#f85149; --teal:#39c5bb;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;padding:32px 20px;max-width:1080px;margin:0 auto;font-size:15px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px;display:flex;align-items:center;gap:12px}
+h2{font-size:19px;font-weight:650;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+h2 .num{width:26px;height:26px;border-radius:7px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
+h3{font-size:15px;font-weight:650;margin:18px 0 8px;color:var(--text)}
+.sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:20px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:720px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.card .val{font-size:28px;font-weight:700;margin-top:6px;letter-spacing:-.5px}
+.card .hint{font-size:12px;color:var(--muted);margin-top:4px}
+.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}.accent{color:var(--accent)}.teal{color:var(--teal)}.purple{color:var(--accent2)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-ok{background:rgba(63,185,80,.15);color:var(--green)}
+.b-alta{background:rgba(248,81,73,.15);color:var(--red)}
+.b-media{background:rgba(210,153,34,.15);color:var(--amber)}
+.b-baja{background:rgba(79,156,249,.15);color:var(--accent)}
+.callout{border-left:3px solid var(--amber);background:rgba(210,153,34,.07);padding:12px 16px;border-radius:0 8px 8px 0;font-size:13.5px;margin-top:14px}
+.callout.green{border-left-color:var(--green);background:rgba(63,185,80,.07)}
+.callout.red{border-left-color:var(--red);background:rgba(248,81,73,.07)}
+.callout.accent{border-left-color:var(--accent);background:rgba(79,156,249,.07)}
+code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--teal);font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:12.5px;margin:3px 4px 3px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd}.card{border-color:#ddd}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg class="ic" style="width:28px;height:28px;stroke:var(--accent)" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z"/></svg>
+  Media Studio — Correctivo post-implementación
+</h1>
+<div class="sub">Cierre del rework <code>docs/07-rework</code> · 11 WOs (C1–C11) + test integral + ejemplo Munify end-to-end · ejecutado por Opus · 2026-07-10</div>
+
+<section>
+  <h2><span class="num">0</span> Resumen ejecutivo</h2>
+  <div class="grid g4">
+    <div class="card"><div class="label">WOs cerrados</div><div class="val green">11 / 11</div><div class="hint">C1–C11, un commit c/u</div></div>
+    <div class="card"><div class="label">Tests</div><div class="val green">174 ✓</div><div class="hint">13 files · 0 fallos</div></div>
+    <div class="card"><div class="label">tsc / eslint</div><div class="val green">0 err</div><div class="hint">warnings 15 → 9</div></div>
+    <div class="card"><div class="label">Claude headless</div><div class="val green">OK</div><div class="hint">pipeline end-to-end real</div></div>
+  </div>
+  <div class="callout accent">
+    El rework quedó <b>funcionalmente completo y verificado</b>. Los 11 hallazgos del diagnóstico
+    post-implementación se cerraron con cambios mínimos sobre lo que ya andaba. Se probó el sistema
+    <b>vivo</b> (server + front): endpoints, render de video real y las pantallas navegando sin errores
+    de consola. Todo dato de este reporte está <b>medido</b>, no estimado.
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> Los 11 correctivos (C1–C11)</h2>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:8px">Origen: <code>docs/07-rework/07-correctivo-post-implementacion.md</code>. Severidad del diagnóstico entre paréntesis.</p>
+  <table>
+    <thead><tr><th style="width:38px">#</th><th>Problema</th><th>Corrección aplicada</th><th style="width:78px">Sev.</th><th style="width:70px">Estado</th></tr></thead>
+    <tbody>
+      <tr><td><b>C1</b></td><td>Voz en off desconectada de la UI; el mp3 de VoiceStudio moría como objectURL (F5 y no estaba)</td><td>Persistir la voz como asset (<code>audioRef</code>) + control "Voz en off" en Montaje + ffprobe para audio</td><td><span class="badge b-alta">alta</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C2</b></td><td>El guion nuevo no bajaba al <code>reel.guion</code> legacy → VoiceStudio no lo veía</td><td>Sincronizar narraciones al guion legacy en <code>Pipeline.setComercial</code></td><td><span class="badge b-alta">alta</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C3</b></td><td>Pipeline stale al cambiar de proyecto en la Topbar (React reusaba la instancia)</td><td><code>key={project.id}</code> en Pipeline/ReelTab/VoiceStudio</td><td><span class="badge b-media">media</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C4</b></td><td>Persistencia por tecla: tipear 50 chars = 50 POST al server</td><td>Debounce trailing 500ms + flush en navegación/unmount</td><td><span class="badge b-media">media</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C5</b></td><td>El regen de un clip de flowpack bypaseaba la garantía de consistencia (cast verbatim)</td><td>El early-return del clip suelto pasa por <code>verificarConsistenciaFlowpack</code></td><td><span class="badge b-media">media</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C6</b></td><td>Escenas sin clip se filtraban en silencio en el render → tiempos/silencios corridos vs. lo estimado</td><td>Error claro (502) en server + botón "Exportar" deshabilitado con aviso de qué escenas faltan</td><td><span class="badge b-media">media</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C7</b></td><td>Faltaba el auto-seed: el "Comenzar" no corría strategy → concept recibía un proxy pobre (el título)</td><td>El wizard corre <b>solo</b> strategy y siembra un comercial por pieza con <code>angulo</code>/<code>creativeBrief</code>; el pipeline produce el resto on-demand</td><td><span class="badge b-media">media</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C8</b></td><td><code>plan.logo</code> nunca se seteaba y el render ignoraba <code>plan.texts</code></td><td>Logo del proyecto rasterizado a PNG (ffmpeg no lee SVG) + <code>drawtext</code> defensivo con fuente portable</td><td><span class="badge b-baja">baja</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C9</b></td><td>El QA holístico vivía en <code>useState</code> → se perdía al salir del paso Montaje</td><td>Persistido en <code>comercial.qa</code> (aditivo)</td><td><span class="badge b-baja">baja</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C10</b></td><td>El reel animado usaba 3.4s fijo por slide, ignorando el <code>durSec</code> del storyboard</td><td>Variables CSS <code>--off</code>/<code>--dur</code> por slide en <code>mockupReel</code></td><td><span class="badge b-baja">baja</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+      <tr><td><b>C11</b></td><td>Código muerto del flujo viejo (GuidedPanel/FunctionRunner/VeoPanel/MontajeTab + moldes veo/mockup)</td><td>Borrado con 0 referencias vivas; sección <code>prompts</code> fuera; <code>/api/render</code> marcado deprecated</td><td><span class="badge b-baja">baja</span></td><td><span class="badge b-ok">cerrado</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <b>Nota de proceso.</b> C1–C5 ya estaban commiteados al iniciar la sesión. <b>C6</b> lo dejó Fable
+    a medio codear (sin commitear) — se revisó contra el spec (tsc + eslint + tests + build verdes),
+    se adoptó y commiteó. <b>C7–C11</b> los implementó Opus. Se dejó como regla de oro que
+    <b>Fable no codea</b> (solo análisis/árbitro).
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span> Test integral — sistema vivo (server + front)</h2>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Backend <code>:5301</code> (LOCAL/Claude) + front Vite <code>:5180</code>. Todo probado contra los procesos reales.</p>
+  <div class="grid g2">
+    <div class="card"><div class="label">Claude headless · molde concept</div><div class="val green">OK <span style="font-size:15px;color:var(--muted)">~46s</span></div><div class="hint">2 conceptos válidos, rioplatense, sin emojis, sin datos inventados</div></div>
+    <div class="card"><div class="label">Render animado · durSec 2+5 (C10)</div><div class="val green">7.000s</div><div class="hint">ffprobe — antes daba 6.8s (3.4 fijo). Playwright + ffmpeg</div></div>
+    <div class="card"><div class="label">Render comercial sin clips (C6)</div><div class="val amber">502</div><div class="hint">mensaje claro "faltan clips en las escenas 1…"</div></div>
+    <div class="card"><div class="label">Smoke de pantallas (Playwright)</div><div class="val green">0 errores</div><div class="hint">consola/página; React monta sin #310, navega 5 secciones</div></div>
+  </div>
+  <table style="margin-top:16px">
+    <thead><tr><th>Endpoint / pantalla</th><th>Resultado medido</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /api/health</code></td><td><span class="badge b-ok">OK</span> functions = <code>[strategy, script, publish, qa, concept, cast, storyboard, flowpack]</code> — <b>veo y mockup ya no aparecen</b> (confirma C11 en el server)</td></tr>
+      <tr><td><code>POST /api/run-function</code> (concept)</td><td><span class="badge b-ok">OK</span> el binding <code>spawn claude.cmd</code> → JSON parseado → 2 conceptos</td></tr>
+      <tr><td><code>POST /api/mockup-reel</code></td><td><span class="badge b-ok">OK</span> mp4 259 KB, duración exacta 7.000s (durSec respetado)</td></tr>
+      <tr><td><code>POST /api/render-comercial</code></td><td><span class="badge b-ok">OK</span> rechazo correcto 502 cuando falta un clip (C6)</td></tr>
+      <tr><td>Front <code>:5180</code> + proxy <code>/api</code></td><td><span class="badge b-ok">OK</span> title "Media Studio — Voz &amp; Video", proxy 5180→5301 responde</td></tr>
+      <tr><td>Pantallas (topbar)</td><td><span class="badge b-ok">OK</span> 5 secciones: Comercial · Negocio · Audio · Videos · Editor (<b>sin Prompts</b>, C11). Pipeline con stepper de 9 pasos, navega a Concepto</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Hallazgos del test end-to-end</h2>
+  <div class="callout">
+    <b>H1 — flowpack falla seguido en clips SIN personajes (garantía estricta).</b> En el ejemplo Munify,
+    la escena CTA quedó sin personajes; la garantía de consistencia (fix C5/Fase 1) exige que ese clip
+    incluya la <code>descripcionEn</code> de la locación <b>verbatim</b>, y la IA no siempre la copia →
+    rechazo. Es la garantía <b>funcionando</b> (correcto), pero en la práctica flowpack necesita varios
+    reintentos (rechazo de la garantía o JSON mal formado). El ejemplo Munify <b>convergió en 2 intentos</b>.
+    <b>Recomendación (deuda, fuera del scope C1–C11):</b> reintento automático en <code>PasoPack</code>
+    (2–3 intentos antes de mostrar error) o afinar el prompt del molde para reforzar la copia literal de la locación.
+  </div>
+  <div class="callout green">
+    <b>H2 — el pipeline de generación produce material de calidad.</b> Sobre el brief real de Munify (5388
+    chars, 7 pantallas) los moldes devolvieron concepto, guion (hook→desarrollo→gag→cta), cast y storyboard
+    coherentes, en rioplatense y sin datos inventados. El enfoque GLOBAL (cada reel cuenta todo el negocio)
+    se respetó.
+  </div>
+  <div class="callout accent">
+    <b>H3 — deuda menor conocida.</b> El logo SVG se rasteriza en el front por canvas (si el navegador no
+    puede, se saltea sin romper el render). <code>plan.texts</code> tiene capacidad de <code>drawtext</code>
+    pero todavía ninguna UI lo llena. <code>/api/render</code> quedó deprecated (montado por compatibilidad).
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Ejemplo Munify — flujo real end-to-end</h2>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:12px" id="munify-status">Proyecto <code>munify-ejemplo</code> generado corriendo el pipeline headless completo (6 moldes, ~9.7 min) sobre el KB real de Munify (brief 5388 chars, 7 pantallas). Persistido server-first: abrí <b>Munify — ejemplo pipeline → Comercial</b> para ver los 6 pasos poblados. Estados aprobados: <span class="green">negocio · concepto · guion · cast · storyboard · pack</span>.</p>
+  <div id="munify-body">
+    <table>
+      <thead><tr><th style="width:100px">Paso</th><th>Salida generada (real, del KB de Munify)</th></tr></thead>
+      <tbody>
+        <tr><td><b>strategy</b></td><td>ángulo: "problema-solución: el caos diario del municipio vs. el orden con Munify"</td></tr>
+        <tr><td><b>concept</b></td><td>"Pantalla partida: el mismo día en dos municipios" — el caos vs. la gestión ordenada con la app</td></tr>
+        <tr><td><b>guion</b></td><td>4 bloques: <code>hook → desarrollo → gag → cta</code> (narración calibrada para TTS)</td></tr>
+        <tr><td><b>cast</b></td><td>personajes: <b>El Intendente</b>, <b>La Empleada</b> (con <code>fisicoEn</code> verbatim) · locación: Oficina de Mesa de Entrada municipal</td></tr>
+        <tr><td><b>storyboard</b></td><td>4 escenas: hook 4s · desarrollo 8s · gag 8s · cta 8s <span style="color:var(--muted)">(talking heads ≥8s — regla dura respetada)</span></td></tr>
+        <tr><td><b>flowpack</b></td><td><span class="badge b-ok">OK</span> master (2381 chars) + <b>4 clips</b> para Google Flow, con el cast verbatim en cada prompt (garantía de consistencia). Convergió en 2 intentos.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Commits</h2>
+  <p style="margin-bottom:10px">
+    <span class="pill">a739390 · C6</span><span class="pill">6cf7be0 · C7</span><span class="pill">b74c25d · C8</span>
+    <span class="pill">5476f30 · C9</span><span class="pill">16dbab3 · C10</span><span class="pill">9b4babe · C11</span>
+  </p>
+  <p style="color:var(--muted);font-size:13px">Prefijo <code>fix(rework): C&lt;N&gt; — …</code>, un commit por WO. C1–C5 (<code>38be556…d48ea60</code>) ya estaban en <code>master</code> al iniciar la sesión.</p>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card"><div class="label">C11 · bytes borrados</div><div class="val teal">6.873</div><div class="hint">solo functions.mjs (moldes veo/mockup + helpers)</div></div>
+    <div class="card"><div class="label">Archivos eliminados</div><div class="val teal">5</div><div class="hint">GuidedPanel · FunctionRunner · VeoPanel · MontajeTab (+ css)</div></div>
+    <div class="card"><div class="label">eslint warnings</div><div class="val green">15 → 9</div><div class="hint">al borrar el código muerto</div></div>
+  </div>
+</section>
+
+<footer>
+  Media Studio · rework <code>docs/07-rework</code> · reporte de cierre generado por Opus · 2026-07-10 · datos medidos contra el sistema vivo
+</footer>
+
+</body>
+</html>
