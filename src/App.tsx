@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import VoiceStudio from './VoiceStudio';
 import KbInspector from './KbInspector';
 import ProjectWizard from './ProjectWizard';
@@ -9,7 +9,7 @@ import ReelTab from './ReelTab';
 import Pipeline from './Pipeline';
 import Topbar from './Topbar';
 import ProjectsABM from './ProjectsABM';
-import { saveProject, getProject, type Project, type VoiceConfig } from './lib/projects';
+import { saveProject, type Project, type VoiceConfig } from './lib/projects';
 import { useProjects } from './lib/useProjects';
 import { defaultSection, type Section } from './lib/sections';
 import { API_BASE } from './config';
@@ -28,27 +28,50 @@ export default function App() {
 
   const { projects } = useProjects();   // server-first: estado inicial de localStorage + hidratación del server
 
-  // "Grabar" desde el editor: persiste el settings de voz del reel y refresca el proyecto.
-  // read-modify-write sobre el proyecto FRESCO de localStorage: el Pipeline persiste sus cambios ahí
-  // sin notificar a App, así que escribir desde el `activeProject` de React (stale) pisaría el comercial.
+  // App es el DUEÑO ÚNICO del proyecto activo en memoria y el único que lo persiste (localStorage + server).
+  // `projectRef` espeja el proyecto para el guardado con retraso (que corre fuera del render). Antes el Pipeline
+  // y App guardaban por su cuenta con copias distintas y se pisaban (perdías el comercial al grabar la voz).
+  const projectRef = useRef<Project | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // persiste YA un proyecto (cancela el timer) y refresca ref + estado con el `updated_at` que genera saveProject.
+  const persistNow = (proj: Project) => {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    const saved = saveProject({ id: proj.id, name: proj.name, type: proj.type, preloaded: proj.preloaded, reels: proj.reels });
+    projectRef.current = saved;
+    setActiveProject(saved);
+  };
+  const scheduleSave = () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => { if (projectRef.current) persistNow(projectRef.current); }, 500);
+  };
+  // flush de lo pendiente antes de navegar (cambiar de sección/proyecto/home) — no perder un guardado en vuelo.
+  const flushPending = () => { if (saveTimer.current && projectRef.current) persistNow(projectRef.current); };
+
+  // EL ÚNICO mutador del proyecto: aplica el cambio en memoria (UI instantánea) y agenda o flushea el guardado.
+  // Todas las pantallas (pipeline, voz) pasan por acá → imposible que una pise a otra con una copia vieja.
+  const updateProject = (updater: (p: Project) => Project, mode: 'debounced' | 'flush' = 'debounced') => {
+    const prev = projectRef.current;
+    if (!prev) return;
+    const next = updater(prev);
+    projectRef.current = next;      // sincrónico: fuente para escrituras seguidas (tipear rápido)
+    setActiveProject(next);         // UI instantánea
+    if (mode === 'flush') persistNow(next); else scheduleSave();
+  };
+
+  // "Grabar" desde el editor: persiste el settings de voz del reel (inmediato, es una acción puntual).
   const grabarReel = (reelId: string, vc: VoiceConfig) => {
-    if (!activeProject) return;
-    const fresh = getProject(activeProject.id) || activeProject;
-    const reels = fresh.reels.map((r) => (r.id === reelId ? { ...r, voiceConfig: vc } : r));
-    setActiveProject(saveProject({
-      id: fresh.id, name: fresh.name, type: fresh.type,
-      preloaded: fresh.preloaded, reels,
-    }));
+    updateProject((prev) => ({ ...prev, reels: prev.reels.map((r) => (r.id === reelId ? { ...r, voiceConfig: vc } : r)) }), 'flush');
   };
   // VoiceStudio avisa cuando generó el mp3 → lo guardamos por reel (revoca el viejo) y lo persistimos.
   const onAudio = (reelId: string, blob: Blob) => {
     setAudioByReel((m) => { if (m[reelId]) URL.revokeObjectURL(m[reelId]); return { ...m, [reelId]: URL.createObjectURL(blob) }; });
     void persistVoice(reelId, blob);
   };
-  // Sube el mp3 de la voz al server (asset del proyecto) y guarda su fileRef en el reel
-  // (voiceConfig.audioRef) — así sobrevive F5 y lo puede usar el render del comercial (voz en off).
+  // Sube el mp3 de la voz al server (asset del proyecto) y guarda su fileRef en el reel (voiceConfig.audioRef)
+  // — sobrevive F5 y lo usa el render del comercial. Aplica sobre el proyecto DUEÑO, nunca una copia vieja.
   const persistVoice = async (reelId: string, blob: Blob) => {
-    const proj = activeProject;
+    const proj = projectRef.current;
     if (!proj) return;
     try {
       const fd = new FormData();
@@ -56,22 +79,19 @@ export default function App() {
       const r = await fetch(`${API_BASE}/api/projects/${encodeURIComponent(proj.id)}/assets`, { method: 'POST', body: fd });
       const d = await r.json();
       if (!r.ok || !d.asset?.fileRef) return;
-      setActiveProject((prev) => {
-        if (!prev || prev.id !== proj.id) return prev;
-        // read-modify-write sobre el proyecto FRESCO de localStorage (no el estado stale de React, que no ve
-        // los writes del Pipeline) — si no, guardar la voz pisaría el comercial armado en la misma sesión.
-        const fresh = getProject(proj.id) || prev;
-        const reels = fresh.reels.map((rl) => {
+      updateProject((prev) => {
+        if (prev.id !== proj.id) return prev;
+        return { ...prev, reels: prev.reels.map((rl) => {
           if (rl.id !== reelId) return rl;
           const base: VoiceConfig = rl.voiceConfig ?? { voice_id: '', stability: 0.4, similarity: 0.8, style: 0.5, speed: 1.0, model: 'eleven_v3' };
           return { ...rl, voiceConfig: { ...base, audioRef: d.asset.fileRef as string } };
-        });
-        return saveProject({ id: fresh.id, name: fresh.name, type: fresh.type, preloaded: fresh.preloaded, reels });
-      });
+        }) };
+      }, 'flush');
     } catch { /* server opcional */ }
   };
 
-  const openProject = (p: Project) => { setActiveProject(p); setSection(defaultSection(p)); };
+  // abrir/cambiar de proyecto: flush lo pendiente del anterior y hacé del nuevo el proyecto dueño.
+  const openProject = (p: Project) => { flushPending(); projectRef.current = p; setActiveProject(p); setSection(defaultSection(p)); };
 
   // Al abrir/cambiar de proyecto, rehidrata el cache de audio de sesión (audioByReel) desde la voz
   // persistida de cada reel (voiceConfig.audioRef → /api/storage/<ref> → objectURL). Fija el bug del
@@ -96,16 +116,6 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeProject?.id]);
 
-  // Al cambiar de sección, rehidratar el proyecto activo desde localStorage: el Pipeline persiste sus
-  // cambios ahí (no le avisa a App), así que sin esto App quedaría con una copia vieja y VoiceStudio
-  // mostraría el guion viejo. Toma la versión con `updated_at` más nuevo.
-  useEffect(() => {
-    if (!activeProject) return;
-    const fresh = getProject(activeProject.id);
-    if (fresh && (fresh.updated_at || 0) > (activeProject.updated_at || 0)) setActiveProject(fresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section]);
-
   // Modo embed (otra app por iframe): solo el estudio de audio, sin chrome. Va DESPUÉS de los hooks
   // (jamás un early-return antes de los useState: cambiaría el orden de hooks → React #310).
   if (embed) {
@@ -123,12 +133,12 @@ export default function App() {
         activeProject={activeProject}
         section={section}
         onPickProject={openProject}
-        onHome={() => setActiveProject(null)}
-        onSection={setSection}
+        onHome={() => { flushPending(); projectRef.current = null; setActiveProject(null); }}
+        onSection={(s) => { flushPending(); setSection(s); }}
       />
       <main className="ms-main">
         {activeProject ? (
-          <SectionView section={section} project={activeProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
+          <SectionView section={section} project={activeProject} onChange={updateProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
         ) : wizardProject ? (
           <ProjectWizard
             project={wizardProject}
@@ -150,7 +160,7 @@ export default function App() {
   );
 }
 
-function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { section: Section; project: Project; onGrabar: (reelId: string, vc: VoiceConfig) => void; onAudio: (reelId: string, blob: Blob) => void; audioByReel: Record<string, string> }) {
+function SectionView({ section, project, onChange, onGrabar, onAudio, audioByReel }: { section: Section; project: Project; onChange: (updater: (p: Project) => Project, mode?: 'debounced' | 'flush') => void; onGrabar: (reelId: string, vc: VoiceConfig) => void; onAudio: (reelId: string, blob: Blob) => void; audioByReel: Record<string, string> }) {
   // guiones del proyecto → VoiceStudio (memoizado: estable mientras no cambie el proyecto).
   const voiceFiles = useMemo(
     () => project.reels.map((r) => ({ id: r.id, label: r.nombre, text: r.guion.join('\n'), sub: `${r.guion.length} frases` })),
@@ -159,7 +169,7 @@ function SectionView({ section, project, onGrabar, onAudio, audioByReel }: { sec
   // key={project.id} en los que cachean estado derivado del proyecto en useState (Pipeline: el
   // comercial/paso activo; ReelTab/ReelEditor: el reel activo): fuerza remount al cambiar de proyecto
   // por la Topbar y evita quedar viendo el proyecto anterior (estado stale).
-  if (section === 'pipeline') return <Pipeline key={project.id} project={project} />;
+  if (section === 'pipeline') return <Pipeline key={project.id} project={project} onChange={onChange} />;
   if (section === 'negocio') return <ProjectInfo project={project} />;
   if (section === 'audio') return (
     <VoiceStudio
