@@ -14,6 +14,24 @@ const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url =
 
 interface QaResult { score: number; verdict: string; issues?: { severity: string; note: string }[] }
 
+// Rasteriza el logo (SVG o raster) a PNG dataURL para el overlay del render: ffmpeg NO decodifica SVG.
+// Si falla (CORS de una URL externa, formato raro), devuelve null → el montaje se arma sin logo (no rompe).
+async function rasterizeLogo(url: string): Promise<string | null> {
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error('logo')); img.src = url; });
+    const w = 172;                                   // 2× el ancho del overlay (86px) para nitidez
+    const h = img.width ? Math.round((img.height / img.width) * w) : w;
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h || w;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0, w, h || w);
+    return canvas.toDataURL('image/png');
+  } catch { return null; }
+}
+
 export default function PasoMontaje({ project, reelId, comercial, setComercial }: PasoProps) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState('');
@@ -30,11 +48,19 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
   const reel = project.reels.find((r) => r.id === reelId);
   const voiceGrabada = reel?.voiceConfig?.audioRef;   // voz persistida desde la tab Audio
 
-  const armar = () => setComercial((c) => ({
-    ...c,
-    montaje: { plan: storyboardToMontaje(c), exports: (c.montaje as MontajeState | undefined)?.exports || [] },
-    estados: { ...c.estados, montaje: c.estados.montaje === 'aprobado' ? 'aprobado' : 'generado' },
-  }));
+  // Arma el plan desde el storyboard y le suma el logo del proyecto (rasterizado a PNG) para el overlay.
+  const armar = async () => {
+    const logoSrc = project.brandKit?.logoUrl ? await rasterizeLogo(project.brandKit.logoUrl) : null;
+    setComercial((c) => {
+      const plan = storyboardToMontaje(c);
+      const planL = logoSrc ? { ...plan, logo: { src: logoSrc } } : plan;
+      return {
+        ...c,
+        montaje: { plan: planL, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
+        estados: { ...c.estados, montaje: c.estados.montaje === 'aprobado' ? 'aprobado' : 'generado' },
+      };
+    });
+  };
 
   const setMusica = (url: string) => setComercial((c) => {
     const m = c.montaje as MontajeState | undefined;
@@ -103,7 +129,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
           <h2 className="paso-title">Montaje</h2>
           <p className="paso-sub">Se arma solo desde el storyboard: clips en orden, diálogo de los actores, música con ducking y silencio antes del remate.</p>
         </div>
-        <button className="paso-gen" onClick={armar} disabled={rendering}>
+        <button className="paso-gen" onClick={() => void armar()} disabled={rendering}>
           <Clapperboard size={15} /> {plan ? 'Rearmar desde el storyboard' : 'Armar desde el storyboard'}
         </button>
       </div>

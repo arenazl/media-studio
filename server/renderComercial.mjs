@@ -55,9 +55,18 @@ async function downloadTo(url, dest) {
   fs.writeFileSync(dest, Buffer.from(await r.arrayBuffer()));
 }
 
-// resuelve un src a un path local: fileRef RELATIVO → STORAGE_DIR/<rel>; http(s) → descarga a tmp.
+// resuelve un src a un path local: dataURL → materializa a tmp; fileRef RELATIVO → STORAGE_DIR/<rel>;
+// http(s) → descarga a tmp. El logo llega como PNG dataURL (el front rasteriza el SVG: ffmpeg no lo decodifica).
 async function resolveSrc(src, storageDir, tmpDir, i) {
   if (!src) return null;
+  if (/^data:/.test(src)) {
+    const m = /^data:([^;,]*)(;base64)?,([\s\S]*)$/.exec(src);
+    if (!m) throw new Error('dataURL de asset inválida');
+    const ext = ((m[1] || '').split('/')[1] || 'bin').replace(/[^a-z0-9]+/gi, '') || 'bin';
+    const dest = path.join(tmpDir, `data-${i}.${ext}`);
+    fs.writeFileSync(dest, m[2] ? Buffer.from(m[3], 'base64') : Buffer.from(decodeURIComponent(m[3]), 'utf8'));
+    return dest;
+  }
   if (/^https?:\/\//.test(src)) { const dest = path.join(tmpDir, `dl-${i}-${path.basename(src.split('?')[0]) || 'a'}`); await downloadTo(src, dest); return dest; }
   const local = path.join(storageDir, src);
   if (!fs.existsSync(local)) throw new Error(`no existe el clip: ${src}`);
@@ -66,6 +75,19 @@ async function resolveSrc(src, storageDir, tmpDir, i) {
 
 // enable de ffmpeg para un set de rangos → una cadena de filtros volume.
 const volEnables = (ranges, gain) => ranges.map(([a, b]) => `volume=${gain}:enable='between(t,${a.toFixed(3)},${b.toFixed(3)})'`);
+
+// drawtext (texto quemado): fuente del sistema portátil (primera que exista) + escaping de ffmpeg.
+// Si no hay fuente, se saltea el texto (nunca rompe el render). Preset único: blanco con borde, safe-area.
+function resolveFont() {
+  const cands = [
+    'C:/Windows/Fonts/arialbd.ttf', 'C:/Windows/Fonts/arial.ttf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+    '/System/Library/Fonts/Supplemental/Arial.ttf', '/Library/Fonts/Arial.ttf',
+  ];
+  for (const f of cands) { try { if (fs.existsSync(f)) return f; } catch { /* noop */ } }
+  return null;
+}
+const escDrawText = (s) => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/:/g, '\\:').replace(/%/g, '\\%');
 
 export async function renderComercial(plan, { runFfmpeg, storageDir, probeDuration }) {
   // Escenas sin clip: ERROR claro, no filtrado silencioso — si se descartara una escena del medio,
@@ -102,6 +124,23 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
     }
     // logo overlay abajo-izquierda (patrón assemble)
     if (logoIdx >= 0) { fc.push(`[${logoIdx}:v]scale=86:-1[logo]`, `${vlabel}[logo]overlay=46:1784[vlogo]`); vlabel = '[vlogo]'; }
+
+    // texto quemado (drawtext): preset único blanco+borde en la safe-area. Solo si hay texts Y fuente del sistema.
+    const texts = Array.isArray(plan.texts) ? plan.texts.filter((t) => t && t.text) : [];
+    if (texts.length) {
+      const font = resolveFont();
+      if (font) {
+        const ff = font.replace(/\\/g, '/').replace(/:/g, '\\:');
+        texts.forEach((t, i) => {
+          const at = Number(t.at) || 0, d = Number(t.dur) || 3;
+          const x = t.nx != null ? `(w*${Number(t.nx).toFixed(3)})` : '(w-text_w)/2';
+          const y = t.ny != null ? `(h*${Number(t.ny).toFixed(3)})` : '(h*0.78)';
+          const out = `[vt${i}]`;
+          fc.push(`${vlabel}drawtext=fontfile='${ff}':text='${escDrawText(t.text)}':fontcolor=white:fontsize=54:borderw=3:bordercolor=black@0.65:x=${x}:y=${y}:enable='between(t,${at.toFixed(3)},${(at + d).toFixed(3)})'${out}`);
+          vlabel = out;
+        });
+      }
+    }
 
     // 3. audio: diálogo de escenas keep + voz + música (ducking + silencio)
     const alabels = [];
