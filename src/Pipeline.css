@@ -269,6 +269,72 @@
 .paso-char-lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--st-text-3); display: flex; gap: 8px; align-items: center; }
 .paso-warn { text-transform: none; letter-spacing: 0; color: var(--st-warn); font-size: 10.5px; }
 
+/* ── cast (UI-3): grid de personajes + locación ─────────────────────────── */
+.cast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: var(--st-sp-4); align-items: start; }
+.cast-card {
+  background: var(--st-bg-2); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 13px; box-shadow: var(--st-shadow-1);
+  transition: border-color var(--st-dur) var(--st-ease);
+}
+.cast-card:hover { border-color: var(--st-line-2); }
+.cast-card-head { display: flex; align-items: center; gap: 12px; }
+.cast-avatar {
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--st-font-display); font-size: 22px; font-weight: 600; text-transform: uppercase;
+  color: var(--st-bg-0); box-shadow: var(--st-shadow-1);
+}
+.cast-avatar--gold { background: linear-gradient(135deg, var(--st-gold-soft), var(--st-gold)); }
+.cast-avatar--violet { background: linear-gradient(135deg, color-mix(in srgb, var(--st-violet) 78%, white), var(--st-violet)); }
+.cast-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cast-name { font-size: 16px; font-weight: 700; color: var(--st-text-1); }
+.cast-rol { font-size: 12px; color: var(--st-text-3); line-height: 1.4; }
+.cast-es { margin: 0; font-size: 13px; color: var(--st-text-2); line-height: 1.55; }
+.cast-en { display: flex; flex-direction: column; gap: 8px; }
+.cast-en-toggle {
+  display: flex; align-items: center; gap: 7px; width: 100%; text-align: left;
+  background: transparent; border: none; cursor: pointer; color: var(--st-text-2); padding: 0;
+}
+.cast-en-toggle:hover { color: var(--st-text-1); }
+.cast-en-lbl { font-family: var(--st-font-mono); font-size: 11px; }
+.cast-en-badge {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--st-warn); background: color-mix(in srgb, var(--st-warn) 15%, transparent);
+  border-radius: var(--st-pill); padding: 2px 9px;
+}
+.cast-en .paso-inline { font-family: var(--st-font-mono); font-size: 12px; }
+.cast-loc {
+  background: var(--st-bg-2); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--st-shadow-1);
+}
+.cast-loc-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cast-loc-ico { display: inline-flex; color: var(--st-gold); }
+.cast-loc-name { font-size: 15px; font-weight: 700; color: var(--st-text-1); }
+.cast-loc-luz { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; font-size: 11.5px; color: var(--st-text-3); }
+.cast-loc-desc { margin: 0; font-size: 12.5px; color: var(--st-text-2); line-height: 1.55; }
+
+/* ── storyboard filmstrip (UI-3) ────────────────────────────────────────── */
+.sb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--st-sp-4); align-items: start; }
+.sb-cell {
+  position: relative; background: var(--st-bg-2); border: 1px solid var(--st-line-1);
+  border-top: 3px solid var(--st-line-2); border-radius: var(--st-r-l);
+  padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--st-shadow-1);
+  transition: border-color var(--st-dur) var(--st-ease), transform var(--st-dur) var(--st-ease);
+}
+.sb-cell:hover { border-color: var(--st-line-2); transform: translateY(-2px); }
+.sb-cell--hook { border-top-color: var(--st-warn); }
+.sb-cell--mid { border-top-color: var(--st-blue); }
+.sb-cell--gag { border-top-color: var(--st-violet); }
+.sb-cell--cta { border-top-color: var(--st-ok); }
+.sb-cell-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sb-n { font-family: var(--st-font-display); font-size: 26px; font-weight: 600; color: var(--st-text-1); line-height: 1; }
+.sb-tags { display: inline-flex; align-items: center; gap: 8px; }
+.sb-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.sb-accion { margin: 0; font-size: 12.5px; color: var(--st-text-2); line-height: 1.5; }
+.sb-dialogo { padding-left: 12px; border-left: 2px solid color-mix(in srgb, var(--st-blue) 45%, transparent); }
+.sb-cont { display: flex; align-items: flex-start; gap: 6px; font-size: 11.5px; color: var(--st-text-3); font-style: italic; line-height: 1.45; }
+.sb-cont svg { flex: 0 0 auto; margin-top: 2px; }
+
 /* ── pack flow ──────────────────────────────────────────────────────────── */
 .pack-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .pack-prog { font-size: 12.5px; color: var(--st-text-2); font-family: var(--st-font-mono); font-variant-numeric: tabular-nums; }

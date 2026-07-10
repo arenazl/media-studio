@@ -1,12 +1,14 @@
 // Paso 4 — CAST (solo filmado). Corre el molde `cast`: personajes con descripción física EXACTA
 // (fisicoEn, editable, con warning de que va VERBATIM a cada prompt) + la locación.
 import { useState } from 'react';
-import { PasoShell, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
+import { Users, MapPin, Sun, ChevronDown, ChevronRight } from 'lucide-react';
+import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import type { Cast, CharacterSheet } from '../lib/comercial';
 
 export default function PasoCast({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [closed, setClosed] = useState<Record<string, boolean>>({});   // fisicoEn colapsado por personaje (default abierto)
   const cast = comercial?.cast;
 
   const generar = async () => {
@@ -29,23 +31,47 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
       hasContent={!!cast} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!cast?.personajes?.length} approveLabel="Cast listo, al storyboard"
     >
-      <div className="paso-cards">
-        {(cast?.personajes || []).map((p) => (
-          <article key={p.id} className="paso-char">
-            <div className="paso-char-h"><strong>{p.nombre}</strong> <span className="paso-char-rol">{p.rol}</span></div>
-            {p.fisicoEs && <div className="paso-char-es">{p.fisicoEs}</div>}
-            <label className="paso-char-lbl">fisicoEn <span className="paso-warn">se pega VERBATIM en todos los prompts</span></label>
-            <InlineEdit value={p.fisicoEn} onChange={(v) => editFisico(p.id, v)} rows={3} />
-          </article>
-        ))}
-        {cast?.lugar && (
-          <article className="paso-char">
-            <div className="paso-char-h"><strong>Locación:</strong> {cast.lugar.nombre} <span className="paso-char-rol">{cast.lugar.luz}</span></div>
-            <div className="paso-block-visual">{cast.lugar.descripcionEn}</div>
-          </article>
-        )}
-        {!cast && !busy && <div className="paso-empty">Generá el cast desde el concepto y el guion.</div>}
-      </div>
+      {cast ? (
+        <>
+          <div className="cast-grid">
+            {cast.personajes.map((p, i) => {
+              const open = closed[p.id] !== true;
+              return (
+                <article key={p.id} className="cast-card">
+                  <div className="cast-card-head">
+                    <span className={`cast-avatar cast-avatar--${i % 2 === 0 ? 'gold' : 'violet'}`}>{(p.nombre || '?')[0]}</span>
+                    <div className="cast-id">
+                      <span className="cast-name">{p.nombre}</span>
+                      <span className="cast-rol">{p.rol}</span>
+                    </div>
+                  </div>
+                  {p.fisicoEs && <p className="cast-es">{p.fisicoEs}</p>}
+                  <div className="cast-en">
+                    <button className="cast-en-toggle" onClick={() => setClosed((s) => ({ ...s, [p.id]: !s[p.id] }))} aria-expanded={open}>
+                      {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      <span className="cast-en-lbl">fisicoEn</span>
+                      <span className="cast-en-badge">se pega VERBATIM en todos los prompts</span>
+                    </button>
+                    {open && <InlineEdit value={p.fisicoEn} onChange={(v) => editFisico(p.id, v)} rows={3} />}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          {cast.lugar && (
+            <article className="cast-loc">
+              <div className="cast-loc-head">
+                <span className="cast-loc-ico"><MapPin size={16} /></span>
+                <span className="cast-loc-name">{cast.lugar.nombre}</span>
+                {cast.lugar.luz && <span className="cast-loc-luz"><Sun size={12} /> {cast.lugar.luz}</span>}
+              </div>
+              {cast.lugar.descripcionEn && <p className="cast-loc-desc">{cast.lugar.descripcionEn}</p>}
+            </article>
+          )}
+        </>
+      ) : (
+        !busy && <PasoEmpty icon={Users}>Generá el cast desde el concepto y el guion: cada personaje llega con su descripción física exacta para mantener la consistencia en todos los clips.</PasoEmpty>
+      )}
     </PasoShell>
   );
 }

@@ -1,11 +1,12 @@
 // Paso 5 — STORYBOARD. Corre el molde `storyboard` (bifurca por tipo: filmado = planos/talking
 // heads con diálogo · animado = pantallas). Tarjetas de escena editables + chequeo cast↔escena.
 import { useState } from 'react';
-import { PasoShell, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
+import { Link2, Clapperboard } from 'lucide-react';
+import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { escenasAPrompts, type Escena } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
-const roleClass = (r: string) => (r === 'hook' ? 'paso-role--hook' : r === 'cta' ? 'paso-role--cta' : 'paso-role--mid');
+const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 
 export default function PasoStoryboard({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
@@ -37,24 +38,35 @@ export default function PasoStoryboard({ project, comercial, setComercial, goNex
           Escenas que referencian personajes fuera del cast: {refCheck.faltantes.map((f) => `#${f.escenaN}→${f.personajeId}`).join(', ')}
         </div>
       )}
-      <div className="paso-cards">
-        {escenas.map((e) => (
-          <article key={e.n} className="paso-scene">
-            <div className="paso-scene-h">
-              <span className="paso-scene-n">#{e.n}</span>
-              <span className={`paso-role ${roleClass(e.rol)}`}>{ROL_LABEL[e.rol] || e.rol}</span>
-              <span className="paso-t">{e.durSec}s</span>
-              {e.plano && <span className="paso-scene-tag">{e.plano}</span>}
-              {(e.personajes || []).length > 0 && <span className="paso-scene-tag">{e.personajes.join(', ')}</span>}
-              {e.screen && <span className="paso-scene-tag">{e.screen}</span>}
-            </div>
-            {e.accion && <div className="paso-block-visual">{e.accion}</div>}
-            {tipo === 'filmado' && <InlineEdit value={e.dialogo} onChange={(v) => editDialogo(e.n, v)} rows={2} placeholder="diálogo (rioplatense)" />}
-            {e.continuidad && <div className="paso-scene-cont">continuidad: {e.continuidad}</div>}
-          </article>
-        ))}
-        {!escenas.length && !busy && <div className="paso-empty">Generá el storyboard desde el guion{tipo === 'filmado' ? ' y el cast' : ''}.</div>}
-      </div>
+      {escenas.length > 0 ? (
+        <div className="sb-grid">
+          {escenas.map((e) => (
+            <article key={e.n} className={`sb-cell sb-cell--${roleKind(e.rol)}`}>
+              <div className="sb-cell-top">
+                <span className="sb-n">#{e.n}</span>
+                <div className="sb-tags">
+                  <span className={`paso-role paso-role--${roleKind(e.rol)}`}>{ROL_LABEL[e.rol] || e.rol}</span>
+                  <span className="paso-t">{e.durSec}s</span>
+                </div>
+              </div>
+              <div className="sb-meta">
+                {e.plano && <span className="paso-scene-tag">{e.plano}</span>}
+                {(e.personajes || []).length > 0 && <span className="paso-scene-tag">{e.personajes.join(', ')}</span>}
+                {e.screen && <span className="paso-scene-tag">{e.screen}</span>}
+              </div>
+              {e.accion && <p className="sb-accion">{e.accion}</p>}
+              {tipo === 'filmado' && (
+                <div className="sb-dialogo">
+                  <InlineEdit value={e.dialogo} onChange={(v) => editDialogo(e.n, v)} rows={2} placeholder="diálogo (rioplatense)" />
+                </div>
+              )}
+              {e.continuidad && <div className="sb-cont"><Link2 size={12} /> <span>{e.continuidad}</span></div>}
+            </article>
+          ))}
+        </div>
+      ) : (
+        !busy && <PasoEmpty icon={Clapperboard}>Generá el storyboard desde el guion{tipo === 'filmado' ? ' y el cast' : ''}: cada escena con su plano, duración, acción{tipo === 'filmado' ? ', diálogo' : ''} y continuidad.</PasoEmpty>
+      )}
     </PasoShell>
   );
 }
