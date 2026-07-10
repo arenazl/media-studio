@@ -149,11 +149,15 @@ KNOWLEDGE BASE:
 ${JSON.stringify(kb).slice(0, 9000)}`;
 
 // ── Claude headless (local) ──────────────────────────────────────────────────
-function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash,Edit,Write', timeout = 900_000 } = {}) {
+// Selección de modelo (M1): el front manda un tier de la whitelist; cualquier otro valor se
+// ignora (cae al default del CLI) — NUNCA se inyecta un string arbitrario al spawn.
+const MODEL_WHITELIST = ['opus', 'sonnet', 'haiku'];
+function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash,Edit,Write', timeout = 900_000, model } = {}) {
   return new Promise((resolve, reject) => {
     const env = { ...process.env };
     delete env.CLAUDECODE; delete env.CLAUDE_CODE_ENTRYPOINT;
     const args = ['-p', '--output-format', 'stream-json', '--verbose', '--allowedTools', allowedTools, '--permission-mode', 'bypassPermissions'];
+    if (MODEL_WHITELIST.includes(model)) args.push('--model', model);
     const proc = spawn(IS_WIN ? 'claude.cmd' : 'claude', args, { cwd, env, shell: IS_WIN });
     let out = '', errb = '';
     const killer = setTimeout(() => { proc.kill(); reject(new Error(`claude timeout (${timeout / 1000}s)`)); }, timeout);
@@ -197,7 +201,7 @@ async function runGemini(prompt) {
 // ── IA: UNA interfaz, un solo switch (local → Claude headless · prod → Gemini) ──
 // runAI({prompt, imageBuffer?}) es el único punto donde se decide el proveedor.
 // Con imageBuffer = visión (en local, Claude lo lee con Read; en prod, Gemini inline).
-async function runAI({ prompt, imageBuffer = null, cwd, allowedTools }) {
+async function runAI({ prompt, imageBuffer = null, cwd, allowedTools, model }) {
   if (IS_PROD) {
     if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY no configurada');
     const parts = [{ text: prompt }];
@@ -214,10 +218,10 @@ async function runAI({ prompt, imageBuffer = null, cwd, allowedTools }) {
   if (imageBuffer) {
     const tmp = path.join(os.tmpdir(), `mstudio-ai-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`);
     fs.writeFileSync(tmp, imageBuffer);
-    try { return await runClaude(`Mirá la imagen en "${tmp.replace(/\\/g, '/')}" usando la tool Read. ${prompt}`, { allowedTools: 'Read', timeout: 120_000 }); }
+    try { return await runClaude(`Mirá la imagen en "${tmp.replace(/\\/g, '/')}" usando la tool Read. ${prompt}`, { allowedTools: 'Read', timeout: 120_000, model }); }
     finally { try { fs.unlinkSync(tmp); } catch { /* noop */ } }
   }
-  return await runClaude(prompt, { cwd, allowedTools });
+  return await runClaude(prompt, { cwd, allowedTools, model });
 }
 
 // ── Clasificación de video por IA sobre el thumbnail (los videos viven en Cloudinary) ──
@@ -857,7 +861,9 @@ ${src}`;
       if (!body.functionId) return json(res, 400, { error: 'falta functionId' });
       try {
         const { prompt, mode } = buildFunctionPrompt(body);
-        const { text } = await runAI({ prompt, allowedTools: 'Read' });
+        const model = MODEL_WHITELIST.includes(body.model) ? body.model : undefined;
+        console.log(`[media-studio] run-function ${body.functionId} → modelo: ${model || 'default'}`);
+        const { text } = await runAI({ prompt, allowedTools: 'Read', model });
         return json(res, 200, { functionId: body.functionId, mode, result: parseFunctionResult(body.functionId, text, body) });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error corriendo la función' }); }
     }
