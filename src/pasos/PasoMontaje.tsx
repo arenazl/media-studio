@@ -7,12 +7,11 @@ import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Gauge, Mic, Upl
 import { API_BASE } from '../config';
 import { errMsg, runMolde, type PasoProps } from './pasoKit';
 import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
+import type { QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
 const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
-
-interface QaResult { score: number; verdict: string; issues?: { severity: string; note: string }[] }
 
 // Rasteriza el logo (SVG o raster) a PNG dataURL para el overlay del render: ffmpeg NO decodifica SVG.
 // Si falla (CORS de una URL externa, formato raro), devuelve null → el montaje se arma sin logo (no rompe).
@@ -35,7 +34,7 @@ async function rasterizeLogo(url: string): Promise<string | null> {
 export default function PasoMontaje({ project, reelId, comercial, setComercial }: PasoProps) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState('');
-  const [qa, setQa] = useState<QaResult | null>(null);
+  const qa = comercial?.qa ?? null;   // C9: el QA vive en el comercial (persiste); antes era useState y se perdía al salir del paso
   const [qaBusy, setQaBusy] = useState(false);
   const [voiceBusy, setVoiceBusy] = useState(false);
   const voiceInput = useRef<HTMLInputElement | null>(null);
@@ -100,7 +99,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
         concepto: comercial.concepto, guion: comercial.guion, cast: comercial.cast,
         storyboard: comercial.storyboard, packFlow: comercial.packFlow, objetivo: comercial.concepto?.idea,
       }, { foco: 'todo' });
-      setQa(res as unknown as QaResult);
+      setComercial((c) => ({ ...c, qa: res as unknown as QaResult }));   // persiste (debounce del pipeline; flush al navegar)
     } catch (e) { setError(errMsg(e)); } finally { setQaBusy(false); }
   };
 

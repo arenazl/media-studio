@@ -92,6 +92,13 @@ export interface PublishPack {
   cta: string;
 }
 
+// Resultado del QA holístico del comercial (molde `qa`, foco 'todo') — persistido para no reevaluar al volver al paso.
+export interface QaResult {
+  score: number;
+  verdict: string;
+  issues?: { severity: string; note: string }[];
+}
+
 // La entidad central: cada versión/approach del proyecto es un `Comercial` que recorre el pipeline.
 export interface Comercial {
   id: string;
@@ -108,6 +115,7 @@ export interface Comercial {
   renderRef?: string;                // paso 6b (solo animado): el mp4 renderizado del storyboard
   rodaje?: Toma[];                   // paso 7 (solo filmado; refs a server/storage)
   montaje?: unknown;                 // paso 8 — MontajePlan lo define la Fase 4 (tipado laxo hasta entonces)
+  qa?: QaResult;                     // paso 8 — QA holístico persistido (C9: antes vivía en useState y se perdía)
   publicacion?: PublishPack;         // paso 9
 }
 
