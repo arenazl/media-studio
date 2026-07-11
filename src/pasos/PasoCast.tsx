@@ -28,7 +28,7 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
 
   return (
     <PasoShell
-      titulo="Cast" sub="Personajes con descripción física exacta (se pega verbatim en cada prompt) y la locación."
+      titulo="Cast" sub="La ficha de cada personaje. La app la usa para generar su IMAGEN en el Pack Flow — vos no pegás esto en Flow."
       hasContent={!!cast} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!cast?.personajes?.length} approveLabel="Cast listo, al storyboard"
       functionId="cast" estado={estadoDelPaso('cast', comercial)}
@@ -52,7 +52,7 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
                     <button className="cast-en-toggle" onClick={() => setClosed((s) => ({ ...s, [p.id]: !s[p.id] }))} aria-expanded={open}>
                       {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                       <span className="cast-en-lbl">fisicoEn</span>
-                      <span className="cast-en-badge">se pega VERBATIM en todos los prompts</span>
+                      <span className="cast-en-badge">genera la imagen del personaje (Pack Flow)</span>
                     </button>
                     {open && <InlineEdit value={p.fisicoEn} onChange={(v) => editFisico(p.id, v)} rows={3} />}
                   </div>
@@ -72,7 +72,7 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
           )}
         </>
       ) : (
-        !busy && <PasoEmpty icon={Users}>Generá el cast desde el concepto y el guion: cada personaje llega con su descripción física exacta para mantener la consistencia en todos los clips.</PasoEmpty>
+        !busy && <PasoEmpty icon={Users}>Generá el cast desde el concepto y el guion: cada personaje llega con su descripción física, que la app usa para generar su imagen de referencia en el Pack Flow.</PasoEmpty>
       )}
     </PasoShell>
   );
