@@ -77,32 +77,32 @@ describe('copilotoDinamico — pack (Pack Flow)', () => {
   it('sin pack generado: avance 0, contador en cero', () => {
     const d = copilotoDinamico('pack', nuevoComercial('x', 'filmado'));
     expect(d.avance).toBe(0);
-    expect(d.progreso).toEqual({ label: 'clips copiados', done: 0, total: 0 });
+    expect(d.progreso).toEqual({ label: 'escenas copiadas', done: 0, total: 0 });
   });
 
-  it('pack generado, nada copiado: avance 1 (copiá el MASTER)', () => {
+  it('pack generado, nada copiado: avance 1 (creá personajes + animá escenas)', () => {
     const d = copilotoDinamico('pack', packWith(['pendiente', 'pendiente', 'pendiente', 'pendiente']));
     expect(d.avance).toBe(1);
-    expect(d.progreso).toEqual({ label: 'clips copiados', done: 0, total: 4 });
+    expect(d.progreso).toEqual({ label: 'escenas copiadas', done: 0, total: 4 });
   });
 
-  it('copiando clips (algunos): avance 2', () => {
+  it('copiando escenas (algunas): sigue en avance 1', () => {
     const d = copilotoDinamico('pack', packWith(['copiado', 'pendiente', 'pendiente', 'pendiente']));
-    expect(d.avance).toBe(2);
+    expect(d.avance).toBe(1);
     expect(d.progreso!.done).toBe(1);
   });
 
-  it('todos copiados pero no todos importados: avance 3 (seguí en Rodaje)', () => {
+  it('todas copiadas pero no todas importadas: avance 2 (seguí en Rodaje)', () => {
     const d = copilotoDinamico('pack', packWith(['copiado', 'copiado', 'importado', 'copiado']));
-    expect(d.avance).toBe(3);
-    expect(d.progreso).toEqual({ label: 'clips copiados', done: 4, total: 4 });
+    expect(d.avance).toBe(2);
+    expect(d.progreso).toEqual({ label: 'escenas copiadas', done: 4, total: 4 });
   });
 
   it('todo importado: avance completo', () => {
     const d = copilotoDinamico('pack', packWith(['importado', 'importado', 'importado', 'importado']));
     expect(d.avance).toBe(COPILOTO.pack.hace.length);
     expect(d.nextItem).toBe(-1);
-    expect(d.progreso).toEqual({ label: 'clips copiados', done: 4, total: 4 });
+    expect(d.progreso).toEqual({ label: 'escenas copiadas', done: 4, total: 4 });
   });
 });
 

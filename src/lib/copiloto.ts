@@ -77,15 +77,14 @@ export const COPILOTO: Record<PasoId, CopilotoStep> = {
     tip: 'Los talking heads son de 8s mínimo: una frase entera se dice en 8 segundos.',
   },
   pack: {
-    queEs: 'Los prompts para pegar en Google Flow (Veo 3) y generar los videos.',
-    hizoIA: 'Armó 1 prompt MAESTRO + 1 prompt por clip, con los personajes consistentes entre escenas.',
+    queEs: 'Los prompts para Google Flow (Veo 3.1): un personaje con su imagen + un prompt por escena.',
+    hizoIA: 'Armó el estilo global, el prompt de IMAGEN de cada personaje y un prompt por escena para animar.',
     hace: [
-      'Copiá el MASTER y pegalo UNA sola vez en Google Flow: define el estilo y los personajes.',
-      'Copiá el clip #1, pegalo en Flow, generá 2-3 tomas, elegí la mejor y bajá el mp4.',
-      'Repetí con cada clip (#2, #3, #4…): un video por escena.',
-      'Con los clips bajados, pasá a Rodaje e importá cada uno.',
+      'Creá cada personaje en Flow y generá su IMAGEN con el prompt de acá (sección Personaje, Nano Banana).',
+      'Creá una escena por clip y animala con su prompt: Flow ya conoce al personaje por su imagen — llamalo por nombre.',
+      'Bajá los videos de cada escena e importalos en Rodaje.',
     ],
-    tip: 'No edites los prompts a mano en Flow. Si querés otra idea visual, usá el botón Regenerar del clip: mantiene la cara del actor.',
+    tip: 'No pegues la descripción física en las escenas: Flow mantiene la cara por la imagen del personaje. Si querés otra idea visual, usá el botón Regenerar de la escena.',
     nota: 'Descargá el logo (bloque Marca) si querés subirlo a Flow como referencia. Ojo: el logo FINAL se quema en el Montaje —el render lo sobreimprime en el mp4—, así que no dependas de que Flow lo dibuje exacto.',
   },
   render: {
@@ -163,12 +162,12 @@ export function copilotoDinamico(paso: PasoId, c: Comercial | undefined): Copilo
   let progreso: CopilotoDinamico['progreso'];
 
   if (paso === 'pack') {
+    // flujo nuevo (3 pasos): crear personajes+imagen · animar una escena por clip · bajar+importar.
     const pr = packProgress(c?.packFlow);
-    progreso = { label: 'clips copiados', done: pr.copiados, total: pr.total };
+    progreso = { label: 'escenas copiadas', done: pr.copiados, total: pr.total };
     if (!hasContent) avance = 0;                                   // sin pack: generalo primero (CTA del header)
-    else if (pr.copiados === 0) avance = 1;                        // pack listo → copiá el MASTER
-    else if (pr.copiados < pr.total) avance = 2;                   // copiando clips
-    else if (pr.importados < pr.total) avance = 3;                 // todos copiados → seguí importando en Rodaje
+    else if (pr.copiados < pr.total) avance = 1;                   // pack listo → creá personajes + animá escenas
+    else if (pr.importados < pr.total) avance = 2;                 // todo copiado → seguí importando en Rodaje
     else avance = total;                                           // todo importado
   } else if (paso === 'rodaje') {
     const conClip = escenasConClip(c);
