@@ -11,7 +11,7 @@
   background: var(--st-bg-1);
   border: 1px solid var(--st-line-1);
   border-radius: var(--st-r-l);
-  box-shadow: var(--st-shadow-2);
+  box-shadow: var(--st-shadow-1);   /* misma receta de superficie que el panel del paso (hermanos) */
   overflow: hidden;
 }
 

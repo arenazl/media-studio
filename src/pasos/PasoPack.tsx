@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Copy, Check, RefreshCw, Loader2, Download, ChevronDown, ChevronRight, PackageOpen } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import { packProgress, type ClipFlow } from '../lib/comercial';
 import BrandBlock from '../BrandBlock';
 
@@ -86,7 +87,7 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
       sub="Pegá cada prompt en Google Flow (Veo 3, 9:16, 8s), bajá el clip y volvé a Rodaje para importarlo."
       hasContent={!!pack} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!pack?.clips?.length} approveLabel="Pack listo, al rodaje"
-      functionId="flowpack"
+      functionId="flowpack" estado={estadoDelPaso('pack', comercial)}
     >
       {pack ? (
         <>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Copy, Check, Download, Megaphone, Film } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import { API_BASE } from '../config';
 import type { PublishPack } from '../lib/comercial';
 import type { MontajeState } from '../lib/montajePlan';
@@ -38,7 +39,7 @@ export default function PasoPublicar({ project, comercial, setComercial }: PasoP
     <PasoShell
       titulo="Publicar" sub="El copy del posteo + el paquete final (mp4 + texto) para subir a la red."
       hasContent={!!pub} busy={busy} onGenerate={generar} error={error}
-      functionId="publish"
+      functionId="publish" estado={estadoDelPaso('publicar', comercial)}
     >
       {pub ? (
         <div className="pub-grid">

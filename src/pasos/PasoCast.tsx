@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Users, MapPin, Sun, ChevronDown, ChevronRight } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import type { Cast, CharacterSheet } from '../lib/comercial';
 
 export default function PasoCast({ project, comercial, setComercial, goNext }: PasoProps) {
@@ -30,7 +31,7 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
       titulo="Cast" sub="Personajes con descripción física exacta (se pega verbatim en cada prompt) y la locación."
       hasContent={!!cast} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!cast?.personajes?.length} approveLabel="Cast listo, al storyboard"
-      functionId="cast"
+      functionId="cast" estado={estadoDelPaso('cast', comercial)}
     >
       {cast ? (
         <>

@@ -47,11 +47,12 @@
   --st-shadow-1: 0 2px 10px rgba(0, 0, 0, 0.35);
   --st-shadow-2: 0 14px 38px rgba(0, 0, 0, 0.48);
 
-  /* ---- Espaciado (escala 4/8/12/16/24/32/48) ---- */
+  /* ---- Espaciado (escala 4/8/12/16/20/24/32/48) ---- */
   --st-sp-1: 4px;
   --st-sp-2: 8px;
   --st-sp-3: 12px;
   --st-sp-4: 16px;
+  --st-sp-5: 20px;   /* cabecera del panel (Workspace): entre sp-4 y sp-6 */
   --st-sp-6: 24px;
   --st-sp-8: 32px;
   --st-sp-12: 48px;
@@ -67,3 +68,9 @@
 @media (prefers-reduced-motion: reduce) {
   :root { --st-dur: 0ms; }
 }
+
+/* reset base + anti-flash: el fondo oscuro aplica desde el primer paint (studio.css es render-blocking
+   en el bundle). Antes vivía como <style> inline en index.html, pero ese inline gatillaba el race
+   `html-inline-proxy` de Vite y volvía el build no determinístico (a veces fallaba con "No matching
+   HTML proxy module found"). Movido acá: build determinístico + el fondo matchea el shell (--st-bg-0). */
+html, body { margin: 0; background: var(--st-bg-0); }

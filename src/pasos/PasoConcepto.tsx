@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Check, Users, Monitor, Lightbulb } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import type { Concepto, TipoComercial } from '../lib/comercial';
 
 export default function PasoConcepto({ project, comercial, setComercial, goNext }: PasoProps) {
@@ -36,7 +37,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       hasContent={opciones.length > 0}
       busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
-      functionId="concept"
+      functionId="concept" estado={estadoDelPaso('concepto', comercial)}
     >
       <div className="paso-tipo">
         <span className="paso-tipo-lbl">Tipo de comercial</span>

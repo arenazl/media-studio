@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { RefreshCw, Loader2, Camera, Music2, FileText } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import type { GuionEstructurado, GuionBloque, EstadoPaso } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
@@ -46,7 +47,7 @@ export default function PasoGuion({ project, comercial, setComercial, goNext }: 
       titulo="Guion" sub="El guion por bloques: hook → desarrollo → remate → CTA, con timing."
       hasContent={blocks.length > 0} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={blocks.length > 0} approveLabel="Guion listo, al cast"
-      functionId="script"
+      functionId="script" estado={estadoDelPaso('guion', comercial)}
     >
       {blocks.length > 0 ? (
         <>

@@ -61,14 +61,16 @@ function useEffectiveModel(functionId: string | undefined) {
 }
 
 export function PasoShell({
-  titulo, sub, hasContent, busy, onGenerate, generarLabel, error, children, onApprove, canApprove, approveLabel, functionId,
+  titulo, sub, hasContent, busy, onGenerate, generarLabel, error, children, onApprove, canApprove, approveLabel, functionId, estado,
 }: {
   titulo: string; sub: string; hasContent: boolean; busy: boolean; onGenerate: () => void;
   generarLabel?: string; error?: string; children: ReactNode;
   onApprove?: () => void; canApprove?: boolean; approveLabel?: string;
   functionId?: string;   // id del molde (functionCatalog) — pinta el hint "IA: <modelo efectivo>" bajo el botón
+  estado?: string;       // línea de estado/contexto del PIE (derivada del estado real vía estadoDelPaso)
 }) {
   const modelHint = useEffectiveModel(functionId);
+  const hayPie = !!(estado || onApprove);
   return (
     <div className="paso">
       <div className="paso-head">
@@ -86,11 +88,14 @@ export function PasoShell({
       </div>
       {error && <div className="paso-error">{error}</div>}
       <div className="paso-body">{children}</div>
-      {onApprove && (
-        <div className="paso-foot">
-          <button className="paso-approve" disabled={!canApprove} onClick={onApprove}>
-            {approveLabel || 'Aprobar y seguir'} <ArrowRight size={15} />
-          </button>
+      {hayPie && (
+        <div className={`paso-foot${estado ? ' paso-foot--split' : ''}`}>
+          {estado && <span className="paso-estado">{estado}</span>}
+          {onApprove && (
+            <button className="paso-approve" disabled={!canApprove} onClick={onApprove}>
+              {approveLabel || 'Aprobar y seguir'} <ArrowRight size={15} />
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -98,9 +103,10 @@ export function PasoShell({
 }
 
 // Empty state diseñado (icono lucide grande + una línea de qué es el paso). El CTA vive en el header.
+// `--full` = ocupa el cuerpo del panel y centra vertical (no una caja perdida en un océano).
 export function PasoEmpty({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
   return (
-    <div className="paso-empty">
+    <div className="paso-empty paso-empty--full">
       <Icon size={34} strokeWidth={1.5} className="paso-empty-ico" />
       <span>{children}</span>
     </div>
