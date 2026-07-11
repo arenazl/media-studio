@@ -59,19 +59,45 @@ El molde `flowpack` deja de producir `{ master, clips[] }` y pasa a producir **3
   referencia a personajes por nombre + la locación (`lugar.descripcionEn` resumida). Sin `fisicoEn`.
 - Para las escenas SIN personajes (b-roll/pantalla), el prompt lleva la locación, como hoy.
 
-### REGLA DURA — idioma de la voz (dato verificado por el dueño, 2026-07-11)
+### PATRÓN EXACTO del prompt de escena — REUSAR `VEO_RULES`, no reinventar
 
-**Por default Veo/Flow genera la voz en INGLÉS.** Lucas lo resolvía poniendo "persona argentina" en el
-prompt y salía bien. Entonces:
-- **Todo prompt de ESCENA con diálogo debe indicar EXPLÍCITO que el personaje habla en español
-  rioplatense / con acento argentino** — ej. `"speaking in Rioplatense (Argentine) Spanish, natural
-  Buenos Aires accent"` junto al diálogo. Sin esto, la voz sale en inglés.
-- El **diálogo en sí va en español rioplatense** con la marca fonética (como hoy). El resto del prompt
-  (dirección técnica) puede ir en inglés (es lo que Veo entiende mejor), pero la línea de idioma de la
-  voz es obligatoria.
-- En el **promptImagen del personaje**, reforzar que es **una persona argentina** (rasgos/vestuario del
-  rubro local) — ayuda a la coherencia con la voz.
-- Esto ya estaba en el molde viejo (calibración rioplatense); al reescribir, NO perderlo — reforzarlo.
+**La calibración de idioma/cadencia/talking head YA está en el código:** `VEO_RULES` en
+`server/functions.mjs` (battle-tested con los videos de `shorts-nature/output/` — los `A_*` son talking
+heads que funcionaron, los `B_*` b-roll). Dice textual: *"speaks directly to camera in **Argentine
+Rioplatense Spanish (voseo)**, fluently and naturally, only once and without repeating any words"*,
+*"van en INGLÉS salvo el diálogo, que va en español rioplatense"*, talking head 8s / plano medio /
+push-in sutil / sin silencio de relleno. **El molde nuevo CONSERVA `VEO_RULES` tal cual** — solo cambia
+la ESTRUCTURA (personajes = imagen de referencia + escenas por nombre). NO ir a buscar el prompting
+afuera ni reescribirlo: ya está probado. El prompt real del dueño (abajo) confirma exactamente ese patrón.
+
+**Estructura del prompt de escena (coincide con VEO_RULES + el prompt real del dueño):**
+
+- **El prompt entero va en INGLÉS** (dirección de cámara, escena, entrega vocal) — es lo que Veo entiende.
+- **El diálogo va LITERAL en español rioplatense**, entre comillas, embebido en el prompt inglés.
+- **El acento se dispara nombrando la nacionalidad del personaje:** `"a relatable young Argentine woman
+  in her late 20s…"` / `"an Argentine man…"`. SIN esto, la voz sale en inglés (dato verificado).
+- **El personaje se describe CORTO** (edad + pelo + ropa casual + "Argentine"), NO el `fisicoEn` largo —
+  la imagen de referencia ya fija la cara.
+- **La cadencia/energía de la voz se dirige en inglés:** cómo arranca y evoluciona la entrega
+  ("delivery begins calm and clear, then becomes euphoric and high-energy… voice rising enthusiastically").
+
+**Ejemplo real (transcribir esta ESTRUCTURA en el molde, con los datos de cada escena):**
+```
+Professional cinematic vertical video, high production quality. A single continuous take in a bright,
+modern municipal office with desks, computers, and plants. A relatable young Argentine woman in her late
+20s with long loose hair and casual clothes is centered. The camera performs a smooth, steady dolly-out
+from a medium shot (waist up) to a wide full-body shot. She speaks clearly: 'El vecino reporta, el
+municipio asigna y resuelve. ¡Todos ven el estado en tiempo real!' Her delivery begins calm and clear,
+then becomes euphoric and high-energy for the final sentence, her voice rising enthusiastically as her
+face lights up. She then stays quiet, smiling at the camera.
+```
+
+Mapeo al molde: `[estilo/formato] + [locación de la escena] + [personaje CORTO + Argentine] + [cámara] +
+"She/He speaks clearly: '<diálogo español rioplatense de la escena>'" + [dirección de entrega vocal en
+inglés según el rol: hook enérgico, cta eufórico, etc.] + [cierre]`. Todo en inglés salvo el diálogo.
+
+- **promptImagen del personaje:** retrato de **una persona argentina** (rasgos/vestuario del rubro local).
+- El molde viejo ya tenía calibración rioplatense; al reescribir, NO perderla — este patrón la reemplaza y mejora.
 
 ## Migración de datos
 
