@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Cómo usarlo</title>
+<style>
+:root{
+  --bg:#0f1419; --panel:#1a2027; --panel2:#222b34; --line:#2d3742;
+  --text:#e6edf3; --muted:#8b97a3; --accent:#4f9cf9; --accent2:#7c5cff;
+  --green:#3fb950; --amber:#d29922; --red:#f85149; --teal:#39c5bb; --gold:#d4a559;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.6;padding:28px 18px;max-width:900px;margin:0 auto;font-size:15.5px}
+h1{font-size:25px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px;display:flex;align-items:center;gap:11px}
+h2{font-size:18px;font-weight:650;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+h2 .num{width:25px;height:25px;border-radius:7px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none}
+h3{font-size:15px;font-weight:650;margin:16px 0 6px;color:var(--gold)}
+.sub{color:var(--muted);font-size:13.5px;margin-bottom:24px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+tr:last-child td{border-bottom:none}
+td b{color:var(--text)}
+.step{display:flex;gap:13px;margin:12px 0;align-items:flex-start}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);color:var(--accent);font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.step .txt{font-size:14.5px}
+.step .txt b{color:var(--text)}
+.callout{border-left:3px solid var(--accent);background:rgba(79,156,249,.07);padding:12px 16px;border-radius:0 8px 8px 0;font-size:14px;margin-top:14px}
+.callout.gold{border-left-color:var(--gold);background:rgba(212,165,89,.08)}
+.callout.green{border-left-color:var(--green);background:rgba(63,185,80,.07)}
+.callout.amber{border-left-color:var(--amber);background:rgba(210,153,34,.08)}
+code{background:var(--panel2);padding:2px 7px;border-radius:5px;font-size:13px;color:var(--teal);font-family:ui-monospace,Menlo,monospace}
+.gold{color:var(--gold)}.green{color:var(--green)}.accent{color:var(--accent)}.muted{color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:26px;padding-top:16px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+  Media Studio — Cómo usarlo
+</h1>
+<div class="sub">Manual práctico: de la idea al comercial listo para publicar. Sin vueltas técnicas.</div>
+
+<section>
+  <h2><span class="num">0</span> Qué hace la app (y qué hace Google Flow)</h2>
+  <p>Es fácil confundirse, así que la división es esta:</p>
+  <div class="callout gold">
+    <b>Google Flow</b> es la <b>cámara y los actores</b>: genera los videos (los clips de 8 segundos).
+    Nada más.<br>
+    <b>Media Studio (esta app)</b> es el <b>guionista + el director + la sala de edición</b>: te arma el
+    guion y los prompts correctos ANTES de Flow, y después junta los clips con voz en español, música y
+    logo para dejarte el comercial <b>terminado</b>. Sin la app tenés videos sueltos con voz en inglés;
+    con la app tenés una pieza lista para Instagram.
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> El recorrido — los 9 pasos (barra de arriba)</h2>
+  <p class="muted" style="font-size:13.5px;margin-bottom:6px">Cada paso tiene un botón <b class="accent">"Generar con IA"</b>. La máquina propone, vos elegís y editás, y aprobás para seguir. A la derecha, el <b>copiloto</b> te dice qué hacer en cada momento.</p>
+  <table>
+    <thead><tr><th style="width:120px">Paso</th><th>Qué hacés</th></tr></thead>
+    <tbody>
+      <tr><td><b>1 Negocio</b></td><td>Cargás los hechos del negocio (el brief). Cuanto más concreto, mejor sale todo lo demás.</td></tr>
+      <tr><td><b>2 Concepto</b></td><td>La IA propone 2-3 ideas de comercial. <b>Elegís una vos</b> (es tu decisión creativa) y definís Filmado (personas) o Animado (pantallas).</td></tr>
+      <tr><td><b>3 Guion</b></td><td>El guion por bloques (gancho → desarrollo → remate → cierre). Leelo en voz alta y ajustá lo que no suene natural. Se guarda solo.</td></tr>
+      <tr><td><b>4 Cast</b></td><td>Los personajes y el lugar. La IA les da una descripción exacta que después mantiene la cara igual en todos los videos.</td></tr>
+      <tr><td><b>5 Storyboard</b></td><td>Las escenas numeradas con su diálogo y duración.</td></tr>
+      <tr><td><b>6 Pack Flow</b></td><td><b class="gold">El paso clave</b>: te prepara los prompts para llevar a Google Flow (los personajes y las escenas). Ver la sección 2.</td></tr>
+      <tr><td><b>7 Rodaje</b></td><td>Importás acá los videos que bajaste de Flow, uno por escena.</td></tr>
+      <tr><td><b>8 Montaje</b></td><td>Se arma el comercial: voz en off, música, silencios, logo, y exportás el mp4. Ver sección 3.</td></tr>
+      <tr><td><b>9 Publicar</b></td><td>El texto del posteo: título, caption, hashtags, CTA.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">2</span> El paso clave: llevar el Pack a Google Flow</h2>
+  <p>En el paso <b>Pack Flow</b>, la app te da tres cosas: el <b>estilo</b>, los <b>personajes</b> y las <b>escenas</b>. Así se usan en Flow (que ahora trabaja con imágenes de referencia):</p>
+
+  <h3>A. Creá los personajes (una vez cada uno)</h3>
+  <div class="step"><span class="n">1</span><span class="txt">En la app, bloque <b>Personajes</b> → tocá <b>copiar</b> en el prompt de un personaje (ej. Sofía).</span></div>
+  <div class="step"><span class="n">2</span><span class="txt">En Flow → creá un <b>Personaje</b>, ponele el nombre, y pegá ese prompt en el campo de generar imagen (<b>Nano Banana</b>) → te genera la foto. Guardalo.</span></div>
+  <div class="step"><span class="n">3</span><span class="txt">Repetí con cada personaje. Ahora Flow tiene sus caras fijas.</span></div>
+
+  <h3>B. Animá una escena por clip</h3>
+  <div class="step"><span class="n">4</span><span class="txt">En la app, bloque <b>Escenas</b> → copiá el prompt de la escena #1.</span></div>
+  <div class="step"><span class="n">5</span><span class="txt">En Flow → creá una escena, pegá el prompt y generá el video (8s). Como el prompt nombra al personaje y Flow ya tiene su imagen, <b>mantiene la cara</b>. Generá 2-3 tomas y elegí la mejor.</span></div>
+  <div class="step"><span class="n">6</span><span class="txt">Repetí con las escenas #2, #3, #4. En la app cada una pasa a <span class="green">copiado</span>.</span></div>
+
+  <h3>C. Bajá los videos</h3>
+  <div class="step"><span class="n">7</span><span class="txt">Bajá el mp4 de cada escena de Flow a tu compu.</span></div>
+
+  <div class="callout amber">
+    <b>Ojo con el idioma:</b> el prompt que te da la app ya trae el truco — el personaje es <code>Argentine</code>
+    y el diálogo va en español rioplatense. <b>No lo edites</b>, o Veo te habla en inglés. La descripción física
+    NO va en la escena (Flow ya la tiene por la imagen del personaje).
+  </div>
+  <div class="callout">
+    El <b>estilo</b> (arriba de todo) pegalo donde Flow pide el estilo general. El <b>logo</b> lo bajás del
+    bloque Marca; el logo final igual lo pone el Montaje sobre el video, así que no dependas de Flow para eso.
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">3</span> El montaje final (lo que Flow NO hace)</h2>
+  <div class="step"><span class="n">7</span><span class="txt">Paso <b>Rodaje</b> → importá cada video que bajaste, en su escena (pasa a <span class="green">importado</span>).</span></div>
+  <div class="step"><span class="n">8</span><span class="txt">Paso <b>Montaje</b> → tocá <b>"Armar desde el storyboard"</b>. La app ordena las escenas, elige la música y pone el silencio antes del remate, solo.</span></div>
+  <div class="step"><span class="n">9</span><span class="txt">Sumá la <b>voz en off en español</b> (la que grabás en la pestaña Audio — es mejor que la de Veo), elegí <b>música</b> (la app la baja sola bajo la voz), y revisá con <b>"Chequear calidad"</b>.</span></div>
+  <div class="step"><span class="n">10</span><span class="txt">Tocá <b>"Exportar mp4"</b> → tu comercial 9:16 listo para publicar, con el logo quemado.</span></div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Tips para el día a día</h2>
+  <h3>Gastar menos créditos</h3>
+  <p>Arriba a la derecha, el <b>engranaje</b> → <b>Modelo de IA</b>. Ponelo en <b>Sonnet</b> o <b>Haiku</b> para
+  que cada "Generar" gaste poco. Dejá "Opus" solo para lo que importa (concepto, guion). En <b>Auto</b>, la app
+  ya elige el modelo más barato que sirve para cada paso.</p>
+
+  <h3>El copiloto</h3>
+  <p>El panel de la derecha en cada paso te dice <b>qué hizo la IA</b> y <b>qué te toca a vos</b>, con el progreso
+  (ej. "2/4 copiados"). Si molesta, lo plegás con el botón; vuelve con "Guía".</p>
+
+  <h3>Si se te llenan los proyectos de duplicados</h3>
+  <p>Puede pasar que se acumulen proyectos repetidos. Para limpiar: en la ventana de la app, <b>F12 → Console</b>
+  y pegá <code>localStorage.clear(); location.reload()</code> — la app se recarga limpia con tus proyectos reales.</p>
+</section>
+
+<footer>Media Studio · manual de uso · 2026-07-11</footer>
+
+</body>
+</html>
