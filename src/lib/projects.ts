@@ -150,12 +150,15 @@ export function deleteProject(id: string) { persist(load().filter((p) => p.id !=
 // locales — gana el de `updated_at` más nuevo — y persiste el resultado en localStorage. NO
 // re-sincroniza al server (evita loops). La usa el hook useProjects al montar.
 export function mergeServerProjects(serverProjects: Project[]): Project[] {
-  const byId = new Map(load().map((p) => [p.id, p]));
-  for (const sp of serverProjects) {
-    if (!sp || !sp.id) continue;
-    const local = byId.get(sp.id);
-    if (!local || (sp.updated_at || 0) > (local.updated_at || 0)) byId.set(sp.id, normProject(sp));
-  }
+  // SERVER-FIRST: el server es la fuente de verdad. Los locales que el server NO tiene se DESCARTAN
+  // (huérfanos: proyectos borrados del server que quedaban en localStorage y duplicaban la lista).
+  // Excepción: se conserva un local recién creado (< 60s) que todavía no alcanzó a sincronizar.
+  const serverIds = new Set(serverProjects.map((p) => p?.id).filter(Boolean));
+  const now = Date.now();
+  const recientesSinSync = load().filter((p) => !serverIds.has(p.id) && now - (p.created_at || 0) < 60_000);
+  const byId = new Map<string, Project>();
+  for (const sp of serverProjects) if (sp && sp.id) byId.set(sp.id, normProject(sp));
+  for (const lp of recientesSinSync) byId.set(lp.id, lp);
   const merged = Array.from(byId.values()).sort((a, b) => b.updated_at - a.updated_at);
   persist(merged);
   return merged;
