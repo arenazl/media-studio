@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Workspace: el paso como panel de trabajo</title>
+<style>
+:root{
+  --bg:#0b0e14; --panel:#141926; --panel2:#1c2231; --panel3:#272f40; --line:#2a3342;
+  --text:#eef1f7; --muted:#aab3c5; --dim:#707a8d; --accent:#4d8dff; --violet:#a78bfa;
+  --green:#3ddc97; --amber:#f5a623; --red:#f2555a; --gold:#d3ad5b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;padding:32px 20px;max-width:1120px;margin:0 auto;font-size:15px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;display:flex;align-items:center;gap:13px}
+h2{font-size:19px;font-weight:650;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2 .num{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#08111f;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:none}
+.sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+.qc{color:var(--muted);font-size:13.5px;margin:2px 0 14px;line-height:1.5}
+.qc b{color:var(--text)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+.card .label{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.card .val{font-size:22px;font-weight:800;margin-top:6px;letter-spacing:-.4px;line-height:1.15}
+.card .hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}.accent{color:var(--accent)}.gold{color:var(--gold)}.violet{color:var(--violet)}
+.shot{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel2);margin-top:14px}
+.shot .cap{font-size:11px;padding:9px 13px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--green)}
+.shot .cap.antes{color:var(--amber)}
+.shot .dot{width:8px;height:8px;border-radius:50%;flex:none;background:currentColor}
+.shot img{display:block;width:100%;height:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-ok{background:rgba(61,220,151,.15);color:var(--green)}
+.b-info{background:rgba(77,141,255,.15);color:var(--accent)}
+.b-gold{background:rgba(211,173,91,.15);color:var(--gold)}
+.b-warn{background:rgba(245,166,35,.15);color:var(--amber)}
+.callout{border-left:3px solid var(--gold);background:rgba(211,173,91,.07);padding:13px 16px;border-radius:0 9px 9px 0;font-size:13.5px;margin-top:14px;line-height:1.55}
+.callout.accent{border-left-color:var(--accent);background:rgba(77,141,255,.07)}
+.callout.green{border-left-color:var(--green);background:rgba(61,220,151,.07)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+th,td{padding:10px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+code{background:var(--panel3);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--violet);font-family:ui-monospace,"Cascadia Code",Menlo,monospace}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+ul.tips{margin:8px 0 0 18px;font-size:13.5px}
+ul.tips li{margin-bottom:7px;line-height:1.5}
+ul.tips li strong{color:var(--text)}
+.ok{color:var(--green);font-weight:700}
+footer{text-align:center;color:var(--dim);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd;background:#fafafa}.card,.shot{border-color:#ddd}.two{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg class="ic" style="width:30px;height:30px;stroke:var(--accent)" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+  Media Studio — Workspace: el paso como panel de trabajo
+</h1>
+<div class="sub">Lavada de cara estructural del pipeline: cada paso pasa de "islas sueltas sobre el fondo" a UN panel de trabajo (cabecera / cuerpo / pie anclado + línea de estado). Opus implementó, Fable especificó · 2026-07-10</div>
+
+<section>
+  <h2><span class="num">0</span> Qué se hizo, de un vistazo</h2>
+  <div class="qc">El dueño, con captura en mano: <b>"¿te parece una interfaz profesional? ese botón abajo suelto, sin layout simétrico, sin información de contexto… son como 4 o 5 aplicaciones que se unieron, retazos. No es elástico, no es una aplicación."</b> El diagnóstico: las pantallas del pipeline no tenían MARCO — título, acciones, contenido, CTA y copiloto eran islas sueltas sobre el fondo. Con poco contenido quedaba un agujero en el medio y el CTA flotaba a media página. Lo arregla UN cambio de arquitectura visual: el <b>PANEL</b>.</div>
+  <div class="grid g4">
+    <div class="card"><div class="label">Work orders</div><div class="val gold">3</div><div class="hint">W1 el panel en PasoShell + línea de estado · W2 migrar los retazos (Montaje/Rodaje/Render + Negocio + Wizard) · W3 responsive + gate visual</div></div>
+    <div class="card"><div class="label">Helper puro nuevo</div><div class="val accent">estadoDelPaso</div><div class="hint"><code>src/lib/pasoEstado.ts</code> — una frase de contexto por paso, derivada del estado REAL. +21 tests.</div></div>
+    <div class="card"><div class="label">Tests</div><div class="val green">240 / 240</div><div class="hint">219 previos intactos + 21 del helper. Cero lógica/persistencia/endpoints tocados.</div></div>
+    <div class="card"><div class="label">Gates</div><div class="val green">5 / 5</div><div class="hint">tsc 0 · eslint 0 err · stylelint 0 · vitest 240 · build verde (leído completo, sin warnings nuevos).</div></div>
+  </div>
+  <div class="callout accent"><b>La idea (una sola):</b> todo paso vive dentro de UN panel — superficie <code>--st-bg-1</code>, borde, radio, sombra; <code>min-height: min(60vh,720px)</code> y flex column → el pie queda SIEMPRE anclado abajo (<code>margin-top:auto</code>), con la <b>línea de estado</b> a la izquierda y el <b>CTA</b> a la derecha. El fondo de la página es la MESA; los paneles son las hojas de trabajo. El copiloto es el panel HERMANO (misma receta de superficie).</div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> Antes / después — el botón suelto ahora vive en el pie <span class="badge b-info">W1</span></h2>
+  <div class="qc">Mismo paso (Pack Flow · munify-ejemplo · estado persistido), misma data. <b>Antes:</b> el contenido flotaba sobre el fondo y el CTA de aprobar quedaba suelto. <b>Después:</b> todo dentro del panel; el pie ancla la línea de estado <code>0/4 copiados · 0 importados</code> a la izquierda y <em>"Pack listo, al rodaje"</em> a la derecha.</div>
+  <div class="two">
+    <div class="shot"><div class="cap antes"><span class="dot"></span>ANTES · sin marco · contenido sobre el fondo</div><img src="../10-copiloto/capturas/01-packflow-1440.png" alt="Pack Flow antes, sin panel"></div>
+    <div class="shot"><div class="cap"><span class="dot"></span>DESPUÉS · panel con pie anclado (estado + CTA)</div><img src="../11-workspace/capturas/w1-pack-progreso-1440.png" alt="Pack Flow después, panel"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span> El panel: cabecera / cuerpo / pie anclado <span class="badge b-info">W1</span></h2>
+  <div class="qc">Caso de aceptación: Concepto con <b>1 tarjeta elegida</b>. El CTA <em>"Concepto listo, al guion"</em> está DENTRO del pie, pegado abajo a la derecha; la línea de estado dice <code>1 propuesta · elegiste una</code>; nada del paso queda fuera del panel; la tarjeta única tiene ancho de ficha (no "fideo"); el copiloto queda alineado arriba con el panel.</div>
+  <div class="shot"><div class="cap"><span class="dot"></span>Concepto · 1 tarjeta elegida · 1440px · CTA anclado + línea de estado + copiloto hermano</div><img src="../11-workspace/capturas/w1-concepto-1tarjeta-1440.png" alt="Concepto con 1 tarjeta, panel"></div>
+  <div class="qc" style="margin-top:16px">Y con poco contenido no hay agujero: el empty state se centra <b>dentro</b> del cuerpo del panel y el pie sigue anclado abajo (no una página vacía con el botón a media altura).</div>
+  <div class="shot"><div class="cap"><span class="dot"></span>Concepto VACÍO · 1440px · empty centrado en el cuerpo, pie anclado</div><img src="../11-workspace/capturas/w1-concepto-vacio-1440.png" alt="Concepto vacío, panel"></div>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Los "retazos de otra aplicación" entran al mismo sistema <span class="badge b-info">W2</span></h2>
+  <div class="qc">Cuatro pantallas estaban fuera del sistema. Ahora comparten el MISMO panel. El caso más flagrante era <b>Negocio</b>: usaba colores hex crudos (literalmente "otra app"); ahora es panel + tokens <code>--st-*</code>, con el brief, la marca y las pantallas dentro del cuerpo y el pie <code>Brief de N caracteres · M pantallas</code>.</div>
+  <div class="two">
+    <div class="shot"><div class="cap"><span class="dot"></span>Negocio (ProjectInfo) · panel + tokens · copiloto hermano</div><img src="../11-workspace/capturas/w2-negocio-1440.png" alt="Negocio migrado a panel"></div>
+    <div class="shot"><div class="cap"><span class="dot"></span>Wizard de campaña · de "suelto en pantalla gigante" a panel compacto centrado</div><img src="../11-workspace/capturas/w2-wizard-1440.png" alt="Wizard migrado a panel"></div>
+  </div>
+  <div class="two">
+    <div class="shot"><div class="cap"><span class="dot"></span>Rodaje · pie con estado (X/N escenas con clip) + CTA anclado</div><img src="../11-workspace/capturas/w2-rodaje-1440.png" alt="Rodaje migrado a panel"></div>
+    <div class="shot"><div class="cap"><span class="dot"></span>Montaje · las acciones QA/Exportar bajan al pie del panel</div><img src="../11-workspace/capturas/w2-montaje-1440.png" alt="Montaje migrado a panel"></div>
+  </div>
+  <div class="callout green"><b>Solo presentación:</b> en Montaje toda la lógica (armar / chequear calidad / exportar mp4 / voz en off) quedó intacta — solo se movió el markup para que la fila de acciones viva en el pie del panel y no flotando en el medio del cuerpo.</div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Línea de estado por paso (el "contexto" que faltaba) <span class="badge b-info">W1</span></h2>
+  <div class="qc">Helper puro <code>estadoDelPaso(paso, comercial)</code> — una frase derivada del estado REAL, con 21 tests. Es la "información de contexto" que pedía el dueño, y vive anclada en el pie de cada panel.</div>
+  <table>
+    <tr><th>Paso</th><th>Sin contenido</th><th>Con contenido</th></tr>
+    <tr><td>Concepto</td><td>Generá 2-3 propuestas para arrancar</td><td>1 propuesta · elegiste una</td></tr>
+    <tr><td>Guion</td><td>Generá el guion por bloques</td><td>N bloques · ~Xs totales</td></tr>
+    <tr><td>Cast</td><td>Generá los personajes y la locación</td><td>N personajes · locación definida</td></tr>
+    <tr><td>Storyboard</td><td>Generá las escenas del comercial</td><td>N escenas · ~Xs totales</td></tr>
+    <tr><td>Pack Flow</td><td>Generá el pack de prompts para Flow</td><td>X/N copiados · Y importados</td></tr>
+    <tr><td>Rodaje</td><td>Importá los clips que bajaste de Flow</td><td>X/N escenas con clip</td></tr>
+    <tr><td>Montaje</td><td>Armá el montaje desde el storyboard</td><td>N escenas · ~Xs · con/sin música · con/sin voz · QA X/50</td></tr>
+    <tr><td>Publicar</td><td>Generá el paquete de publicación</td><td>Paquete listo · N hashtags</td></tr>
+    <tr><td>Negocio</td><td>—</td><td>Brief de N caracteres · M pantallas</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Elástico de verdad — responsive por contrato <span class="badge b-info">W3</span></h2>
+  <div class="qc">Cuatro tiers, verificados con capturas reales (nunca scroll horizontal, nunca una isla suelta, nunca un CTA fuera del pie):</div>
+  <table>
+    <tr><th>Ancho</th><th>Layout</th></tr>
+    <tr><td>&ge; 1500px</td><td>panel (fluido) + copiloto 360px, contenedor total ~1440px centrado</td></tr>
+    <tr><td>1100–1500px</td><td>panel + copiloto 320px</td></tr>
+    <tr><td>&lt; 1100px</td><td>el copiloto pasa ABAJO del panel; panel a columna completa</td></tr>
+    <tr><td>&lt; 860px</td><td>la cabecera del panel apila (título arriba, acción abajo); el pie apila (estado arriba, CTA ancho completo)</td></tr>
+  </table>
+  <div class="two">
+    <div class="shot"><div class="cap"><span class="dot"></span>1600px · copiloto 360 · total centrado</div><img src="../11-workspace/capturas/w3-tier-1600-360.png" alt="tier 1600"></div>
+    <div class="shot"><div class="cap"><span class="dot"></span>1280px · copiloto 320</div><img src="../11-workspace/capturas/w3-tier-1280-320.png" alt="tier 1280"></div>
+  </div>
+  <div class="two">
+    <div class="shot"><div class="cap"><span class="dot"></span>1024px · copiloto ABAJO · panel full</div><img src="../11-workspace/capturas/w3-tier-1024-apila.png" alt="tier 1024 apila"></div>
+    <div class="shot"><div class="cap"><span class="dot"></span>820px · cabecera apila (título + acción full)</div><img src="../11-workspace/capturas/w3-tier-820-mobile.png" alt="tier 820 mobile"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">6</span> Gates + un fix de build de yapa <span class="badge b-ok">calidad</span></h2>
+  <div class="qc">Todo verde, leyendo la salida COMPLETA (no el tail). Como parte del gate se destrabó un problema de build preexistente <b>ajeno al scope</b> (&le;5 líneas): el <code>&lt;style&gt;</code> inline de <code>index.html</code> gatillaba el race <code>html-inline-proxy</code> de Vite y volvía el build NO determinístico (<em>"No matching HTML proxy module found"</em>, fallaba en árbol limpio también). Se movió el reset <code>html,body</code> a <code>styles/studio.css</code> (render-blocking igual) → build verde 5/5.</div>
+  <table>
+    <tr><th>Gate</th><th>Resultado</th></tr>
+    <tr><td><code>npx tsc --noEmit</code></td><td class="ok">0 errores</td></tr>
+    <tr><td><code>npx eslint src/</code></td><td class="ok">0 errores (9 warnings preexistentes, ninguno nuevo)</td></tr>
+    <tr><td><code>npx vitest run --pool=vmThreads</code></td><td class="ok">240 / 240 (219 previos + 21 del helper)</td></tr>
+    <tr><td><code>npx stylelint "src/**/*.css"</code></td><td class="ok">0 errores</td></tr>
+    <tr><td><code>npx vite build</code></td><td class="ok">verde 5/5 · sin warnings nuevos (solo la nota preexistente de chunk-size)</td></tr>
+    <tr><td>Gate visual (Playwright, estados persistidos)</td><td class="ok">4 estados × 4 anchos (W1) + 4 pasos migrados × 4 anchos (W2) + 6 tiers (W3): sin islas, sin CTA sueltos, sin agujeros, sin scroll horizontal</td></tr>
+  </table>
+  <div class="callout"><b>Alcance respetado:</b> solo presentación + un helper puro testeado. Lógica, estado, persistencia, endpoints y tests existentes: intactos. Capturas en <code>docs/11-workspace/capturas/</code>, commiteadas por WO.</div>
+</section>
+
+<footer>Media Studio · Workspace (el paso como panel de trabajo) · Opus implementó / Fable especificó · 2026-07-10</footer>
+
+</body>
+</html>

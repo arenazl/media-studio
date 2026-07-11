@@ -20,6 +20,8 @@
   gap: var(--st-sp-6);
   align-items: start;
 }
+/* responsive por contrato (docs/11-workspace/01-spec.md): >=1500 copiloto 360 · 1100-1500 320 ·
+   <1100 apila abajo · <860 cabecera/pie del panel apilan. */
 .pipe--copilot .pipe-work { grid-template-columns: minmax(0, 1fr) 360px; }
 .pipe-main { min-width: 0; }
 
@@ -35,8 +37,13 @@
 }
 .copilot-reopen:hover { color: var(--st-text-1); border-color: var(--st-blue); background: color-mix(in srgb, var(--st-blue) 10%, transparent); }
 
-/* responsive: el copiloto pasa ABAJO del contenido (sin scroll horizontal, sin tapar nada) */
-@media (max-width: 960px) {
+/* 1100-1500px: copiloto un poco mas angosto (320) para que el panel respire */
+@media (max-width: 1500px) {
+  .pipe--copilot .pipe-work { grid-template-columns: minmax(0, 1fr) 320px; }
+}
+
+/* <1100px: el copiloto pasa ABAJO del contenido (sin scroll horizontal, sin tapar nada) */
+@media (max-width: 1100px) {
   .pipe--copilot { max-width: var(--st-col-max); }
   .pipe-work,
   .pipe--copilot .pipe-work { grid-template-columns: minmax(0, 1fr); }
