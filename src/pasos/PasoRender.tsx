@@ -2,9 +2,10 @@
 // DIRECTO como reel animado (server/mockupReel.mjs, Playwright + ffmpeg), se persiste y queda en
 // comercial.renderRef → habilita el MONTAJE (voz + música sobre el render, igual que filmado).
 import { useState } from 'react';
-import { Loader2, Clapperboard } from 'lucide-react';
+import { Loader2, Clapperboard, Film, ArrowRight } from 'lucide-react';
 import { API_BASE } from '../config';
-import { errMsg, type PasoProps } from './pasoKit';
+import { errMsg, PasoEmpty, type PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import { escenasToSlides } from '../lib/montajePlan';
 
 export default function PasoRender({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
@@ -37,28 +38,34 @@ export default function PasoRender({ project, reelId, comercial, setComercial, g
           <h2 className="paso-title">Render animado</h2>
           <p className="paso-sub">El storyboard se renderiza directo como reel animado de las pantallas del producto (sin filmar).</p>
         </div>
-        <button className="paso-gen" onClick={render} disabled={busy || !escenas.length}>
-          {busy ? <Loader2 size={15} className="paso-spin" /> : <Clapperboard size={15} />}
-          {busy ? 'Renderizando…' : renderRef ? 'Regenerar el reel' : 'Renderizar el reel'}
-        </button>
+        <div className="paso-head-actions">
+          <button className={renderRef && !busy ? 'paso-regen' : 'paso-gen'} onClick={render} disabled={busy || !escenas.length}>
+            {busy ? <Loader2 size={15} className="paso-spin" /> : <Clapperboard size={15} />}
+            {busy ? 'Renderizando…' : renderRef ? 'Regenerar el reel' : 'Renderizar el reel'}
+          </button>
+        </div>
       </div>
       {error && <div className="paso-error">{error}</div>}
       <div className="paso-body">
-        {!escenas.length && <div className="paso-empty">Primero generá el storyboard (animado).</div>}
-        {renderRef ? (
+        {!escenas.length ? (
+          <PasoEmpty icon={Film}>Primero generá el storyboard (animado) para poder renderizar el reel.</PasoEmpty>
+        ) : renderRef ? (
           <div className="paso-card mont-result">
             <div className="paso-card-h">Reel animado</div>
             <video className="rodaje-video mont-video" src={`${API_BASE}/api/storage/${renderRef}`} controls playsInline preload="metadata" />
           </div>
-        ) : escenas.length ? (
-          <div className="paso-empty">Tocá «Renderizar el reel» para armar el animado desde el storyboard.</div>
-        ) : null}
+        ) : (
+          <PasoEmpty icon={Clapperboard}>Tocá «Renderizar el reel» para armar el animado desde el storyboard.</PasoEmpty>
+        )}
       </div>
-      {renderRef && (
-        <div className="paso-foot">
-          <button className="paso-approve" onClick={goNext}>Render listo, al montaje →</button>
-        </div>
-      )}
+      <div className="paso-foot paso-foot--split">
+        <span className="paso-estado">{estadoDelPaso('render', comercial)}</span>
+        {renderRef && (
+          <button className="paso-approve" onClick={goNext}>
+            Render listo, al montaje <ArrowRight size={15} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

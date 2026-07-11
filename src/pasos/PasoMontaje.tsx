@@ -5,7 +5,8 @@
 import { useRef, useState } from 'react';
 import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Volume2, Gauge, Mic, Upload, X } from 'lucide-react';
 import { API_BASE } from '../config';
-import { errMsg, runMolde, type PasoProps } from './pasoKit';
+import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
 import type { QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
@@ -140,14 +141,17 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
           <h2 className="paso-title">Montaje</h2>
           <p className="paso-sub">Se arma solo desde el storyboard: clips en orden, diálogo de los actores, música con ducking y silencio antes del remate.</p>
         </div>
-        <button className={plan ? 'paso-regen' : 'paso-gen'} onClick={() => void armar()} disabled={rendering}>
-          <Clapperboard size={15} /> {plan ? 'Rearmar' : 'Armar desde el storyboard'}
-        </button>
+        <div className="paso-head-actions">
+          <button className={plan ? 'paso-regen' : 'paso-gen'} onClick={() => void armar()} disabled={rendering}>
+            <Clapperboard size={15} /> {plan ? 'Rearmar' : 'Armar desde el storyboard'}
+          </button>
+        </div>
       </div>
       {error && <div className="paso-error">{error}</div>}
 
-      {plan ? (
-        <div className="paso-body">
+      <div className="paso-body">
+        {plan ? (
+          <>
           <div className="pack-bar">
             <span className="pack-prog">{plan.scenes.length} escenas · {conClip} con clip · ~{totalDuration(plan).toFixed(1)}s</span>
           </div>
@@ -259,16 +263,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
             </div>
           )}
 
-          {/* acciones: chequear calidad + exportar */}
-          <div className="paso-foot mont-foot">
-            <button className="rodaje-import mont-qa-btn" onClick={chequear} disabled={qaBusy || rendering}>
-              {qaBusy ? <Loader2 size={13} className="paso-spin" /> : <Gauge size={13} />} Chequear calidad
-            </button>
-            <button className="paso-approve mont-export" onClick={exportar} disabled={rendering || !conClip || sinClip.length > 0}>
-              {rendering ? <><Loader2 size={15} className="paso-spin" /> Renderizando el mp4…</> : <><Film size={15} /> Exportar mp4</>}
-            </button>
-          </div>
-
+          {/* avisos de clips faltantes (explican por qué el export queda bloqueado) */}
           {!conClip && <div className="paso-empty">Faltan clips importados en el Rodaje: el render necesita al menos una escena con clip.</div>}
           {conClip > 0 && sinClip.length > 0 && (
             <div className="paso-empty">Faltan clips en las escenas {sinClip.join(', ')} — importalos en Rodaje o sacalas del montaje antes de exportar.</div>
@@ -286,10 +281,25 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
               {exports.length > 1 && <span className="pack-prog">{exports.length} exports</span>}
             </div>
           )}
-        </div>
-      ) : (
-        <div className="paso-empty">Armá el montaje desde el storyboard. Necesitás clips importados en el Rodaje.</div>
-      )}
+          </>
+        ) : (
+          <PasoEmpty icon={Clapperboard}>Armá el montaje desde el storyboard. Necesitás clips importados en el Rodaje.</PasoEmpty>
+        )}
+      </div>
+      {/* PIE del panel: estado del montaje (izq) + acciones chequear/exportar (der) */}
+      <div className="paso-foot paso-foot--split">
+        <span className="paso-estado">{estadoDelPaso('montaje', comercial)}</span>
+        {plan && (
+          <div className="mont-foot-actions">
+            <button className="rodaje-import mont-qa-btn" onClick={chequear} disabled={qaBusy || rendering}>
+              {qaBusy ? <Loader2 size={13} className="paso-spin" /> : <Gauge size={13} />} Chequear calidad
+            </button>
+            <button className="paso-approve mont-export" onClick={exportar} disabled={rendering || !conClip || sinClip.length > 0}>
+              {rendering ? <><Loader2 size={15} className="paso-spin" /> Renderizando el mp4…</> : <><Film size={15} /> Exportar mp4</>}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

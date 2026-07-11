@@ -2,9 +2,10 @@
 // de Flow → POST /api/projects/<id>/assets (server/storage, con duración real por ffprobe) → se crea
 // la Toma vinculada a la escena y el clip del pack pasa a 'importado'. Preview inline + aviso de duración.
 import { useRef, useState } from 'react';
-import { Upload, Loader2, Check, Video } from 'lucide-react';
+import { Upload, Loader2, Check, Video, ArrowRight } from 'lucide-react';
 import { errMsg, PasoEmpty } from './pasoKit';
 import type { PasoProps } from './pasoKit';
+import { estadoDelPaso } from '../lib/pasoEstado';
 import { API_BASE } from '../config';
 import type { Toma } from '../lib/comercial';
 
@@ -21,7 +22,6 @@ export default function PasoRodaje({ project, comercial, setComercial, goNext }:
 
   const tomasDe = (n: number) => tomas.filter((t) => t.escenaN === n);
   const activaDe = (n: number): Toma | undefined => { const ts = tomasDe(n); return ts[ts.length - 1]; };
-  const conClip = escenas.filter((e) => tomasDe(e.n).length > 0).length;
 
   const importar = async (escenaN: number, file: File) => {
     if (!comercial) return;
@@ -54,11 +54,10 @@ export default function PasoRodaje({ project, comercial, setComercial, goNext }:
           <h2 className="paso-title">Rodaje</h2>
           <p className="paso-sub">Importá los clips que bajaste de Flow; cada uno se vincula a su escena para el montaje.</p>
         </div>
-        <span className="pack-prog">{conClip}/{escenas.length} escenas con clip</span>
       </div>
       {error && <div className="paso-error">{error}</div>}
-      {escenas.length > 0 ? (
-        <div className="paso-body">
+      <div className="paso-body">
+        {escenas.length > 0 ? (
           <div className="rodaje-bins">
             {escenas.map((e) => {
               const act = activaDe(e.n);
@@ -114,12 +113,15 @@ export default function PasoRodaje({ project, comercial, setComercial, goNext }:
               );
             })}
           </div>
-        </div>
-      ) : (
-        <PasoEmpty icon={Video}>Primero generá el storyboard y el pack: acá vas a importar el clip que bajaste de Flow por cada escena.</PasoEmpty>
-      )}
-      <div className="paso-foot">
-        <button className="paso-approve" disabled={!tomas.length} onClick={goNext}>Rodaje listo, al montaje →</button>
+        ) : (
+          <PasoEmpty icon={Video}>Primero generá el storyboard y el pack: acá vas a importar el clip que bajaste de Flow por cada escena.</PasoEmpty>
+        )}
+      </div>
+      <div className="paso-foot paso-foot--split">
+        <span className="paso-estado">{estadoDelPaso('rodaje', comercial)}</span>
+        <button className="paso-approve" disabled={!tomas.length} onClick={goNext}>
+          Rodaje listo, al montaje <ArrowRight size={15} />
+        </button>
       </div>
     </div>
   );

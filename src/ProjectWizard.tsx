@@ -74,14 +74,18 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
   };
 
   return (
-    <div className="veo-root wiz-root">
-      <header className="veo-head">
-        <div className="veo-title"><Rocket size={18} /> Empezá tu campaña — {project.name}</div>
-        <p className="veo-sub">{project.type || 'proyecto'} · elegí el tipo y armo las piezas de la campaña (cada una con su ángulo, lista para el pipeline)</p>
-        <button className="wiz-cancel" onClick={onCancel} title="Cancelar"><X size={15} /></button>
-      </header>
+    <div className="paso wiz-paso">
+      <div className="paso-head">
+        <div className="paso-head-txt">
+          <h2 className="paso-title"><Rocket size={20} /> Empezá tu campaña</h2>
+          <p className="paso-sub">{project.name} · {project.type || 'proyecto'} — elegí el tipo y armo las piezas de la campaña (cada una con su ángulo, lista para el pipeline).</p>
+        </div>
+        <div className="paso-head-actions">
+          <button className="wiz-cancel" onClick={onCancel} title="Cancelar"><X size={15} /></button>
+        </div>
+      </div>
 
-      <div className="wiz-step">
+      <div className="paso-body">
         <div className="veo-field">
           <span>Tipo de campaña</span>
           <div className="veo-chips">
@@ -102,12 +106,16 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
         </div>
 
         {err && <div className="veo-error">{err}</div>}
+        {phase === 'working' && <div className="veo-loading"><Loader2 size={26} className="veo-spin" /> {progress}</div>}
+      </div>
 
-        {phase === 'working'
-          ? <div className="veo-loading"><Loader2 size={26} className="veo-spin" /> {progress}</div>
-          : <button className="veo-run wiz-cta" onClick={comenzar}>
-              {phase === 'error' ? 'Reintentar' : <><Check size={15} /> Comenzar — armar las piezas <ArrowRight size={14} /></>}
-            </button>}
+      <div className="paso-foot paso-foot--split">
+        <span className="paso-estado">Una sola pasada de estrategia · el resto lo producís paso a paso, on-demand.</span>
+        {phase !== 'working' && (
+          <button className="veo-run wiz-cta" onClick={comenzar}>
+            {phase === 'error' ? 'Reintentar' : <><Check size={15} /> Comenzar — armar las piezas <ArrowRight size={14} /></>}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -31,42 +31,52 @@ function Brief({ md }: { md: string }) {
 export default function ProjectInfo({ project }: { project: Project }) {
   const bk = project.brandKit;
   const shots = project.screenshots || [];
+  const briefLen = project.brief?.length ?? 0;
+  const estado = `${briefLen ? `Brief de ${briefLen.toLocaleString('es-AR')} caracteres` : 'Sin brief'} · ${shots.length} ${shots.length === 1 ? 'pantalla' : 'pantallas'}`;
   return (
-    <div className="pi-root">
-      <header className="pi-head">
-        <div className="pi-title"><Building2 size={18} /> {project.name} — datos importados</div>
-        <p className="pi-sub">{project.type || 'proyecto'} · todo esto se trajo del KB de la app — es la base de lo que generás</p>
-      </header>
+    <div className="paso pi-paso">
+      <div className="paso-head">
+        <div className="paso-head-txt">
+          <h2 className="paso-title"><Building2 size={20} /> Negocio</h2>
+          <p className="paso-sub">{project.name} · {project.type || 'proyecto'} — todo esto se trajo del KB de la app: es la base de lo que generás.</p>
+        </div>
+      </div>
 
-      <div className="pi-grid">
-        <section className="pi-card pi-main">
-          {project.brief ? <Brief md={project.brief} /> : <p className="pi-sub">Este proyecto no trajo brief (no vino de una importación).</p>}
-        </section>
+      <div className="paso-body">
+        <div className="pi-grid">
+          <section className="pi-card pi-main">
+            {project.brief ? <Brief md={project.brief} /> : <p className="pi-sub">Este proyecto no trajo brief (no vino de una importación).</p>}
+          </section>
 
-        <aside className="pi-side">
-          {bk && (
-            <div className="pi-card">
-              <div className="pi-card-h"><Palette size={14} /> Marca</div>
-              <div className="pi-brand">
-                {bk.color && <span className="pi-swatch" style={{ background: bk.color }} />}
-                <div>
-                  {bk.name && <div className="pi-brand-name">{bk.name}</div>}
-                  {bk.phonetic && <div className="pi-sub">se lee "{bk.phonetic}"</div>}
-                  {bk.color && <div className="pi-sub">{bk.color}</div>}
+          <aside className="pi-side">
+            {bk && (
+              <div className="pi-card">
+                <div className="pi-card-h"><Palette size={14} /> Marca</div>
+                <div className="pi-brand">
+                  {bk.color && <span className="pi-swatch" style={{ background: bk.color }} />}
+                  <div>
+                    {bk.name && <div className="pi-brand-name">{bk.name}</div>}
+                    {bk.phonetic && <div className="pi-sub">se lee "{bk.phonetic}"</div>}
+                    {bk.color && <div className="pi-sub">{bk.color}</div>}
+                  </div>
+                </div>
+                {bk.logoUrl && <img className="pi-logo" src={bk.logoUrl} alt="logo" />}
+              </div>
+            )}
+            {!!shots.length && (
+              <div className="pi-card">
+                <div className="pi-card-h"><MonitorSmartphone size={14} /> Pantallas ({shots.length})</div>
+                <div className="pi-shots">
+                  {shots.map((s, i) => <img key={i} className="pi-shot" src={s} alt={`pantalla ${i + 1}`} loading="lazy" />)}
                 </div>
               </div>
-              {bk.logoUrl && <img className="pi-logo" src={bk.logoUrl} alt="logo" />}
-            </div>
-          )}
-          {!!shots.length && (
-            <div className="pi-card">
-              <div className="pi-card-h"><MonitorSmartphone size={14} /> Pantallas ({shots.length})</div>
-              <div className="pi-shots">
-                {shots.map((s, i) => <img key={i} className="pi-shot" src={s} alt={`pantalla ${i + 1}`} loading="lazy" />)}
-              </div>
-            </div>
-          )}
-        </aside>
+            )}
+          </aside>
+        </div>
+      </div>
+
+      <div className="paso-foot paso-foot--split">
+        <span className="paso-estado">{estado}</span>
       </div>
     </div>
   );
