@@ -66,11 +66,11 @@ describe('copilotoDinamico — concepto', () => {
 });
 
 describe('copilotoDinamico — pack (Pack Flow)', () => {
-  const packWith = (estados: PackFlow['clips'][number]['estado'][]): Comercial => {
+  const packWith = (estados: PackFlow['escenas'][number]['estado'][]): Comercial => {
     const base = nuevoComercial('x', 'filmado');
     return {
       ...base,
-      packFlow: { master: 'm', clips: estados.map((estado, i) => ({ escenaN: i + 1, prompt: 'p', estado })) },
+      packFlow: { estilo: 's', personajes: [], escenas: estados.map((estado, i) => ({ escenaN: i + 1, rol: 'hook', prompt: 'p', estado })) },
     };
   };
 

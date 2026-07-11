@@ -38,8 +38,8 @@ export function estadoDelPaso(paso: PasoId, c: Comercial | undefined): string {
       return s > 0 ? `${sb.length} escenas · ~${s}s totales` : `${sb.length} escenas`;
     }
     case 'pack': {
-      const clips = c?.packFlow?.clips ?? [];
-      if (!clips.length) return 'Generá el pack de prompts para Flow';
+      const escenas = c?.packFlow?.escenas ?? [];
+      if (!escenas.length) return 'Generá el pack de prompts para Flow';
       const pr = packProgress(c?.packFlow);
       return `${pr.copiados}/${pr.total} copiados · ${pr.importados} importados`;
     }

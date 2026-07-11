@@ -122,9 +122,10 @@ describe('escenasAPrompts', () => {
 });
 
 describe('packProgress', () => {
-  const pack = (estados: PackFlow['clips'][number]['estado'][]): PackFlow => ({
-    master: 'm',
-    clips: estados.map((estado, i) => ({ escenaN: i + 1, prompt: 'p', estado })),
+  const pack = (estados: PackFlow['escenas'][number]['estado'][]): PackFlow => ({
+    estilo: 's',
+    personajes: [{ id: 'p1', nombre: 'Ana', promptImagen: 'retrato' }],
+    escenas: estados.map((estado, i) => ({ escenaN: i + 1, rol: 'hook', prompt: 'p', estado })),
   });
 
   it('cuenta copiados (no pendientes) e importados sobre el total', () => {

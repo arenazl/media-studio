@@ -481,6 +481,22 @@
   border-radius: var(--st-pill); padding: 2px 8px;
 }
 
+/* personaje = fila con su nombre + prompt de IMAGEN de referencia (flujo nuevo de Flow) */
+.pack-clip--persona { border-left: 3px solid color-mix(in srgb, var(--st-blue) 55%, transparent); }
+.pack-persona-ico { display: inline-flex; color: var(--st-blue); }
+.pack-persona-nombre { font-family: var(--st-font-display); font-size: 15px; font-weight: 600; color: var(--st-text-1); line-height: 1; }
+.pack-clip--persona .pack-clip-desc { display: inline-flex; align-items: center; gap: 5px; }
+
+/* aviso de pack VIEJO ({master, clips}): hay que regenerar al flujo nuevo */
+.pack-migrate {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 12px 15px; border-radius: var(--st-r-m);
+  background: color-mix(in srgb, var(--st-warn) 10%, var(--st-bg-1)); border: 1px solid color-mix(in srgb, var(--st-warn) 35%, transparent);
+  font-size: 12.5px; line-height: 1.5; color: var(--st-text-2);
+}
+.pack-migrate svg { flex: 0 0 auto; margin-top: 1px; color: var(--st-warn); }
+.pack-migrate strong { color: var(--st-text-1); font-weight: 700; }
+
 /* ── rodaje ─────────────────────────────────────────────────────────────── */
 .rodaje-import {
   margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: var(--st-r-s); cursor: pointer;

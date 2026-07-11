@@ -77,11 +77,11 @@ describe('estadoDelPaso — pack', () => {
     expect(estadoDelPaso('pack', base())).toBe('Generá el pack de prompts para Flow');
   });
   it('con progreso: copiados/total · importados', () => {
-    const c: Comercial = { ...base(), packFlow: { master: 'm', clips: [
-      { escenaN: 1, prompt: 'p', estado: 'importado' },
-      { escenaN: 2, prompt: 'p', estado: 'copiado' },
-      { escenaN: 3, prompt: 'p', estado: 'pendiente' },
-      { escenaN: 4, prompt: 'p', estado: 'pendiente' },
+    const c: Comercial = { ...base(), packFlow: { estilo: 's', personajes: [], escenas: [
+      { escenaN: 1, rol: 'hook', prompt: 'p', estado: 'importado' },
+      { escenaN: 2, rol: 'desarrollo', prompt: 'p', estado: 'copiado' },
+      { escenaN: 3, rol: 'gag', prompt: 'p', estado: 'pendiente' },
+      { escenaN: 4, rol: 'cta', prompt: 'p', estado: 'pendiente' },
     ] } };
     expect(estadoDelPaso('pack', c)).toBe('2/4 copiados · 1 importados');
   });

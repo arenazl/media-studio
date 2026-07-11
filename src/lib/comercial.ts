@@ -64,16 +64,27 @@ export interface Escena {
   screen?: string;                   // animado: label de la pantalla del KB
 }
 
-export interface ClipFlow {
+// Flujo NUEVO de Google Flow (imagen-first): el personaje es una ENTIDAD con una IMAGEN de referencia
+// (Nano Banana); su `promptImagen` genera esa foto. La consistencia la fija la imagen, no el texto.
+export interface PersonajeFlow {
+  id: string;
+  nombre: string;
+  promptImagen: string;              // retrato full-body 9:16 para generar la imagen de referencia en Flow
+}
+
+// Una escena a animar en Flow: su prompt referencia a los personajes por NOMBRE (sin fisicoEn).
+export interface EscenaFlow {
   escenaN: number;
-  prompt: string;
+  rol: string;                       // hook|desarrollo|gag|cta (heredado del storyboard)
+  prompt: string;                    // acción + cámara + diálogo rioplatense + personaje corto "Argentine"
   estado: 'pendiente' | 'copiado' | 'importado';
   tomaId?: string;
 }
 
 export interface PackFlow {
-  master: string;                    // estilo + personajes + locación consolidados
-  clips: ClipFlow[];
+  estilo: string;                    // bloque de estilo global (sin personajes ni acción)
+  personajes: PersonajeFlow[];       // 1 por personaje del cast → su imagen de referencia
+  escenas: EscenaFlow[];             // 1 por escena del storyboard → un clip a animar
 }
 
 // fileRef = el public_id RELATIVO que devuelve saveAsset (ej. "proj-x/173..-clip.mp4") — NUNCA la URL
@@ -190,12 +201,13 @@ export function escenasAPrompts(
   return { ok: faltantes.length === 0, faltantes };
 }
 
-// Progreso del Pack Flow: clips copiados (o importados) e importados sobre el total.
+// Progreso del Pack Flow: escenas copiadas (o importadas) e importadas sobre el total. Tolerante con
+// el shape VIEJO ({master, clips}) persistido: sin `escenas` → todo en cero (PasoPack pide regenerar).
 export function packProgress(pack: PackFlow | undefined): { total: number; copiados: number; importados: number } {
-  const clips = pack?.clips ?? [];
+  const escenas = pack?.escenas ?? [];
   return {
-    total: clips.length,
-    copiados: clips.filter((c) => c.estado !== 'pendiente').length,
-    importados: clips.filter((c) => c.estado === 'importado').length,
+    total: escenas.length,
+    copiados: escenas.filter((e) => e.estado !== 'pendiente').length,
+    importados: escenas.filter((e) => e.estado === 'importado').length,
   };
 }

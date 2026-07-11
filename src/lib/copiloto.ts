@@ -136,7 +136,7 @@ function tieneContenido(paso: PasoId, c: Comercial | undefined): boolean {
     case 'guion': return !!c.guion?.blocks?.length;
     case 'cast': return !!c.cast?.personajes?.length;
     case 'storyboard': return !!c.storyboard?.length;
-    case 'pack': return !!c.packFlow?.clips?.length;
+    case 'pack': return !!c.packFlow?.escenas?.length;
     case 'render': return !!c.renderRef;
     case 'rodaje': return !!c.rodaje?.length;
     case 'montaje': return !!c.montaje;

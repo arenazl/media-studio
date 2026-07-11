@@ -36,7 +36,7 @@ export default function PasoRodaje({ project, comercial, setComercial, goNext }:
       setComercial((c) => {
         const rodaje = [...(c.rodaje || []), toma];
         const packFlow = c.packFlow
-          ? { ...c.packFlow, clips: c.packFlow.clips.map((k) => (k.escenaN === escenaN ? { ...k, estado: 'importado' as const, tomaId: toma.id } : k)) }
+          ? { ...c.packFlow, escenas: (c.packFlow.escenas ?? []).map((k) => (k.escenaN === escenaN ? { ...k, estado: 'importado' as const, tomaId: toma.id } : k)) }
           : c.packFlow;
         return { ...c, rodaje, packFlow, estados: { ...c.estados, rodaje: c.estados.rodaje === 'aprobado' ? 'aprobado' : 'generado' } };
       });
