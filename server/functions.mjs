@@ -85,34 +85,6 @@ function screensText(project = {}) {
     : '';
 }
 
-// GARANTÍA MECÁNICA DE CONSISTENCIA del molde `flowpack` (helper LOCAL — functions.mjs NO puede
-// importar el TS del front, así que se duplica acá la lógica de `escenasAPrompts`, anotado a
-// conciencia). Para cada clip, según su Escena:
-//   - si la escena tiene personajes → el prompt DEBE contener el `fisicoEn` (verbatim) de cada uno;
-//   - si NO tiene personajes (b-roll/pantalla) → DEBE contener la `descripcionEn` de la locación.
-// Si falla → throw con mensaje claro para reintentar (la IA resumió la hoja y rompió la consistencia).
-function verificarConsistenciaFlowpack(clips, storyboard, cast) {
-  const escenaPorN = new Map((storyboard || []).map((e) => [Number(e.n), e]));
-  const persPorId = new Map(((cast && cast.personajes) || []).map((p) => [p.id, p]));
-  const lugarEn = cast && cast.lugar && cast.lugar.descripcionEn;
-  for (const clip of clips) {
-    const escena = escenaPorN.get(Number(clip.escenaN));
-    if (!escena) continue;   // clip sin escena de referencia: no hay contra qué validar
-    const prompt = String(clip.prompt || '');
-    const ids = Array.isArray(escena.personajes) ? escena.personajes : [];
-    if (ids.length > 0) {
-      for (const id of ids) {
-        const p = persPorId.get(id);
-        if (p && p.fisicoEn && !prompt.includes(p.fisicoEn)) {
-          throw new Error(`la IA resumió la hoja de personaje (${id}) en el clip de la escena ${clip.escenaN} — el fisicoEn debe ir VERBATIM`);
-        }
-      }
-    } else if (lugarEn && !prompt.includes(lugarEn)) {
-      throw new Error(`el clip de la escena ${clip.escenaN} (sin personajes) no incluye la locación VERBATIM (descripcionEn)`);
-    }
-  }
-}
-
 const RUNNERS = {
 
   // ── ESTRATEGIA (nivel proyecto) — del brief: posicionamiento + público + plan de piezas ──
@@ -206,10 +178,10 @@ CONCEPTO: ${piece.concepto ? JSON.stringify(piece.concepto) : '(sin concepto)'}
 GUION: ${pieceGuionText(piece) || '(sin guion)'}
 CAST: ${piece.cast ? JSON.stringify(piece.cast) : '(sin cast — puede ser animado)'}
 STORYBOARD: ${piece.storyboard ? JSON.stringify(piece.storyboard) : '(sin storyboard)'}
-PACK MASTER: ${piece.packFlow?.master || '(sin pack)'}`
+PACK ESTILO: ${piece.packFlow?.estilo || piece.packFlow?.master || '(sin pack)'}`
         : `GUION DE LA PIEZA: ${x.guion || x.brief}`;
       const extra = holistico
-        ? ` Para el comercial entero, pesá MUY fuerte estos criterios profesionales DENTRO de los ejes: CONTINUIDAD (el fisicoEn del cast va VERBATIM en todos los prompts del pack; la continuidad entre escenas cierra: ropa/luz/lugar), ARCO (hook ≤2s de gancho, gag/remate ANTES del CTA, cuenta TODA la propuesta — regla GLOBAL, jamás un solo módulo), TÉCNICA (talking heads ≥8s, diálogos de ~24-30 palabras, marca fonética en TODO lo hablado).`
+        ? ` Para el comercial entero, pesá MUY fuerte estos criterios profesionales DENTRO de los ejes: CONTINUIDAD (flujo nuevo de Flow: la consistencia del actor la fija la IMAGEN de referencia del personaje; los prompts de escena lo llaman por NOMBRE + "Argentine", NO repiten el fisicoEn; entre escenas cierra ropa/luz/lugar), ARCO (hook ≤2s de gancho, gag/remate ANTES del CTA, cuenta TODA la propuesta — regla GLOBAL, jamás un solo módulo), TÉCNICA (talking heads ≥8s, diálogos de ~24-30 palabras, marca fonética en TODO lo hablado).`
         : '';
       return { prompt: `Actuás como promo-critic. Evaluá ${holistico ? 'el COMERCIAL entero' : 'la pieza'} con tu rúbrica de 10 ejes (gancho, claridad, una idea, CTA, formato, marca, duración, ritmo, prueba, originalidad), 0-5 cada uno = total /50. NO lo juzgues por un solo aspecto: puntuá los 10 y sumá.${extra} Mirá ${focos[options.foco] || focos.todo}.
 Devolvé SOLO JSON: { "score": <0-50>, "verdict": "LISTO PARA PRODUCIR|AJUSTAR|REHACER", "issues": [{ "severity": "alta|media|baja", "note": "el problema + el fix concreto" }] }
@@ -321,8 +293,12 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
     },
   },
 
-  // ── FLOWPACK (nivel pieza) — prompt maestro + prompt por clip para Google Flow (Veo 3) ──
-  // REEMPLAZA a `veo`: mismos principios (VEO_RULES), pero con consistencia GARANTIZADA (cast verbatim).
+  // ── FLOWPACK (nivel pieza) — FLUJO NUEVO de Google Flow (Veo 3.1, imagen-first) ──
+  // Flow ahora modela Personajes (entidad con IMAGEN de referencia vía Nano Banana) y Escenas (se
+  // animan llamando al personaje por NOMBRE). La consistencia la fija la imagen, NO el texto verbatim
+  // (repetir el fisicoEn en cada prompt hacía que Flow devolviera una imagen estática). El molde deja
+  // de dar { master, clips } y produce 3 piezas: { estilo, personajes[], escenas[] }. Reusa VEO_RULES
+  // (idioma/cadencia/talking head battle-tested) — solo cambia la ESTRUCTURA. Origen: docs/12-flow-nuevo.
   flowpack: {
     build({ context = {}, regenerate }) {
       const project = context.project || {};
@@ -335,44 +311,55 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       const castJson = piece.cast ? JSON.stringify(piece.cast) : '(sin cast: b-roll/pantallas — usá la locación)';
       if (regenerate && regenerate.escenaN != null) {
         const escena = storyboard.find((e) => Number(e.n) === Number(regenerate.escenaN)) || {};
-        return { mode: 'clip', prompt: `Sos el prompt-writer de Google Flow (Veo 3). Rehacé SOLO el prompt de la ESCENA ${regenerate.escenaN} de un comercial 9:16.
-Variá la idea visual/el encuadre dentro de las reglas, pero JAMÁS el personaje ni la locación (van con la MISMA descripción exacta, VERBATIM).
+        return { mode: 'escena', prompt: `Sos el prompt-writer de Google Flow (Veo 3.1, flujo nuevo con Personajes por imagen). Rehacé SOLO el prompt de la ESCENA ${regenerate.escenaN} de un comercial 9:16, con OTRA idea visual/encuadre.
+En el flujo nuevo los personajes YA tienen su IMAGEN de referencia: referílos por su NOMBRE del cast + nacionalidad "Argentine" (ej. "Ana, an Argentine woman in her late 20s") — CORTO, NUNCA pegues el fisicoEn largo. El diálogo va LITERAL en español rioplatense entre comillas; el resto del prompt en INGLÉS.
 ${VEO_RULES}
-CAST (personajes y locación — van VERBATIM en el prompt): ${castJson}
+CAST (para tomar nombres de personajes y la locación — NO copies el fisicoEn en el prompt): ${castJson}
 ESCENA A REHACER: ${JSON.stringify(escena)}
 MARCA FONÉTICA: ${phonetic}
-Devolvé SOLO JSON: { "clip": { "escenaN": ${regenerate.escenaN}, "prompt": "el prompt COMPLETO en inglés, con el diálogo en español rioplatense entre comillas y la marca fonética" } }` };
+Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "prompt": "el prompt en inglés, con el diálogo en español rioplatense entre comillas y la marca fonética" } }` };
       }
-      return { mode: 'pack', prompt: `Sos el prompt-writer de Google Flow (Veo 3). Armá el PACK de generación de un comercial 9:16 desde el STORYBOARD y el CAST.
-(1) MASTER: un bloque de estilo global en INGLÉS que consolida: reglas de realismo ("photorealistic, not over-rendered and not CGI-perfect, natural light, clean and well-lit, cinematic vertical 9:16") + los PERSONAJES VERBATIM (el "fisicoEn" TAL CUAL, sin resumir) + la LOCACIÓN VERBATIM (el "descripcionEn" tal cual).
-(2) Por cada ESCENA del storyboard: un prompt AUTOCONTENIDO en inglés. CADA prompt de clip EMPIEZA copiando el bloque MASTER COMPLETO TAL CUAL (con las descripciones de personajes y locación palabra por palabra, sin resumir NI acortar NI parafrasear), y RECIÉN DESPUÉS agrega la escena (plano, ángulo, acción, diálogo en español rioplatense entre comillas con la marca fonética "${phonetic}", duración). Repetir el MASTER entero al inicio de cada clip es OBLIGATORIO y correcto — así cada clip es autocontenido y la persona/locación quedan idénticas en TODOS los clips.
-Talking heads: medium shot waist-up, camera holds steady or subtle slow push-in, NUNCA pull back/zoom out, la persona habla TODO el clip (sin silencio de relleno). B-roll: no spoken dialogue, ambient sound only, one single continuous take. Pantallas de app: screen not clearly legible. Sin texto en pantalla (el overlay va en edición).
-REGLA DE CONSISTENCIA (dura): en CADA prompt el "fisicoEn" de cada personaje de la escena y el "descripcionEn" de la locación van copiados EXACTOS, palabra por palabra — NUNCA los resumas, acortes ni varíes. Un clip que resuma una hoja de personaje se rechaza.
+      return { mode: 'pack', prompt: `Sos el prompt-writer de Google Flow (Veo 3.1) en su FLUJO NUEVO: los personajes se crean como ENTIDAD con una IMAGEN de referencia (Nano Banana / Gemini Image) y las escenas se animan llamando al personaje por su NOMBRE. La consistencia la fija la IMAGEN — NO se repite la descripción física en cada prompt (mezclar personaje+estilo+acción en un solo prompt hace que Flow devuelva una imagen estática).
+Armá el PACK de un comercial 9:16 desde el STORYBOARD y el CAST, en TRES piezas separadas:
+
+(1) "estilo": UN bloque corto en INGLÉS con el estilo global — "photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic, not over-rendered and not CGI-perfect". SOLO estética/formato: SIN personajes y SIN acción.
+
+(2) "personajes": por CADA personaje del CAST, un objeto { id, nombre, promptImagen }. Copiá el "id" y el "nombre" del cast. El "promptImagen" es el prompt para GENERAR LA IMAGEN de referencia en la sección Personaje de Flow: un RETRATO de CUERPO ENTERO (full-body portrait) 9:16, fotorrealista, de UNA persona argentina, construido del "fisicoEn" + "vestuario" del cast, con fondo neutro o contextual del rubro. Es una FOTO fija del personaje mirando a cámara — NO una escena, SIN diálogo, SIN acción. Empezá SIEMPRE con "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine ...".
+
+(3) "escenas": por CADA escena del STORYBOARD, un objeto { escenaN, prompt }. El "prompt" es lo que se ANIMA en Flow. TODO el prompt va en INGLÉS salvo el diálogo. Estructura EXACTA (mapeá los datos de la escena):
+   [estilo/formato] + [locación de la escena, del "descripcionEn" RESUMIDO] + [el personaje CORTO por su NOMBRE + nacionalidad "Argentine" — ej. "Ana, a relatable young Argentine woman in her late 20s with long loose hair and casual clothes" — SIN el fisicoEn largo, la imagen ya fija la cara] + [cámara/plano de la escena] + She/He speaks clearly: '<el diálogo de la escena en español rioplatense, con la marca fonética ${phonetic}>' + [dirección de ENTREGA vocal en inglés según el rol: hook = enérgico que engancha, cta = eufórico de cierre, resto = cálido y seguro] + [cierre].
+   Referí a los personajes por su NOMBRE (NUNCA pegues el fisicoEn: es lo que rompía Flow). Nombrar "Argentine" en la descripción corta es OBLIGATORIO — sin eso la voz sale en inglés.
+   Escenas SIN personajes (b-roll/pantalla): el prompt lleva la locación, "No spoken dialogue, ambient sound only", "one single continuous take, same background, no cut"; si se ve una pantalla de app: "screen not clearly legible". Sin diálogo. Sin texto en pantalla (el overlay va en edición).
+
 ${VEO_RULES}
-Devolvé SOLO JSON: { "master": "...", "clips": [{ "escenaN": 1, "prompt": "..." }] }
+
+Devolvé SOLO JSON: { "estilo": "...", "personajes": [{ "id": "p1", "nombre": "...", "promptImagen": "..." }], "escenas": [{ "escenaN": 1, "prompt": "..." }] }
 STORYBOARD: ${JSON.stringify(storyboard)}
 CAST: ${castJson}
 NEGOCIO: ${name}${brandTxt}` };
     },
-    // parse recibe el `body` (contrato extendido) para acceder al storyboard/cast y GARANTIZAR consistencia.
+    // parse recibe el `body` (contrato extendido) para leer el storyboard y enriquecer las escenas
+    // con su `rol` (autoridad = el storyboard, no la IA) + el estado inicial 'pendiente'.
     parse(text, body) {
       const o = extractJson(text);
-      // regen: clip suelto — PASA POR LA GARANTÍA (antes se retornaba temprano y bypaseaba la
-      // consistencia: un prompt regenerado que resumía la hoja de personaje entraba sin rechazo).
-      if (o && o.clip && o.clip.prompt) {
-        const piece = (body && body.context && body.context.piece) || {};
-        const clip = { escenaN: Number(o.clip.escenaN), prompt: o.clip.prompt };
-        verificarConsistenciaFlowpack([clip], Array.isArray(piece.storyboard) ? piece.storyboard : [], piece.cast || null);
-        return { clip };
+      // regen: una escena suelta (flujo nuevo: sin garantía verbatim — la imagen fija la consistencia).
+      if (o && o.escena && o.escena.prompt) {
+        return { escena: { escenaN: Number(o.escena.escenaN), prompt: o.escena.prompt } };
       }
-      if (!o.master || !Array.isArray(o.clips) || !o.clips.length) throw new Error('el molde flowpack no trajo master/clips');
+      if (!o.estilo || !Array.isArray(o.personajes) || !Array.isArray(o.escenas) || !o.escenas.length) {
+        throw new Error('el molde flowpack no trajo estilo/personajes/escenas');
+      }
       const piece = (body && body.context && body.context.piece) || {};
       const storyboard = Array.isArray(piece.storyboard) ? piece.storyboard : [];
-      const cast = piece.cast || null;
-      verificarConsistenciaFlowpack(o.clips, storyboard, cast);   // throw si la IA resumió una hoja
-      // el estado inicial lo inyecta el parse (la IA no lo devuelve)
-      o.clips = o.clips.map((c) => ({ escenaN: Number(c.escenaN), prompt: c.prompt, estado: 'pendiente' }));
-      return o;
+      const rolPorN = new Map(storyboard.map((e) => [Number(e.n), e.rol]));
+      const personajes = o.personajes.map((p) => ({ id: p.id, nombre: p.nombre, promptImagen: p.promptImagen }));
+      const escenas = o.escenas.map((e) => ({
+        escenaN: Number(e.escenaN),
+        rol: rolPorN.get(Number(e.escenaN)) || e.rol || 'desarrollo',
+        prompt: e.prompt,
+        estado: 'pendiente',
+      }));
+      return { estilo: o.estilo, personajes, escenas };
     },
   },
 };
