@@ -89,12 +89,35 @@ KnowledgeBase = {
   pricing: { model, summary, promotions[] },
   differentiators[], objections[]: {objection, response}, faq[], do_not_say[],
   screens[]: KBScreen,       // METADATA de pantallas (kind/nav/components/data/flow) — NO HTML ni URL
-  brand: { logo, colors, fonts, phonetic, tone, avoid }
+  brand: KBBrand,            // ver desglose completo abajo
 }
 ```
-Nota de diseño: **las pantallas viajan como METADATA descriptiva**, no como HTML ni screenshot. Media
-Studio las **recrea** como motion graphics (ver §4, molde animado / `mockup-reel`). Los campos
-`capabilities/entities/tools` (1.2) son de SalesBot; Media Studio los ignora (*forward-compatible*).
+
+### El bloque BRANDING / MARCA completo (lo que le pedimos a cada app)
+`src/lib/knowledgeBase.ts` → `KBBrand`. **Esto es exactamente lo que cada app nos manda como identidad
+visual**, y es lo que después alimenta el overlay de logo, los colores de los motion graphics y la
+pronunciación de la marca en la voz en off:
+```ts
+KBBrand = {
+  logo:   { primary, light, dark, isotype, svg },      // VARIANTES del logo (fondo claro/oscuro, isotipo, svg)
+  colors: { primary, accent, secondary, ink, surface },// la PALETA completa (5 roles de color)
+  fonts:  { display, text },                           // tipografías (título / cuerpo)
+  style:  { radius, density, vibe },                   // radios, densidad y "vibe" visual
+  icons,                                               // familia/estilo de iconos (string | string[])
+  phonetic,                                            // cómo se PRONUNCIA la marca (clave para el TTS: "Munify" → "Munifai")
+  tone,                                                // tono de comunicación de la marca
+  avoid[],                                             // qué NO hacer / decir con la marca (do_not_brand)
+}
+```
+- **Qué usamos HOY** (`kbToBrandKit`): `color = colors.accent || colors.primary`, `logoUrl =
+  logo.primary || logo.isotype`, `phonetic`, y posición del logo. Lo demás (paleta completa, fonts,
+  style, icons, tone, avoid) **ya llega** pero todavía no se explota en el render — es material disponible
+  para cuando el motor pinte los motion graphics con la identidad completa de la app (parte del norte, §8).
+
+**Pantallas como METADATA:** las `screens` viajan como descripción estructurada (`label, kind, headline,
+framework, nav[], components[], layout, style, data, flow, route`), **no** como HTML ni screenshot. Media
+Studio las **recrea** como motion graphics (§4, `mockup-reel`). Los campos `capabilities/entities/tools`
+(1.2) son de SalesBot; Media Studio los ignora (*forward-compatible*).
 
 ### La transformación (KB → proyecto)
 `kbToProjectInput(kb)` produce el input agnóstico del pipeline:
