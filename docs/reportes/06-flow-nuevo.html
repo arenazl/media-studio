@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Pack Flow al flujo NUEVO de Google Flow (imagen-first)</title>
+<style>
+:root{
+  --bg:#0b0e14; --panel:#141926; --panel2:#1c2231; --panel3:#272f40; --line:#2a3342;
+  --text:#eef1f7; --muted:#aab3c5; --dim:#707a8d; --accent:#4d8dff; --violet:#a78bfa;
+  --green:#3ddc97; --amber:#f5a623; --red:#f2555a; --gold:#d3ad5b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;padding:32px 20px;max-width:1120px;margin:0 auto;font-size:15px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;display:flex;align-items:center;gap:13px}
+h2{font-size:19px;font-weight:650;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2 .num{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#08111f;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:none}
+.sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+.qc{color:var(--muted);font-size:13.5px;margin:2px 0 14px;line-height:1.5}
+.qc b{color:var(--text)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+.card .label{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.card .val{font-size:22px;font-weight:800;margin-top:6px;letter-spacing:-.4px;line-height:1.15}
+.card .hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}.accent{color:var(--accent)}.gold{color:var(--gold)}.violet{color:var(--violet)}
+.shot{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel2);margin-top:14px}
+.shot .cap{font-size:11px;padding:9px 13px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--green)}
+.shot .cap.antes{color:var(--amber)}
+.shot .dot{width:8px;height:8px;border-radius:50%;flex:none;background:currentColor}
+.shot img{display:block;width:100%;height:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-ok{background:rgba(61,220,151,.15);color:var(--green)}
+.b-info{background:rgba(77,141,255,.15);color:var(--accent)}
+.b-gold{background:rgba(211,173,91,.15);color:var(--gold)}
+.b-warn{background:rgba(245,166,35,.15);color:var(--amber)}
+.callout{border-left:3px solid var(--gold);background:rgba(211,173,91,.07);padding:13px 16px;border-radius:0 9px 9px 0;font-size:13.5px;margin-top:14px;line-height:1.55}
+.callout.accent{border-left-color:var(--accent);background:rgba(77,141,255,.07)}
+.callout.green{border-left-color:var(--green);background:rgba(61,220,151,.07)}
+.callout.red{border-left-color:var(--red);background:rgba(242,85,90,.07)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+th,td{padding:10px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+code{background:var(--panel3);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--violet);font-family:ui-monospace,"Cascadia Code",Menlo,monospace}
+pre{background:#0a0d13;border:1px solid var(--line);border-radius:9px;padding:13px 15px;margin-top:10px;overflow-x:auto;
+  font-family:ui-monospace,"Cascadia Code",Menlo,monospace;font-size:12px;line-height:1.6;color:var(--muted);white-space:pre-wrap;overflow-wrap:break-word}
+pre .es{color:var(--green)}
+pre .k{color:var(--violet)}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+ul.tips{margin:8px 0 0 18px;font-size:13.5px}
+ul.tips li{margin-bottom:7px;line-height:1.5}
+ul.tips li strong{color:var(--text)}
+.ok{color:var(--green);font-weight:700}
+footer{text-align:center;color:var(--dim);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd;background:#fafafa}.card,.shot,pre{border-color:#ddd}.two{break-inside:avoid}pre{background:#f4f4f6;color:#333}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg class="ic" style="width:30px;height:30px;stroke:var(--accent)" viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
+  Pack Flow al flujo NUEVO de Google Flow (imagen-first)
+</h1>
+<div class="sub">Google Flow pasó a modelar Personajes (entidad con IMAGEN de referencia) y Escenas. El Pack Flow deja de dar un master monolítico de texto y produce estilo + personajes + escenas. Fable especificó, Opus implementó · 2026-07-11</div>
+
+<section>
+  <h2><span class="num">0</span> Qué se hizo, de un vistazo</h2>
+  <div class="qc">Lucas mostró con la UI de Flow en mano: <b>"el master monolítico de texto me generó 4 imágenes estáticas — Flow lo tomó como prompt de imagen".</b> Flow ahora es <b>imagen-first</b>: se crea un Personaje, se le genera una imagen de referencia (Nano Banana) y las Escenas se animan llamando al personaje por su NOMBRE — la imagen fija la cara, no el texto. Repetir el <code>fisicoEn</code> verbatim en cada prompt (nuestra "garantía") era justo lo que rompía Flow. El molde <code>flowpack</code> se reescribió a las 3 piezas del flujo nuevo.</div>
+  <div class="grid g4">
+    <div class="card"><div class="label">Work orders</div><div class="val gold">3</div><div class="hint">F1 molde (server) · F2 shape + PasoPack · F3 copiloto guía. Un commit por WO.</div></div>
+    <div class="card"><div class="label">Shape del molde</div><div class="val accent">3 piezas</div><div class="hint"><code>estilo</code> + <code>personajes[]</code> (con <code>promptImagen</code>) + <code>escenas[]</code>. Antes: <code>master</code> + <code>clips[]</code>.</div></div>
+    <div class="card"><div class="label">Tests</div><div class="val green">240 / 240</div><div class="hint">Ajustados los del shape (comercial / copiloto / pasoEstado); cero rotos. Sin caer coverage.</div></div>
+    <div class="card"><div class="label">Gates</div><div class="val green">5 / 5</div><div class="hint">tsc 0 · eslint 0 err · vitest 240 · stylelint 0 · build verde (leído completo, sin warnings nuevos).</div></div>
+  </div>
+  <div class="callout accent"><b>La idea (una sola):</b> se cambió SOLO la ESTRUCTURA de lo que produce el molde — el prompting battle-tested (<code>VEO_RULES</code>: rioplatense/voseo, talking head 8s, plano medio, sin silencio) se REUSÓ tal cual. Personajes = imagen de referencia; Escenas = acción + diálogo referenciando al personaje por nombre + "Argentine". Se retiró la garantía verbatim (<code>verificarConsistenciaFlowpack</code>): en el flujo nuevo la consistencia la fija la imagen.</div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> El shape: antes vs. después <span class="badge b-info">F1 · F2</span></h2>
+  <table>
+    <tr><th>Pieza</th><th>Antes (flujo viejo)</th><th>Después (flujo nuevo)</th></tr>
+    <tr><td>Estilo</td><td colspan="1">Embebido en el <code>master</code>, junto con personajes y locación.</td><td><code>estilo</code>: bloque global aparte — SOLO estética/formato/luz, sin personajes ni acción.</td></tr>
+    <tr><td>Personaje</td><td><code>fisicoEn</code> pegado VERBATIM en el master y repetido al inicio de CADA clip.</td><td><code>personajes:[{id,nombre,promptImagen}]</code> — <code>promptImagen</code> = retrato full-body 9:16 para GENERAR la imagen de referencia (Nano Banana).</td></tr>
+    <tr><td>Escena</td><td><code>clips:[{escenaN,prompt,estado}]</code> — cada prompt arrancaba copiando el master entero.</td><td><code>escenas:[{escenaN,rol,prompt,estado}]</code> — el prompt refiere al personaje por NOMBRE + "Argentine" (corto), SIN el fisicoEn.</td></tr>
+    <tr><td>Consistencia</td><td>Garantía manual: <code>fisicoEn</code> verbatim exigido en cada clip o <em>throw</em>.</td><td>La fija la IMAGEN del personaje. La garantía se <b>retiró</b> (era lo que devolvía imágenes estáticas).</td></tr>
+    <tr><td>Regen por escena</td><td><code>{clip:{...}}</code>, pasaba por la garantía.</td><td><code>{escena:{escenaN,prompt}}</code>, sin garantía verbatim (varía la idea visual, mantiene al personaje por nombre).</td></tr>
+  </table>
+  <div class="callout"><b>Migración de datos (aditiva):</b> el <code>packFlow</code> viejo (<code>master</code>+<code>clips</code>) queda incompatible. No se migra a mano: si <code>packFlow</code> no tiene <code>escenas</code>, PasoPack muestra el aviso <em>"regenerá el pack para el flujo nuevo"</em> y el botón produce el shape nuevo. Reels sin packFlow: intactos. <code>packProgress</code> es tolerante (<code>?? []</code>).</div>
+</section>
+
+<section>
+  <h2><span class="num">2</span> F1 — el molde <code>flowpack</code> (server) <span class="badge b-gold">feat(ai) · c77dfbb</span></h2>
+  <div class="qc">En <code>server/functions.mjs</code>: el <code>build</code> arma las 3 piezas, el <code>parse</code> valida el shape nuevo, inyecta el <code>rol</code> de cada escena desde el storyboard (autoridad = el storyboard, no la IA) y el <code>estado:'pendiente'</code>. Se borró el helper <code>verificarConsistenciaFlowpack</code> completo (grep confirmó cero referencias). El molde <code>qa</code> se ajustó: <code>packFlow?.master</code> → <code>packFlow?.estilo</code> y el criterio de continuidad pasó de "fisicoEn verbatim" a "consistencia por imagen del personaje".</div>
+  <ul class="tips">
+    <li><strong>Se reusó <code>VEO_RULES</code> tal cual</strong> — el prompting de idioma/cadencia/talking head no se tocó ni se fue a buscar afuera.</li>
+    <li><strong><code>promptImagen</code></strong> del cast (<code>fisicoEn</code>+<code>vestuario</code>) → retrato de UNA persona argentina, foto fija, "No action, no dialogue".</li>
+    <li><strong>Escena</strong>: todo en inglés salvo el diálogo (español rioplatense entre comillas); el acento se dispara nombrando "Argentine".</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">3</span> F2 — el PasoPack imagen-first <span class="badge b-gold">feat(ui) · 433062f</span></h2>
+  <div class="qc">Mismo sistema visual (tokens <code>--st-*</code>, filas colapsables), reorganizado a las 3 piezas: <b>ESTILO</b> (fila dorada) · <b>PERSONAJES</b> (cada uno: nombre + su <code>promptImagen</code> + Copiar, para pegar en la sección Personaje de Flow) · <b>ESCENAS</b> (prompt + Copiar + Regenerar + estado, resalta "la que sigue"). El progreso cuenta escenas copiadas/importadas. Cero rastro del master viejo.</div>
+  <div class="shot"><div class="cap"><span class="dot"></span>PasoPack nuevo · munify-ejemplo · estilo + personajes + escenas + copiloto</div><img src="../12-flow-nuevo/capturas/01-pasopack-general.png" alt="PasoPack nuevo, vista general"></div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> F3 — la guía del copiloto <span class="badge b-gold">feat(ui) · 161b7ad</span></h2>
+  <div class="qc">La guía del paso Pack se reescribió al flujo nuevo (3 pasos): <b>1)</b> creá cada personaje en Flow y generá su imagen con el prompt (Nano Banana) · <b>2)</b> creá una escena por clip y animala con su prompt, llamando al personaje por nombre · <b>3)</b> bajá los videos e importalos en Rodaje. El mapeo de avance pasó de 4 a 3 ítems; la leyenda de estados (pendiente/copiado/importado) sigue.</div>
+  <div class="two">
+    <div class="shot"><div class="cap"><span class="dot"></span>Prompts expandidos · retrato del personaje + escena CTA</div><img src="../12-flow-nuevo/capturas/02-pasopack-expandido.png" alt="Prompts expandidos"></div>
+    <div class="shot"><div class="cap"><span class="dot"></span>Copiloto · guía nueva de 3 pasos</div><img src="../12-flow-nuevo/capturas/03-copiloto-guia.png" alt="Copiloto guía nueva"></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Prueba funcional real (backend vivo, IA real) <span class="badge b-ok">verde</span></h2>
+  <div class="qc">Se levantó un backend con el código nuevo y se corrió <code>/api/run-function</code> (functionId <code>flowpack</code>) con el contexto de <b>Munify</b> (app municipal argentina · cast 2 · storyboard 4). HTTP 200 en ~77s. El resultado trae las 3 piezas; los checks confirman que el personaje es un RETRATO y la escena una ACCIÓN con diálogo español + "Argentine", <b>sin</b> el <code>fisicoEn</code> embebido.</div>
+  <div class="grid g3">
+    <div class="card"><div class="label">Personajes</div><div class="val green">2 / 2</div><div class="hint">Sofía + Martín · cada uno con <code>promptImagen</code> de retrato full-body, "Argentine".</div></div>
+    <div class="card"><div class="label">Escenas</div><div class="val green">4 / 4</div><div class="hint">hook · desarrollo · gag · cta (rol heredado del storyboard) · estado pendiente.</div></div>
+    <div class="card"><div class="label">Regen escena</div><div class="val green">OK</div><div class="hint"><code>{escena:{escenaN,prompt}}</code> · otra idea visual, mismo personaje por nombre.</div></div>
+  </div>
+  <div class="qc" style="margin-top:16px"><b>Personaje (retrato — para la imagen de referencia de Flow):</b></div>
+  <pre><span class="k">Sofía →</span> Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine woman. A striking, conventionally beautiful and charismatic Argentine woman in her late 20s, polished and camera-ready, with long dark wavy hair, warm brown eyes, defined attractive features, light olive skin... She stands facing the camera in a bright modern municipal office... She looks directly at the camera with a warm and confident expression. No action, no dialogue, no text.</pre>
+  <div class="qc" style="margin-top:14px"><b>Escena 1 (hook — acción + diálogo, personaje CORTO por nombre, SIN fisicoEn):</b></div>
+  <pre>Photorealistic, professional cinematic vertical 9:16... Location: bright modern municipal office... <span class="k">Sofía, a striking conventionally beautiful young Argentine woman in her late 20s with long dark wavy hair and a mustard-yellow sweater</span>, medium shot waist-up framing, eye-level... She speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: <span class="es">'¿Cansada de hacer cinco colas para un solo trámite? Con Munifai reclamás un bache o pagás una tasa desde el celular, y el municipio te responde al toque.'</span> Energetic and engaging hook delivery, warm confident and charming tone... She speaks for the full duration of the clip without silence.</pre>
+  <div class="callout green"><b>Contraste con el flujo viejo:</b> la escena describe a Sofía en versión CORTA ("young Argentine woman in her late 20s with long dark wavy hair and a mustard-yellow sweater") — NO el <code>fisicoEn</code> completo del cast. La cara la fija la imagen del personaje. La marca fonética viaja correcta (<code>Munifai</code>), el acento se dispara con "Argentine", el diálogo va en español entre comillas dentro del prompt inglés — exactamente el patrón de <code>VEO_RULES</code>.</div>
+</section>
+
+<section>
+  <h2><span class="num">6</span> Gates, hallazgos y notas</h2>
+  <table>
+    <tr><th>Gate</th><th>Resultado</th><th>Detalle</th></tr>
+    <tr><td>tsc --noEmit</td><td><span class="ok">0 errores</span></td><td>Shape nuevo tipado en <code>comercial.ts</code> (<code>PersonajeFlow</code> / <code>EscenaFlow</code> / <code>PackFlow</code>).</td></tr>
+    <tr><td>eslint src/</td><td><span class="ok">0 errores</span></td><td>9 warnings, todos PRE-existentes (CadenceWave, KitsStudio, ReelEditor…). PasoPack nuevo sin warnings.</td></tr>
+    <tr><td>vitest --pool=vmThreads</td><td><span class="ok">240 / 240</span></td><td>17 files. Ajustados los tests del shape (pack) en comercial / copiloto / pasoEstado.</td></tr>
+    <tr><td>stylelint</td><td><span class="ok">0</span></td><td>CSS nuevo (<code>pack-clip--persona</code>, <code>pack-migrate</code>) con tokens <code>--st-*</code>.</td></tr>
+    <tr><td>vite build</td><td><span class="ok">verde</span></td><td>1646 módulos, sin warnings nuevos (el aviso de chunk &gt;500kB es pre-existente del bundle).</td></tr>
+    <tr><td>Funcional (IA real)</td><td><span class="ok">verde</span></td><td>pack: 2 personajes + 4 escenas · regen escena: OK. Shape y idioma confirmados.</td></tr>
+  </table>
+  <div class="callout red"><b>Nota operativa (honesta):</b> el backend <code>:5301</code> que estaba corriendo tenía el <code>functions.mjs</code> ANTERIOR cacheado (Node importa el módulo una sola vez; el runner no auto-reinicia). La prueba funcional se corrió en una instancia aparte con el código nuevo. <b>Para usar el molde nuevo desde la app hay que reiniciar el backend</b> (<code>npm run studio</code> / <code>npm run server</code>).</div>
+  <div class="callout"><b>Dato:</b> se pobló el reel de <code>munify-ejemplo</code> (el proyecto "ejemplo pipeline") con el comercial completo (cast + storyboard + packFlow real) para el gate visual — queda como demo funcional del flujo nuevo. Cambio de DATOS, no de código; reversible regenerando/limpiando el reel.</div>
+  <div class="callout accent"><b>Mejora proactiva aplicada (regla 14):</b> el molde <code>qa</code> referenciaba <code>packFlow?.master</code> (que ya no existe) y exigía "fisicoEn verbatim en todos los prompts" como criterio de continuidad — habría dado señal falsa "(sin pack)" y penalizado el flujo nuevo. Se corrigió a <code>estilo</code> + consistencia por imagen, dentro del alcance del cambio de shape.</div>
+</section>
+
+<footer>
+  Media Studio · Pack Flow imagen-first (Google Flow / Veo 3.1) · F1 c77dfbb · F2 433062f · F3 161b7ad · 2026-07-11
+</footer>
+
+</body>
+</html>
