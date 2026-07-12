@@ -1,0 +1,63 @@
+/* ===================================================================
+   Media Studio — tokens del REDISEÑO (docs/rediseno/HANDOFF.md §1).
+   Fuente: docs/rediseno/prototipo.dc.html (Claude Design).
+
+   OJO — namespacing deliberado: src/styles/tokens.css YA EXISTÍA (sistema
+   navy/gold legacy, usado por Topbar/KbInspector/NewProjectWizard/ReelTab/
+   KitsStudio/etc.) con nombres --ink/--gold/--green/--danger que CHOCAN de
+   significado con los del HANDOFF: el --ink viejo es un fondo navy oscuro
+   (#0E1830); el --ink nuevo es texto casi blanco (#F5F1E8). Si pisaba esos
+   nombres en :root, cualquier "background: var(--gold); color: var(--ink);"
+   legacy (botones dorados con texto oscuro, hay decenas) habría quedado con
+   texto CASI BLANCO sobre fondo dorado — ilegible. Por eso: prefijo --rd-*
+   en vez de sobreescribir tokens.css. Cuando el pipeline viejo se migre al
+   nuevo sistema (fases siguientes), esto se puede fusionar/renombrar.
+   =================================================================== */
+:root {
+  /* Fondos */
+  --rd-bg-app:    #14110C;   /* base de la app */
+  --rd-bg-rail:   #100D09;   /* rail, paneles laterales, timeline */
+  --rd-surface-1: #1C1811;   /* cards, inputs */
+  --rd-surface-2: #2A241C;   /* chips, tracks, hover */
+  --rd-border:    rgba(255, 255, 255, 0.06);
+
+  /* Texto */
+  --rd-ink:       #F5F1E8;
+  --rd-ink-2:     #D8D2C6;
+  --rd-ink-dim:   #A69E8E;
+  --rd-ink-mute:  #8A8375;
+  --rd-ink-faint: #5A5348;
+
+  /* Marca / roles (ESTRICTO — no reordenar el significado):
+     verde = vos/sistema/progreso/acciones/"hecho" · dorado = momentos de IA + "elegido/generado"
+     azul = estado "editado"/info · rojo = error. */
+  --rd-green:  #00B37E;
+  --rd-gold:   #FFB800;
+  --rd-blue:   #4AA3FF;
+  --rd-danger: #FF4D4D;
+
+  /* Acentos de apps del KSP conocidas (del HANDOFF; NO usar para inventar marca de apps nuevas) */
+  --rd-app-munify:      #7C5CFF;
+  --rd-app-hablah:      #FF5C8A;
+  --rd-app-eventmarker: #00B37E;
+  --rd-app-tasar:       #4AA3FF;
+
+  /* Tipografía */
+  --rd-font-display: 'Sora', 'Inter', system-ui, sans-serif;
+  --rd-font-sans:    'Inter', system-ui, -apple-system, sans-serif;
+  --rd-font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+  /* Forma */
+  --rd-r-card: 14px;
+  --rd-r-md:   10px;
+  --rd-pill:   999px;
+
+  /* Motion */
+  --rd-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --rd-dur-ui: 150ms;
+  --rd-dur-panel: 240ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --rd-dur-ui: 0ms; --rd-dur-panel: 0ms; }
+}

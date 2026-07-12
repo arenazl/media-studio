@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutTemplate, Clapperboard } from 'lucide-react';
 import VoiceStudio from './VoiceStudio';
 import KbInspector from './KbInspector';
 import ProjectWizard from './ProjectWizard';
 import ProjectInfo from './ProjectInfo';
-import { Sparkles } from 'lucide-react';
 import VideosTab from './VideosTab';
 import ReelTab from './ReelTab';
 import Pipeline from './Pipeline';
 import Topbar from './Topbar';
-import ProjectsABM from './ProjectsABM';
+import Rail from './Rail';
+import Home from './Home';
+import Integrar from './Integrar';
+import RoutePlaceholder from './RoutePlaceholder';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
 import { useProjects } from './lib/useProjects';
 import { defaultSection, type Section } from './lib/sections';
+import type { Route } from './lib/routes';
 import { API_BASE } from './config';
 import './App.css';
 
@@ -23,7 +27,9 @@ export default function App() {
   const [section, setSection] = useState<Section>('editor');
   // audio generado por reel (objectURL del mp3) — se comparte entre solapas.
   const [audioByReel, setAudioByReel] = useState<Record<string, string>>({});
-  const [inspect, setInspect] = useState(false);   // visor de los KB de las Integraciones (+ Comenzar)
+  // router del shell nuevo (rail + columna). 'project'/'wizard'/'editor' son contextuales
+  // (se llega desde otra vista, no tienen ítem propio en el rail — docs/rediseno/HANDOFF.md §2).
+  const [route, setRoute] = useState<Route>('home');
   const [wizardProject, setWizardProject] = useState<Project | null>(null);   // proyecto recién creado, en el wizard
 
   const { projects } = useProjects();   // server-first: estado inicial de localStorage + hidratación del server
@@ -90,8 +96,16 @@ export default function App() {
     } catch { /* server opcional */ }
   };
 
-  // abrir/cambiar de proyecto: flush lo pendiente del anterior y hacé del nuevo el proyecto dueño.
-  const openProject = (p: Project) => { flushPending(); projectRef.current = p; setActiveProject(p); setSection(defaultSection(p)); };
+  // abrir/cambiar de proyecto: flush lo pendiente del anterior, hacé del nuevo el proyecto dueño y navegá a su workspace.
+  const openProject = (p: Project) => { flushPending(); projectRef.current = p; setActiveProject(p); setSection(defaultSection(p)); setRoute('project'); };
+
+  // nav global del rail: flushea lo pendiente; "Inicio" además cierra el proyecto activo (como
+  // hacía el botón Home de la Topbar vieja) — las demás rutas no lo tocan (podés volver a él).
+  const goRoute = (r: Route) => {
+    flushPending();
+    if (r === 'home') { projectRef.current = null; setActiveProject(null); }
+    setRoute(r);
+  };
 
   // Al abrir/cambiar de proyecto, rehidrata el cache de audio de sesión (audioByReel) desde la voz
   // persistida de cada reel (voiceConfig.audioRef → /api/storage/<ref> → objectURL). Fija el bug del
@@ -128,34 +142,57 @@ export default function App() {
 
   return (
     <div className="ms-shell">
-      <Topbar
-        projects={projects}
-        activeProject={activeProject}
-        section={section}
-        onPickProject={openProject}
-        onHome={() => { flushPending(); projectRef.current = null; setActiveProject(null); }}
-        onSection={(s) => { flushPending(); setSection(s); }}
-      />
-      <main className="ms-main">
-        {activeProject ? (
-          <SectionView section={section} project={activeProject} onChange={updateProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
-        ) : wizardProject ? (
-          <ProjectWizard
-            project={wizardProject}
-            onDone={(p) => { setWizardProject(null); openProject(p); setSection('pipeline'); }}
-            onCancel={() => setWizardProject(null)}
-          />
-        ) : inspect ? (
-          <KbInspector onClose={() => setInspect(false)} onComenzar={(p) => { setInspect(false); setWizardProject(p); }} />
+      <Rail route={route} onNavigate={goRoute} />
+      <div className="ms-maincol">
+        {route === 'project' && activeProject ? (
+          <div className="project-workspace">
+            <Topbar
+              projects={projects}
+              activeProject={activeProject}
+              section={section}
+              onPickProject={openProject}
+              onHome={() => goRoute('home')}
+              onSection={(s) => { flushPending(); setSection(s); }}
+            />
+            <main className="ms-main">
+              <SectionView section={section} project={activeProject} onChange={updateProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
+            </main>
+          </div>
+        ) : route === 'wizard' ? (
+          <div className="ms-page">
+            {wizardProject ? (
+              <ProjectWizard
+                project={wizardProject}
+                onDone={(p) => { setWizardProject(null); openProject(p); setSection('pipeline'); }}
+                onCancel={() => { setWizardProject(null); goRoute('home'); }}
+              />
+            ) : (
+              <KbInspector onClose={() => goRoute('home')} onComenzar={(p) => setWizardProject(p)} />
+            )}
+          </div>
+        ) : route === 'ksp' ? (
+          <div className="ms-page">
+            <Integrar onHome={() => goRoute('home')} onComenzar={(p) => { setWizardProject(p); setRoute('wizard'); }} />
+          </div>
+        ) : route === 'videos' ? (
+          <main className="ms-main"><VideosTab /></main>
+        ) : route === 'audio' ? (
+          <main className="ms-main"><VoiceStudio /></main>
+        ) : route === 'formats' ? (
+          <div className="ms-page"><RoutePlaceholder Icon={LayoutTemplate} title="Catálogo de formatos" note="El norte del rediseño: Formato como entidad de primer nivel (aspecto, plataforma, técnica de producción). Llega en una fase siguiente." /></div>
+        ) : route === 'editor' ? (
+          <div className="ms-page"><RoutePlaceholder Icon={Clapperboard} title="Editor multipista" note="Consolidación de Montaje + Publicar en un editor de pistas (video/voz/música/texto/efectos). Llega en una fase siguiente." /></div>
         ) : (
-          <div className="ms-home">
-            <div className="ms-home-bar">
-              <button className="ms-kb-cta" onClick={() => setInspect(true)}><Sparkles size={15} /> Nuevo proyecto desde una Integración</button>
-            </div>
-            <ProjectsABM onOpen={openProject} />
+          <div className="ms-page">
+            <Home
+              projects={projects}
+              onOpenProject={openProject}
+              onNewPiece={() => goRoute('ksp')}
+              onGoIntegrations={() => goRoute('ksp')}
+            />
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

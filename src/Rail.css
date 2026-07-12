@@ -1,0 +1,43 @@
+/* Rail izquierdo — 74px fijo, nav global (prototipo.dc.html líneas 33-46). */
+.rail {
+  width: 74px; flex: 0 0 74px;
+  background: var(--rd-bg-rail);
+  border-right: 1px solid var(--rd-border);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 16px 0; gap: 4px;
+  z-index: 20;
+}
+.rail-logo {
+  width: 40px; height: 40px; border-radius: 11px; flex: 0 0 auto;
+  background: linear-gradient(135deg, var(--rd-green), #00794f);
+  color: #fff; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--rd-green) 35%, transparent);
+}
+.rail-items { display: flex; flex-direction: column; gap: 4px; width: 100%; align-items: center; }
+.rail-item {
+  width: 46px; height: 46px; border-radius: 12px; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--rd-ink-faint); background: transparent;
+  transition: background var(--rd-dur-ui) var(--rd-ease), color var(--rd-dur-ui) var(--rd-ease);
+}
+.rail-item:hover { color: var(--rd-ink-dim); background: var(--rd-surface-1); }
+.rail-item--on, .rail-item--on:hover {
+  color: var(--rd-green);
+  background: color-mix(in srgb, var(--rd-green) 12%, transparent);
+}
+.rail-item-label { font-size: 8.5px; font-weight: 500; letter-spacing: 0.02em; }
+.rail-spacer { flex: 1; }
+.rail-avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--rd-surface-2); color: var(--rd-ink-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; cursor: default;
+}
+
+@media (max-width: 640px) {
+  .rail { width: 60px; flex-basis: 60px; }
+  .rail-item { width: 40px; height: 40px; }
+  .rail-item-label { display: none; }
+}

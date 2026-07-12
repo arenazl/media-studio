@@ -1,0 +1,99 @@
+/* Home nuevo — dashboard (prototipo.dc.html líneas 52-133). Vive en .ms-maincol (App.css),
+   que ya trae el fondo/color base del shell nuevo (--rd-bg-app / --rd-ink). */
+.home { background: var(--rd-bg-app); min-height: 100%; color: var(--rd-ink); font-family: var(--rd-font-sans); }
+.home-inner { max-width: 1180px; margin: 0 auto; padding: 34px 40px 80px; animation: home-fade 0.35s ease; }
+@keyframes home-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.home-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+.home-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rd-green); margin-bottom: 8px; }
+.home-title { font-family: var(--rd-font-display); font-size: 34px; font-weight: 600; margin: 0; letter-spacing: -0.02em; }
+.home-sub { color: var(--rd-ink-dim); font-size: 15px; margin: 8px 0 0; max-width: 60ch; }
+.home-cta {
+  display: flex; align-items: center; gap: 9px; cursor: pointer;
+  background: var(--rd-green); color: #04170f; border: none;
+  padding: 13px 20px; border-radius: 12px; font-family: var(--rd-font-sans); font-size: 14.5px; font-weight: 600;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--rd-green) 30%, transparent);
+  transition: filter var(--rd-dur-ui) var(--rd-ease), transform var(--rd-dur-ui) var(--rd-ease);
+}
+.home-cta:hover { filter: brightness(1.06); transform: translateY(-1px); }
+
+.home-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 28px 0 30px; }
+.stat-card { background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: var(--rd-r-card); padding: 16px 18px; }
+.stat-value { font-family: var(--rd-font-display); font-size: 26px; font-weight: 600; }
+.stat-label { font-size: 12.5px; color: var(--rd-ink-dim); margin-top: 2px; }
+
+.home-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.home-row--ksp { margin: 38px 0 14px; align-items: flex-start; }
+.home-h2 { font-family: var(--rd-font-display); font-size: 18px; font-weight: 600; margin: 0; color: var(--rd-ink); }
+.home-ksp-sub { font-size: 12.5px; color: var(--rd-ink-mute); margin: 4px 0 0; }
+
+.home-filters { display: flex; gap: 6px; }
+.home-filter {
+  font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  color: var(--rd-ink-dim); background: var(--rd-surface-1); border: none;
+}
+.home-filter--on { color: #04170f; background: var(--rd-green); }
+
+.home-link { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--rd-green); font-weight: 500; background: none; border: none; cursor: pointer; padding: 0; }
+.home-link:hover { text-decoration: underline; }
+
+.home-empty {
+  display: flex; align-items: center; gap: 10px; color: var(--rd-ink-mute); font-size: 13.5px;
+  background: var(--rd-surface-1); border: 1px dashed var(--rd-border); border-radius: var(--rd-r-card);
+  padding: 22px 20px;
+}
+.home-empty--inline { grid-column: 1 / -1; }
+
+.home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.piece-card {
+  display: block; text-align: left; cursor: pointer; padding: 0;
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: 16px;
+  overflow: hidden; color: inherit; font: inherit;
+  transition: transform var(--rd-dur-ui) var(--rd-ease), border-color var(--rd-dur-ui) var(--rd-ease);
+}
+.piece-card:hover { border-color: color-mix(in srgb, var(--rd-green) 50%, transparent); transform: translateY(-3px); }
+.piece-cover {
+  height: 100px; position: relative; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--piece-accent, var(--rd-green)) 30%, transparent), color-mix(in srgb, var(--piece-accent, var(--rd-green)) 10%, transparent));
+}
+.piece-badge { font-family: var(--rd-font-display); font-size: 28px; font-weight: 700; color: rgba(255, 255, 255, 0.9); }
+.piece-pills { position: absolute; top: 11px; left: 11px; display: flex; gap: 6px; }
+.piece-pill {
+  font-size: 10.5px; font-weight: 600; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(6px);
+  padding: 4px 9px; border-radius: 20px; color: #fff;
+}
+.piece-body { padding: 14px 16px 16px; }
+.piece-app-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+.piece-app-dot { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+.piece-app-name { font-size: 11.5px; color: var(--rd-ink-dim); font-weight: 500; }
+.piece-name { font-family: var(--rd-font-display); font-size: 15.5px; font-weight: 600; margin-bottom: 12px; line-height: 1.3; color: var(--rd-ink); }
+.piece-progress { display: flex; align-items: center; gap: 8px; }
+.piece-bar { flex: 1; height: 5px; background: var(--rd-surface-2); border-radius: 3px; overflow: hidden; }
+.piece-bar-fill { height: 100%; border-radius: 3px; }
+.piece-step { font-size: 11px; color: var(--rd-ink-dim); white-space: nowrap; }
+
+.home-ksp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.ksp-card { background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: var(--rd-r-card); padding: 16px; }
+.ksp-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.ksp-initial {
+  width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--rd-font-display); font-weight: 700; font-size: 15px; color: #fff;
+}
+.ksp-status { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+.ksp-dot { width: 7px; height: 7px; border-radius: 50%; }
+.ksp-name { font-family: var(--rd-font-display); font-size: 14.5px; font-weight: 600; color: var(--rd-ink); }
+.ksp-desc { font-size: 11.5px; color: var(--rd-ink-mute); margin-top: 2px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 1024px) {
+  .home-grid { grid-template-columns: repeat(2, 1fr); }
+  .home-ksp-grid { grid-template-columns: repeat(2, 1fr); }
+  .home-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .home { padding: 20px 16px 60px; }
+  .home-head { flex-direction: column; align-items: flex-start; }
+  .home-cta { width: 100%; justify-content: center; }
+  .home-grid { grid-template-columns: 1fr; }
+  .home-ksp-grid { grid-template-columns: 1fr; }
+  .home-stats { grid-template-columns: repeat(2, 1fr); }
+}

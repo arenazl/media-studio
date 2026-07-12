@@ -1,33 +1,33 @@
-/* Shell del media-studio: header + tabs + contenido. Responsive: desktop llena
-   el viewport (sin scroll de página); mobile apila y deja scrollear. */
+/* Shell del media-studio (rediseño F1): rail (Rail.tsx) + columna principal.
+   Responsive: desktop llena el viewport (sin scroll de página); mobile apila y deja scrollear.
+   Nota: las clases ms-app, ms-header, ms-brand (y derivadas), ms-tabs (y derivadas) y ms-content
+   de acá eran de la Topbar VIEJA que ocupaba todo el shell — quedaron muertas (cero referencias
+   en App.tsx) desde que la Topbar pasó a vivir solo dentro de .project-workspace; se retiraron
+   en el rework del rail. */
 .ms-embed { height: 100vh; padding: 16px; }
 .ms-embed-inner { max-width: 1180px; height: 100%; margin: 0 auto; }
 
-.ms-app { height: 100dvh; display: flex; flex-direction: column; padding: 14px 16px; }
-
-.ms-header { flex: 0 0 auto; display: flex; align-items: center; gap: 14px; width: 100%; margin: 0 0 14px; flex-wrap: wrap; }
-.ms-brand-mark { flex: 0 0 auto; color: var(--gold); }
-.ms-brand { min-width: 180px; }
-.ms-brand-title { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: 25px; margin: 0; letter-spacing: -0.02em; }
-.ms-brand-sub { margin: 0; font-size: 12.5px; color: var(--txt-50); }
-
-.ms-tabs { display: flex; gap: 5px; background: var(--surface); border-radius: var(--r); padding: 5px; margin-left: auto; max-width: 100%; overflow-x: auto; }
-.ms-tab { cursor: pointer; display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--txt); background: transparent; border: none; border-radius: 9px; padding: 8px 13px; white-space: nowrap; }
-.ms-tab--on { background: var(--accent); color: var(--ink); }
-.ms-tab-idx { font-size: 10.5px; font-weight: 800; opacity: 0.4; }
-.ms-tab--on .ms-tab-idx { opacity: 0.6; }
-
-.ms-content { flex: 1; min-height: 0; width: 100%; overflow-y: auto; }
-
-/* ===== Shell: topbar arriba + main abajo ===== */
+/* ===== Shell nuevo: rail | columna principal ===== */
 .ms-shell {
   height: 100dvh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  overflow: hidden;
+  /* backdrop neutro con los tokens VIEJOS (--st-*): Home/Integrar/placeholders pintan su propio
+     fondo (--rd-bg-app) sobre esto; el pipeline/videos/audio (sin rediseñar) siguen leyendo --st-*
+     para lo que no seteen explícito — no tocar acá evita un corrimiento de tono en esas pantallas. */
   background: var(--st-bg-0);
   color: var(--st-text-1);
   font-family: var(--st-font-sans);
 }
+.ms-maincol { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+/* pantallas nuevas (Home/Integrar/wizard/placeholders): scrollean ellas mismas, pintan su propio fondo */
+.ms-page { flex: 1; min-height: 0; overflow-y: auto; }
+
+/* workspace de un proyecto abierto: Topbar (contextual, secciones del pipeline) + el contenido viejo tal cual */
+.project-workspace { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
 .ms-main {
   flex: 1;
   min-width: 0;
@@ -41,28 +41,6 @@
 }
 @media (max-width: 860px) {
   .ms-main { padding: 12px; }
-}
-
-@media (max-width: 860px) {
-  .ms-app { height: auto; min-height: 100dvh; padding: 12px 12px 28px; }
-  .ms-header { margin-bottom: 12px; gap: 10px; }
-  .ms-brand-title { font-size: 21px; }
-  .ms-tabs { width: 100%; margin-left: 0; }
-  .ms-content { overflow: visible; }
   .ms-embed { height: auto; min-height: 100vh; padding: 10px; }
   .ms-embed-inner { height: auto; }
 }
-
-/* home: acceso a importar desde una Integración (KSP) */
-.ms-home-bar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: var(--st-sp-4); }
-.ms-kb-cta--ghost { background: transparent; color: var(--st-text-1); border: 1px solid var(--st-line-2); }
-.ms-kb-cta--ghost:hover { border-color: var(--st-gold); filter: none; }
-.ms-kb-cta {
-  cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 800; color: var(--st-bg-0);
-  background: linear-gradient(135deg, var(--st-gold-soft), var(--st-gold));
-  border: none; border-radius: var(--st-r-m); padding: 10px 18px;
-  box-shadow: var(--st-shadow-1);
-  transition: filter var(--st-dur) var(--st-ease), transform var(--st-dur) var(--st-ease);
-}
-.ms-kb-cta:hover { filter: brightness(1.06); transform: translateY(-1px); }
