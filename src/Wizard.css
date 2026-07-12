@@ -1,0 +1,109 @@
+/* Wizard formato-primero (rediseño F5) — prototipo.dc.html ~línea 136. Tokens --rd-* (styles/rediseno.css). Vive en .ms-page. */
+.wz-root { max-width: 1000px; margin: 0 auto; padding: 34px 40px 60px; color: var(--rd-ink); font-family: var(--rd-font-sans); animation: wz-fade 0.35s ease; }
+@keyframes wz-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.wz-crumb { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--rd-ink-mute); margin-bottom: 6px; }
+.wz-crumb-link { background: none; border: none; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+.wz-crumb-link:hover { color: var(--rd-ink-2); }
+.wz-crumb-on { color: var(--rd-green); }
+
+.wz-title { font-family: var(--rd-font-display); font-size: 28px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
+.wz-lead { color: var(--rd-ink-dim); font-size: 14px; margin: 0 0 28px; }
+.wz-lead strong { color: var(--rd-ink); }
+
+.wz-step-h { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.wz-step-num {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--rd-green); color: #04170f;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex: 0 0 auto;
+}
+.wz-step-label { font-family: var(--rd-font-display); font-size: 15px; font-weight: 600; }
+.wz-step-tag {
+  font-size: 11px; color: var(--rd-ink-mute); background: var(--rd-surface-1);
+  padding: 3px 9px; border-radius: var(--rd-pill); border: 1px solid var(--rd-border);
+}
+
+.wz-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-bottom: 32px; }
+
+/* Paso 1 — cards de formato */
+.wz-card {
+  background: var(--rd-surface-1); border: 1.5px solid rgba(255, 255, 255, 0.08); border-radius: var(--rd-r-card);
+  padding: 16px; cursor: pointer; text-align: left; font: inherit; color: inherit;
+  transition: border-color var(--rd-dur-ui) var(--rd-ease), background var(--rd-dur-ui) var(--rd-ease);
+}
+.wz-card:hover { border-color: rgba(255, 255, 255, 0.2); }
+.wz-card:focus-visible, .wz-app:focus-visible, .wz-btn-primary:focus-visible, .wz-btn-secondary:focus-visible {
+  outline: 2px solid var(--rd-green); outline-offset: 2px;
+}
+.wz-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 6px; }
+.wz-card-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.wz-card-aspecto {
+  font-family: var(--rd-font-mono); font-size: 11px; color: var(--rd-ink-dim); background: rgba(0, 0, 0, 0.2);
+  padding: 3px 8px; border-radius: 6px;
+}
+.wz-card-check { margin-left: auto; flex: 0 0 auto; }
+.wz-card-name { font-family: var(--rd-font-display); font-size: 15px; font-weight: 600; }
+.wz-card-nota { font-size: 11.5px; color: var(--rd-ink-mute); margin: 4px 0 8px; line-height: 1.4; }
+.wz-card-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.wz-chip { font-size: 10.5px; color: var(--rd-ink-2); background: var(--rd-surface-2); padding: 3px 8px; border-radius: 6px; }
+
+/* Paso 2 — cards de app fuente */
+.wz-app {
+  background: var(--rd-surface-1); border: 1.5px solid rgba(255, 255, 255, 0.08); border-radius: var(--rd-r-card);
+  padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; text-align: left; font: inherit; color: inherit;
+  transition: border-color var(--rd-dur-ui) var(--rd-ease), background var(--rd-dur-ui) var(--rd-ease);
+}
+.wz-app:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.2); }
+.wz-app--on { border-color: var(--rd-green); background: color-mix(in srgb, var(--rd-green) 8%, var(--rd-surface-1)); }
+.wz-app--off { opacity: 0.45; cursor: not-allowed; }
+.wz-app-initial {
+  width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--rd-font-display); font-weight: 700; font-size: 18px; color: #fff; flex: 0 0 auto;
+}
+.wz-app-meta { min-width: 0; flex: 1; }
+.wz-app-name { font-family: var(--rd-font-display); font-size: 15px; font-weight: 600; }
+.wz-app-desc { font-size: 12px; color: var(--rd-ink-mute); margin-top: 1px; }
+.wz-app-check { color: var(--rd-green); flex: 0 0 auto; }
+.wz-muted { grid-column: 1 / -1; color: var(--rd-ink-mute); font-size: 13px; padding: 18px; text-align: center; }
+
+.wz-error {
+  color: var(--rd-danger); background: color-mix(in srgb, var(--rd-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rd-danger) 30%, transparent); border-radius: var(--rd-r-md);
+  padding: 10px 14px; font-size: 13px; margin: -16px 0 20px;
+}
+
+/* Footer — resumen + CTA */
+.wz-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: var(--rd-r-card);
+  padding: 16px 20px;
+}
+.wz-summary { font-size: 13.5px; color: var(--rd-ink-dim); }
+.wz-gold { color: var(--rd-gold); }
+.wz-green { color: var(--rd-green); }
+.wz-actions { display: flex; gap: 10px; flex: 0 0 auto; }
+.wz-btn-secondary {
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.12); color: var(--rd-ink-dim);
+  padding: 11px 18px; border-radius: var(--rd-r-md); font-family: var(--rd-font-sans); font-size: 13.5px; font-weight: 500; cursor: pointer;
+}
+.wz-btn-secondary:hover { color: var(--rd-ink); border-color: rgba(255, 255, 255, 0.22); }
+.wz-btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--rd-green); color: #04170f; border: none; padding: 11px 22px; border-radius: var(--rd-r-md);
+  font-family: var(--rd-font-sans); font-size: 13.5px; font-weight: 600; cursor: pointer;
+  transition: filter var(--rd-dur-ui) var(--rd-ease);
+}
+.wz-btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.wz-btn-primary:disabled { background: var(--rd-surface-2); color: var(--rd-ink-faint); cursor: not-allowed; }
+.wz-spin { animation: wz-spin 1s linear infinite; }
+@keyframes wz-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1024px) {
+  .wz-grid--formatos { grid-template-columns: repeat(2, 1fr); }
+  .wz-grid--apps { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .wz-root { padding: 20px 16px 50px; }
+  .wz-grid--formatos { grid-template-columns: 1fr; }
+  .wz-footer { flex-direction: column; align-items: stretch; }
+  .wz-actions { justify-content: flex-end; }
+}

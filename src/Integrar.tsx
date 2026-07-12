@@ -9,23 +9,10 @@ import { Share2 } from 'lucide-react';
 import { API_BASE } from './config';
 import KbInspector from './KbInspector';
 import type { Project } from './lib/projects';
+import { appAccent, hostOf } from './lib/kspApps';
 import './Integrar.css';
 
 interface KbAppRow { id: string; name: string; base_url: string; ready: boolean }
-
-const KNOWN_APP_COLOR: Record<string, string> = {
-  munify: 'var(--rd-app-munify)', hablah: 'var(--rd-app-hablah)',
-  eventmarker: 'var(--rd-app-eventmarker)', tasar: 'var(--rd-app-tasar)',
-};
-const FALLBACK_PALETTE = ['var(--rd-blue)', 'var(--rd-green)', 'var(--rd-gold)', 'var(--rd-app-munify)'];
-function appAccent(id: string): string {
-  if (KNOWN_APP_COLOR[id]) return KNOWN_APP_COLOR[id];
-  const hash = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length];
-}
-function hostOf(url: string): string {
-  try { return new URL(url).hostname; } catch { return url; }
-}
 
 export default function Integrar({ onHome, onComenzar }: { onHome: () => void; onComenzar: (p: Project) => void }) {
   const [apps, setApps] = useState<KbAppRow[]>([]);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import VoiceStudio from './VoiceStudio';
-import KbInspector from './KbInspector';
+import Wizard from './Wizard';
 import ProjectWizard from './ProjectWizard';
 import VideosTab from './VideosTab';
 import AudioWorkspace from './AudioWorkspace';
@@ -162,7 +162,7 @@ export default function App() {
                 onCancel={() => { setWizardProject(null); goRoute('home'); }}
               />
             ) : (
-              <KbInspector onClose={() => goRoute('home')} onComenzar={(p) => setWizardProject(p)} />
+              <Wizard onCancel={() => goRoute('home')} onComenzar={(p) => setWizardProject(p)} />
             )}
           </div>
         ) : route === 'ksp' ? (
@@ -192,7 +192,7 @@ export default function App() {
             <Home
               projects={projects}
               onOpenProject={openProject}
-              onNewPiece={() => goRoute('ksp')}
+              onNewPiece={() => goRoute('wizard')}
               onGoIntegrations={() => goRoute('ksp')}
             />
           </div>

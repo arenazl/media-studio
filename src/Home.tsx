@@ -7,6 +7,7 @@ import { API_BASE } from './config';
 import type { Project } from './lib/projects';
 import { resolveBrand } from './lib/brandKit';
 import { pasosVisibles, type PasoId } from './lib/comercial';
+import { appAccent, hostOf } from './lib/kspApps';
 import './Home.css';
 
 interface Props {
@@ -23,19 +24,6 @@ const PASO_LABELS: Record<PasoId, string> = {
   pack: 'Pack Flow', render: 'Render', rodaje: 'Rodaje', montaje: 'Montaje', publicar: 'Publicar',
 };
 const CONTENT_LABELS: Record<string, string> = { reels: 'Reels', video: 'Video', audio: 'Audio', combinado: 'Combinado' };
-
-// Colores de marca de las Integraciones YA conocidas (HANDOFF §1) — el resto (apps nuevas del
-// registro que todavía no tienen un acento documentado) cae a una rotación determinística por id.
-const KNOWN_APP_COLOR: Record<string, string> = {
-  munify: 'var(--rd-app-munify)', hablah: 'var(--rd-app-hablah)',
-  eventmarker: 'var(--rd-app-eventmarker)', tasar: 'var(--rd-app-tasar)',
-};
-const FALLBACK_PALETTE = ['var(--rd-blue)', 'var(--rd-green)', 'var(--rd-gold)', 'var(--rd-app-munify)'];
-function appAccent(id: string): string {
-  if (KNOWN_APP_COLOR[id]) return KNOWN_APP_COLOR[id];
-  const hash = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length];
-}
 
 // Progreso de la pieza: toma el primer reel que tenga un `comercial` corriendo el pipeline
 // (rework) como representante del proyecto. Si ninguno tiene, la pieza está "sin iniciar".
@@ -178,10 +166,6 @@ export default function Home({ projects, onOpenProject, onNewPiece, onGoIntegrat
     </div>
     </div>
   );
-}
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname; } catch { return url; }
 }
 
 function StatCard({ value, label, color }: { value: string; label: string; color: string }) {
