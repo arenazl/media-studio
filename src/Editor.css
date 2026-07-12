@@ -1,0 +1,46 @@
+/* Editor multipista — Fase 4 (docs/rediseno/HANDOFF.md §9, prototipo.dc.html líneas 836-1085).
+   Shell: toolbar + (biblioteca | preview | inspector) + timeline. Fondo ligeramente más oscuro que el
+   resto de la app (--ed-bg, calco del prototipo #0E0B07 vs --rd-bg-app #14110C) — el editor se siente
+   "sala de proyección", distinto del resto del shell. Paneles resizeables: los anchos/alto vienen de
+   JS (lib/editorUi.ts) como inline style; acá sólo min/max y transiciones de colapso. */
+.editor-shell {
+  --ed-bg: #0E0B07;
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  background: var(--ed-bg); color: var(--rd-ink); font-family: var(--rd-font-sans);
+  animation: ed-fade 0.3s ease;
+}
+@keyframes ed-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.editor-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; color: var(--rd-ink-mute); text-align: center; padding: 40px;
+}
+.editor-empty-ico { color: var(--rd-ink-faint); }
+.editor-empty-title { font-family: var(--rd-font-display); font-size: 17px; font-weight: 600; color: var(--rd-ink); }
+.editor-empty-note { font-size: 13px; max-width: 44ch; }
+.editor-empty-back {
+  margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); color: var(--rd-ink-2);
+  padding: 8px 14px; border-radius: var(--rd-r-md); font-size: 13px;
+}
+.editor-empty-back:hover { color: var(--rd-ink); border-color: rgba(255, 255, 255, 0.16); }
+
+/* zona media: biblioteca | preview | inspector */
+.editor-mid { flex: 1; display: flex; min-height: 0; }
+
+.editor-resize-x {
+  width: 5px; flex: 0 0 5px; cursor: col-resize; background: rgba(255, 255, 255, 0.04);
+  transition: background var(--rd-dur-ui) var(--rd-ease);
+}
+.editor-resize-x:hover { background: color-mix(in srgb, var(--rd-green) 40%, transparent); }
+.editor-resize-y {
+  height: 5px; flex: 0 0 5px; cursor: row-resize; background: rgba(255, 255, 255, 0.04);
+  transition: background var(--rd-dur-ui) var(--rd-ease);
+}
+.editor-resize-y:hover { background: color-mix(in srgb, var(--rd-green) 40%, transparent); }
+
+/* stage central (preview) — ocupa todo lo que no toman biblioteca/inspector/timeline */
+.editor-stage {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; min-width: 0; position: relative;
+}

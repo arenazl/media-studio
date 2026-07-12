@@ -35,7 +35,7 @@ const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[]
   { value: 'haiku', label: 'Haiku', hint: 'económico' },
 ];
 
-export default function Pipeline({ project, onChange, onHome }: { project: Project; onChange: ChangeFn; onHome: () => void }) {
+export default function Pipeline({ project, onChange, onHome, onGoEditor }: { project: Project; onChange: ChangeFn; onHome: () => void; onGoEditor?: () => void }) {
   const [reelId, setReelId] = useState<string>(project.reels[0]?.id || '');
   const [activePaso, setActivePaso] = useState<PasoId>('concepto');
   // copiloto: panel de guia a la derecha. Su estado abierto/cerrado persiste (settings.ts). Solo UI.
@@ -96,7 +96,7 @@ export default function Pipeline({ project, onChange, onHome }: { project: Proje
       case 'pack': return <PasoPack {...pasoProps} />;
       case 'rodaje': return <PasoRodaje {...pasoProps} />;
       case 'render': return <PasoRender {...pasoProps} />;
-      case 'montaje': return <PasoMontaje {...pasoProps} />;
+      case 'montaje': return <PasoMontaje {...pasoProps} onGoEditor={onGoEditor} />;
       case 'publicar': return <PasoPublicar {...pasoProps} />;
       default:
         return <div className="paso"><div className="paso-empty">Este paso llega en una próxima fase del rework.</div></div>;

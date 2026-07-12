@@ -1,0 +1,44 @@
+.ed-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 22px; border-bottom: 1px solid var(--rd-border); background: var(--rd-bg-rail);
+  flex: 0 0 auto;
+}
+.ed-toolbar-left, .ed-toolbar-right { display: flex; align-items: center; gap: 10px; }
+
+.ed-crumb {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  background: none; border: none; color: var(--rd-ink-mute); font-size: 13px; padding: 2px;
+}
+.ed-crumb:hover { color: var(--rd-ink); }
+.ed-sep { width: 1px; height: 18px; background: rgba(255, 255, 255, 0.1); }
+.ed-title { font-family: var(--rd-font-display); font-size: 15px; font-weight: 600; }
+
+.ed-chip {
+  font-size: 11px; color: var(--rd-ink-mute); background: var(--rd-surface-1);
+  padding: 3px 9px; border-radius: var(--rd-pill); display: inline-flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.ed-chip--gold { color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 12%, transparent); }
+.ed-chip--green { color: var(--rd-green); background: color-mix(in srgb, var(--rd-green) 12%, transparent); }
+.ed-chip--blue { color: var(--rd-blue); background: color-mix(in srgb, var(--rd-blue) 14%, transparent); }
+
+.ed-tool {
+  width: 34px; height: 34px; border-radius: 9px; background: var(--rd-surface-1); border: none;
+  display: flex; align-items: center; justify-content: center; color: var(--rd-ink-dim); cursor: pointer;
+  transition: color var(--rd-dur-ui) var(--rd-ease), background var(--rd-dur-ui) var(--rd-ease);
+}
+.ed-tool:hover:not(:disabled) { color: var(--rd-ink); background: var(--rd-surface-2); }
+.ed-tool:disabled { opacity: 0.35; cursor: default; }
+.ed-tool--danger:hover:not(:disabled) { color: var(--rd-danger); }
+.ed-vsep { width: 1px; height: 22px; background: rgba(255, 255, 255, 0.1); margin: 0 2px; }
+
+.ed-btn {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  background: var(--rd-surface-2); border: 1px solid var(--rd-border); color: var(--rd-ink);
+  padding: 9px 14px; border-radius: 9px; font-size: 12.5px; font-weight: 500;
+}
+.ed-btn--on { border-color: color-mix(in srgb, var(--rd-green) 50%, transparent); color: var(--rd-green); }
+.ed-btn--primary {
+  background: var(--rd-green); color: #04170f; border: none; font-weight: 600; padding: 9px 16px;
+}
+.ed-btn--primary:hover { filter: brightness(1.06); }

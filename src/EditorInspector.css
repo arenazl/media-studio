@@ -1,0 +1,77 @@
+.ed-insp { background: var(--rd-bg-rail); overflow-y: auto; position: relative; }
+.ed-insp--closed { border-left: 1px solid var(--rd-border); }
+.ed-insp-rail {
+  width: 46px; height: 100%; display: flex; flex-direction: column; align-items: center;
+  padding-top: 14px; gap: 14px; cursor: pointer; background: none; border: none; color: var(--rd-ink-mute);
+}
+.ed-insp-rail:hover { color: var(--rd-ink-2); }
+.ed-insp-rail-lbl { writing-mode: vertical-rl; font-size: 11px; letter-spacing: 0.05em; }
+
+.ed-insp-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 18px 4px; }
+.ed-insp-eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rd-ink-faint); }
+.ed-insp-collapse { color: var(--rd-ink-mute); background: none; border: none; cursor: pointer; }
+.ed-insp-collapse:hover { color: var(--rd-ink); }
+.ed-insp-empty { padding: 8px 18px 24px; font-size: 12.5px; color: var(--rd-ink-faint); }
+.ed-insp-body { padding: 0 18px 30px; }
+.ed-insp-name { font-family: var(--rd-font-display); font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+.ed-insp-lbl {
+  font-size: 11px; color: var(--rd-ink-faint); text-transform: uppercase; letter-spacing: 0.08em;
+  margin: 14px 0 9px; display: flex; align-items: center; gap: 6px;
+}
+.ed-insp-lbl:first-of-type { margin-top: 0; }
+.ed-insp-hint { text-transform: none; letter-spacing: normal; color: var(--rd-ink-faint); font-weight: 400; }
+.ed-insp-static { font-family: var(--rd-font-mono); font-size: 12.5px; color: var(--rd-ink-2); }
+.ed-insp-note { font-size: 11.5px; color: var(--rd-ink-mute); }
+
+.ed-insp-trans-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+.ed-insp-trans-opt {
+  display: flex; align-items: center; gap: 10px; background: var(--rd-surface-1);
+  border: 1.5px solid var(--rd-border); border-radius: 10px; padding: 11px 13px; cursor: pointer;
+  color: var(--rd-ink-mute); text-align: left;
+}
+.ed-insp-trans-opt--on { border-color: var(--rd-green); color: var(--rd-green); }
+.ed-insp-trans-name { font-size: 13px; font-weight: 600; color: var(--rd-ink); }
+.ed-insp-trans-sub { font-size: 10.5px; color: var(--rd-ink-mute); }
+
+.ed-insp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ed-insp-field {
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: 8px;
+  padding: 8px 11px; display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: var(--rd-ink-mute);
+}
+.ed-insp-field input {
+  width: 56px; background: transparent; border: none; outline: none; text-align: right;
+  color: var(--rd-ink); font-family: var(--rd-font-mono); font-size: 12px;
+}
+.ed-insp-range { width: 100%; accent-color: var(--rd-green); }
+.ed-insp-range--gold { accent-color: var(--rd-gold); }
+
+.ed-insp-section { border-top: 1px solid var(--rd-border); margin-top: 16px; padding-top: 16px; }
+.ed-insp-textarea {
+  width: 100%; background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: 9px;
+  padding: 10px 12px; font-size: 13px; color: var(--rd-ink); font-family: var(--rd-font-sans);
+  resize: vertical; margin-bottom: 8px;
+}
+.ed-insp-align { display: flex; gap: 8px; margin-bottom: 4px; }
+.ed-insp-align-btn {
+  flex: 1; height: 32px; border-radius: 8px; background: var(--rd-surface-1); border: none;
+  display: flex; align-items: center; justify-content: center; color: var(--rd-ink-mute); cursor: pointer;
+}
+.ed-insp-align-btn--on { color: #04170f; background: var(--rd-green); }
+.ed-insp-swatches { display: flex; gap: 8px; }
+.ed-insp-swatch { width: 28px; height: 28px; border-radius: 7px; border: 2px solid transparent; cursor: pointer; }
+
+.ed-insp-fades { display: flex; gap: 8px; }
+.ed-insp-fade {
+  flex: 1; background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: 8px;
+  padding: 8px; font-size: 11.5px; color: var(--rd-ink-2); text-align: center; cursor: pointer;
+}
+.ed-insp-fade--on { border-color: var(--rd-blue); color: var(--rd-blue); }
+
+.ed-insp-fx-row {
+  display: flex; align-items: center; gap: 9px; background: var(--rd-surface-1);
+  border: 1px solid var(--rd-border); border-radius: 9px; padding: 9px 11px; margin-bottom: 7px;
+}
+.ed-insp-fx-dot { width: 7px; height: 7px; border-radius: 50%; }
+.ed-insp-fx-name { flex: 1; font-size: 12.5px; }

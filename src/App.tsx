@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Clapperboard } from 'lucide-react';
 import VoiceStudio from './VoiceStudio';
 import KbInspector from './KbInspector';
 import ProjectWizard from './ProjectWizard';
@@ -7,10 +6,10 @@ import VideosTab from './VideosTab';
 import AudioWorkspace from './AudioWorkspace';
 import FormatsCatalog from './FormatsCatalog';
 import Pipeline from './Pipeline';
+import Editor from './Editor';
 import Rail from './Rail';
 import Home from './Home';
 import Integrar from './Integrar';
-import RoutePlaceholder from './RoutePlaceholder';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
 import { useProjects } from './lib/useProjects';
 import type { Route } from './lib/routes';
@@ -153,7 +152,7 @@ export default function App() {
       <Rail route={route} onNavigate={goRoute} />
       <div className="ms-maincol">
         {route === 'project' && activeProject ? (
-          <Pipeline key={activeProject.id} project={activeProject} onChange={updateProject} onHome={() => goRoute('home')} />
+          <Pipeline key={activeProject.id} project={activeProject} onChange={updateProject} onHome={() => goRoute('home')} onGoEditor={() => goRoute('editor')} />
         ) : route === 'wizard' ? (
           <div className="ms-page">
             {wizardProject ? (
@@ -187,7 +186,7 @@ export default function App() {
         ) : route === 'formats' ? (
           <div className="ms-page"><FormatsCatalog /></div>
         ) : route === 'editor' ? (
-          <div className="ms-page"><RoutePlaceholder Icon={Clapperboard} title="Editor multipista" note="Consolidación de Montaje + Publicar en un editor de pistas (video/voz/música/texto/efectos). Llega en una fase siguiente." /></div>
+          <Editor project={activeProject} onBack={() => goRoute('project')} onPublish={() => goRoute('project')} />
         ) : (
           <div className="ms-page">
             <Home

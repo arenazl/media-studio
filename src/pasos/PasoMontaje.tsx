@@ -3,7 +3,7 @@
 // llama al render server-side (video xfade + diálogo de clips + voz + música con ducking/silencio) y
 // registra el export en el comercial. Este es el botón de render que hoy NO existía.
 import { useRef, useState } from 'react';
-import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Volume2, Gauge, Mic, Upload, X } from 'lucide-react';
+import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Volume2, Gauge, Mic, Upload, X, ArrowRightToLine } from 'lucide-react';
 import { API_BASE } from '../config';
 import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
@@ -32,7 +32,7 @@ async function rasterizeLogo(url: string): Promise<string | null> {
   } catch { return null; }
 }
 
-export default function PasoMontaje({ project, reelId, comercial, setComercial }: PasoProps) {
+export default function PasoMontaje({ project, reelId, comercial, setComercial, onGoEditor }: PasoProps & { onGoEditor?: () => void }) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState('');
   const qa = comercial?.qa ?? null;   // C9: el QA vive en el comercial (persiste); antes era useState y se perdía al salir del paso
@@ -144,6 +144,9 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial }
         <div className="paso-head-actions">
           <button className={plan ? 'paso-regen' : 'paso-gen'} onClick={() => void armar()} disabled={rendering}>
             <Clapperboard size={15} /> {plan ? 'Rearmar' : 'Armar desde el storyboard'}
+          </button>
+          <button className="rodaje-var" onClick={onGoEditor} disabled={!onGoEditor} title="Ajustar pistas en el editor multipista">
+            <ArrowRightToLine size={13} /> Al multipista
           </button>
         </div>
       </div>
