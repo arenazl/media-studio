@@ -28,6 +28,11 @@
 /* workspace de un proyecto abierto: Topbar (contextual, secciones del pipeline) + el contenido viejo tal cual */
 .project-workspace { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
+/* workspaces globales (Videos/Audio, rediseño F3): full-height fijo, NO scrollean como página —
+   cada uno arma sus propias columnas con scroll interno (lista/detalle). Mismo patrón que
+   .project-workspace, sin acoplarlo semánticamente a "project". */
+.ms-workspace { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
 .ms-main {
   flex: 1;
   min-width: 0;

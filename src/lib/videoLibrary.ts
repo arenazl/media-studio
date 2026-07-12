@@ -3,7 +3,10 @@
 // videos por id. NO editamos video (eso lo hace Flow); acá sólo catalogamos y
 // encontramos. La lógica pura (filtrar/derivar/mutar inmutable) es unit-testeable.
 
-export interface VideoMeta { tags: string[]; favorite: boolean; project?: string }
+// trimIn/trimOut (seg): recorte in/out marcado por el usuario sobre el clip — SOLO metadata local
+// (no dispara un render/corte real; eso lo hace el render del comercial cuando el clip se usa en un
+// proyecto). Lo consume el workspace de Videos (rediseño F3).
+export interface VideoMeta { tags: string[]; favorite: boolean; project?: string; trimIn?: number; trimOut?: number }
 export type MetaMap = Record<string, VideoMeta>;
 
 const LS_KEY = 'ms.videoMeta.v1';
@@ -41,6 +44,12 @@ export function removeTag(m: MetaMap, id: string, tag: string): MetaMap {
 }
 export function setProject(m: MetaMap, id: string, project: string): MetaMap {
   return setMetaFor(m, id, { project: project.trim() || undefined });
+}
+// Marca el recorte in/out (segundos, dentro de [0, dur]) — clamps defensivos, nunca out<in.
+export function setTrim(m: MetaMap, id: string, trimIn: number, trimOut: number): MetaMap {
+  const a = Math.max(0, trimIn);
+  const b = Math.max(a, trimOut);
+  return setMetaFor(m, id, { trimIn: a, trimOut: b });
 }
 
 // ── derivados para los filtros (categorías que existen) ──────────────────────

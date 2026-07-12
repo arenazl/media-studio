@@ -1,44 +1,51 @@
-// Solapa VIDEOS — ORGANIZADOR de la biblioteca (no editor de video: los videos los
-// genera Flow). Acá se CATALOGAN y ENCUENTRAN: favoritos, tags, proyecto, buscador y
-// filtros. La metadata de organización vive local (lib/videoLibrary). Sub-tab aparte:
-// generador de prompts para Flow. Clasificación por IA (Gemini Vision) al subir.
+// Workspace de VIDEOS (rediseño F3, docs/rediseno/HANDOFF.md §6 + prototipo.dc.html ~línea 715).
+// ORGANIZADOR de la biblioteca (no editor de video: los clips los genera Flow). Lista + detalle:
+// recorte in/out, metadata (proyecto/clasificación), "Al multipista". La metadata de organización
+// vive local (lib/videoLibrary); clasificación por IA (Gemini Vision) al subir.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { RefreshCw, Upload, Trash2, Clock, Star, Tag, Search, X, FolderKanban, Loader2 } from 'lucide-react';
+import { Upload, Search, Sparkles, Loader2 } from 'lucide-react';
 import { API_BASE } from './config';
-import { fetchCloudVideos, prettyVid as pretty, fmtVidDate as fmtDate, thumbOf, type CloudVid } from './lib/cloudVideos';
+import { fetchCloudVideos, prettyVid as pretty, thumbOf, type CloudVid } from './lib/cloudVideos';
 import {
-  loadMeta, saveMeta, metaOf, toggleFavorite, addTag, addTags, removeTag, setProject,
-  allTags, allProjects, filterVideos, classifyVideo, type MetaMap,
+  loadMeta, saveMeta, metaOf, toggleFavorite, addTag, addTags, removeTag, setProject, setTrim,
+  filterVideos, classifyVideo, type MetaMap,
 } from './lib/videoLibrary';
-import './VideosTab.css';
-import './VideoLibrary.css';
+import VideoDetail from './VideoDetail';
+import './VideosWorkspace.css';
 
 const api = (path: string) => `${API_BASE}${path}`;
 
-export default function VideosTab() {
+type Filtro = 'todos' | 'favoritos' | 'sinclasificar' | 'conproyecto';
+const FILTROS: { id: Filtro; label: string }[] = [
+  { id: 'todos', label: 'Todos' },
+  { id: 'favoritos', label: 'Favoritos' },
+  { id: 'sinclasificar', label: 'Sin clasificar' },
+  { id: 'conproyecto', label: 'Con proyecto' },
+];
+
+export default function VideosTab({ onGoEditor }: { onGoEditor?: () => void } = {}) {
   const [cloudVids, setCloudVids] = useState<CloudVid[]>([]);
   const [cloudLoading, setCloudLoading] = useState(false);
   const [cloudErr, setCloudErr] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // metadata de organización (local) — tags / favorito / proyecto por video.
   const [meta, setMeta] = useState<MetaMap>(() => loadMeta());
   const mutate = (next: MetaMap) => { setMeta(next); saveMeta(next); };
 
-  // filtros
   const [q, setQ] = useState('');
-  const [favOnly, setFavOnly] = useState(false);
-  const [tagF, setTagF] = useState('');
-  const [projF, setProjF] = useState('');
-  const [editId, setEditId] = useState<string | null>(null);
-  const [newTag, setNewTag] = useState('');
+  const [filtro, setFiltro] = useState<Filtro>('todos');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [classifying, setClassifying] = useState<{ done: number; total: number } | null>(null);
+  const [reclassifyingIds, setReclassifyingIds] = useState<Set<string>>(new Set());
 
-  // guarda tags de IA con updater funcional (a salvo de meta stale en async).
-  const storeTags = (id: string, tags: string[]) => {
-    if (!tags.length) return;
-    setMeta((prev) => { const next = addTags(prev, id, tags); saveMeta(next); return next; });
+  const storeTags = (id: string, tags: string[], replace = false) => {
+    if (!replace && !tags.length) return;
+    setMeta((prev) => {
+      const next = replace ? { ...prev, [id]: { ...metaOf(prev, id), tags } } : addTags(prev, id, tags);
+      saveMeta(next);
+      return next;
+    });
   };
 
   const loadCloud = async () => {
@@ -59,12 +66,11 @@ export default function VideosTab() {
       const r = await fetch(api('/api/cloud-videos/upload'), { method: 'POST', body: form });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
-      await loadCloud();   // la auto-clasificación (efecto) taggea el nuevo, sin botón
+      await loadCloud();
     } catch (e) { setCloudErr(e instanceof Error ? e.message : 'error al subir (¿backend local corriendo?)'); } finally { setUploading(false); }
   };
 
-  // AUTO-clasificación: cada video sin tags se clasifica solo (no hay botón — es
-  // obligatorio). Corre en background al cargar/subir; el que ya tiene tags se saltea.
+  // AUTO-clasificación: cada video sin tags se clasifica solo al cargar/subir (sin botón).
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -85,94 +91,115 @@ export default function VideosTab() {
   }, [cloudVids]);
 
   const handleDelete = async (id: string) => {
-    try { await fetch(api(`/api/cloud-videos/${id}`), { method: 'DELETE' }); setCloudVids((vs) => vs.filter((v) => v.id !== id)); } catch { /* ignore */ }
+    try {
+      await fetch(api(`/api/cloud-videos/${id}`), { method: 'DELETE' });
+      setCloudVids((vs) => vs.filter((v) => v.id !== id));
+    } catch { /* ignore */ }
   };
 
-  const tags = useMemo(() => allTags(meta), [meta]);
-  const projects = useMemo(() => allProjects(meta), [meta]);
-  const shown = useMemo(
-    () => filterVideos(cloudVids, meta, { query: q, favorite: favOnly || undefined, tag: tagF || undefined, project: projF || undefined }),
-    [cloudVids, meta, q, favOnly, tagF, projF],
-  );
+  const reclassify = async (v: CloudVid) => {
+    setReclassifyingIds((s) => new Set(s).add(v.id));
+    try { const tags = await classifyVideo(API_BASE, v.thumbnail || thumbOf(v)); storeTags(v.id, tags, true); }
+    finally { setReclassifyingIds((s) => { const n = new Set(s); n.delete(v.id); return n; }); }
+  };
 
-  const commitTag = (id: string) => { if (newTag.trim()) { mutate(addTag(meta, id, newTag)); setNewTag(''); } };
+  const shown = useMemo(() => {
+    const base = filterVideos(cloudVids, meta, { query: q });
+    return base.filter((v) => {
+      const m = metaOf(meta, v.id);
+      if (filtro === 'favoritos') return m.favorite;
+      if (filtro === 'sinclasificar') return m.tags.length === 0;
+      if (filtro === 'conproyecto') return !!m.project;
+      return true;
+    });
+  }, [cloudVids, meta, q, filtro]);
+
+  // selección: por default el primero de la lista filtrada; si el activo sale del filtro, reelige.
+  useEffect(() => {
+    if (!shown.length) { setSelectedId(null); return; }
+    if (!selectedId || !shown.some((v) => v.id === selectedId)) setSelectedId(shown[0].id);
+  }, [shown, selectedId]);
+
+  const selected = shown.find((v) => v.id === selectedId) ?? null;
 
   return (
-    <div className="vids-root">
-      {/* barra: buscador + favoritos + subir/actualizar */}
-          <div className="vlib-bar">
-            <div className="vlib-search">
-              <Search size={13} className="vlib-search-icon" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="buscar por nombre o tag…" className="vlib-search-input" />
-            </div>
-            <button className={favOnly ? 'vlib-chip vlib-chip--on' : 'vlib-chip'} onClick={() => setFavOnly((f) => !f)} title="Solo favoritos"><Star size={12} fill={favOnly ? 'currentColor' : 'none'} /> Favoritos</button>
-            <div className="vlib-bar-right">
-              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="vlib-btn"><Upload size={12} /> {uploading ? 'Subiendo…' : 'Subir'}</button>
-              <button onClick={loadCloud} disabled={cloudLoading} className="vlib-btn"><RefreshCw size={12} /> Actualizar</button>
-            </div>
-          </div>
+    <div className="vw-root">
+      <div className="vw-header">
+        <div>
+          <h1 className="vw-title">Videos</h1>
+          <p className="vw-sub">Trabajá cada clip por separado — recorte, clasificación, versiones — y mandalo al multipista.</p>
+        </div>
+        <div className="vw-header-actions">
+          <button className="vw-btn" onClick={() => fileRef.current?.click()} disabled={uploading}>
+            <Upload size={14} /> {uploading ? 'Subiendo…' : 'Importar de Flow'}
+          </button>
+          {/* TODO(modelo-superior): "Generar prompt" (veo-flow-prompter) para un clip nuevo de Flow —
+              hoy no hay molde standalone (fuera de un proyecto) que arme ese prompt. No inventar. */}
+          <button className="vw-btn vw-btn--gold" disabled title="Pendiente: cablear el molde de prompt para Flow (TODO modelo-superior)">
+            <Sparkles size={14} /> Generar prompt
+          </button>
+        </div>
+      </div>
 
-          {/* filtros por tag / proyecto (sólo si existen) */}
-          {(tags.length > 0 || projects.length > 0) && (
-            <div className="vlib-filters">
-              {tags.length > 0 && (
-                <div className="vlib-filter-row">
-                  <span className="vlib-filter-lbl"><Tag size={11} /> Tags</span>
-                  <button className={!tagF ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setTagF('')}>Todos</button>
-                  {tags.map((t) => <button key={t} className={tagF === t ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setTagF(tagF === t ? '' : t)}>{t}</button>)}
+      <div className="vw-filters">
+        {FILTROS.map((f) => (
+          <button key={f.id} className={filtro === f.id ? 'vw-chip vw-chip--on' : 'vw-chip'} onClick={() => setFiltro(f.id)}>{f.label}</button>
+        ))}
+        <div className="vw-search">
+          <Search size={12} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="buscar por nombre o tag…" />
+        </div>
+        <button className="vw-refresh" onClick={loadCloud} disabled={cloudLoading}>{cloudLoading ? 'Actualizando…' : 'Actualizar'}</button>
+      </div>
+
+      {cloudErr && <div className="vw-error">{cloudErr}</div>}
+      {classifying && (
+        <div className="vw-classifying"><Loader2 size={11} className="vw-spin" /> clasificando con IA {classifying.done}/{classifying.total}…</div>
+      )}
+
+      <div className="vw-body">
+        <div className="vw-list">
+          {shown.map((v) => {
+            const m = metaOf(meta, v.id);
+            const on = v.id === selectedId;
+            return (
+              <button key={v.id} className={on ? 'vw-card vw-card--on' : 'vw-card'} onClick={() => setSelectedId(v.id)}>
+                <div className="vw-thumb">
+                  <img src={thumbOf(v)} alt="" loading="lazy" onError={(e) => e.currentTarget.classList.add('vw-thumb-broken')} />
+                  {v.duration_sec != null && <span className="vw-thumb-dur">{Math.round(v.duration_sec)}s</span>}
+                  {m.tags[0] && <span className="vw-thumb-tag">{m.tags[0]}</span>}
+                  {m.favorite && <span className="vw-thumb-fav">★</span>}
                 </div>
-              )}
-              {projects.length > 0 && (
-                <div className="vlib-filter-row">
-                  <span className="vlib-filter-lbl"><FolderKanban size={11} /> Proyecto</span>
-                  <button className={!projF ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setProjF('')}>Todos</button>
-                  {projects.map((p) => <button key={p} className={projF === p ? 'vlib-fchip vlib-fchip--on' : 'vlib-fchip'} onClick={() => setProjF(projF === p ? '' : p)}>{p}</button>)}
-                </div>
-              )}
-            </div>
-          )}
+                <div className="vw-card-name">{pretty(v.name)}</div>
+              </button>
+            );
+          })}
+          {!shown.length && !cloudLoading && <div className="vw-list-empty">Sin videos para este filtro.</div>}
+        </div>
 
-          <div className="vlib-count">
-            {shown.length} de {cloudVids.length} videos · Cloudinary
-            {classifying
-              ? <> · <Loader2 size={10} className="vlib-spin" /> clasificando con IA {classifying.done}/{classifying.total}…</>
-              : <> · ★ y tags (auto por IA) para reusarlos entre proyectos</>}
-          </div>
-          {cloudErr && <div className="vids-error">{cloudErr}</div>}
+        {selected ? (
+          <VideoDetail
+            video={selected}
+            meta={metaOf(meta, selected.id)}
+            onToggleFavorite={() => mutate(toggleFavorite(meta, selected.id))}
+            onAddTag={(t) => mutate(addTag(meta, selected.id, t))}
+            onRemoveTag={(t) => mutate(removeTag(meta, selected.id, t))}
+            onSetProject={(p) => mutate(setProject(meta, selected.id, p))}
+            onSetTrim={(a, b) => mutate(setTrim(meta, selected.id, a, b))}
+            onDelete={() => handleDelete(selected.id)}
+            onReclassify={() => reclassify(selected)}
+            reclassifying={reclassifyingIds.has(selected.id)}
+            onGoEditor={onGoEditor}
+          />
+        ) : (
+          <div className="vw-empty-detail">{cloudLoading ? 'Cargando biblioteca…' : 'Subí o elegí un video de la biblioteca.'}</div>
+        )}
+      </div>
 
-          {/* grilla densa de thumbs chicos */}
-          <div className="vlib-grid">
-            {shown.map((v) => {
-              const m = metaOf(meta, v.id);
-              const editing = editId === v.id;
-              return (
-                <div key={v.id} className={editing ? 'vlib-card vlib-card--edit' : 'vlib-card'}>
-                  <div className="vlib-thumb">
-                    <img src={thumbOf(v)} alt="" loading="lazy" className="vlib-thumb-img" onError={(e) => e.currentTarget.classList.add('vlib-thumb-img--broken')} />
-                    <button className={m.favorite ? 'vlib-star vlib-star--on' : 'vlib-star'} title="Favorito" onClick={() => mutate(toggleFavorite(meta, v.id))}><Star size={12} fill={m.favorite ? 'currentColor' : 'none'} /></button>
-                    <a href={v.url} target="_blank" rel="noreferrer" className="vlib-open" title="Abrir">↗</a>
-                  </div>
-                  <div className="vlib-name" title={v.name}>{pretty(v.name)}</div>
-                  <div className="vlib-sub"><Clock size={9} /> {fmtDate(v.created_at)}{v.duration_sec ? ` · ${Math.round(v.duration_sec)}s` : ''}{m.project ? ` · ${m.project}` : ''}</div>
-                  <div className="vlib-tags">
-                    {m.tags.map((t) => (
-                      <span key={t} className="vlib-tag">{t}<button className="vlib-tag-x" title="Quitar tag" onClick={() => mutate(removeTag(meta, v.id, t))}><X size={8} /></button></span>
-                    ))}
-                    <button className="vlib-tag-add" title="Etiquetar / proyecto" onClick={() => { setEditId(editing ? null : v.id); setNewTag(''); }}><Tag size={10} /></button>
-                  </div>
-                  {editing && (
-                    <div className="vlib-edit">
-                      <input className="vlib-edit-in" value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') commitTag(v.id); }} placeholder="tag + Enter" autoFocus />
-                      <input className="vlib-edit-in" defaultValue={m.project ?? ''} onBlur={(e) => mutate(setProject(meta, v.id, e.target.value))} placeholder="proyecto" />
-                      <button className="vlib-edit-del" title="Eliminar de Cloudinary" onClick={() => handleDelete(v.id)}><Trash2 size={11} /></button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-      <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="vids-hidden-input" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }} />
+      <input
+        ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="vw-hidden-input"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }}
+      />
     </div>
   );
 }

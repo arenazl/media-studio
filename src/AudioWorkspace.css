@@ -1,0 +1,36 @@
+/* Chrome del workspace de Audio (rediseño F3) — tokens --rd-* (src/styles/rediseno.css).
+   El estudio interno (VoiceStudio) se reskinea en VoiceStudio.css (scoped a .vs-root); acá sólo
+   el encabezado + el marco que lo aloja. */
+.aw-root {
+  height: 100%; display: flex; flex-direction: column;
+  background: var(--rd-bg-app); color: var(--rd-ink); font-family: var(--rd-font-sans);
+  animation: aw-fade 0.35s ease;
+}
+@keyframes aw-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.aw-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 34px 16px; flex: 0 0 auto; flex-wrap: wrap; }
+.aw-title { font-family: var(--rd-font-display); font-size: 24px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.02em; }
+.aw-sub { color: var(--rd-ink-mute); font-size: 13px; margin: 0; max-width: 62ch; }
+.aw-header-actions { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+
+.aw-phonetic {
+  display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--rd-ink-dim);
+  background: color-mix(in srgb, var(--rd-gold) 10%, transparent); border: 1px solid color-mix(in srgb, var(--rd-gold) 25%, transparent);
+  padding: 7px 12px; border-radius: var(--rd-pill);
+}
+.aw-phonetic svg { color: var(--rd-gold); flex: 0 0 auto; }
+.aw-phonetic strong { color: var(--rd-gold); font-family: var(--rd-font-mono); font-weight: 500; }
+
+.aw-btn {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  background: var(--rd-green); color: #04170f; border: none;
+  padding: 9px 15px; border-radius: var(--rd-r-md); font-family: var(--rd-font-sans); font-size: 12.5px; font-weight: 600;
+}
+.aw-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.aw-body { flex: 1; min-height: 0; padding: 0 34px 24px; }
+
+@media (max-width: 860px) {
+  .aw-header { padding: 16px; }
+  .aw-body { padding: 0 12px 16px; }
+}

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutTemplate, Clapperboard } from 'lucide-react';
+import { Clapperboard } from 'lucide-react';
 import VoiceStudio from './VoiceStudio';
 import KbInspector from './KbInspector';
 import ProjectWizard from './ProjectWizard';
 import VideosTab from './VideosTab';
+import AudioWorkspace from './AudioWorkspace';
+import FormatsCatalog from './FormatsCatalog';
 import Pipeline from './Pipeline';
 import Rail from './Rail';
 import Home from './Home';
@@ -169,19 +171,21 @@ export default function App() {
             <Integrar onHome={() => goRoute('home')} onComenzar={(p) => { setWizardProject(p); setRoute('wizard'); }} />
           </div>
         ) : route === 'videos' ? (
-          <main className="ms-main"><VideosTab /></main>
+          <div className="ms-workspace"><VideosTab onGoEditor={() => goRoute('editor')} /></div>
         ) : route === 'audio' ? (
-          <main className="ms-main">
-            <VoiceStudio
+          <div className="ms-workspace">
+            <AudioWorkspace
               key={activeProject?.id}
+              project={activeProject}
               reelConfig={activeProject ? Object.fromEntries(activeProject.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }])) : undefined}
               files={voiceFiles}
               onGrabar={activeProject ? grabarReel : undefined}
               onAudio={activeProject ? onAudio : undefined}
+              onGoEditor={() => goRoute('editor')}
             />
-          </main>
+          </div>
         ) : route === 'formats' ? (
-          <div className="ms-page"><RoutePlaceholder Icon={LayoutTemplate} title="Catálogo de formatos" note="El norte del rediseño: Formato como entidad de primer nivel (aspecto, plataforma, técnica de producción). Llega en una fase siguiente." /></div>
+          <div className="ms-page"><FormatsCatalog /></div>
         ) : route === 'editor' ? (
           <div className="ms-page"><RoutePlaceholder Icon={Clapperboard} title="Editor multipista" note="Consolidación de Montaje + Publicar en un editor de pistas (video/voz/música/texto/efectos). Llega en una fase siguiente." /></div>
         ) : (

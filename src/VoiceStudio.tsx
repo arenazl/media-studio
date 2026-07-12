@@ -9,7 +9,6 @@
 // fallback a los guiones baked. Otra app inyecta su propia fuente/tracks.
 import { useEffect, useRef, useState } from 'react';
 import { Mic, Download, Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Music2, Files, SkipBack, Square, VolumeX, Undo2, Eraser, Pencil, Loader2, Library, Check, Upload, Trash2, AudioLines, Scissors, Sparkles, X } from 'lucide-react';
-import { BRAND } from './lib/brand';
 import { TTS_SERVICE_URL, API_BASE } from './config';
 import CadenceWave, { TONES, resolveRange, type PlacedMarker } from './CadenceWave';
 import ScriptText from './ScriptText';
@@ -57,6 +56,16 @@ const VOICE_PRESETS = [
 // filtros de voces (mapeo valor→etiqueta) para el control genérico.
 const GENDER_OPTS = [{ value: 'female', label: 'Femeninas' }, { value: 'male', label: 'Masculinas' }];
 const AGE_OPTS = [{ value: 'young', label: 'Joven' }, { value: 'middle_aged', label: 'Adulta' }, { value: 'old', label: 'Mayor' }];
+
+// Acentos rediseño F3 (--rd-* de rediseno.css) para los SourcePanel — reemplazan el BRAND legacy
+// (navy/gold) que este estudio traía. Strings "var(--rd-*)" válidos como custom property anidada
+// (los consume SourcePanel vía style={{ ['--accent']: accent }} + CSS var(--accent)).
+const ACCENT_GOLD = 'var(--rd-gold)';
+const ACCENT_BLUE = 'var(--rd-blue)';
+const ACCENT_INK = 'var(--rd-ink)';
+// valor literal (no CSS var): se persiste como dato en `markers` (voiceConfig), no conviene guardar
+// una referencia CSS ahí — usamos el hex real del token --rd-gold.
+const MARK_GOLD = '#FFB800';
 
 let _actx: AudioContext | null = null;
 const audioCtx = () => (_actx ||= new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
@@ -526,8 +535,8 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
 
   // ---- panel SOUND SETTINGS (no es fuente: sliders + presets + generar) ----
   const soundPanel = isOpen('sound') ? (
-    <div className="vs-panel" style={{ ['--grow']: 272, ['--accent']: '#fff' } as React.CSSProperties}>
-      {headRow(<>SOUND SETTINGS</>, '#fff', 'sound')}
+    <div className="vs-panel" style={{ ['--grow']: 272, ['--accent']: ACCENT_INK } as React.CSSProperties}>
+      {headRow(<>SOUND SETTINGS</>, ACCENT_INK, 'sound')}
       <div className="vs-sound">
         <div className="vs-mode-tabs">
           <button className={audioMode === 'tts' ? 'vs-mode-tab vs-mode-tab--on' : 'vs-mode-tab'} onClick={() => setAudioMode('tts')} title="Voz sintética (ElevenLabs)"><Mic size={12} /> Sintética</button>
@@ -580,7 +589,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
       </div>
     </div>
   ) : (
-    <button onClick={() => tg('sound')} title="Expandir SOUND SETTINGS" className="vs-strip" style={{ ['--accent']: '#fff' } as React.CSSProperties}>
+    <button onClick={() => tg('sound')} title="Expandir SOUND SETTINGS" className="vs-strip" style={{ ['--accent']: ACCENT_INK } as React.CSSProperties}>
       <ChevronRight size={14} className="vs-strip-chevron" />
       <span className="vs-strip-label">SOUND SETTINGS</span>
     </button>
@@ -590,17 +599,17 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     <div className="vs-root">
       {/* ===== FILA 1: fuentes (control genérico) + sound settings ===== */}
       <div className="vs-row1">
-        <SourcePanel title={cfg.sourceTitle} accent={BRAND.gold} icon={<Files size={13} />} grow={210} view="list"
+        <SourcePanel title={cfg.sourceTitle} accent={ACCENT_GOLD} icon={<Files size={13} />} grow={210} view="list"
           items={fileItems} activeId={activeFile ?? undefined} onPick={(it) => loadFile(it.data as SourceFile)}
           open={isOpen('src')} onToggle={() => tg('src')} emptyText="sin guiones" />
 
-        <SourcePanel title={`Voces (${voiceItems.length})`} accent={BRAND.azure} icon={<Mic size={13} />} grow={282} view="chips"
+        <SourcePanel title={`Voces (${voiceItems.length})`} accent={ACCENT_BLUE} icon={<Mic size={13} />} grow={282} view="chips"
           items={voiceItems} search activeId={voiceId}
           filters={[{ key: 'gender', label: 'Todas', options: GENDER_OPTS }, { key: 'age', label: 'Toda edad', options: AGE_OPTS }, { key: 'lang', label: 'Todo idioma' }]}
           onPick={(it) => previewVoice(it.data as Voice)} footer={voiceFooter}
           open={isOpen('voces')} onToggle={() => tg('voces')} emptyText={voices.length ? 'sin voces con esos filtros' : 'cargando…'} />
 
-        <SourcePanel title="Música" accent="#22D3EE" icon={<Music2 size={13} />} grow={232} view="chips"
+        <SourcePanel title="Música" accent={ACCENT_BLUE} icon={<Music2 size={13} />} grow={232} view="chips"
           items={trackItems} search filters={[{ key: 'cat', label: 'Todos' }]}
           activeId={musicOn && track ? track : undefined} onPick={(it) => pickTrack(it.data as Track)} footer={musicFooter}
           open={isOpen('musica')} onToggle={() => tg('musica')} />
@@ -662,9 +671,9 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
           )}
           {audioMode === 'tts' && (
           <div className="vs-marks">
-            <button onClick={() => applyRange('emphasis', { label: 'énfasis', color: BRAND.gold })} className={pending?.kind === 'emphasis' ? 'vs-mk vs-mk--emphasis vs-mk--armed' : 'vs-mk vs-mk--emphasis'} title="Parate en el inicio, tocá ÉNFASIS, movés el slider y volvés a tocar para cerrar el rango">ÉNFASIS</button>
-            <button onClick={() => applyPause('pause', { label: 'pausa', color: BRAND.gold })} className="vs-mk" title="Pausa en la posición del slider">Pausa</button>
-            <button onClick={() => applyPause('pauseLong', { label: 'larga', color: BRAND.gold })} className="vs-mk" title="Pausa larga en la posición del slider">Pausa larga</button>
+            <button onClick={() => applyRange('emphasis', { label: 'énfasis', color: MARK_GOLD })} className={pending?.kind === 'emphasis' ? 'vs-mk vs-mk--emphasis vs-mk--armed' : 'vs-mk vs-mk--emphasis'} title="Parate en el inicio, tocá ÉNFASIS, movés el slider y volvés a tocar para cerrar el rango">ÉNFASIS</button>
+            <button onClick={() => applyPause('pause', { label: 'pausa', color: MARK_GOLD })} className="vs-mk" title="Pausa en la posición del slider">Pausa</button>
+            <button onClick={() => applyPause('pauseLong', { label: 'larga', color: MARK_GOLD })} className="vs-mk" title="Pausa larga en la posición del slider">Pausa larga</button>
             {TONES.map((t) => (<button key={t.tag} onClick={() => applyRange('tone', { tag: t.tag, label: t.label, color: t.color })} title="Parate en el inicio, tocá el tono, movés el slider y volvés a tocar para cerrar el rango" className={pending?.tag === t.tag ? 'vs-mk vs-mk--accent vs-mk--armed' : 'vs-mk vs-mk--accent'} style={{ ['--accent']: t.color } as React.CSSProperties}>{t.label}</button>))}
             <button onClick={undo} disabled={!mHist.length} title="Deshacer (Undo)" className="vs-mk vs-mk--reset"><Undo2 size={12} /></button>
             <button onClick={clearMarkers} disabled={!markers.length && !pending} title="Limpiar markers (deja el texto)" className="vs-mk"><Eraser size={12} /></button>

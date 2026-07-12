@@ -4,7 +4,36 @@
    (--accent, --grow, --texto-w), que se consumen acá con var(). */
 
 /* ===== layout raíz ===== */
+/* Reskin rediseño F3 (docs/rediseno/HANDOFF.md §1): remapea los tokens LEGACY de tokens.css a los
+   --rd-* del rediseño, pero SOLO acá adentro (scoped a .vs-root) — el resto del pipeline viejo
+   (Topbar/KbInspector/ReelTab/KitsStudio) sigue leyendo los valores navy/gold originales de
+   tokens.css sin cambios. Cero JSX/lógica tocada: sólo paleta/tipografía/radios. */
 .vs-root {
+  --ink: var(--rd-bg-rail);
+  --txt: var(--rd-ink);
+  --txt-70: var(--rd-ink-2);
+  --txt-60: var(--rd-ink-dim);
+  --txt-55: var(--rd-ink-dim);
+  --txt-50: var(--rd-ink-dim);
+  --txt-40: var(--rd-ink-mute);
+  --surface: var(--rd-surface-1);
+  --surface-2: var(--rd-surface-2);
+  --surface-3: var(--rd-surface-2);
+  --field: var(--rd-surface-1);
+  --bd: var(--rd-border);
+  --bd-2: var(--rd-border);
+  --bd-3: var(--rd-border);
+  --gold: var(--rd-gold);
+  --azure: var(--rd-blue);
+  --cyan: var(--rd-blue);
+  --green: var(--rd-green);
+  --danger: var(--rd-danger);
+  --red: var(--rd-danger);
+  --pill: var(--rd-pill);
+  --r: var(--rd-r-md);
+  --r-lg: var(--rd-r-card);
+  --font-sans: var(--rd-font-sans);
+
   display: flex;
   flex-direction: column;
   gap: var(--gap);
@@ -294,11 +323,11 @@
 .vs-preset:hover {
   background: color-mix(in srgb, var(--gold) 22%, transparent);
 }
-.vs-preset--mine { display: inline-flex; align-items: center; gap: 0; padding: 0; overflow: hidden; color: #6aa0ff; background: color-mix(in srgb, #6aa0ff 12%, transparent); border-color: color-mix(in srgb, #6aa0ff 45%, transparent); }
+.vs-preset--mine { display: inline-flex; align-items: center; gap: 0; padding: 0; overflow: hidden; color: var(--azure); background: color-mix(in srgb, var(--azure) 12%, transparent); border-color: color-mix(in srgb, var(--azure) 45%, transparent); }
 .vs-preset-apply { background: none; border: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; padding: 5px 4px 5px 9px; }
 .vs-preset-del { background: none; border: none; color: inherit; cursor: pointer; padding: 5px 8px 5px 4px; opacity: .55; font-size: 13px; line-height: 1; }
-.vs-preset-del:hover { opacity: 1; color: #f87171; }
-.vs-preset--save { color: var(--txt-55, #8b94a6); background: transparent; border-style: dashed; }
+.vs-preset-del:hover { opacity: 1; color: var(--danger); }
+.vs-preset--save { color: var(--txt-55); background: transparent; border-style: dashed; }
 .vs-preset--save:hover { color: var(--gold); border-color: var(--gold); background: transparent; }
 
 .vs-models {
@@ -782,7 +811,7 @@
   margin-top: 6px;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--red, #e2574c);
+  color: var(--red);
 }
 .vs-spin {
   animation: vs-spin 0.8s linear infinite;
@@ -851,7 +880,7 @@
   flex-direction: column;
   gap: 7px;
   padding: 10px;
-  background: color-mix(in srgb, #0c1220 92%, transparent);
+  background: color-mix(in srgb, var(--rd-bg-rail) 92%, transparent);
   backdrop-filter: blur(3px);
   overflow-y: auto;
 }
@@ -880,7 +909,7 @@
 }
 .vs-vida-opt:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); border-color: var(--gold); }
 .vs-vida-opt-n { font-size: 10.5px; font-weight: 800; color: var(--gold); }
-.vs-vida-opt pre { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 12px; line-height: 1.45; color: #c7cddb; }
+.vs-vida-opt pre { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 12px; line-height: 1.45; color: var(--txt-70); }
 
 .vs-preview { flex: 1; min-height: 0; display: flex; }
 .vs-preview-video {
