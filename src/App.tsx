@@ -3,18 +3,14 @@ import { LayoutTemplate, Clapperboard } from 'lucide-react';
 import VoiceStudio from './VoiceStudio';
 import KbInspector from './KbInspector';
 import ProjectWizard from './ProjectWizard';
-import ProjectInfo from './ProjectInfo';
 import VideosTab from './VideosTab';
-import ReelTab from './ReelTab';
 import Pipeline from './Pipeline';
-import Topbar from './Topbar';
 import Rail from './Rail';
 import Home from './Home';
 import Integrar from './Integrar';
 import RoutePlaceholder from './RoutePlaceholder';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
 import { useProjects } from './lib/useProjects';
-import { defaultSection, type Section } from './lib/sections';
 import type { Route } from './lib/routes';
 import { API_BASE } from './config';
 import './App.css';
@@ -24,9 +20,10 @@ export default function App() {
   const embed = params.get('embed') === '1';
 
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [section, setSection] = useState<Section>('editor');
-  // audio generado por reel (objectURL del mp3) — se comparte entre solapas.
-  const [audioByReel, setAudioByReel] = useState<Record<string, string>>({});
+  // audio generado por reel (objectURL del mp3): sólo se escribe (cache de sesión para VoiceStudio/
+  // persistVoice); ningún consumidor lee el mapa completo hoy (el editor multipista que lo hacía —
+  // ReelTab — quedó fuera del workspace nuevo, ver docs/rediseno/HANDOFF.md §9/§11 ítem 9).
+  const [, setAudioByReel] = useState<Record<string, string>>({});
   // router del shell nuevo (rail + columna). 'project'/'wizard'/'editor' son contextuales
   // (se llega desde otra vista, no tienen ítem propio en el rail — docs/rediseno/HANDOFF.md §2).
   const [route, setRoute] = useState<Route>('home');
@@ -97,7 +94,16 @@ export default function App() {
   };
 
   // abrir/cambiar de proyecto: flush lo pendiente del anterior, hacé del nuevo el proyecto dueño y navegá a su workspace.
-  const openProject = (p: Project) => { flushPending(); projectRef.current = p; setActiveProject(p); setSection(defaultSection(p)); setRoute('project'); };
+  const openProject = (p: Project) => { flushPending(); projectRef.current = p; setActiveProject(p); setRoute('project'); };
+
+  // guiones del proyecto ABIERTO → VoiceStudio (memoizado: estable mientras no cambie el proyecto).
+  // La ruta global 'audio' del rail (Fase 1) queda project-aware CUANDO hay un proyecto abierto —
+  // preserva la grabación de voz por reel (grabarReel/onAudio, dueño único en App) que antes vivía
+  // en la tab "Audio" de la Topbar vieja. Sin proyecto abierto, el estudio queda agnóstico (bare).
+  const voiceFiles = useMemo(
+    () => (activeProject ? activeProject.reels.map((r) => ({ id: r.id, label: r.nombre, text: r.guion.join('\n'), sub: `${r.guion.length} frases` })) : undefined),
+    [activeProject],
+  );
 
   // nav global del rail: flushea lo pendiente; "Inicio" además cierra el proyecto activo (como
   // hacía el botón Home de la Topbar vieja) — las demás rutas no lo tocan (podés volver a él).
@@ -145,25 +151,13 @@ export default function App() {
       <Rail route={route} onNavigate={goRoute} />
       <div className="ms-maincol">
         {route === 'project' && activeProject ? (
-          <div className="project-workspace">
-            <Topbar
-              projects={projects}
-              activeProject={activeProject}
-              section={section}
-              onPickProject={openProject}
-              onHome={() => goRoute('home')}
-              onSection={(s) => { flushPending(); setSection(s); }}
-            />
-            <main className="ms-main">
-              <SectionView section={section} project={activeProject} onChange={updateProject} onGrabar={grabarReel} onAudio={onAudio} audioByReel={audioByReel} />
-            </main>
-          </div>
+          <Pipeline key={activeProject.id} project={activeProject} onChange={updateProject} onHome={() => goRoute('home')} />
         ) : route === 'wizard' ? (
           <div className="ms-page">
             {wizardProject ? (
               <ProjectWizard
                 project={wizardProject}
-                onDone={(p) => { setWizardProject(null); openProject(p); setSection('pipeline'); }}
+                onDone={(p) => { setWizardProject(null); openProject(p); }}
                 onCancel={() => { setWizardProject(null); goRoute('home'); }}
               />
             ) : (
@@ -177,7 +171,15 @@ export default function App() {
         ) : route === 'videos' ? (
           <main className="ms-main"><VideosTab /></main>
         ) : route === 'audio' ? (
-          <main className="ms-main"><VoiceStudio /></main>
+          <main className="ms-main">
+            <VoiceStudio
+              key={activeProject?.id}
+              reelConfig={activeProject ? Object.fromEntries(activeProject.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }])) : undefined}
+              files={voiceFiles}
+              onGrabar={activeProject ? grabarReel : undefined}
+              onAudio={activeProject ? onAudio : undefined}
+            />
+          </main>
         ) : route === 'formats' ? (
           <div className="ms-page"><RoutePlaceholder Icon={LayoutTemplate} title="Catálogo de formatos" note="El norte del rediseño: Formato como entidad de primer nivel (aspecto, plataforma, técnica de producción). Llega en una fase siguiente." /></div>
         ) : route === 'editor' ? (
@@ -195,28 +197,4 @@ export default function App() {
       </div>
     </div>
   );
-}
-
-function SectionView({ section, project, onChange, onGrabar, onAudio, audioByReel }: { section: Section; project: Project; onChange: (updater: (p: Project) => Project, mode?: 'debounced' | 'flush') => void; onGrabar: (reelId: string, vc: VoiceConfig) => void; onAudio: (reelId: string, blob: Blob) => void; audioByReel: Record<string, string> }) {
-  // guiones del proyecto → VoiceStudio (memoizado: estable mientras no cambie el proyecto).
-  const voiceFiles = useMemo(
-    () => project.reels.map((r) => ({ id: r.id, label: r.nombre, text: r.guion.join('\n'), sub: `${r.guion.length} frases` })),
-    [project],
-  );
-  // key={project.id} en los que cachean estado derivado del proyecto en useState (Pipeline: el
-  // comercial/paso activo; ReelTab/ReelEditor: el reel activo): fuerza remount al cambiar de proyecto
-  // por la Topbar y evita quedar viendo el proyecto anterior (estado stale).
-  if (section === 'pipeline') return <Pipeline key={project.id} project={project} onChange={onChange} />;
-  if (section === 'negocio') return <ProjectInfo project={project} />;
-  if (section === 'audio') return (
-    <VoiceStudio
-      key={project.id}
-      reelConfig={Object.fromEntries(project.reels.map((r) => [r.id, { slidesRef: r.slidesRef, voiceConfig: r.voiceConfig }]))}
-      files={voiceFiles}
-      onGrabar={onGrabar}
-      onAudio={onAudio}
-    />
-  );
-  if (section === 'videos') return <VideosTab />;
-  return <ReelTab key={project.id} project={project} audioByReel={audioByReel} />;   // 'editor' (integrador, default)
 }

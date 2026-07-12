@@ -1,10 +1,12 @@
-// Pipeline de producción del comercial (Fase 2 del rework): reemplaza la sopa de tabs por un
-// PROCESO. Selector de comercial (los reels del proyecto) + stepper de pasos + la pantalla del
-// paso activo. Es CONTROLLED: el proyecto y su persistencia los maneja App (dueño único de los
-// datos); acá solo vive el estado de navegación (reel/paso activo). Escribe vía `onChange`, el
+// Workspace de PROYECTO (rediseño Fase 2, docs/rediseno/HANDOFF.md §6 + prototipo.dc.html
+// líneas 194-567): spine izquierdo (220px, pasosVisibles del tipo) + panel central del paso activo +
+// copiloto derecho colapsable. Reemplaza el viejo shell Topbar+tabs de secciones — 'negocio' ya vive
+// como el primer paso del spine, 'audio'/'videos'/'editor' pasaron a rutas propias del rail (App.tsx).
+// Es CONTROLLED: el proyecto y su persistencia los maneja App (dueño único de los datos); acá solo
+// vive el estado de navegación (reel/paso activo/copiloto/ajustes). Escribe vía `onChange`, el
 // mutador único de App — así ninguna otra pantalla puede pisar lo que se arma acá con una copia vieja.
-import { useState } from 'react';
-import { PanelRightOpen } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, PanelRightOpen, Settings, Check } from 'lucide-react';
 import PipelineStepper from './PipelineStepper';
 import Copiloto from './Copiloto';
 import ProjectInfo from './ProjectInfo';
@@ -20,18 +22,36 @@ import PasoRender from './pasos/PasoRender';
 import type { PasoProps } from './pasos/pasoKit';
 import type { Project } from './lib/projects';
 import { nuevoComercial, pasosVisibles, type Comercial, type PasoId } from './lib/comercial';
-import { getCopilotOpen, setCopilotOpen } from './lib/settings';
+import { getCopilotOpen, setCopilotOpen, getAiModel, setAiModel, type AiModelSetting } from './lib/settings';
 import './Pipeline.css';
 
 // El guardado lo maneja App: 'debounced' (tipear = 1 POST a los 500ms) o 'flush' (ya, botones/navegación).
 type ChangeFn = (updater: (p: Project) => Project, mode?: 'debounced' | 'flush') => void;
 
-export default function Pipeline({ project, onChange }: { project: Project; onChange: ChangeFn }) {
+const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[] = [
+  { value: 'auto', label: 'Auto', hint: 'recomendado — cada paso usa su modelo' },
+  { value: 'opus', label: 'Opus', hint: 'máxima calidad, caro' },
+  { value: 'sonnet', label: 'Sonnet', hint: 'equilibrado' },
+  { value: 'haiku', label: 'Haiku', hint: 'económico' },
+];
+
+export default function Pipeline({ project, onChange, onHome }: { project: Project; onChange: ChangeFn; onHome: () => void }) {
   const [reelId, setReelId] = useState<string>(project.reels[0]?.id || '');
   const [activePaso, setActivePaso] = useState<PasoId>('concepto');
   // copiloto: panel de guia a la derecha. Su estado abierto/cerrado persiste (settings.ts). Solo UI.
   const [copilotOpen, setCopilotOpenState] = useState<boolean>(getCopilotOpen);
   const toggleCopilot = (open: boolean) => { setCopilotOpenState(open); setCopilotOpen(open); };
+  // ajuste "Modelo de IA" (antes vivía en la Topbar, retirada en este rediseño) — mismo popover, ahora
+  // colgado de un engranaje chico en la cabecera de la spine.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const [aiModel, setAiModelState] = useState<AiModelSetting>(() => getAiModel());
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => { if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) setSettingsOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+  const pickModel = (v: AiModelSetting) => { setAiModel(v); setAiModelState(v); setSettingsOpen(false); };
 
   const reel = project.reels.find((r) => r.id === reelId) || project.reels[0];
   const comercial = reel?.comercial;
@@ -84,29 +104,54 @@ export default function Pipeline({ project, onChange }: { project: Project; onCh
   };
 
   return (
-    <div className={`pipe${copilotOpen ? ' pipe--copilot' : ''}`}>
-      {project.reels.length > 1 && (
-        <div className="pipe-comerciales">
-          {project.reels.map((r) => (
-            <button key={r.id} className={r.id === reel?.id ? 'pipe-com pipe-com--on' : 'pipe-com'} onClick={() => pickReel(r.id)}>
-              <span className="pipe-com-name">{r.nombre || r.angulo || 'Comercial'}</span>
-              {r.comercial && <span className={`pipe-com-tipo pipe-com-tipo--${r.comercial.tipo}`}>{r.comercial.tipo}</span>}
-            </button>
-          ))}
+    <div className="pw-shell">
+      <aside className="pw-spine">
+        <div className="pw-spine-top">
+          <button className="pw-crumb" onClick={onHome}><ArrowLeft size={13} /> Inicio</button>
+          <div className="pw-settings" ref={settingsRef}>
+            <button className="pw-gear" title="Modelo de IA" onClick={() => setSettingsOpen((o) => !o)}><Settings size={14} /></button>
+            {settingsOpen && (
+              <div className="pw-menu">
+                <div className="pw-menu-lbl">Modelo de IA</div>
+                {AI_MODEL_OPTIONS.map((o) => (
+                  <button key={o.value} className={aiModel === o.value ? 'pw-menu-item pw-menu-item--on' : 'pw-menu-item'} onClick={() => pickModel(o.value)}>
+                    <span className="pw-menu-item-txt"><span className="pw-menu-item-name">{o.label}</span><span className="pw-menu-item-hint">{o.hint}</span></span>
+                    {aiModel === o.value && <Check size={13} />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      <PipelineStepper tipo={tipo} estados={comercial?.estados} activePaso={activePaso} onPick={pickPaso} />
-
-      <div className="pipe-work">
-        <div className="pipe-main">
-          {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
+        <div className="pw-spine-head">
+          <span className="pw-spine-eyebrow">Pipeline</span>
+          <span className={`pw-spine-tipo pw-spine-tipo--${tipo}`}>{tipo === 'animado' ? 'Animado' : 'Filmado'}</span>
         </div>
+
+        {project.reels.length > 1 && (
+          <div className="pw-comerciales">
+            {project.reels.map((r) => (
+              <button key={r.id} className={r.id === reel?.id ? 'pw-com pw-com--on' : 'pw-com'} onClick={() => pickReel(r.id)}>
+                {r.nombre || r.angulo || 'Comercial'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <PipelineStepper tipo={tipo} estados={comercial?.estados} activePaso={activePaso} onPick={pickPaso} />
+      </aside>
+
+      <div className="pw-center">
+        {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
+      </div>
+
+      <div className={`pw-copilot-dock${copilotOpen ? '' : ' pw-copilot-dock--closed'}`}>
         {copilotOpen ? (
           <Copiloto paso={activePaso} comercial={comercial} project={project} onClose={() => toggleCopilot(false)} />
         ) : (
           <button className="copilot-reopen" onClick={() => toggleCopilot(true)} title="Mostrar el copiloto">
-            <PanelRightOpen size={16} /> <span className="copilot-reopen-lbl">Guía</span>
+            <PanelRightOpen size={16} />
           </button>
         )}
       </div>

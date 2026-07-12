@@ -1,36 +1,37 @@
-/* Negocio — datos del KB DENTRO del panel de trabajo (Workspace W2). El marco (cabecera/cuerpo/pie)
-   lo pone .paso (Pipeline.css); acá vive el contenido: brief markdown + marca + pantallas. Tokens --st-*. */
+/* Negocio — datos del KB DENTRO del panel de trabajo (paso 01 del pipeline). El marco lo pone .paso
+   (Pipeline.css, rediseño Fase 2); acá vive el contenido: brief markdown + marca + pantallas.
+   Consume el puente --pw-* definido en Pipeline.css (resuelto sobre --rd-*, HANDOFF §1). */
 
-.pi-sub { margin: 4px 0 0; color: var(--st-text-2); font-size: 13px; line-height: 1.5; }
+.pi-sub { margin: 4px 0 0; color: var(--pw-text-2); font-size: 13px; line-height: 1.5; }
 
-.pi-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--st-sp-4); align-items: start; }
+.pi-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--pw-sp-4); align-items: start; }
 @media (max-width: 920px) { .pi-grid { grid-template-columns: minmax(0, 1fr); } }
 
 .pi-card {
-  background: var(--st-bg-2); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l);
-  padding: 16px 18px; box-shadow: var(--st-shadow-1);
+  background: var(--pw-bg-2); border: 1px solid var(--pw-line-1); border-radius: var(--pw-r-l);
+  padding: 16px 18px;
 }
 .pi-card-h {
   display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
-  font-size: 11px; font-weight: 700; color: var(--st-text-3);
+  font-size: 11px; font-weight: 700; color: var(--pw-text-3);
   text-transform: uppercase; letter-spacing: 0.05em;
 }
 
-.pi-brief h2 { font-size: 18px; font-weight: 700; margin: 4px 0 6px; color: var(--st-text-1); font-family: var(--st-font-display); }
-.pi-brief h3 { font-size: 12px; font-weight: 700; margin: 16px 0 6px; color: var(--st-gold); text-transform: uppercase; letter-spacing: 0.05em; }
-.pi-brief blockquote { margin: 4px 0 8px; padding-left: 12px; border-left: 3px solid var(--st-blue); color: var(--st-text-2); font-style: italic; }
-.pi-brief p { margin: 4px 0; font-size: 13.5px; line-height: 1.55; color: var(--st-text-2); }
-.pi-li { font-size: 13.5px; line-height: 1.5; color: var(--st-text-2); padding-left: 16px; position: relative; margin: 2px 0; }
-.pi-li::before { content: "·"; position: absolute; left: 4px; color: var(--st-text-3); font-weight: 800; }
-.pi-li--sub { padding-left: 30px; color: var(--st-text-3); font-size: 12.5px; }
+.pi-brief h2 { font-size: 18px; font-weight: 700; margin: 4px 0 6px; color: var(--pw-text-1); font-family: var(--pw-font-display); }
+.pi-brief h3 { font-size: 12px; font-weight: 700; margin: 16px 0 6px; color: var(--pw-gold); text-transform: uppercase; letter-spacing: 0.05em; }
+.pi-brief blockquote { margin: 4px 0 8px; padding-left: 12px; border-left: 3px solid var(--pw-blue); color: var(--pw-text-2); font-style: italic; }
+.pi-brief p { margin: 4px 0; font-size: 13.5px; line-height: 1.55; color: var(--pw-text-2); }
+.pi-li { font-size: 13.5px; line-height: 1.5; color: var(--pw-text-2); padding-left: 16px; position: relative; margin: 2px 0; }
+.pi-li::before { content: "·"; position: absolute; left: 4px; color: var(--pw-text-3); font-weight: 800; }
+.pi-li--sub { padding-left: 30px; color: var(--pw-text-3); font-size: 12.5px; }
 .pi-li--sub::before { left: 18px; content: "–"; }
 .pi-gap { height: 6px; }
-.pi-brief strong { color: var(--st-text-1); }
+.pi-brief strong { color: var(--pw-text-1); }
 
-.pi-side { display: flex; flex-direction: column; gap: var(--st-sp-3); }
+.pi-side { display: flex; flex-direction: column; gap: var(--pw-sp-3); }
 .pi-brand { display: flex; gap: 12px; align-items: center; }
-.pi-swatch { width: 40px; height: 40px; border-radius: 9px; border: 1px solid var(--st-line-2); flex: 0 0 auto; }
-.pi-brand-name { font-size: 15px; font-weight: 700; color: var(--st-text-1); }
+.pi-swatch { width: 40px; height: 40px; border-radius: 9px; border: 1px solid var(--pw-line-2); flex: 0 0 auto; }
+.pi-brand-name { font-size: 15px; font-weight: 700; color: var(--pw-text-1); }
 .pi-logo { margin-top: 12px; max-width: 140px; max-height: 60px; object-fit: contain; }
 .pi-shots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.pi-shot { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 8px; border: 1px solid var(--st-line-1); background: var(--st-bg-0); }
+.pi-shot { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 8px; border: 1px solid var(--pw-line-1); background: var(--pw-bg-0); }

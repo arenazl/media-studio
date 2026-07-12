@@ -3,8 +3,20 @@
    (Pipeline.css); acá vive el contenido. Tokens en styles/studio.css. */
 /* el wizard es un panel STANDALONE (sin copiloto que igualar): abraza su contenido en vez de
    estirarse a 60vh (si no, queda un hueco entre el explain-card y el pie). Doble clase = gana
-   al min-height de .paso sin depender del orden de bundle. */
-.paso.wiz-paso { max-width: 760px; margin: 0 auto; min-height: 0; }
+   al min-height de .paso sin depender del orden de bundle.
+   OJO (rediseño Fase 2): `.paso` en Pipeline.css pasó a ser un panel PLANO sin borde/fondo/padding
+   propio (vive dentro de `.pw-center`, que ya trae el padding de página) — fidelidad al prototipo
+   nuevo. Este wizard vive en `.ms-page` (sin padding) y todavía no entra en el rediseño, así que acá
+   se restaura el tratamiento de tarjeta autocontenida (fondo/borde/sombra/padding) con los tokens
+   --st-* propios de esta pantalla, sin tocar Pipeline.css ni el sistema --rd-*. */
+.paso.wiz-paso {
+  max-width: 760px; margin: 40px auto; min-height: 0;
+  background: var(--st-bg-1); border: 1px solid var(--st-line-1); border-radius: var(--st-r-l);
+  box-shadow: var(--st-shadow-1);
+}
+.wiz-paso .paso-head { padding: var(--st-sp-5) var(--st-sp-6); border-bottom: 1px solid var(--st-line-1); }
+.wiz-paso .paso-body { padding: var(--st-sp-6); }
+.wiz-paso > .paso-foot { padding: var(--st-sp-4) var(--st-sp-6); border-top: 1px solid var(--st-line-1); margin-top: auto; }
 
 .veo-field { display: flex; flex-direction: column; gap: 8px; }
 .veo-field > span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--st-text-3); }

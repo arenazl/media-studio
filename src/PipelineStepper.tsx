@@ -1,5 +1,8 @@
-// Stepper del pipeline de producción: renderiza pasosVisibles(comercial.tipo) — 9 pasos filmado,
-// 7 animado — con iconos lucide (jamás emojis) y estado visual por paso. Click navega.
+// Spine vertical del pipeline (rediseño Fase 2, prototipo.dc.html líneas 204-212): la columna
+// izquierda del workspace de proyecto — un nodo por paso (pasosVisibles(tipo)) con su número/check,
+// ícono, label y estado en color. Click navega. Antes era un riel horizontal arriba del panel;
+// ahora es la columna fija de 220px a la izquierda (Pipeline.tsx arma el resto de la spine: crumb +
+// selector de comercial + este componente).
 import { Building2, Lightbulb, FileText, Users, Clapperboard, PackageOpen, Film, Video, Scissors, Megaphone, Check } from 'lucide-react';
 import { pasosVisibles, type PasoId, type EstadoPaso, type TipoComercial } from './lib/comercial';
 
@@ -16,6 +19,12 @@ const META: Record<PasoId, { label: string; Icon: typeof Building2 }> = {
   publicar: { label: 'Publicar', Icon: Megaphone },
 };
 
+// una línea corta por estado (prototipo `s.stateLabel`) — separada de EstadoPaso porque acá es COPY,
+// no el valor persistido.
+const ESTADO_LABEL: Record<EstadoPaso, string> = {
+  pendiente: 'Pendiente', generado: 'Generado', editado: 'Editado', aprobado: 'Aprobado',
+};
+
 export const pasoLabel = (id: PasoId): string => META[id].label;
 
 interface Props {
@@ -29,7 +38,7 @@ export default function PipelineStepper({ tipo, estados, activePaso, onPick }: P
   const pasos = pasosVisibles(tipo);
   const estadoDe = (p: PasoId): EstadoPaso => estados?.[p] ?? 'pendiente';
   return (
-    <nav className="pipe-stepper" aria-label="Pasos del comercial">
+    <nav className="pw-steps" aria-label="Pasos del comercial">
       {pasos.map((p, i) => {
         const est = estadoDe(p);
         const M = META[p];
@@ -37,15 +46,15 @@ export default function PipelineStepper({ tipo, estados, activePaso, onPick }: P
         return (
           <button
             key={p}
-            className={`pipe-step pipe-step--${est}${on ? ' pipe-step--active' : ''}`}
+            className={`pw-step pw-step--${est}${on ? ' pw-step--active' : ''}`}
             onClick={() => onPick(p)}
             title={M.label}
             aria-current={on ? 'step' : undefined}
           >
-            <span className="pipe-step-n">{est === 'aprobado' ? <Check size={16} /> : i + 1}</span>
-            <span className="pipe-step-foot">
-              <span className="pipe-step-ico"><M.Icon size={13} /></span>
-              <span className="pipe-step-lbl">{M.label}</span>
+            <span className="pw-step-dot">{est === 'aprobado' ? <Check size={13} /> : i + 1}</span>
+            <span className="pw-step-body">
+              <span className="pw-step-lbl"><M.Icon size={13} className="pw-step-ico" /> {M.label}</span>
+              <span className="pw-step-state">{ESTADO_LABEL[est]}</span>
             </span>
           </button>
         );

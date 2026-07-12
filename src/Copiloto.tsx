@@ -2,7 +2,7 @@
 // explica en criollo: qué es · qué hizo la IA · qué tenés que hacer (numerado, con el próximo paso
 // resaltado y los cumplidos tildados) · un tip · el progreso dinámico. Es SÓLO presentación: lee el
 // comercial real (nunca lo muta) y deriva todo de lib/copiloto.ts (datos puros y testeados).
-import { Compass, Info, Wand2, ListChecks, Lightbulb, CheckCircle2, ArrowRight, PanelRightClose, BadgeInfo } from 'lucide-react';
+import { Sparkles, Info, Wand2, ListChecks, Lightbulb, CheckCircle2, ArrowRight, PanelRightClose, BadgeInfo } from 'lucide-react';
 import { COPILOTO, copilotoDinamico } from './lib/copiloto';
 import { packProgress, type Comercial, type PasoId } from './lib/comercial';
 import { pasoLabel } from './PipelineStepper';
@@ -28,7 +28,7 @@ export default function Copiloto({ paso, comercial, project, onClose }: Copiloto
   return (
     <aside className="copilot" aria-label="Copiloto del pipeline">
       <header className="copilot-head">
-        <span className="copilot-eyebrow"><Compass size={13} /> Copiloto</span>
+        <span className="copilot-eyebrow"><span className="copilot-mark"><Sparkles size={13} /></span> Copiloto</span>
         <button className="copilot-close" onClick={onClose} title="Ocultar el copiloto" aria-label="Ocultar el copiloto">
           <PanelRightClose size={16} />
         </button>
