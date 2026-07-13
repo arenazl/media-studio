@@ -23,9 +23,9 @@ import './Wizard.css';
 interface AppRow { id: string; name: string; base_url: string; ready: boolean }
 type Phase = 'idle' | 'creando' | 'error';
 
-export default function Wizard({ onCancel, onComenzar }: { onCancel: () => void; onComenzar: (p: Project) => void }) {
+export default function Wizard({ onCancel, onComenzar, formatoIdInicial }: { onCancel: () => void; onComenzar: (p: Project) => void; formatoIdInicial?: string }) {
   const [apps, setApps] = useState<AppRow[]>([]);
-  const [formatoId, setFormatoId] = useState<string | null>(null);
+  const [formatoId, setFormatoId] = useState<string | null>(formatoIdInicial ?? null);
   const [appId, setAppId] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [err, setErr] = useState('');
@@ -46,7 +46,7 @@ export default function Wizard({ onCancel, onComenzar }: { onCancel: () => void;
   // brief+marca+pantallas (idéntico a KbInspector.comenzar). El resto — perfil de campaña + siembra
   // de piezas vía `strategy` — lo hace ProjectWizard a continuación, sin tocar esa lógica.
   const crear = async () => {
-    if (!app || phase === 'creando') return;
+    if (!app || !formato || phase === 'creando') return;
     setPhase('creando'); setErr('');
     try {
       const r = await fetch(`${API_BASE}/api/kb/inspect`, {
@@ -55,10 +55,9 @@ export default function Wizard({ onCancel, onComenzar }: { onCancel: () => void;
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'no se pudo leer el KB');
       const inp = kbToProjectInput(d.kb as KnowledgeBase);
-      // TODO(modelo-superior): el Formato elegido (formato.id / aspecto / tecnicaProduccion) todavía
-      // no cablea el `tipo`/moldes/prompts de la pieza — la entidad `Formato` no existe en el modelo
-      // de datos (HANDOFF §8). Acá es sólo metadata visual del wizard; no inventar ese cableado.
-      const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, brandKit: inp.brandKit, screens: inp.screens, contentType: 'combinado' });
+      // WO-1: el Formato elegido viaja como `formatoId` del proyecto — ProjectWizard lo usa para
+      // derivar el `tipo` de cada pieza (mapeo D2) y estamparlo en cada comercial.
+      const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, brandKit: inp.brandKit, screens: inp.screens, contentType: 'combinado', formatoId: formato.id });
       onComenzar(proj);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'error trayendo el KB'); setPhase('error');

@@ -66,6 +66,7 @@ export interface Project {
   screenshots?: string[];        // capturas del producto (legacy)
   screens?: unknown[];           // metadata de pantallas del KB 1.2 (kind/components/data…) → reel animado
   brandKit?: BrandKit;           // marca del proyecto (logo/color/fonética) — agnóstico
+  formatoId?: string;            // WO-1: formato default que eligió el wizard (id de FORMATOS_DEF) — se usa en la siembra
   reels: ProjectReel[];
   created_at: number;
   updated_at: number;
@@ -124,7 +125,7 @@ export function listProjects(): Project[] {
 export function getProject(id: string): Project | undefined {
   return load().find((p) => p.id === id);
 }
-export function saveProject(input: { id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType; brief?: string; screenshots?: string[]; screens?: unknown[]; brandKit?: BrandKit; reels?: ProjectReel[] }): Project {
+export function saveProject(input: { id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType; brief?: string; screenshots?: string[]; screens?: unknown[]; brandKit?: BrandKit; formatoId?: string; reels?: ProjectReel[] }): Project {
   const ps = load();
   const id = input.id || `${slug(input.name) || 'proj'}-${Date.now().toString(36).slice(-4)}`;
   const existing = ps.find((p) => p.id === id);
@@ -137,6 +138,7 @@ export function saveProject(input: { id?: string; name: string; type?: string; p
     screenshots: input.screenshots ?? existing?.screenshots,
     screens: input.screens ?? existing?.screens,
     brandKit: input.brandKit ?? existing?.brandKit,
+    formatoId: input.formatoId ?? existing?.formatoId,   // WO-1 hecho 2: sin esta línea el campo se pierde al guardar
     reels: (input.reels ?? existing?.reels ?? []).map(normReel),
     created_at: existing?.created_at ?? now, updated_at: now,
   };

@@ -8,6 +8,7 @@ import { API_BASE } from './config';
 import { getFunction } from './lib/functionCatalog';
 import { saveProject, type Project, type ProjectReel } from './lib/projects';
 import { nuevoComercial } from './lib/comercial';
+import { getFormato, tipoDesdeFormato } from './lib/formato';
 import { effectiveModel } from './lib/settings';
 import './ProjectWizard.css';
 
@@ -46,6 +47,10 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
     setPhase('working'); setErr('');
     try {
       setProgress('Analizando el negocio y armando el plan de piezas…');
+      // WO-1: el formato del proyecto (del wizard) decide el `tipo` del pipeline (mapeo D2) y se
+      // estampa en cada comercial. Sin formato (proyectos viejos) → 'filmado' como hoy.
+      const formato = getFormato(project.formatoId);
+      const tipoPieza = tipoDesdeFormato(formato);
       let reels: ProjectReel[] = [];
       try {
         const strat: Strategy = await runFn('strategy', undefined, { perfil });
@@ -55,19 +60,19 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
             id: p.id || `reel-${i + 1}`, nombre: titulo, frases: 0, guion: [],
             objetivo: p.objective, angulo: p.angle, durationSec: p.durationSec,
             // El comercial nace con su ángulo → PasoConcepto lo usa como proxy diferenciado (no el título genérico).
-            comercial: { ...nuevoComercial(titulo, 'filmado'), angulo: p.angle, creativeBrief: p.creativeBrief },
+            comercial: { ...nuevoComercial(titulo, tipoPieza), formatoId: project.formatoId, angulo: p.angle, creativeBrief: p.creativeBrief },
           };
         });
       } catch { /* strategy falló → no bloquear el import; abajo se siembra un comercial base */ }
 
       // Sin piezas (strategy caído o vacío): 1 comercial base para que el pipeline arranque igual.
-      if (!reels.length) reels = [{ id: `reel-${project.id}`, nombre: project.name, frases: 0, guion: [], comercial: nuevoComercial(project.name, 'filmado') }];
+      if (!reels.length) reels = [{ id: `reel-${project.id}`, nombre: project.name, frases: 0, guion: [], comercial: { ...nuevoComercial(project.name, tipoPieza), formatoId: project.formatoId } }];
 
       setProgress('Guardando el proyecto…');
       const proj = saveProject({
         id: project.id, name: project.name, type: project.type, brief: project.brief,
         brandKit: project.brandKit, screenshots: project.screenshots, screens: project.screens,
-        contentType: 'combinado', reels,
+        formatoId: project.formatoId, contentType: 'combinado', reels,
       });
       onDone(proj);
     } catch (e) { setErr(e instanceof Error ? e.message : 'error'); setPhase('error'); }

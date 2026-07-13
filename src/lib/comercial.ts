@@ -115,6 +115,7 @@ export interface Comercial {
   id: string;
   titulo: string;                    // "problema-solución: el caos vs el orden"
   tipo: TipoComercial;               // bifurcación del paso 6 (filmado → Flow · animado → render)
+  formatoId?: string;                // WO-1: formato de salida (aspecto/plataforma/técnica) — id de FORMATOS_DEF (formato.ts). Ausente = proyectos viejos (default 9:16 filmado).
   angulo?: string;                   // C7: ángulo estratégico (de `strategy`) — proxy de diferenciación que alimenta el concepto
   creativeBrief?: string;            // C7: brief creativo por pieza (de `strategy`)
   estados: Record<PasoId, EstadoPaso>;

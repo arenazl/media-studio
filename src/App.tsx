@@ -29,6 +29,7 @@ export default function App() {
   // (se llega desde otra vista, no tienen ítem propio en el rail — docs/rediseno/HANDOFF.md §2).
   const [route, setRoute] = useState<Route>('home');
   const [wizardProject, setWizardProject] = useState<Project | null>(null);   // proyecto recién creado, en el wizard
+  const [wizardFormatoId, setWizardFormatoId] = useState<string | undefined>(undefined);   // WO-1: formato preseleccionado (desde el catálogo) — estado de navegación
 
   const { projects } = useProjects();   // server-first: estado inicial de localStorage + hidratación del server
 
@@ -162,7 +163,7 @@ export default function App() {
                 onCancel={() => { setWizardProject(null); goRoute('home'); }}
               />
             ) : (
-              <Wizard onCancel={() => goRoute('home')} onComenzar={(p) => setWizardProject(p)} />
+              <Wizard onCancel={() => goRoute('home')} onComenzar={(p) => setWizardProject(p)} formatoIdInicial={wizardFormatoId} />
             )}
           </div>
         ) : route === 'ksp' ? (
@@ -184,7 +185,7 @@ export default function App() {
             />
           </div>
         ) : route === 'formats' ? (
-          <div className="ms-page"><FormatsCatalog /></div>
+          <div className="ms-page"><FormatsCatalog onUsar={(fid) => { setWizardProject(null); setWizardFormatoId(fid); setRoute('wizard'); }} /></div>
         ) : route === 'editor' ? (
           <Editor project={activeProject} onBack={() => goRoute('project')} onPublish={() => goRoute('project')} />
         ) : (
@@ -192,7 +193,7 @@ export default function App() {
             <Home
               projects={projects}
               onOpenProject={openProject}
-              onNewPiece={() => goRoute('wizard')}
+              onNewPiece={() => { setWizardFormatoId(undefined); goRoute('wizard'); }}
               onGoIntegrations={() => goRoute('ksp')}
             />
           </div>

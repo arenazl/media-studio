@@ -5,14 +5,13 @@
 // La data (FORMATOS) vive en src/lib/formatosCatalog.ts — la reusa también el wizard formato-primero
 // (Fase 5, Wizard.tsx) para no duplicar el catálogo en dos pantallas.
 //
-// TODO(modelo-superior): definir la entidad `Formato` real (persistencia + cableado a moldes de
-// guion/render por duración/plataforma/técnica) — no inventar esa lógica acá. Esta pantalla sigue
-// siendo sólo la vitrina; "Usar este formato" queda deshabilitado hasta que exista.
+// WO-1: la entidad `Formato` real ya existe (formato.ts). "Usar este formato" navega al wizard con el
+// formato preseleccionado (App cablea `onUsar` → ruta 'wizard' con formatoIdInicial).
 import { Sparkles } from 'lucide-react';
 import { FORMATOS } from './lib/formatosCatalog';
 import './FormatsCatalog.css';
 
-export default function FormatsCatalog() {
+export default function FormatsCatalog({ onUsar }: { onUsar?: (formatoId: string) => void }) {
   return (
     <div className="fc-root">
       <div className="fc-pill"><Sparkles size={12} /> El norte · Formato como entidad</div>
@@ -40,7 +39,7 @@ export default function FormatsCatalog() {
                 <div className="fc-spec-row"><span>Duración</span><span>{f.duracion}</span></div>
                 <div className="fc-spec-row"><span>Técnica</span><span>{f.tecnica}</span></div>
               </div>
-              <button className="fc-card-cta" disabled title="Pendiente: entidad Formato + wizard Formato-primero (TODO modelo-superior)">
+              <button className="fc-card-cta" onClick={() => onUsar?.(f.id)} title="Crear una pieza con este formato">
                 Usar este formato
               </button>
             </div>
