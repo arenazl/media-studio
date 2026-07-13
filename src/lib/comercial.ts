@@ -94,6 +94,7 @@ export interface Toma {
   escenaN: number;
   fileRef: string;
   durSec: number;
+  promptUsado?: string;   // WO-6b/D8: snapshot del prompt de Flow que originó este clip (histórico real)
 }
 
 export interface PublishPack {

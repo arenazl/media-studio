@@ -1,7 +1,8 @@
 // Biblioteca (panel izquierdo) — tabs Clips/Audio/Texto/Efectos/Marca + buscador + items (prototipo
 // líneas 861-895). Colapsable a un riel angosto + ancho arrastrable (lib/editorUi.ts BIN_W_MIN/MAX).
-// Los items son de sólo lectura acá (arrastrarlos a la timeline para insertar un clip nuevo es
-// composición de verdad — TODO(modelo-superior), ver Editor.tsx).
+// WO-6a: los items DROPPABLES (clips/audio con fileRef, presets de texto) son draggable a la timeline
+// para insertar un clip nuevo. Efectos/Marca NO son droppables (el render no ejecuta efectos por clip;
+// el logo ya viene del brandKit) — cursor not-allowed + tooltip honesto.
 import { Search, ChevronsRight, ChevronsLeft, Plus } from 'lucide-react';
 import type { LibItem, LibTab } from './lib/editorLibrary';
 import { LIB_TABS } from './lib/editorLibrary';
@@ -18,6 +19,10 @@ export interface EditorLibraryProps {
   onSearchChange: (v: string) => void;
   items: LibItem[];
 }
+
+// un item se puede soltar en la timeline si viene de una pista real (clips/audio/texto). Efectos y
+// marca (sin tab de pista) no.
+const esDroppable = (it: LibItem) => it.tab === 'clips' || it.tab === 'audio' || it.tab === 'texto';
 
 export default function EditorLibrary({
   open, width, onToggle, onResizeStart, activeTab, onTabChange, search, onSearchChange, items,
@@ -59,18 +64,30 @@ export default function EditorLibrary({
         <div className="ed-lib-items">
           {items.length === 0 ? (
             <div className="ed-lib-empty">Nada acá todavía.</div>
-          ) : items.map((it) => (
-            <div key={it.id} className="ed-lib-item" title={it.fileRef}>
-              <div className="ed-lib-item-ico" style={{ background: `${it.color}22`, borderColor: `${it.color}44` }}>
-                <span className="ed-lib-item-dot" style={{ background: it.color }} />
+          ) : items.map((it) => {
+            const drop = esDroppable(it);
+            return (
+              <div
+                key={it.id}
+                className={drop ? 'ed-lib-item ed-lib-item--drag' : 'ed-lib-item ed-lib-item--nodrop'}
+                title={drop ? 'Arrastrá a la timeline' : 'Este elemento no se puede soltar en la timeline'}
+                draggable={drop}
+                onDragStart={drop ? (e) => {
+                  e.dataTransfer.setData('application/x-lib-item', JSON.stringify(it));
+                  e.dataTransfer.effectAllowed = 'copy';
+                } : undefined}
+              >
+                <div className="ed-lib-item-ico" style={{ background: `${it.color}22`, borderColor: `${it.color}44` }}>
+                  <span className="ed-lib-item-dot" style={{ background: it.color }} />
+                </div>
+                <div className="ed-lib-item-txt">
+                  <div className="ed-lib-item-label">{it.label}</div>
+                  <div className="ed-lib-item-meta">{it.meta}</div>
+                </div>
+                {drop && <Plus size={14} className="ed-lib-item-add" />}
               </div>
-              <div className="ed-lib-item-txt">
-                <div className="ed-lib-item-label">{it.label}</div>
-                <div className="ed-lib-item-meta">{it.meta}</div>
-              </div>
-              <Plus size={14} className="ed-lib-item-add" />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       <div className="editor-resize-x" onMouseDown={onResizeStart} title="Arrastrar para redimensionar" />

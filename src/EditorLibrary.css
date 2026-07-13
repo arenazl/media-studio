@@ -41,6 +41,10 @@
   transition: border-color var(--rd-dur-ui) var(--rd-ease);
 }
 .ed-lib-item:hover { border-color: color-mix(in srgb, var(--rd-green) 40%, transparent); }
+/* WO-6a: droppable = arrastrable; no-droppable (efectos/marca) = no interactivo. */
+.ed-lib-item--drag:active { cursor: grabbing; }
+.ed-lib-item--nodrop { cursor: not-allowed; opacity: 0.7; }
+.ed-lib-item--nodrop:hover { border-color: var(--rd-border); }
 .ed-lib-item-ico {
   width: 34px; height: 34px; flex: 0 0 34px; border-radius: 8px; border: 1px solid;
   display: flex; align-items: center; justify-content: center;

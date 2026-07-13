@@ -18,7 +18,8 @@ import { tracksToMontaje } from './lib/montajeFromTracks';
 import { autoArmarPlan } from './lib/autoArmar';
 import type { MontajePlan, MontajeState } from './lib/montajePlan';
 import {
-  deleteClip, duplicateClip, splitClip, initHistory, pushHistory, undoHistory, redoHistory, type EditHistory,
+  deleteClip, duplicateClip, splitClip, dropLibItem, initHistory, pushHistory, undoHistory, redoHistory,
+  type EditHistory, type DropItem,
 } from './lib/editorEdits';
 import {
   getEditorPanels, setEditorPanels, getPlayhead, setPlayhead,
@@ -210,6 +211,14 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
     mutate(() => tracks);
   };
 
+  // WO-6a: soltar un item de la biblioteca en la timeline → dropLibItem (deshacible con undo).
+  const onDropItem = (raw: string) => {
+    try {
+      const item = JSON.parse(raw) as DropItem;
+      mutate((t) => dropLibItem(t, item, playheadSec));
+    } catch { /* payload inválido → no-op */ }
+  };
+
   // "Listo → Publicar": guarda si hay cambios y navega (D6 — el render sigue en Montaje).
   const onPublishSaving = () => { if (dirty) onSave(); onPublish(); };
 
@@ -365,6 +374,7 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         onSelect={setSelectedId}
         zoom={zoom}
         onZoomChange={setZoom}
+        onDropItem={onDropItem}
       />
     </div>
   );

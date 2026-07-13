@@ -3,8 +3,9 @@
 // recorte in/out, metadata (proyecto/clasificación), "Al multipista". La metadata de organización
 // vive local (lib/videoLibrary); clasificación por IA (Gemini Vision) al subir.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Upload, Search, Sparkles, Loader2 } from 'lucide-react';
+import { Upload, Search, Sparkles, Loader2, X, Copy, Check } from 'lucide-react';
 import { API_BASE } from './config';
+import { effectiveModel } from './lib/settings';
 import { fetchCloudVideos, prettyVid as pretty, thumbOf, type CloudVid } from './lib/cloudVideos';
 import {
   loadMeta, saveMeta, metaOf, toggleFavorite, addTag, addTags, removeTag, setProject, setTrim,
@@ -38,6 +39,32 @@ export default function VideosTab({ onGoEditor }: { onGoEditor?: () => void } = 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [classifying, setClassifying] = useState<{ done: number; total: number } | null>(null);
   const [reclassifyingIds, setReclassifyingIds] = useState<Set<string>>(new Set());
+
+  // WO-6c: modal del molde `videoprompt` standalone (prompt de Flow suelto).
+  const [vpOpen, setVpOpen] = useState(false);
+  const [vpBrief, setVpBrief] = useState('');
+  const [vpModo, setVpModo] = useState<'talking-head' | 'b-roll'>('talking-head');
+  const [vpBusy, setVpBusy] = useState(false);
+  const [vpErr, setVpErr] = useState('');
+  const [vpResult, setVpResult] = useState('');
+  const [vpCopied, setVpCopied] = useState(false);
+
+  const generarPrompt = async () => {
+    if (!vpBrief.trim()) { setVpErr('Escribí una descripción del video.'); return; }
+    setVpBusy(true); setVpErr(''); setVpResult('');
+    try {
+      const r = await fetch(api('/api/run-function'), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ functionId: 'videoprompt', context: {}, options: { brief: vpBrief.trim(), modo: vpModo }, model: effectiveModel('videoprompt') }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'no se pudo generar el prompt');
+      setVpResult((d.result?.prompt as string) || '');
+    } catch (e) { setVpErr(e instanceof Error ? e.message : 'error'); } finally { setVpBusy(false); }
+  };
+  const copiarPrompt = async () => {
+    try { await navigator.clipboard.writeText(vpResult); setVpCopied(true); setTimeout(() => setVpCopied(false), 1500); } catch { /* noop */ }
+  };
 
   const storeTags = (id: string, tags: string[], replace = false) => {
     if (!replace && !tags.length) return;
@@ -133,9 +160,8 @@ export default function VideosTab({ onGoEditor }: { onGoEditor?: () => void } = 
           <button className="vw-btn" onClick={() => fileRef.current?.click()} disabled={uploading}>
             <Upload size={14} /> {uploading ? 'Subiendo…' : 'Importar de Flow'}
           </button>
-          {/* TODO(modelo-superior): "Generar prompt" (veo-flow-prompter) para un clip nuevo de Flow —
-              hoy no hay molde standalone (fuera de un proyecto) que arme ese prompt. No inventar. */}
-          <button className="vw-btn vw-btn--gold" disabled title="Pendiente: cablear el molde de prompt para Flow (TODO modelo-superior)">
+          {/* WO-6c: molde `videoprompt` standalone — un prompt de Flow suelto, fuera de un proyecto. */}
+          <button className="vw-btn vw-btn--gold" onClick={() => { setVpOpen(true); setVpErr(''); }} title="Generar un prompt de Google Flow (Veo) suelto">
             <Sparkles size={14} /> Generar prompt
           </button>
         </div>
@@ -200,6 +226,50 @@ export default function VideosTab({ onGoEditor }: { onGoEditor?: () => void } = 
         ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="vw-hidden-input"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }}
       />
+
+      {vpOpen && (
+        <div className="vw-modal-backdrop" onClick={() => setVpOpen(false)}>
+          <div className="vw-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="vw-modal-head">
+              <h3><Sparkles size={16} /> Prompt de Google Flow</h3>
+              <button className="vw-modal-x" onClick={() => setVpOpen(false)}><X size={16} /></button>
+            </div>
+            <div className="vw-modal-body">
+              <label className="vw-modal-lbl">¿Qué querés que muestre el video?</label>
+              <textarea
+                className="vw-modal-textarea" rows={4} value={vpBrief} placeholder="Ej: una emprendedora en su local mostrando cómo carga un producto en la app, tono cercano y confiado."
+                onChange={(e) => setVpBrief(e.target.value)}
+              />
+              <label className="vw-modal-lbl">Tipo de plano</label>
+              <div className="vw-modal-chips">
+                {(['talking-head', 'b-roll'] as const).map((m) => (
+                  <button key={m} className={vpModo === m ? 'vw-modal-chip vw-modal-chip--on' : 'vw-modal-chip'} onClick={() => setVpModo(m)}>
+                    {m === 'talking-head' ? 'Talking head' : 'B-roll'}
+                  </button>
+                ))}
+              </div>
+              {vpErr && <div className="vw-modal-err">{vpErr}</div>}
+              {vpResult && (
+                <div className="vw-modal-result">
+                  <div className="vw-modal-result-head">
+                    <span>Prompt (pegalo en Flow)</span>
+                    <button className="vw-modal-copy" onClick={copiarPrompt}>
+                      {vpCopied ? <><Check size={13} /> Copiado</> : <><Copy size={13} /> Copiar</>}
+                    </button>
+                  </div>
+                  <pre className="vw-modal-pre">{vpResult}</pre>
+                </div>
+              )}
+            </div>
+            <div className="vw-modal-foot">
+              <button className="vw-btn" onClick={() => setVpOpen(false)}>Cerrar</button>
+              <button className="vw-btn vw-btn--gold" disabled={vpBusy || !vpBrief.trim()} onClick={generarPrompt}>
+                {vpBusy ? <><Loader2 size={14} className="vw-spin" /> Generando…</> : <><Sparkles size={14} /> {vpResult ? 'Regenerar' : 'Generar'}</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

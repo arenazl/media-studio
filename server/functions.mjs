@@ -381,6 +381,31 @@ NEGOCIO: ${name}${brandTxt}` };
       return { estilo: o.estilo, personajes, escenas };
     },
   },
+
+  // ── VIDEOPROMPT (standalone, WO-6c/D9) — el ÚNICO molde de IA nuevo de la ronda ──
+  // Genera UN prompt de Google Flow (Veo 3.1) suelto, fuera de un proyecto: descripción libre del
+  // usuario + modo (talking-head | b-roll) + VEO_RULES verbatim (idioma/cadencia battle-tested).
+  // Devuelve texto plano (no JSON) — listo para pegar en Flow.
+  videoprompt: {
+    build({ options = {} }) {
+      const brief = String(options.brief || '').trim();
+      if (!brief) throw new Error('falta la descripción del video (options.brief)');
+      const modo = options.modo === 'b-roll' ? 'b-roll' : 'talking-head';
+      const guia = modo === 'talking-head'
+        ? 'Es un TALKING HEAD: una persona a cámara con lip-sync, diálogo LARGO en español rioplatense (voseo) que engancha y comenta, plano medio waist-up. Seguí las reglas DURAS de talking head.'
+        : 'Es B-ROLL cinematográfico: sin diálogo ("No spoken dialogue, ambient sound only"), una sola toma continua, mismo fondo, sin cortes. Si se ve una pantalla de app: "screen not clearly legible".';
+      return { prompt: `Sos el prompt-writer de Google Flow (Veo 3.1). Escribí UN prompt final, listo para pegar en Flow, para el video que describe el usuario. TODO el prompt va en INGLÉS salvo el diálogo (si hay), que va en español rioplatense entre comillas.
+${guia}
+${VEO_RULES}
+DESCRIPCIÓN DEL USUARIO: ${brief}
+Devolvé SOLO el prompt (texto plano, sin JSON, sin markdown, sin comillas envolventes, sin explicaciones).` };
+    },
+    parse(text) {
+      const t = String(text || '').trim();
+      if (!t) throw new Error('el molde videoprompt no devolvió prompt');
+      return { prompt: t };
+    },
+  },
 };
 
 export function buildFunctionPrompt({ functionId, context, options, regenerate }) {

@@ -158,6 +158,22 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     model: 'opus',
     options: [],
   },
+  {
+    // WO-6c/D9: molde standalone — un prompt de Flow suelto, fuera de un proyecto. Tier sonnet (llamada
+    // corta). Sus options las arma la UI de Videos (brief + modo); no se elige desde el pipeline.
+    id: 'videoprompt',
+    label: 'Prompt de Flow',
+    icon: 'Sparkles',
+    level: 'piece',
+    description: 'Genera un prompt de Google Flow (Veo) suelto — talking head o b-roll — listo para pegar.',
+    model: 'sonnet',
+    options: [
+      {
+        id: 'modo', label: 'Tipo', type: 'choice', default: 'talking-head',
+        choices: [c('talking-head', 'Talking head'), c('b-roll', 'B-roll')],
+      },
+    ],
+  },
 ];
 
 // helpers de lectura para la UI

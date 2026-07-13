@@ -141,7 +141,55 @@
 .vw-empty-detail { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--rd-ink-mute); font-size: 13px; padding: 40px; text-align: center; }
 .vw-hidden-input { display: none; }
 
+/* WO-6b: prompt usado + origen de una toma de proyecto en el detalle. */
+.vw-meta-origen { font-size: 11px; color: var(--rd-ink-mute); margin-bottom: 6px; }
+.vw-meta-prompt {
+  background: var(--rd-surface-2); border: 1px solid var(--rd-border); border-radius: 8px; padding: 8px 10px;
+  font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11.5px; line-height: 1.5; color: var(--rd-ink-dim);
+  white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow: auto; margin: 0;
+}
+
 @media (max-width: 1024px) {
   .vw-list { width: 260px; flex: 0 0 260px; }
   .vw-meta { width: 220px; flex: 0 0 220px; }
 }
+
+/* WO-6c: modal del molde videoprompt (prompt de Flow standalone). */
+.vw-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 60;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.vw-modal {
+  width: min(620px, 100%); max-height: 88vh; overflow: auto; background: var(--rd-surface-1);
+  border: 1.5px solid var(--rd-border); border-radius: var(--rd-r-card); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+.vw-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--rd-border); }
+.vw-modal-head h3 { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--rd-ink); margin: 0; }
+.vw-modal-x { background: none; border: none; color: var(--rd-ink-mute); cursor: pointer; display: flex; padding: 4px; border-radius: 6px; }
+.vw-modal-x:hover { background: var(--rd-surface-2); color: var(--rd-ink); }
+.vw-modal-body { padding: 18px; }
+.vw-modal-lbl { display: block; font-size: 12px; color: var(--rd-ink-dim); margin: 4px 0 8px; }
+.vw-modal-textarea {
+  width: 100%; background: var(--rd-surface-2); border: 1px solid var(--rd-border); border-radius: 10px;
+  color: var(--rd-ink); font-size: 14px; padding: 10px 12px; resize: vertical; font-family: inherit;
+}
+.vw-modal-chips { display: flex; gap: 8px; margin-bottom: 6px; }
+.vw-modal-chip {
+  padding: 6px 14px; border-radius: var(--rd-pill); background: var(--rd-surface-2); border: 1px solid var(--rd-border);
+  color: var(--rd-ink-dim); font-size: 13px; cursor: pointer;
+}
+.vw-modal-chip--on { background: color-mix(in srgb, var(--rd-gold) 18%, transparent); border-color: var(--rd-gold); color: var(--rd-gold); }
+.vw-modal-err { margin-top: 12px; color: var(--rd-danger, #ff6b6b); font-size: 13px; }
+.vw-modal-result { margin-top: 16px; }
+.vw-modal-result-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--rd-ink-dim); }
+.vw-modal-copy {
+  display: flex; align-items: center; gap: 5px; background: var(--rd-surface-2); border: 1px solid var(--rd-border);
+  color: var(--rd-ink); font-size: 12px; padding: 4px 10px; border-radius: 8px; cursor: pointer;
+}
+.vw-modal-copy:hover { border-color: var(--rd-green); color: var(--rd-green); }
+.vw-modal-pre {
+  background: var(--rd-surface-2); border: 1px solid var(--rd-border); border-radius: 10px; padding: 12px 14px;
+  font-family: ui-monospace, "Cascadia Code", monospace; font-size: 12.5px; line-height: 1.55; color: var(--rd-ink);
+  white-space: pre-wrap; word-break: break-word; max-height: 320px; overflow: auto; margin: 0;
+}
+.vw-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--rd-border); }

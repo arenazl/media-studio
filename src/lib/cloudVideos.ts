@@ -5,6 +5,9 @@
 export interface CloudVid {
   id: string; name: string; url: string; thumbnail: string | null;
   duration_sec: number | null; size_bytes: number | null; created_at?: number;
+  // WO-6b/D8: presentes cuando el video es una TOMA de un proyecto (no un cloud-video suelto).
+  promptUsado?: string;                          // el prompt de Flow que lo originó (snapshot en la Toma)
+  origen?: { proyecto: string; pieza: string; escenaN: number };   // de dónde viene la toma
 }
 
 export const normalizeVid = (v: Record<string, unknown>): CloudVid => ({
@@ -37,5 +40,39 @@ export async function fetchCloudVideos(apiBase: string): Promise<CloudVid[]> {
     const r = await fetch(`${apiBase}/api/cloud-videos`);
     if (r.ok) { const d = await r.json(); (d.videos || []).map(normalizeVid).forEach((v: CloudVid) => v.url && byUrl.set(v.url, v)); }
   } catch { /* sin backend */ }
+  // WO-6b/D8: sumar las TOMAS de los proyectos como fuente adicional de SOLO LECTURA (nada se sube a
+  // Cloudinary — se derivan del rodaje ya cargado). Dedup por url (una toma ya subida no se duplica).
+  for (const t of tomasDeProyectos(apiBase)) if (!byUrl.has(t.url)) byUrl.set(t.url, t);
   return Array.from(byUrl.values()).sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+}
+
+// Deriva las tomas del rodaje de los proyectos (localStorage) como CloudVid de solo lectura, con su
+// promptUsado y origen (proyecto/pieza/escena). El fileRef relativo se sirve por /api/storage/<ref>.
+interface ProyectoLike { id: string; name: string; reels?: { nombre?: string; comercial?: { titulo?: string; rodaje?: { id: string; escenaN: number; fileRef: string; durSec: number; promptUsado?: string }[] } }[] }
+function tomasDeProyectos(apiBase: string): CloudVid[] {
+  let proyectos: ProyectoLike[] = [];
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('ms.projects.v3') : null;
+    if (raw) proyectos = JSON.parse(raw) as ProyectoLike[];
+  } catch { return []; }
+  const out: CloudVid[] = [];
+  for (const p of proyectos) {
+    for (const reel of p.reels ?? []) {
+      const c = reel.comercial;
+      for (const t of c?.rodaje ?? []) {
+        if (!t.fileRef) continue;
+        out.push({
+          id: `toma-${p.id}-${t.id}`,
+          name: `${p.name} · escena ${t.escenaN}`,
+          url: `${apiBase}/api/storage/${t.fileRef}`,
+          thumbnail: null,
+          duration_sec: t.durSec || null,
+          size_bytes: null,
+          promptUsado: t.promptUsado,
+          origen: { proyecto: p.name, pieza: c?.titulo || reel.nombre || '', escenaN: t.escenaN },
+        });
+      }
+    }
+  }
+  return out;
 }

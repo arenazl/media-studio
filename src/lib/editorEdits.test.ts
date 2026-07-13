@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  deleteClip, duplicateClip, splitClip, canSplit, findClipTrackId,
+  deleteClip, duplicateClip, splitClip, canSplit, findClipTrackId, dropLibItem,
   initHistory, pushHistory, undoHistory, redoHistory,
 } from './editorEdits';
 import type { EditorTrack } from './editorTracks';
@@ -94,6 +94,55 @@ describe('splitClip / canSplit', () => {
     const b = clips.find((c) => c.id === 'v1-b')!;
     expect(a.srcIn).toBe(10);               // A conserva el origen
     expect(b.srcIn).toBeCloseTo(11.5);      // B = 10 + 1.5 (lo que duró A)
+  });
+});
+
+describe('dropLibItem (WO-6a)', () => {
+  const base = (): EditorTrack[] => [
+    { id: 'video', name: 'Video', clips: [{ id: 'v1', label: 'E1', startSec: 0, durSec: 4, color: '#fff', escenaN: 1 }] },
+    { id: 'voz', name: 'Voz', clips: [] },
+    { id: 'musica', name: 'Música', clips: [] },
+    { id: 'texto', name: 'Texto', clips: [] },
+  ];
+
+  it('clip → append a la pista video con escenaN = max+1 y srcIn 0', () => {
+    const out = dropLibItem(base(), { id: 'clip-x', label: 'Nuevo', color: '#fff', fileRef: 'x.mp4', durSec: 5, tab: 'clips' }, 0);
+    const video = out.find((t) => t.id === 'video')!;
+    expect(video.clips).toHaveLength(2);
+    const nuevo = video.clips[1];
+    expect(nuevo.startSec).toBe(4);   // arranca donde terminaba el anterior
+    expect(nuevo.durSec).toBe(5);
+    expect(nuevo.escenaN).toBe(2);
+    expect(nuevo.srcIn).toBe(0);
+    expect(nuevo.fileRef).toBe('x.mp4');
+  });
+
+  it('voz → reemplaza el clip de la pista voz', () => {
+    const out = dropLibItem(base(), { id: 'audio-voz', label: 'Voz', color: '#fff', fileRef: 'voz.mp3', tab: 'audio' }, 0);
+    const voz = out.find((t) => t.id === 'voz')!;
+    expect(voz.clips).toHaveLength(1);
+    expect(voz.clips[0].fileRef).toBe('voz.mp3');
+  });
+
+  it('música → reemplaza el clip de la pista música', () => {
+    const out = dropLibItem(base(), { id: 'audio-track1', label: 'Track', color: '#fff', fileRef: 'm.mp3', tab: 'audio' }, 0);
+    const mus = out.find((t) => t.id === 'musica')!;
+    expect(mus.clips).toHaveLength(1);
+    expect(mus.clips[0].fileRef).toBe('m.mp3');
+  });
+
+  it('texto → instancia en el playhead con el label del preset', () => {
+    const out = dropLibItem(base(), { id: 'preset-titulo', label: 'Título grande', color: '#fff', tab: 'texto', meta: 'titulo' }, 2.5);
+    const txt = out.find((t) => t.id === 'texto')!;
+    expect(txt.clips).toHaveLength(1);
+    expect(txt.clips[0].startSec).toBe(2.5);
+    expect(txt.clips[0].label).toBe('Título grande');
+    expect(txt.clips[0].meta).toBe('titulo');
+  });
+
+  it('item no droppable (efectos/marca) → no-op', () => {
+    const input = base();
+    expect(dropLibItem(input, { id: 'fx-x', label: 'FX', color: '#fff', tab: 'efectos' }, 0)).toBe(input);
   });
 });
 

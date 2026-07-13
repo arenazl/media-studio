@@ -15,6 +15,8 @@ export interface LibItem {
   meta: string;
   color: string;
   fileRef?: string;   // asset real (server/storage) o URL de música — presente cuando el item es "soltable"
+  durSec?: number;    // WO-6a: duración real del clip (para poblar el clip al soltarlo en la timeline)
+  tab?: LibTab;       // WO-6a: de qué pista viene el item — decide en qué pista de la timeline se dropea
 }
 
 export const LIB_TABS: { id: LibTab; label: string }[] = [
@@ -25,13 +27,14 @@ export const LIB_TABS: { id: LibTab; label: string }[] = [
   { id: 'marca', label: 'Marca' },
 ];
 
-// Catálogo fijo de presets de texto (herramienta de edición, no dato del cliente).
+// Catálogo fijo de presets de texto (herramienta de edición, no dato del cliente). Droppables a la
+// pista texto (WO-6a): el label es el contenido inicial, editable en el inspector.
 export const TEXT_PRESETS: LibItem[] = [
-  { id: 'preset-titulo', label: 'Título grande', meta: 'Sora 700 · centrado', color: '#F5F1E8' },
-  { id: 'preset-lower', label: 'Lower third', meta: 'nombre + rol', color: '#00B37E' },
-  { id: 'preset-cta', label: 'CTA botón', meta: 'texto de acción', color: '#FFB800' },
-  { id: 'preset-subs', label: 'Subtítulos auto', meta: 'transcripción de la voz', color: '#4AA3FF' },
-  { id: 'preset-precio', label: 'Precio destacado', meta: 'valor a resaltar', color: '#FF5C8A' },
+  { id: 'preset-titulo', label: 'Título grande', meta: 'titulo', color: '#F5F1E8', tab: 'texto' },
+  { id: 'preset-lower', label: 'Lower third', meta: 'lower', color: '#00B37E', tab: 'texto' },
+  { id: 'preset-cta', label: 'CTA botón', meta: 'cta', color: '#FFB800', tab: 'texto' },
+  { id: 'preset-subs', label: 'Subtítulos auto', meta: 'subs', color: '#4AA3FF', tab: 'texto' },
+  { id: 'preset-precio', label: 'Precio destacado', meta: 'precio', color: '#FF5C8A', tab: 'texto' },
 ];
 
 // Catálogo fijo de efectos (herramienta de edición).
@@ -47,7 +50,7 @@ function buildClipsBin(comercial: Comercial | undefined): LibItem[] {
   if (!comercial) return [];
   if (comercial.tipo === 'animado') {
     return comercial.renderRef
-      ? [{ id: 'clip-render', label: 'Render animado', meta: 'motion graphics · mp4', color: '#00B37E', fileRef: comercial.renderRef }]
+      ? [{ id: 'clip-render', label: 'Render animado', meta: 'motion graphics · mp4', color: '#00B37E', fileRef: comercial.renderRef, tab: 'clips' }]
       : [];
   }
   return (comercial.rodaje || []).map((t) => ({
@@ -56,14 +59,16 @@ function buildClipsBin(comercial: Comercial | undefined): LibItem[] {
     meta: `${t.durSec.toFixed(1)}s · toma importada`,
     color: '#7C5CFF',
     fileRef: t.fileRef,
+    durSec: t.durSec,
+    tab: 'clips' as LibTab,
   }));
 }
 
 function buildAudioBin(reel: ProjectReel | undefined): LibItem[] {
   const items: LibItem[] = [];
   const voiceRef = reel?.voiceConfig?.audioRef;
-  if (voiceRef) items.push({ id: 'audio-voz', label: 'Voz en off', meta: 'grabada del comercial', color: '#00B37E', fileRef: voiceRef });
-  for (const t of MUSIC_TRACKS) items.push({ id: `audio-${t.id}`, label: t.label, meta: `música · ${t.cat}`, color: '#FFB800', fileRef: t.url });
+  if (voiceRef) items.push({ id: 'audio-voz', label: 'Voz en off', meta: 'grabada del comercial', color: '#00B37E', fileRef: voiceRef, tab: 'audio' });
+  for (const t of MUSIC_TRACKS) items.push({ id: `audio-${t.id}`, label: t.label, meta: `música · ${t.cat}`, color: '#FFB800', fileRef: t.url, tab: 'audio' });
   return items;
 }
 

@@ -32,7 +32,10 @@ export default function PasoRodaje({ project, comercial, setComercial, goNext }:
       const r = await fetch(`${API_BASE}/api/projects/${encodeURIComponent(project.id)}/assets`, { method: 'POST', body: fd });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'no se pudo subir el clip');
-      const toma: Toma = { id: `toma-${escenaN}-${Date.now().toString(36)}`, escenaN, fileRef: d.asset.fileRef, durSec: d.asset.duration_sec || 0 };
+      // WO-6b/D8: snapshot del prompt de Flow que originó este clip (dato histórico — el packFlow puede
+      // regenerarse después, pero la toma preserva el prompt con el que se generó).
+      const promptUsado = comercial.packFlow?.escenas.find((e) => e.escenaN === escenaN)?.prompt;
+      const toma: Toma = { id: `toma-${escenaN}-${Date.now().toString(36)}`, escenaN, fileRef: d.asset.fileRef, durSec: d.asset.duration_sec || 0, ...(promptUsado ? { promptUsado } : {}) };
       setComercial((c) => {
         const rodaje = [...(c.rodaje || []), toma];
         const packFlow = c.packFlow

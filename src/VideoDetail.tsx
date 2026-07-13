@@ -149,11 +149,19 @@ export default function VideoDetail({
           </span>
         </div>
 
-        {/* Prompt usado: sin fuente real hoy — un cloud video no queda linkeado a la escena de Pack
-            Flow que lo originó. TODO(modelo-superior): cablear ese link (Formato/Pack Flow → clip
-            importado) cuando la entidad Formato exista — no inventar el prompt mientras tanto. */}
+        {/* WO-6b/D8: si el video es una TOMA de un proyecto, mostramos el prompt de Flow que lo originó
+            (snapshot real en la Toma) + su origen. Un cloud video suelto sigue como "Sin registrar". */}
         <div className="vw-meta-label">Prompt usado</div>
-        <div className="vw-meta-empty">Sin registrar (el clip no está linkeado a una escena de Pack Flow)</div>
+        {video.promptUsado ? (
+          <>
+            {video.origen && (
+              <div className="vw-meta-origen">{video.origen.proyecto} · {video.origen.pieza || 'pieza'} · escena {video.origen.escenaN}</div>
+            )}
+            <pre className="vw-meta-prompt">{video.promptUsado}</pre>
+          </>
+        ) : (
+          <div className="vw-meta-empty">Sin registrar (el clip no está linkeado a una escena de Pack Flow)</div>
+        )}
 
         <div className="vw-meta-actions">
           <button className="vw-btn" onClick={onReclassify} disabled={reclassifying}>

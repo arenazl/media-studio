@@ -31,11 +31,12 @@ export interface EditorTimelineProps {
   onSelect: (id: string) => void;
   zoom: number;
   onZoomChange: (z: number) => void;
+  onDropItem?: (raw: string) => void;   // WO-6a: item de la biblioteca soltado (JSON serializado)
 }
 
 export default function EditorTimeline({
   open, height, onToggle, onResizeStart, tracks, totalSec, playheadSec, onSeek, playing, onTogglePlay,
-  selectedId, onSelect, zoom, onZoomChange,
+  selectedId, onSelect, zoom, onZoomChange, onDropItem,
 }: EditorTimelineProps) {
   const lanesRef = useRef<HTMLDivElement>(null);
 
@@ -66,7 +67,11 @@ export default function EditorTimeline({
   return (
     <>
     {open && <div className="editor-resize-y" onMouseDown={onResizeStart} title="Arrastrar para redimensionar" />}
-    <div className="ed-tl" style={{ height, flex: `0 0 ${height}px` }}>
+    <div
+      className="ed-tl" style={{ height, flex: `0 0 ${height}px` }}
+      onDragOver={onDropItem ? (e) => { if (e.dataTransfer.types.includes('application/x-lib-item')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } } : undefined}
+      onDrop={onDropItem ? (e) => { const raw = e.dataTransfer.getData('application/x-lib-item'); if (raw) { e.preventDefault(); onDropItem(raw); } } : undefined}
+    >
       <div className="ed-tl-bar">
         <button className="ed-tl-chevron" onClick={onToggle} title="Colapsar/expandir">
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
