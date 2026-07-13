@@ -45,6 +45,29 @@ describe('storyboardToMontaje', () => {
   });
 });
 
+describe('dimensiones del plan por formato (WO-3)', () => {
+  it('sin formatoId → 9:16 30fps (default histórico, byte-comparable)', () => {
+    const c = comercialCon([esc(1, 'hook', 8, 'a')], [toma(1, 8)]);
+    const plan = storyboardToMontaje(c);
+    expect([plan.width, plan.height, plan.fps]).toEqual([1080, 1920, 30]);
+  });
+  it('formato 16:9 → 1920×1080', () => {
+    const c = { ...comercialCon([esc(1, 'hook', 8, 'a')], [toma(1, 8)]), formatoId: 'spot-yt-16-9' };
+    const plan = storyboardToMontaje(c);
+    expect([plan.width, plan.height]).toEqual([1920, 1080]);
+  });
+  it('formato 1:1 → 1080×1080', () => {
+    const c = { ...comercialCon([esc(1, 'hook', 8, 'a')], [toma(1, 8)]), formatoId: 'meta-feed-1-1' };
+    const plan = storyboardToMontaje(c);
+    expect([plan.width, plan.height]).toEqual([1080, 1080]);
+  });
+  it('animado también respeta el formato', () => {
+    const c = { ...nuevoComercial('demo', 'animado'), storyboard: [esc(1, 'hook', 4, '')], renderRef: 'r.mp4', formatoId: 'meta-feed-4-5' };
+    const plan = storyboardToMontaje(c as Comercial);
+    expect([plan.width, plan.height]).toEqual([1080, 1350]);
+  });
+});
+
 describe('derivación de tiempos', () => {
   const plan: MontajePlan = {
     width: 1080, height: 1920, fps: 30, silences: [], texts: [],

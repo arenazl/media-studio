@@ -9,7 +9,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const SC = 'scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30,setsar=1';
+// WO-3: las dimensiones salen del plan (plan.width/height/fps) — el render deja de ser 9:16 clavado.
+// Los planes viejos ya traen los campos (montajePlan.ts los pone siempre), así que no hay sorpresas;
+// el default 1080/1920/30 cubre cualquier plan legacy que llegara sin ellos.
+const scaleCrop = (w, h, fps) =>
+  `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},fps=${fps},setsar=1`;
 const AF = 'aformat=sample_rates=44100:channel_layouts=stereo';
 const ms = (s) => Math.round(s * 1000);
 const CUT_DUR = 0.03, XFADE_DUR = 0.4, DUCK_GAIN = 0.4;
@@ -97,6 +101,9 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
   if (!scenes.length) throw new Error('el montaje no tiene escenas con clip importado');
   const sinClip = scenes.filter((s) => !s.src).map((s) => s.escenaN);
   if (sinClip.length) throw new Error(`faltan clips en las escenas ${sinClip.join(',')} — importalos en Rodaje o sacalas del montaje`);
+  // WO-3: dimensiones del plan (default 9:16 30fps para planes legacy sin los campos).
+  const W = Number(plan.width) || 1080, H = Number(plan.height) || 1920, FPS = Number(plan.fps) || 30;
+  const SC = scaleCrop(W, H, FPS);
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mstudio-render-'));
   try {
     // 1. resolver inputs (una entrada -i por escena, + música + voz + logo)
@@ -123,8 +130,9 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
       fc.push(`${vlabel}[v${i}]xfade=transition=${xname}:duration=${td.toFixed(3)}:offset=${offset.toFixed(3)}${out}`);
       vlabel = out; accLen = accLen + dur(scenes[i]) - td;
     }
-    // logo overlay abajo-izquierda (patrón assemble)
-    if (logoIdx >= 0) { fc.push(`[${logoIdx}:v]scale=86:-1[logo]`, `${vlabel}[logo]overlay=46:1784[vlogo]`); vlabel = '[vlogo]'; }
+    // logo overlay abajo-izquierda (patrón assemble). WO-3: y relativo a la altura (H-136 = 1784 en
+    // 9:16, misma posición exacta; margen izquierdo fijo 46 en todos los aspectos).
+    if (logoIdx >= 0) { fc.push(`[${logoIdx}:v]scale=86:-1[logo]`, `${vlabel}[logo]overlay=46:${H - 136}[vlogo]`); vlabel = '[vlogo]'; }
 
     // texto quemado (drawtext): preset único blanco+borde en la safe-area. Solo si hay texts Y fuente del sistema.
     const texts = Array.isArray(plan.texts) ? plan.texts.filter((t) => t && t.text) : [];

@@ -3,6 +3,7 @@
 // Puro y testeable (sin IA, sin ffmpeg). El render (server/renderComercial.mjs) duplica la derivación
 // de tiempos porque no puede importar TS del front (anotado allá).
 import type { Comercial } from './comercial';
+import { getFormato } from './formato';
 import { MUSIC_TRACKS, type MusicCat } from './music';
 
 export type Transicion = 'cut' | 'fade' | 'crossfade' | 'wipe' | 'zoom';
@@ -72,9 +73,17 @@ export function escenasToSlides(comercial: Comercial): { badge: string; title: s
   }));
 }
 
+// Dimensiones/fps del plan a partir del formato del comercial (WO-3). Sin formato → 9:16 30fps (el
+// default histórico — byte-comparable a los planes viejos).
+function dimsDeComercial(comercial: Comercial): { width: number; height: number; fps: number } {
+  const f = getFormato(comercial.formatoId);
+  return f ? { width: f.dims.width, height: f.dims.height, fps: f.fps } : { width: 1080, height: 1920, fps: 30 };
+}
+
 // MontajePlan inicial desde el storyboard + las tomas importadas (filmado) o el render (animado).
 export function storyboardToMontaje(comercial: Comercial): MontajePlan {
   const escenas = comercial.storyboard || [];
+  const dims = dimsDeComercial(comercial);
   // ANIMADO: el reel ya está renderizado (comercial.renderRef); el montaje le pone voz + música.
   if (comercial.tipo === 'animado') {
     const total = escenas.reduce((s, e) => s + (e.durSec || 4), 0) || 8;
@@ -83,7 +92,7 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
       : [];
     const musicUrl = pickMusic(comercial.guion?.music?.mood);
     return {
-      width: 1080, height: 1920, fps: 30, scenes,
+      width: dims.width, height: dims.height, fps: dims.fps, scenes,
       music: musicUrl ? { src: musicUrl, gain: MUSIC_GAIN, duck: true } : undefined,
       silences: [], texts: [],
     };
@@ -110,7 +119,7 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
   const silences = gag ? [{ antesDeEscena: gag.n, durSec: SILENCE_ANTES_GAG }] : [];
   const musicUrl = pickMusic(comercial.guion?.music?.mood);
   return {
-    width: 1080, height: 1920, fps: 30,
+    width: dims.width, height: dims.height, fps: dims.fps,
     scenes,
     music: musicUrl ? { src: musicUrl, gain: MUSIC_GAIN, duck: true } : undefined,
     silences,
