@@ -48,6 +48,9 @@ const VEO_RULES = `REGLAS DE CADA prompt (battle-tested; van en INGLES salvo el 
 function ctx(context) {
   const project = (context && context.project) || {};
   const piece = (context && context.piece) || {};
+  // WO-2: el formato de la pieza (aspecto/plataforma/durDefault) parametriza los moldes. Sin formato
+  // (proyectos viejos) → defaults idénticos a los hardcodeos anteriores (retrocompat byte-idéntica).
+  const formato = piece.formato || {};
   return {
     name: project.name || 'el producto',
     phonetic: project.phonetic || project.name || '',
@@ -59,7 +62,9 @@ function ctx(context) {
     guion: Array.isArray(piece.guion) && piece.guion.length ? piece.guion.join(' · ') : '',
     angulo: piece.angulo || piece.angle || '',
     objetivo: piece.objetivo || piece.objective || '',
-    durationSec: Number(piece.durationSec) || 18,
+    aspecto: formato.aspecto || '9:16',
+    plataforma: formato.plataforma || 'Instagram / TikTok',
+    durationSec: Number(piece.durationSec) || Number(formato.durDefault) || 18,
   };
 }
 
@@ -93,6 +98,11 @@ const RUNNERS = {
       const x = ctx(context);
       const perfil = options.perfil || 'campaña';
       const cuantas = perfil === 'campaña' ? '3' : '2 a 3';
+      // WO-2/D3: si el proyecto tiene formato, el ejemplo del shape lo refleja; sin formato queda
+      // "reel 9:16"/20 (byte-idéntico). strategy es nivel proyecto → lee project.formato, no piece.
+      const pf = (context && context.project && context.project.formato) || null;
+      const fmtEjemplo = pf ? `${pf.aspecto} para ${pf.plataforma}` : 'reel 9:16';
+      const durEjemplo = pf && Number(pf.durDefault) ? Number(pf.durDefault) : 20;
       return { prompt: `Actuás como social-marketing-strategist. Del BRIEF, armá la estrategia de campaña de video para redes (Instagram/Facebook).
 
 ENFOQUE GLOBAL (regla CENTRAL, no la rompas): cada pieza cuenta TODA la propuesta de valor del negocio en UN solo video — los puntos fuertes y cómo se conectan entre sí. NUNCA fragmentes por producto/módulo (NO una pieza de "trámites" y otra de "reclamos"): CADA pieza dice TODO, con un ÁNGULO/approach DISTINTO.
@@ -103,7 +113,7 @@ Devolvé SOLO JSON (sin texto ni markdown alrededor):
 {
   "positioning": "1-2 frases: qué es, para quién y por qué es distinto",
   "audiences": [{ "label": "segmento", "pain": "su dolor concreto", "language": "palabras que usa ese segmento" }],
-  "pieces": [{ "id": "v1", "objective": "awareness|consideracion|conversion", "angle": "el approach de ESTA versión (pocas palabras)", "format": "reel 9:16", "durationSec": 20, "creativeBrief": "qué cuenta (TODA la propuesta, global) y con qué tono/approach, 1-2 frases" }]
+  "pieces": [{ "id": "v1", "objective": "awareness|consideracion|conversion", "angle": "el approach de ESTA versión (pocas palabras)", "format": "${fmtEjemplo}", "durationSec": ${durEjemplo}, "creativeBrief": "qué cuenta (TODA la propuesta, global) y con qué tono/approach, 1-2 frases" }]
 }
 Reglas: español rioplatense, sin emojis, NO inventes datos/precios/cifras como reales. Cada pieza es GLOBAL (cuenta todo el negocio), JAMÁS un solo módulo.
 NEGOCIO: ${x.name}
@@ -123,6 +133,10 @@ BRIEF (los hechos): ${x.brief}` };
       const concepto = piece.concepto ? JSON.stringify(piece.concepto) : '';
       const tono = options.tono || 'cercano';
       const dur = options.duracion || x.durationSec;
+      // WO-2/D4: con formato interpolamos aspecto+plataforma; SIN formato dejamos "un reel 9:16"
+      // verbatim (retrocompat byte-idéntica — no cambiar el prompt de proyectos viejos). Incluye el
+      // artículo para que la frase quede gramatical con cualquier formato ("para una pieza …").
+      const piezaDesc = piece.formato ? `una pieza ${x.aspecto} para ${x.plataforma}` : 'un reel 9:16';
       if (regenerate && regenerate.index != null) {
         const cur = (regenerate.blocks || [])[regenerate.index] || {};
         return { mode: 'item', prompt: `Actuás como promo-director. Rehacé SOLO ESTE bloque del guion (tono ${tono}), con una propuesta DISTINTA y mejor. Mantené su rol.
@@ -130,7 +144,7 @@ Devolvé SOLO el JSON del bloque: { "role": "${cur.role || 'hook'}", "narration"
 NEGOCIO: ${x.name} · BLOQUE ACTUAL (hacelo distinto): ${JSON.stringify(cur)}
 Rioplatense, sin emojis, no inventes datos.` };
       }
-      return { mode: 'set', prompt: `Actuás como promo-director. Escribí el guion de un comercial de ${dur}s para un reel 9:16, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
+      return { mode: 'set', prompt: `Actuás como promo-director. Escribí el guion de un comercial de ${dur}s para ${piezaDesc}, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
 ${concepto ? `CONCEPTO ELEGIDO (respetalo, es la dirección creativa del comercial): ${concepto}\n` : ''}ENFOQUE GLOBAL (clave): contá TODA la propuesta del negocio en ESTE video — no un solo módulo/producto. Enganchá explicando el funcionamiento, CONECTÁ los puntos fuertes en un hilo, reforzá con la prueba y cerrá con el CTA.
 Estructura NARRATIVA por bloques con estos roles EXACTOS: hook (primeros 2s, roba la atención, sin logo ni "somos X") -> desarrollo (cómo funciona / la propuesta en vivo) -> gag (el REMATE: el momento más fuerte — humor si el concepto es humorístico, si no la prueba/beneficio contundente) -> cta (llamado a la acción claro). El gag va SIEMPRE ANTES del cta.
 Narración calibrada para TTS a ~2.7 palabras/seg (que entre en ${dur}s); estimá el durSec de cada bloque.
@@ -258,8 +272,10 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       const tipo = piece.tipo || 'filmado';
       const durationSec = Number(piece.durationSec) || 20;
       const guion = pieceGuionText(piece);
+      // WO-2/D4: aspecto del formato; sin formato queda '9:16' (byte-idéntico al hardcodeo anterior).
+      const asp = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
       if (tipo === 'animado') {
-        return { prompt: `Sos director de un reel ANIMADO 9:16 (se recrean las PANTALLAS del producto, sin personas). Convertí el guion en un STORYBOARD de escenas numeradas, una por PANTALLA.
+        return { prompt: `Sos director de un reel ANIMADO ${asp} (se recrean las PANTALLAS del producto, sin personas). Convertí el guion en un STORYBOARD de escenas numeradas, una por PANTALLA.
 Por escena: n (número), rol (hook|desarrollo|gag|cta), durSec (3-5s), screen (label de la pantalla del KB), accion (un título corto de <=8 palabras que vende ese momento), dialogo "" (vacío), continuidad (la palabra a RESALTAR del título). Dejá plano/angulo vacíos y personajes [].
 La suma de durSec ≈ ${durationSec}s.
 Devolvé SOLO JSON: { "escenas": [{ "n": 1, "rol": "hook", "durSec": 4, "screen": "...", "plano": "", "angulo": "", "personajes": [], "accion": "título corto", "dialogo": "", "continuidad": "palabra a resaltar" }] }
@@ -269,7 +285,7 @@ PANTALLAS DEL KB: ${screensText(project) || '(sin pantallas: proponé pantallas 
 GUION: ${guion || '(usá el brief del negocio)'}` };
       }
       const cast = piece.cast ? JSON.stringify(piece.cast) : '(sin cast todavía: usá ids p1/p2 y descripciones genéricas)';
-      return { prompt: `Sos director de un comercial FILMADO 9:16. Convertí el guion en un STORYBOARD de escenas numeradas.
+      return { prompt: `Sos director de un comercial FILMADO ${asp}. Convertí el guion en un STORYBOARD de escenas numeradas.
 Por escena: n, rol (hook|desarrollo|gag|cta), durSec (talking head = 8 MÍNIMO, jamás menos; b-roll 4-8), plano (medium shot waist-up para talking heads — NUNCA wide lejano), angulo (eye-level, etc.), personajes (ids del CAST — USÁ SIEMPRE los mismos), accion, dialogo (rioplatense, frase ENTERA de ~24-30 palabras si es talking head, que COMENTA el producto; marca SIEMPRE fonética: ${phonetic}), continuidad (qué debe matchear con la escena anterior: ropa, luz, posición).
 La suma de durSec ≈ ${durationSec}s (puede pasarse antes que recortar un talking head). El gag/remate va ANTES del CTA.
 Devolvé SOLO JSON: { "escenas": [{ "n": 1, "rol": "hook", "durSec": 8, "plano": "medium shot waist-up", "angulo": "eye-level", "personajes": ["p1"], "accion": "...", "dialogo": "...", "continuidad": "..." }] }
@@ -309,9 +325,12 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       const brandTxt = brand ? ` · MARCA: ${typeof brand === 'string' ? brand : JSON.stringify(brand)}` : '';
       const storyboard = Array.isArray(piece.storyboard) ? piece.storyboard : [];
       const castJson = piece.cast ? JSON.stringify(piece.cast) : '(sin cast: b-roll/pantallas — usá la locación)';
+      // WO-2/D4: aspecto del formato; sin formato queda '9:16' (byte-idéntico). VEO_RULES y las specs
+      // de estilo/imagen del cuerpo del prompt (calibradas) NO se tocan — solo el marco del pedido.
+      const asp = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
       if (regenerate && regenerate.escenaN != null) {
         const escena = storyboard.find((e) => Number(e.n) === Number(regenerate.escenaN)) || {};
-        return { mode: 'escena', prompt: `Sos el prompt-writer de Google Flow (Veo 3.1, flujo nuevo con Personajes por imagen). Rehacé SOLO el prompt de la ESCENA ${regenerate.escenaN} de un comercial 9:16, con OTRA idea visual/encuadre.
+        return { mode: 'escena', prompt: `Sos el prompt-writer de Google Flow (Veo 3.1, flujo nuevo con Personajes por imagen). Rehacé SOLO el prompt de la ESCENA ${regenerate.escenaN} de un comercial ${asp}, con OTRA idea visual/encuadre.
 En el flujo nuevo los personajes YA tienen su IMAGEN de referencia: referílos por su NOMBRE del cast + nacionalidad "Argentine" (ej. "Ana, an Argentine woman in her late 20s") — CORTO, NUNCA pegues el fisicoEn largo. El diálogo va LITERAL en español rioplatense entre comillas; el resto del prompt en INGLÉS.
 ${VEO_RULES}
 CAST (para tomar nombres de personajes y la locación — NO copies el fisicoEn en el prompt): ${castJson}
@@ -320,7 +339,7 @@ MARCA FONÉTICA: ${phonetic}
 Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "prompt": "el prompt en inglés, con el diálogo en español rioplatense entre comillas y la marca fonética" } }` };
       }
       return { mode: 'pack', prompt: `Sos el prompt-writer de Google Flow (Veo 3.1) en su FLUJO NUEVO: los personajes se crean como ENTIDAD con una IMAGEN de referencia (Nano Banana / Gemini Image) y las escenas se animan llamando al personaje por su NOMBRE. La consistencia la fija la IMAGEN — NO se repite la descripción física en cada prompt (mezclar personaje+estilo+acción en un solo prompt hace que Flow devuelva una imagen estática).
-Armá el PACK de un comercial 9:16 desde el STORYBOARD y el CAST, en TRES piezas separadas:
+Armá el PACK de un comercial ${asp} desde el STORYBOARD y el CAST, en TRES piezas separadas:
 
 (1) "estilo": UN bloque corto en INGLÉS con el estilo global — "photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic, not over-rendered and not CGI-perfect". SOLO estética/formato: SIN personajes y SIN acción.
 

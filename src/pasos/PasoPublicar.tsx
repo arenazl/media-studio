@@ -20,7 +20,7 @@ export default function PasoPublicar({ project, comercial, setComercial }: PasoP
     setBusy(true); setError('');
     try {
       const narr = comercial?.guion?.blocks?.map((b) => b.narration).filter(Boolean) || [];
-      const res = await runMolde('publish', project, { guion: narr, objetivo: comercial?.concepto?.idea }, { red: 'instagram' });
+      const res = await runMolde('publish', project, { guion: narr, objetivo: comercial?.concepto?.idea }, { red: 'instagram' }, undefined, comercial);
       setComercial((c) => ({ ...c, publicacion: res as unknown as PublishPack, estados: { ...c.estados, publicar: c.estados.publicar === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };

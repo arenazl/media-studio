@@ -15,7 +15,7 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('cast', project, { concepto: comercial?.concepto, guion: comercial?.guion });
+      const res = await runMolde('cast', project, { concepto: comercial?.concepto, guion: comercial?.guion }, {}, undefined, comercial);
       const nuevo: Cast = { personajes: (res.personajes as CharacterSheet[]) || [], lugar: res.lugar as Cast['lugar'] };
       setComercial((c) => ({ ...c, cast: nuevo, estados: { ...c.estados, cast: c.estados.cast === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }

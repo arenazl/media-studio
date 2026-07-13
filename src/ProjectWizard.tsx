@@ -28,7 +28,13 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
   const [progress, setProgress] = useState('');
   const [err, setErr] = useState('');
 
-  const base = { name: project.name, phonetic: project.brandKit?.phonetic || project.name, brief: project.brief || '', screens: screensOf(project) };
+  // WO-2/D3: si el proyecto tiene formato, strategy lo lee de project.formato (el ejemplo del shape
+  // refleja aspecto/plataforma/duración). Sin formato → prompt byte-idéntico al anterior.
+  const fmt = getFormato(project.formatoId);
+  const base = {
+    name: project.name, phonetic: project.brandKit?.phonetic || project.name, brief: project.brief || '', screens: screensOf(project),
+    ...(fmt ? { formato: { aspecto: fmt.aspecto, plataforma: fmt.plataforma, durDefault: fmt.duracion.default } } : {}),
+  };
 
   const runFn = async (functionId: string, piece?: object, options: object = {}) => {
     const r = await fetch(`${API_BASE}/api/run-function`, {

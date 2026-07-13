@@ -18,7 +18,7 @@ export default function PasoStoryboard({ project, comercial, setComercial, goNex
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('storyboard', project, { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec: 20 });
+      const res = await runMolde('storyboard', project, { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec: 20 }, {}, undefined, comercial);
       setComercial((c) => ({ ...c, storyboard: (res.escenas as Escena[]) || [], estados: { ...c.estados, storyboard: c.estados.storyboard === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };

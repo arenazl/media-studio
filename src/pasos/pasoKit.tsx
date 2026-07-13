@@ -5,6 +5,7 @@ import { Loader2, Wand2, RefreshCw, ArrowRight, type LucideIcon } from 'lucide-r
 import { API_BASE } from '../config';
 import type { Project } from '../lib/projects';
 import type { Comercial } from '../lib/comercial';
+import { getFormato } from '../lib/formato';
 import { effectiveModel, subscribeAiModel } from '../lib/settings';
 
 export const errMsg = (e: unknown): string => (e instanceof Error ? e.message : 'error');
@@ -18,17 +19,27 @@ export interface PasoProps {
   goNext: () => void;
 }
 
+// Resuelve el formato de la pieza al shape que consumen los moldes del server (WO-2): aspecto/
+// plataforma/durDefault. Sin formatoId → undefined (los moldes caen a sus defaults byte-idénticos).
+function formatoPayload(formatoId?: string): { aspecto: string; plataforma: string; durDefault: number } | undefined {
+  const f = getFormato(formatoId);
+  return f ? { aspecto: f.aspecto, plataforma: f.plataforma, durDefault: f.duracion.default } : undefined;
+}
+
 // Corre UN molde del catálogo (Claude headless) con el context armado desde project + piece.
 // `piece` lleva los artefactos previos SIN aplanar (concepto/guion/cast/storyboard) — los moldes
-// del rework los leen directo de context.piece.<artefacto>.
+// del rework los leen directo de context.piece.<artefacto>. Si se pasa `comercial`, su formato se
+// inyecta en piece.formato (parametriza los moldes por aspecto/plataforma — WO-2).
 export async function runMolde(
   functionId: string,
   project: Project,
   piece: Record<string, unknown>,
   options: Record<string, unknown> = {},
   regenerate?: Record<string, unknown>,
+  comercial?: Comercial,
 ): Promise<Record<string, unknown>> {
   const bk = project.brandKit as { phonetic?: string } | undefined;
+  const formato = formatoPayload(comercial?.formatoId);
   const body = {
     functionId,
     context: {
@@ -38,8 +49,9 @@ export async function runMolde(
         brief: project.brief || '',
         screens: project.screens || [],
         brand: project.brandKit,
+        ...(formato ? { formato } : {}),   // strategy (nivel proyecto) lo lee de project.formato
       },
-      piece,
+      piece: { ...piece, ...(formato ? { formato } : {}) },
     },
     options,
     model: effectiveModel(functionId),

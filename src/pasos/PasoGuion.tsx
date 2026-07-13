@@ -22,7 +22,7 @@ export default function PasoGuion({ project, comercial, setComercial, goNext }: 
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec: 20 }, { tono: 'cercano', duracion: '20' });
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec: 20 }, { tono: 'cercano', duracion: '20' }, undefined, comercial);
       applyGuion({ blocks: (res.blocks as GuionBloque[]) || [], music: res.music as { mood: string } | undefined });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
@@ -31,7 +31,7 @@ export default function PasoGuion({ project, comercial, setComercial, goNext }: 
     if (!guion) return;
     setBusyIdx(i); setError('');
     try {
-      const res = await runMolde('script', project, { concepto: comercial?.concepto }, { tono: 'cercano' }, { index: i, blocks });
+      const res = await runMolde('script', project, { concepto: comercial?.concepto }, { tono: 'cercano' }, { index: i, blocks }, comercial);
       const item = res.item as GuionBloque | undefined;
       if (item) applyGuion({ ...guion, blocks: blocks.map((b, j) => (j === i ? item : b)) }, 'editado');
     } catch (e) { setError(errMsg(e)); } finally { setBusyIdx(null); }

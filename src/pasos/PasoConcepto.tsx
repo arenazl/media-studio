@@ -19,7 +19,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
     try {
       // C7: el ángulo/brief sembrados por strategy diferencian el concepto; el título es solo fallback.
       const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', durationSec: 20 };
-      const res = await runMolde('concept', project, piece, { perfil: 'campaña' });
+      const res = await runMolde('concept', project, piece, { perfil: 'campaña' }, undefined, comercial);
       setOpciones((res.conceptos as Concepto[]) || []);
       setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }

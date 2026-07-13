@@ -42,7 +42,7 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('flowpack', project, { storyboard: escenasSb, cast: comercial?.cast });
+      const res = await runMolde('flowpack', project, { storyboard: escenasSb, cast: comercial?.cast }, {}, undefined, comercial);
       setComercial((c) => ({
         ...c,
         packFlow: {
@@ -73,7 +73,7 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
   const regenEscena = async (escenaN: number) => {
     setBusyN(escenaN); setError('');
     try {
-      const res = await runMolde('flowpack', project, { storyboard: escenasSb, cast: comercial?.cast }, {}, { escenaN });
+      const res = await runMolde('flowpack', project, { storyboard: escenasSb, cast: comercial?.cast }, {}, { escenaN }, comercial);
       const esc = res.escena as { escenaN: number; prompt: string } | undefined;
       if (esc) setComercial((c) => (c.packFlow?.escenas
         ? { ...c, packFlow: { ...c.packFlow, escenas: c.packFlow.escenas.map((k) => (k.escenaN === escenaN ? { ...k, prompt: esc.prompt, estado: 'pendiente' } : k)) } }
