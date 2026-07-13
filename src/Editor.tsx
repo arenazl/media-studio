@@ -3,21 +3,19 @@
 // local de pistas — sembrado una vez desde el MontajePlan REAL del comercial (editorTracks.ts) y
 // editado con las funciones puras de editorEdits.ts (split/duplicar/eliminar + deshacer/rehacer).
 //
-// Límite de honestidad (REGLAS-IMPLEMENTACION.md): estos cambios NO se escriben de vuelta al
-// proyecto — mapear el draft editado a un MontajePlan persistible + al render (renderComercial.mjs)
-// es la "composición final" que el modelo superior tiene que diseñar, no esta fase. Por eso el editor
-// no recibe `onChange`/`updateProject`: es intencional, no un olvido.
-// TODO(modelo-superior): auto-armado por IA real de la timeline — hoy se puebla 1:1 desde el
-// MontajePlan ya persistido (Montaje) o, si no se armó, desde storyboardToMontaje (mecánico).
-// TODO(modelo-superior): persistir las ediciones del draft + exportar/renderizar desde acá (hoy
-// "Listo → Publicar" sólo navega; el render real sigue viviendo en el paso Montaje).
+// WO-4: el editor CIERRA el loop de persistencia. El draft editado se invierte a un MontajePlan
+// (montajeFromTracks.ts) y se guarda vía el DUEÑO ÚNICO (App.updateProject) por el callback
+// onSaveMontaje — el editor NO conoce localStorage ni fetch. El render sigue viviendo en el paso
+// Montaje (D6): "Listo → Publicar" guarda (si hay cambios) + navega; no dispara un render escondido.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Clapperboard } from 'lucide-react';
 import type { Project, ProjectReel } from './lib/projects';
 import {
-  buildEditorTimeline, findClip, clipAt, clipsAt, aspectLabel,
+  buildEditorTimeline, resolvePlan, findClip, clipAt, clipsAt, aspectLabel,
   type EditorTrack, type EditorClip, type TransitionKind,
 } from './lib/editorTracks';
+import { tracksToMontaje } from './lib/montajeFromTracks';
+import type { MontajePlan } from './lib/montajePlan';
 import {
   deleteClip, duplicateClip, splitClip, initHistory, pushHistory, undoHistory, redoHistory, type EditHistory,
 } from './lib/editorEdits';
@@ -37,6 +35,9 @@ export interface EditorProps {
   project: Project | null;
   onBack: () => void;
   onPublish: () => void;
+  // WO-4: App lo cablea a updateProject (dueño único). El editor le pasa el MontajePlan invertido del
+  // draft; App escribe comercial.montaje.plan + avanza el estado 'montaje'→'editado'.
+  onSaveMontaje?: (plan: MontajePlan) => void;
 }
 
 // alto de la timeline COLAPSADA (sólo la barra de herramientas visible) — igual al prototipo
@@ -83,7 +84,7 @@ function beginAxisDrag(e: React.MouseEvent, opts: {
   document.body.style.userSelect = 'none';
 }
 
-export default function Editor({ project, onBack, onPublish }: EditorProps) {
+export default function Editor({ project, onBack, onPublish, onSaveMontaje }: EditorProps) {
   const reel: ProjectReel | undefined = project?.reels[0];
   const comercial = reel?.comercial;
 
@@ -92,6 +93,13 @@ export default function Editor({ project, onBack, onPublish }: EditorProps) {
   const [history, setHistory] = useState<EditHistory<EditorTrack[]>>(() => initHistory(buildEditorTimeline(comercial).tracks));
   const [dims] = useState(() => { const t = buildEditorTimeline(comercial); return { width: t.width, height: t.height }; });
   const [contentDirty, setContentDirty] = useState(false);
+  // plan base para invertir el draft (WO-4): el plan de origen del editor (persistido o derivado del
+  // storyboard). Se fija al montar; aporta lo que el draft no modela (dims/logo/gain/duck). Fallback
+  // con las dims que ya resolvió buildEditorTimeline (evita reinventar el default acá).
+  const [basePlan] = useState<MontajePlan>(() => {
+    const t = buildEditorTimeline(comercial);
+    return resolvePlan(comercial) ?? { width: t.width, height: t.height, fps: 30, scenes: [], silences: [], texts: [] };
+  });
 
   const draftTracks = history.present;
   const totalSec = useMemo(() => {
@@ -180,6 +188,26 @@ export default function Editor({ project, onBack, onPublish }: EditorProps) {
   const onUndo = () => setHistory(undoHistory);
   const onRedo = () => setHistory(redoHistory);
 
+  // WO-4: guardar = invertir el draft a MontajePlan y entregarlo al dueño único (App). Resetea el
+  // estado "sin guardar" arrancando un historial nuevo desde el presente (no se puede deshacer más
+  // allá de lo guardado, como en cualquier NLE tras un Guardar).
+  const onSave = useCallback(() => {
+    if (!onSaveMontaje) return;
+    onSaveMontaje(tracksToMontaje(history.present, basePlan));
+    setHistory((h) => initHistory(h.present));
+    setContentDirty(false);
+  }, [onSaveMontaje, history.present, basePlan]);
+
+  // "Listo → Publicar": guarda si hay cambios y navega (D6 — el render sigue en Montaje).
+  const onPublishSaving = () => { if (dirty) onSave(); onPublish(); };
+
+  // salir: si hay cambios sin guardar, confirmar. Sin ConfirmModal propio del editor, window.confirm
+  // (deuda menor anotada); el flujo de la app usa modales por pantalla, no hay uno global reutilizable.
+  const onBackSafe = () => {
+    if (dirty && !window.confirm('Tenés cambios sin guardar en el editor. ¿Salir y descartarlos?')) return;
+    onBack();
+  };
+
   const onTextContentChange = (clipId: string, value: string) => {
     replacePresent((tracks) => tracks.map((t) => (t.id === 'texto'
       ? { ...t, clips: t.clips.map((c) => (c.id === clipId ? { ...c, label: value } : c)) }
@@ -189,6 +217,23 @@ export default function Editor({ project, onBack, onPublish }: EditorProps) {
     mutate((tracks) => tracks.map((t) => (t.id === 'video'
       ? { ...t, clips: t.clips.map((c) => (c.id === clipId ? { ...c, transitionAfter: kind } : c)) }
       : t)));
+  };
+
+  // WO-4 (D5): cablea SOLO lo que el render EJECUTA — audioGain del clip (video) y gain/duck de la
+  // música (persistidos vía el meta del clip de música). Va por replacePresent (marca dirty sin apilar
+  // un undo por cada tick del slider — igual que editar texto).
+  const onMediaChange = (clipId: string, patch: { audioGain?: number; duck?: boolean }) => {
+    replacePresent((tracks) => tracks.map((t) => ({
+      ...t,
+      clips: t.clips.map((c) => {
+        if (c.id !== clipId) return c;
+        const next = { ...c };
+        if (patch.audioGain != null) next.audioGain = patch.audioGain;
+        // la música codifica el ducking en su meta (lo lee montajeFromTracks para music.duck).
+        if (patch.duck != null && t.id === 'musica') next.meta = patch.duck ? 'con ducking' : 'sin ducking';
+        return next;
+      }),
+    })));
   };
 
   const videoTrack = draftTracks.find((t) => t.id === 'video');
@@ -234,7 +279,7 @@ export default function Editor({ project, onBack, onPublish }: EditorProps) {
   return (
     <div className="editor-shell">
       <EditorToolbar
-        onBack={onBack}
+        onBack={onBackSafe}
         pieceName={pieceName}
         aspect={aspect}
         durationLabel={durationLabel}
@@ -242,14 +287,16 @@ export default function Editor({ project, onBack, onPublish }: EditorProps) {
         canUndo={history.past.length > 0}
         canRedo={history.future.length > 0}
         canEdit={canEdit}
+        canSave={dirty && !!onSaveMontaje}
         onUndo={onUndo}
         onRedo={onRedo}
         onSplit={onSplit}
         onDuplicate={onDuplicate}
         onDelete={onDelete}
+        onSave={onSave}
         previewFocus={previewFocus}
         onTogglePreviewFocus={() => setPreviewFocus((v) => !v)}
-        onPublish={onPublish}
+        onPublish={onPublishSaving}
       />
       <div className="editor-mid">
         <EditorLibrary
@@ -285,6 +332,7 @@ export default function Editor({ project, onBack, onPublish }: EditorProps) {
           clip={selection.clip}
           onTextContentChange={onTextContentChange}
           onTransitionTypeChange={onTransitionTypeChange}
+          onMediaChange={onMediaChange}
           overlappingFx={overlappingFx}
         />
       </div>

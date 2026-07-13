@@ -84,6 +84,17 @@ describe('splitClip / canSplit', () => {
   it('canSplit: sin clip seleccionado → false', () => {
     expect(canSplit(tracks(), null, 1)).toBe(false);
   });
+
+  it('WO-4: la parte B corre su srcIn lo que dura A (no repite el mismo frame)', () => {
+    // un clip de video con srcIn 10 (arranca en el segundo 10 del archivo), 0..4 en el timeline.
+    const t: EditorTrack[] = [{ id: 'video', name: 'Video', clips: [{ id: 'v1', label: 'E1', startSec: 0, durSec: 4, color: '#fff', srcIn: 10 }] }];
+    const out = splitClip(t, 'v1', 1.5);   // parte en 1.5 (A dura 1.5)
+    const clips = out.find((x) => x.id === 'video')!.clips;
+    const a = clips.find((c) => c.id === 'v1-a')!;
+    const b = clips.find((c) => c.id === 'v1-b')!;
+    expect(a.srcIn).toBe(10);               // A conserva el origen
+    expect(b.srcIn).toBeCloseTo(11.5);      // B = 10 + 1.5 (lo que duró A)
+  });
 });
 
 describe('historial deshacer/rehacer', () => {

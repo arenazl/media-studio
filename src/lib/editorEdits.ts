@@ -1,9 +1,8 @@
 // Ediciones del DRAFT local del editor multipista: partir/duplicar/eliminar un clip dentro de su
 // pista + un historial deshacer/rehacer sobre snapshots. Puro y mecánico (mueve clips en el tiempo,
 // no decide nada de mezcla/render) — la app opera sobre una copia en memoria seedeada desde el
-// MontajePlan real (editorTracks.ts); estos cambios NO se persisten al comercial todavía.
-// TODO(modelo-superior): mapear estas ediciones de vuelta a un MontajePlan persistible + al render
-// (server/renderComercial.mjs) — es la "composición final" que REGLAS-IMPLEMENTACION.md pide no inventar.
+// MontajePlan real (editorTracks.ts). WO-4: el draft ahora se INVIERTE a un MontajePlan persistible
+// (montajeFromTracks.ts) y se guarda vía el dueño único (App.updateProject).
 import type { EditorClip, EditorTrack } from './editorTracks';
 
 const MIN_SPLIT_GAP = 0.15;   // s — no partir pegado al borde del clip (mismo criterio que audioSlice.MIN_SEG_GAP)
@@ -57,7 +56,12 @@ export function splitClip(tracks: EditorTrack[], clipId: string, atSec: number):
     const clip = clips[idx];
     const end = clip.startSec + clip.durSec;
     const a: EditorClip = { ...clip, id: `${clip.id}-a`, durSec: atSec - clip.startSec, label: `${clip.label} (A)`, transitionAfter: 'cut' };
-    const b: EditorClip = { ...clip, id: `${clip.id}-b`, startSec: atSec, durSec: end - atSec, label: `${clip.label} (B)` };
+    // WO-4 (hecho 8): la parte B arranca MÁS ADENTRO del archivo — su srcIn se corre lo que dura A.
+    // Sin esto ambas mitades apuntarían al mismo `in` del clip crudo (mostrarían el mismo frame).
+    const b: EditorClip = {
+      ...clip, id: `${clip.id}-b`, startSec: atSec, durSec: end - atSec, label: `${clip.label} (B)`,
+      srcIn: (clip.srcIn ?? 0) + (atSec - clip.startSec),
+    };
     return [...clips.slice(0, idx), a, b, ...clips.slice(idx + 1)];
   });
 }

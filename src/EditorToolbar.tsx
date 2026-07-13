@@ -1,7 +1,7 @@
 // Barra superior del editor multipista (prototipo.dc.html líneas 840-857). Navegación (back/publicar)
 // + herramientas de edición del clip seleccionado (split/duplicar/eliminar) + deshacer/rehacer sobre
 // el historial local (lib/editorEdits.ts) + chips de estado.
-import { ArrowLeft, Undo2, Redo2, Scissors, CopyPlus, Trash2, Sparkles, Check, Pencil, Eye } from 'lucide-react';
+import { ArrowLeft, Undo2, Redo2, Scissors, CopyPlus, Trash2, Sparkles, Check, Pencil, Eye, Save } from 'lucide-react';
 import './EditorToolbar.css';
 
 export interface EditorToolbarProps {
@@ -13,19 +13,21 @@ export interface EditorToolbarProps {
   canUndo: boolean;
   canRedo: boolean;
   canEdit: boolean;
+  canSave: boolean;
   onUndo: () => void;
   onRedo: () => void;
   onSplit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
+  onSave: () => void;
   previewFocus: boolean;
   onTogglePreviewFocus: () => void;
   onPublish: () => void;
 }
 
 export default function EditorToolbar({
-  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit,
-  onUndo, onRedo, onSplit, onDuplicate, onDelete, previewFocus, onTogglePreviewFocus, onPublish,
+  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave,
+  onUndo, onRedo, onSplit, onDuplicate, onDelete, onSave, previewFocus, onTogglePreviewFocus, onPublish,
 }: EditorToolbarProps) {
   return (
     <div className="ed-toolbar">
@@ -48,6 +50,9 @@ export default function EditorToolbar({
         <span className="ed-vsep" />
         <button className={previewFocus ? 'ed-btn ed-btn--on' : 'ed-btn'} onClick={onTogglePreviewFocus}>
           <Eye size={13} /> Vista previa
+        </button>
+        <button className="ed-btn" disabled={!canSave} onClick={onSave} title="Guardar las ediciones en la pieza">
+          <Save size={13} /> Guardar
         </button>
         <button className="ed-btn ed-btn--primary" onClick={onPublish}>Listo → Publicar</button>
       </div>

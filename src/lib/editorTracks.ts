@@ -21,6 +21,13 @@ export interface EditorClip {
   transitionAfter?: TransitionKind;   // sólo tiene sentido en 'video': marcador hacia el SIGUIENTE clip
   nx?: number;   // sólo 'texto': posición normalizada (0-1) — real, viene de MontajeText.nx/ny
   ny?: number;
+  // WO-4: identidad de origen del clip de VIDEO — necesaria para invertir el draft a MontajePlan sin
+  // adivinar. srcIn = offset dentro del archivo (= scene.in); escenaN = escena del storyboard/rodaje.
+  srcIn?: number;
+  escenaN?: number;
+  audioGain?: number;   // WO-4: volumen del clip (video) — 0-1, persistido a scene.audioGain
+  rol?: string;         // rol de la escena base (hook/desarrollo/gag/cta) — para reponerlo en la inversión
+  audio?: 'keep' | 'mute';   // modo de audio de la escena (para la inversión)
 }
 
 export interface EditorTrack {
@@ -67,7 +74,8 @@ export function transitionKind(t: Transicion | undefined): TransitionKind {
 // mínimo) o disolvencia (xfade completo) — transitionDur() ya lo resuelve así. Se reusa esa MISMA
 // función (representando cada kind del inspector con un Transicion real) en vez de inventar un
 // tercer número para "slide": el inspector muestra la duración REAL, no una granularidad que no existe.
-const TRANSITION_KIND_REP: Record<TransitionKind, Transicion> = { cut: 'cut', dissolve: 'crossfade', slide: 'wipe' };
+// WO-4: exportada — la usa montajeFromTracks.ts para volver del kind del inspector al Transicion real.
+export const TRANSITION_KIND_REP: Record<TransitionKind, Transicion> = { cut: 'cut', dissolve: 'crossfade', slide: 'wipe' };
 export function transitionKindDurSec(kind: TransitionKind | undefined): number {
   return transitionDur(TRANSITION_KIND_REP[kind ?? 'cut']);
 }
@@ -77,7 +85,7 @@ const trackLabel = (url: string | undefined): string | undefined => MUSIC_TRACKS
 // El plan REAL a mostrar: el ya persistido en comercial.montaje, o — si todavía no se armó — el que
 // se derivaría mecánicamente del storyboard (mismo cálculo que PasoMontaje "Armar"). Sin storyboard,
 // no hay plan (undefined): la timeline queda vacía y lo dice.
-function resolvePlan(comercial: Comercial | undefined): MontajePlan | undefined {
+export function resolvePlan(comercial: Comercial | undefined): MontajePlan | undefined {
   if (!comercial) return undefined;
   const persisted = (comercial.montaje as MontajeState | undefined)?.plan;
   if (persisted) return persisted;
@@ -102,6 +110,12 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
     meta: s.rol,
     dialogo: s.dialogo,
     transitionAfter: i < plan.scenes.length - 1 ? transitionKind(s.transition) : undefined,
+    // WO-4: identidad de origen para la inversión (montajeFromTracks).
+    srcIn: s.in,
+    escenaN: s.escenaN,
+    audioGain: s.audioGain,
+    rol: s.rol,
+    audio: s.audio,
   }));
 
   const total = Math.max(0.1, totalDuration(plan));

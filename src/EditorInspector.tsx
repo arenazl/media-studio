@@ -1,9 +1,10 @@
-// Inspector (panel derecho) — contextual según la selección (prototipo líneas 928-1018). Lo que
-// tiene un campo REAL en el draft (contenido de texto, tipo de transición) se edita de verdad y entra
-// al historial de deshacer/rehacer (vía los callbacks). Transform/opacidad/color/volumen/ducking/fades
-// NO tienen un campo real en MontajePlan hoy — son overrides LOCALES de esta sesión (se pierden al
-// cerrar el editor): mapear esto a un modelo persistible es la "composición final" que
-// REGLAS-IMPLEMENTACION.md pide dejar para el modelo superior, no inventarla acá.
+// Inspector (panel derecho) — contextual según la selección (prototipo líneas 928-1018). WO-4:
+// lo que el render EJECUTA se edita de verdad y PERSISTE (vía los callbacks al draft → montajeFromTracks):
+// contenido de texto, tipo de transición, VOLUMEN del clip (video → audioGain), volumen+DUCKING de la
+// música. Lo que el render NO ejecuta sigue siendo preview de sesión con hint honesto (se pierde al
+// cerrar): transform/opacidad/rotación, alineación/color de texto, fades por clip, volumen de VOZ
+// (el render lo tiene fijo en 1.4). Agregar esos como persistibles sería mentirle al usuario (D5) —
+// se suman campo+control JUNTOS el día que el render los soporte, nunca el campo solo.
 import { useState } from 'react';
 import { PanelRightClose, PanelRightOpen, AlignLeft, AlignCenter, AlignRight, Diamond, SeparatorVertical, Layers } from 'lucide-react';
 import type { EditorClip, TrackId, TransitionKind } from './lib/editorTracks';
@@ -16,7 +17,9 @@ const DEFAULT_TRANSFORM: Transform = { x: 0, y: 0, scale: 100, rotation: 0, opac
 interface TextStyle { align: 'left' | 'center' | 'right'; color: string }
 const DEFAULT_TEXT_STYLE: TextStyle = { align: 'center', color: '#FFFFFF' };
 
-interface MediaLocal { volume: number; ducking: number; fadeIn: boolean; fadeOut: boolean }
+// fades = preview de sesión (el render no ejecuta fades por clip — D5); volumen/ducking pasan a
+// persistir por callback, ya no viven acá.
+interface FadesLocal { fadeIn: boolean; fadeOut: boolean }
 const SWATCHES = ['#FFFFFF', '#FFB800', '#00B37E', '#14110C', '#FF5C8A'];
 
 const KIND_LABEL: Partial<Record<TrackId, string>> = {
@@ -33,16 +36,17 @@ export interface EditorInspectorProps {
   clip?: EditorClip;
   onTextContentChange: (clipId: string, value: string) => void;
   onTransitionTypeChange: (clipId: string, kind: TransitionKind) => void;
+  onMediaChange: (clipId: string, patch: { audioGain?: number; duck?: boolean }) => void;   // WO-4: volumen/ducking ejecutables
   overlappingFx: EditorClip[];
 }
 
 export default function EditorInspector({
-  open, width, onToggle, onResizeStart, selectionKind, trackId, clip, onTextContentChange, onTransitionTypeChange, overlappingFx,
+  open, width, onToggle, onResizeStart, selectionKind, trackId, clip, onTextContentChange, onTransitionTypeChange, onMediaChange, overlappingFx,
 }: EditorInspectorProps) {
-  // overrides puramente de UI, por clip id — ver nota de honestidad arriba.
+  // overrides puramente de UI, por clip id — ver nota de honestidad arriba (preview de sesión).
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
   const [textStyles, setTextStyles] = useState<Record<string, TextStyle>>({});
-  const [media, setMedia] = useState<Record<string, MediaLocal>>({});
+  const [fades, setFades] = useState<Record<string, FadesLocal>>({});
 
   if (!open) {
     return (
@@ -60,11 +64,16 @@ export default function EditorInspector({
   const patchTransform = (patch: Partial<Transform>) => { if (clipId) setTransforms((m) => ({ ...m, [clipId]: { ...transform, ...patch } })); };
   const textStyle = (clipId && textStyles[clipId]) || DEFAULT_TEXT_STYLE;
   const patchTextStyle = (patch: Partial<TextStyle>) => { if (clipId) setTextStyles((m) => ({ ...m, [clipId]: { ...textStyle, ...patch } })); };
-  const mediaLocal: MediaLocal = (clipId && media[clipId]) || { volume: 100, ducking: clip?.meta === 'con ducking' ? 60 : 0, fadeIn: false, fadeOut: false };
-  const patchMedia = (patch: Partial<MediaLocal>) => { if (clipId) setMedia((m) => ({ ...m, [clipId]: { ...mediaLocal, ...patch } })); };
+  const fadesLocal: FadesLocal = (clipId && fades[clipId]) || { fadeIn: false, fadeOut: false };
+  const patchFades = (patch: Partial<FadesLocal>) => { if (clipId) setFades((m) => ({ ...m, [clipId]: { ...fadesLocal, ...patch } })); };
 
   const isText = trackId === 'texto';
   const isMedia = trackId === 'video' || trackId === 'voz' || trackId === 'musica' || trackId === 'sfx';
+  // volumen persistido (WO-4): video usa audioGain (default 1); música usa audioGain como music.gain
+  // (default real 0.28). El slider trabaja en 0-100 y persiste 0-1.
+  const gainDefault = trackId === 'musica' ? 0.28 : 1;
+  const volumePct = Math.round(((clip?.audioGain ?? gainDefault)) * 100);
+  const isDuck = clip?.meta !== 'sin ducking';   // música: el meta codifica el ducking
 
   return (
     <>
@@ -138,13 +147,37 @@ export default function EditorInspector({
 
               {isMedia && (
                 <div className="ed-insp-section">
-                  <div className="ed-insp-lbl">Volumen</div>
-                  <input className="ed-insp-range" type="range" min={0} max={100} value={mediaLocal.volume} onChange={(e) => patchMedia({ volume: Number(e.target.value) })} />
-                  <div className="ed-insp-lbl">Ducking bajo voz</div>
-                  <input className="ed-insp-range ed-insp-range--gold" type="range" min={0} max={100} value={mediaLocal.ducking} onChange={(e) => patchMedia({ ducking: Number(e.target.value) })} />
+                  {trackId === 'voz' ? (
+                    <>
+                      <div className="ed-insp-lbl">Volumen <span className="ed-insp-hint">(fijo en el render)</span></div>
+                      <input className="ed-insp-range" type="range" min={0} max={100} value={100} disabled readOnly />
+                      <div className="ed-insp-note">La voz en off se mezcla a un nivel fijo (realce +40%). El volumen editable llega cuando el render lo soporte.</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="ed-insp-lbl">Volumen <span className="ed-insp-note">{volumePct}%</span></div>
+                      <input
+                        className="ed-insp-range" type="range" min={0} max={200} value={volumePct}
+                        onChange={(e) => clipId && onMediaChange(clipId, { audioGain: Number(e.target.value) / 100 })}
+                      />
+                    </>
+                  )}
+                  {trackId === 'musica' && (
+                    <>
+                      <div className="ed-insp-lbl">Ducking bajo la voz</div>
+                      <button
+                        className={isDuck ? 'ed-insp-fade ed-insp-fade--on' : 'ed-insp-fade'}
+                        onClick={() => clipId && onMediaChange(clipId, { duck: !isDuck })}
+                        title="Baja la música al 40% mientras habla la voz"
+                      >
+                        {isDuck ? 'Activado — baja al 40% bajo la voz' : 'Desactivado'}
+                      </button>
+                    </>
+                  )}
+                  <div className="ed-insp-lbl">Fundidos <span className="ed-insp-hint">(vista previa — no persiste aún)</span></div>
                   <div className="ed-insp-fades">
-                    <button className={mediaLocal.fadeIn ? 'ed-insp-fade ed-insp-fade--on' : 'ed-insp-fade'} onClick={() => patchMedia({ fadeIn: !mediaLocal.fadeIn })}>Fade in</button>
-                    <button className={mediaLocal.fadeOut ? 'ed-insp-fade ed-insp-fade--on' : 'ed-insp-fade'} onClick={() => patchMedia({ fadeOut: !mediaLocal.fadeOut })}>Fade out</button>
+                    <button className={fadesLocal.fadeIn ? 'ed-insp-fade ed-insp-fade--on' : 'ed-insp-fade'} onClick={() => patchFades({ fadeIn: !fadesLocal.fadeIn })}>Fade in</button>
+                    <button className={fadesLocal.fadeOut ? 'ed-insp-fade ed-insp-fade--on' : 'ed-insp-fade'} onClick={() => patchFades({ fadeOut: !fadesLocal.fadeOut })}>Fade out</button>
                   </div>
                 </div>
               )}

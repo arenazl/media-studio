@@ -11,6 +11,8 @@ import Rail from './Rail';
 import Home from './Home';
 import Integrar from './Integrar';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
+import { avanzarEstado, type Comercial } from './lib/comercial';
+import type { MontajePlan, MontajeState } from './lib/montajePlan';
 import { useProjects } from './lib/useProjects';
 import type { Route } from './lib/routes';
 import { API_BASE } from './config';
@@ -67,6 +69,22 @@ export default function App() {
   // "Grabar" desde el editor: persiste el settings de voz del reel (inmediato, es una acción puntual).
   const grabarReel = (reelId: string, vc: VoiceConfig) => {
     updateProject((prev) => ({ ...prev, reels: prev.reels.map((r) => (r.id === reelId ? { ...r, voiceConfig: vc } : r)) }), 'flush');
+  };
+
+  // WO-4: el editor guarda su MontajePlan invertido. App (dueño único) lo escribe en el comercial del
+  // primer reel (el que el editor edita) + avanza el estado 'montaje'→'editado'. Preserva los exports
+  // previos (renders ya hechos). Flush inmediato: es una acción puntual del usuario (botón Guardar).
+  const saveMontaje = (plan: MontajePlan) => {
+    updateProject((prev) => ({
+      ...prev,
+      reels: prev.reels.map((r, i) => {
+        if (i !== 0 || !r.comercial) return r;
+        const prevState = r.comercial.montaje as MontajeState | undefined;
+        const montaje: MontajeState = { plan, exports: prevState?.exports ?? [] };
+        const c: Comercial = avanzarEstado({ ...r.comercial, montaje }, 'montaje', 'editado');
+        return { ...r, comercial: c };
+      }),
+    }), 'flush');
   };
   // VoiceStudio avisa cuando generó el mp3 → lo guardamos por reel (revoca el viejo) y lo persistimos.
   const onAudio = (reelId: string, blob: Blob) => {
@@ -187,7 +205,7 @@ export default function App() {
         ) : route === 'formats' ? (
           <div className="ms-page"><FormatsCatalog onUsar={(fid) => { setWizardProject(null); setWizardFormatoId(fid); setRoute('wizard'); }} /></div>
         ) : route === 'editor' ? (
-          <Editor project={activeProject} onBack={() => goRoute('project')} onPublish={() => goRoute('project')} />
+          <Editor project={activeProject} onBack={() => goRoute('project')} onPublish={() => goRoute('project')} onSaveMontaje={saveMontaje} />
         ) : (
           <div className="ms-page">
             <Home
