@@ -21,6 +21,10 @@
 .ed-chip--gold { color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 12%, transparent); }
 .ed-chip--green { color: var(--rd-green); background: color-mix(in srgb, var(--rd-green) 12%, transparent); }
 .ed-chip--blue { color: var(--rd-blue); background: color-mix(in srgb, var(--rd-blue) 14%, transparent); }
+/* chip clickeable (Auto-armar) — mismo look que el chip pero interactivo. */
+.ed-chip--btn { border: none; cursor: pointer; transition: background 120ms; }
+.ed-chip--btn:hover:not(:disabled) { background: color-mix(in srgb, var(--rd-gold) 22%, transparent); }
+.ed-chip--btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .ed-tool {
   width: 34px; height: 34px; border-radius: 9px; background: var(--rd-surface-1); border: none;

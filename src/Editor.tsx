@@ -15,7 +15,8 @@ import {
   type EditorTrack, type EditorClip, type TransitionKind,
 } from './lib/editorTracks';
 import { tracksToMontaje } from './lib/montajeFromTracks';
-import type { MontajePlan } from './lib/montajePlan';
+import { autoArmarPlan } from './lib/autoArmar';
+import type { MontajePlan, MontajeState } from './lib/montajePlan';
 import {
   deleteClip, duplicateClip, splitClip, initHistory, pushHistory, undoHistory, redoHistory, type EditHistory,
 } from './lib/editorEdits';
@@ -198,6 +199,17 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
     setContentDirty(false);
   }, [onSaveMontaje, history.present, basePlan]);
 
+  // WO-5: auto-armar la timeline (determinístico, sin IA/red). Reemplaza el draft por el resultado de
+  // autoArmarPlan (storyboard + voz + textos hook/CTA reales) vía el historial → deshacible con undo.
+  const onAutoArmar = () => {
+    if (!comercial) return;
+    const plan = autoArmarPlan(comercial, reel);
+    // reusa buildEditorTimeline pasándole un comercial con el plan armado como montaje persistido.
+    const comercialConPlan = { ...comercial, montaje: { plan, exports: (comercial.montaje as MontajeState | undefined)?.exports ?? [] } };
+    const tracks = buildEditorTimeline(comercialConPlan).tracks;
+    mutate(() => tracks);
+  };
+
   // "Listo → Publicar": guarda si hay cambios y navega (D6 — el render sigue en Montaje).
   const onPublishSaving = () => { if (dirty) onSave(); onPublish(); };
 
@@ -288,12 +300,14 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         canRedo={history.future.length > 0}
         canEdit={canEdit}
         canSave={dirty && !!onSaveMontaje}
+        canAutoArmar={!!comercial?.storyboard?.length}
         onUndo={onUndo}
         onRedo={onRedo}
         onSplit={onSplit}
         onDuplicate={onDuplicate}
         onDelete={onDelete}
         onSave={onSave}
+        onAutoArmar={onAutoArmar}
         previewFocus={previewFocus}
         onTogglePreviewFocus={() => setPreviewFocus((v) => !v)}
         onPublish={onPublishSaving}

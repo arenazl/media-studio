@@ -14,20 +14,22 @@ export interface EditorToolbarProps {
   canRedo: boolean;
   canEdit: boolean;
   canSave: boolean;
+  canAutoArmar: boolean;
   onUndo: () => void;
   onRedo: () => void;
   onSplit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
   onSave: () => void;
+  onAutoArmar: () => void;
   previewFocus: boolean;
   onTogglePreviewFocus: () => void;
   onPublish: () => void;
 }
 
 export default function EditorToolbar({
-  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave,
-  onUndo, onRedo, onSplit, onDuplicate, onDelete, onSave, previewFocus, onTogglePreviewFocus, onPublish,
+  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canAutoArmar,
+  onUndo, onRedo, onSplit, onDuplicate, onDelete, onSave, onAutoArmar, previewFocus, onTogglePreviewFocus, onPublish,
 }: EditorToolbarProps) {
   return (
     <div className="ed-toolbar">
@@ -36,7 +38,9 @@ export default function EditorToolbar({
         <span className="ed-sep" />
         <span className="ed-title">Editor</span>
         <span className="ed-chip" title={pieceName}>{aspect} · {durationLabel}</span>
-        <span className="ed-chip ed-chip--gold"><Sparkles size={11} /> Auto-armado por IA</span>
+        <button className="ed-chip ed-chip--gold ed-chip--btn" disabled={!canAutoArmar} onClick={onAutoArmar} title="Armar la timeline sola con lo ya generado (clips, voz, música y textos)">
+          <Sparkles size={11} /> Auto-armar
+        </button>
         <span className={dirty ? 'ed-chip ed-chip--blue' : 'ed-chip ed-chip--green'}>
           {dirty ? <><Pencil size={11} /> Cambios sin guardar</> : <><Check size={11} /> Guardado</>}
         </span>
