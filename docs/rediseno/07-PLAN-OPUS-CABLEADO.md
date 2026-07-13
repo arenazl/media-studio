@@ -1,5 +1,17 @@
 # Plan de cableado IA/algoritmos — WOs para Opus (seguir al pie de la letra)
 
+## Para el dueño — qué va a hacer este plan (resumen en criollo)
+
+El rediseño dejó la interfaz completa y navegable, pero con cables sueltos. Este plan le ordena a
+Opus conectarlos: **(1)** que el formato que elegís al crear una pieza (reel, cuadrado de Meta, spot
+de YouTube/TV) deje de ser decorativo y realmente cambie cómo se escribe el guion y en qué medidas
+sale el video final; **(2)** que el editor de video **guarde lo que editás** (hoy al salir se pierde
+todo) y esas ediciones lleguen al mp4; **(3)** un botón "Auto-armar" que arma la línea de tiempo
+sola con todo lo ya generado — clips, voz, música y textos —, sin gastar IA porque es puro
+acomodamiento; **(4)** detalles: arrastrar cosas de la biblioteca a la timeline, ver qué prompt
+originó cada video, y un generador de prompts de Flow suelto (fuera de un proyecto). Son 7 pasos en
+orden, cada uno verificado en el ambiente real antes de seguir, **todo implementado por Opus solo**.
+
 > **Autor:** Fable (director), 2026-07-12. **Implementa: OPUS, y SOLO Opus.** Directiva explícita del
 > dueño: **PROHIBIDO delegar a Sonnet o Haiku** (la delegación a modelos menores trajo problemas y el
 > balance dio pérdida). Si usás subagentes, tienen que correr con Opus. Todo lo demás del flujo de la
