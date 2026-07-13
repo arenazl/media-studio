@@ -1,5 +1,25 @@
 # Rediseño — Pendiente para el modelo superior (handoff a Fable)
 
+> **RESUELTO — 2026-07-13 (Opus).** Todo el cableado de `07-PLAN-OPUS-CABLEADO.md` (WO-0..WO-6) está
+> implementado, con gates verdes (tsc 0 · eslint 0 err · 357 vitest · build ok) y — donde el ambiente lo
+> permitió — verificado en real. **Cero `TODO(modelo-superior)` en el código** (verificado con grep).
+> Mapeo T (de este doc) → commits:
+> - **T1 (entidad Formato + tipo)** → WO-1 `735606b`. Entidad `src/lib/formato.ts` (fuente única) +
+>   `formatoId` en Comercial/Project + mapeo `tecnica→tipo` (D2). Sin renombrar Comercial→Pieza (D1, diferido).
+> - **T1b (moldes por formato)** → WO-2 `24e8e11`. script/storyboard/flowpack/strategy interpolan aspecto/
+>   plataforma donde había "9:16" hardcodeado; retrocompat byte-idéntica sin formato. VEO_RULES intacto.
+> - **T1c (render por aspecto)** → WO-3 `58b8abe`. `renderComercial` usa `plan.width/height/fps`. Verificado
+>   con ffprobe: 9:16→1080×1920, 1:1→1080×1080, 16:9→1920×1080 (mismo clip real).
+> - **T2 (editor persiste)** → WO-4 `e8a980f`. `montajeFromTracks.ts` (inverso) + `onSaveMontaje` cableado a
+>   App (dueño único) + inspector persiste lo ejecutable (volumen/ducking); lo no ejecutable queda preview honesto (D5).
+> - **T3 (auto-armado)** → WO-5 `94aa79b`. `autoArmar.ts` determinístico (SIN IA nueva): storyboard + voz +
+>   textos hook/CTA reales. El chip "Auto-armado por IA" (mentía) pasó a botón "Auto-armar" real.
+> - **T4 (menores)** → WO-6 `a614632`. Drag biblioteca→timeline (6a), link video↔escena con `promptUsado` (6b),
+>   molde `videoprompt` standalone (6c, único molde IA nuevo, tier sonnet, reusa VEO_RULES).
+>
+> Reporte visual del cierre: `docs/reportes/06-cableado-opus.html` (+PDF). El detalle histórico de cada T
+> (abajo) queda como registro de por qué se difirió cada cosa.
+
 > **Para Fable / Opus.** El rediseño de UI está COMPLETO, navegable, con datos reales y pusheado (5 fases,
 > 297 tests verdes, `65b3e79..4d8f9e0` en master). Lo que sigue es el **cableado de IA/algoritmos** que los
 > agentes de implementación **NO inventaron** a propósito (directiva del dueño en `REGLAS-IMPLEMENTACION.md`).

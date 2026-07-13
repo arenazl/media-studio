@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Studio — Cableado IA/algoritmos (WO-0..WO-6)</title>
+<style>
+:root{
+  --bg:#0b0e14; --panel:#141926; --panel2:#1c2231; --panel3:#272f40; --line:#2a3342;
+  --text:#eef1f7; --muted:#aab3c5; --dim:#707a8d; --accent:#4d8dff; --violet:#a78bfa;
+  --green:#3ddc97; --amber:#f5a623; --red:#f2555a; --gold:#d3ad5b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;padding:32px 20px;max-width:1120px;margin:0 auto;font-size:15px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;display:flex;align-items:center;gap:13px}
+h2{font-size:19px;font-weight:650;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2 .num{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#08111f;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:none}
+.sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+.qc{color:var(--muted);font-size:13.5px;margin:2px 0 14px;line-height:1.5}
+.qc b{color:var(--text)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+.card .label{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.card .val{font-size:22px;font-weight:800;margin-top:6px;letter-spacing:-.4px;line-height:1.15}
+.card .hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.red{color:var(--red)}.green{color:var(--green)}.amber{color:var(--amber)}.accent{color:var(--accent)}.gold{color:var(--gold)}.violet{color:var(--violet)}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-ok{background:rgba(61,220,151,.15);color:var(--green)}
+.b-info{background:rgba(77,141,255,.15);color:var(--accent)}
+.b-gold{background:rgba(211,173,91,.15);color:var(--gold)}
+.b-warn{background:rgba(245,166,35,.15);color:var(--amber)}
+.callout{border-left:3px solid var(--gold);background:rgba(211,173,91,.07);padding:13px 16px;border-radius:0 9px 9px 0;font-size:13.5px;margin-top:14px;line-height:1.55}
+.callout.accent{border-left-color:var(--accent);background:rgba(77,141,255,.07)}
+.callout.green{border-left-color:var(--green);background:rgba(61,220,151,.07)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+th,td{padding:10px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+code{background:var(--panel3);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--violet);font-family:ui-monospace,"Cascadia Code",Menlo,monospace}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+ul.tips{margin:8px 0 0 18px;font-size:13.5px}
+ul.tips li{margin-bottom:7px;line-height:1.5}
+ul.tips li strong{color:var(--text)}
+.ok{color:var(--green);font-weight:700}
+footer{text-align:center;color:var(--dim);font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+@media print{body{background:#fff;color:#111;max-width:none}section{break-inside:avoid;border-color:#ddd;background:#fafafa}.card{border-color:#ddd}}
+</style>
+</head>
+<body>
+
+<h1>
+  <svg class="ic" style="width:30px;height:30px;stroke:var(--accent)" viewBox="0 0 24 24"><path d="M9 17H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"/><path d="M15 7h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+  Media Studio — Cableado IA/algoritmos
+</h1>
+<div class="sub">De la interfaz navegable a los cables conectados: multi-formato, editor persistente y menores · WO-0..WO-6 · Opus implementó, Fable dirigió · 2026-07-13</div>
+
+<section>
+  <h2><span class="num">0</span> Qué se hizo, de un vistazo</h2>
+  <div class="qc">El rediseño de UI dejó la app <b>completa y navegable, pero con cables sueltos</b>: el formato que elegías era decorativo, el editor no guardaba nada, y varios botones eran maquetas. Esta ronda los conecta, siguiendo al pie el plan cerrado de cableado (<code>07-PLAN-OPUS-CABLEADO.md</code>). <b>Implementó Opus, y solo Opus</b> (directiva del dueño). Cada WO: un commit, gates verdes, y —donde el ambiente lo permitió— verificado en real (no mock).</div>
+  <div class="grid g4">
+    <div class="card"><div class="label">Work orders</div><div class="val gold">7</div><div class="hint">WO-0 (check) · WO-1..3 multi-formato · WO-4 editor persiste · WO-5 auto-armar · WO-6 menores</div></div>
+    <div class="card"><div class="label">Tests</div><div class="val green">357 / 357</div><div class="hint">+60 nuevos (formato, moldes, montajeFromTracks, autoArmar, dropLibItem, videoprompt). Ningún test previo tocado.</div></div>
+    <div class="card"><div class="label">Gates por WO</div><div class="val green">4 / 4</div><div class="hint"><code>tsc</code> 0 · <code>eslint</code> 0 err · <code>vitest --pool=vmThreads</code> · <code>build</code> sin warnings nuevos.</div></div>
+    <div class="card"><div class="label">TODO(modelo-superior)</div><div class="val green">0</div><div class="hint">Cero en el código (verificado con grep). Cada marcador que dejó el rediseño quedó cableado.</div></div>
+  </div>
+  <div class="callout accent"><b>El norte:</b> el <b>Formato</b> (reel 9:16, cuadrado de Meta, spot 16:9…) pasó de metadata cosmética a <b>entidad de primer nivel</b> que decide tres cosas: cómo se escribe el guion (WO-2), en qué medidas sale el mp4 (WO-3) y qué pasos del pipeline aplican (WO-1). El mismo cerebro produce cualquier formato.</div>
+</section>
+
+<section>
+  <h2><span class="num">1</span> Multi-formato — WO-1, WO-2, WO-3 <span class="badge b-info">el norte</span></h2>
+  <div class="qc">Tres WOs en cadena: la <b>entidad</b> (WO-1), los <b>moldes</b> que la leen (WO-2) y el <b>render</b> que la respeta (WO-3). La regla dura en los tres: <b>sin formato, todo es byte-idéntico a antes</b> — un proyecto viejo genera el mismo prompt y renderiza las mismas medidas. Retrocompatibilidad verificable, no prometida.</div>
+  <table>
+    <tr><th>WO</th><th>Qué se cableó</th><th>Verificación real</th><th>Commit</th></tr>
+    <tr><td class="green">WO-1</td><td>Entidad <code>Formato</code> (fuente única) + <code>formatoId</code> en Comercial/Project + mapeo <code>tecnica→tipo</code> (D2). "Usar este formato" del catálogo navega al wizard preseleccionado.</td><td>Wizard abre con "Reel animado" marcado; las piezas se siembran con el tipo correcto (7 pasos animado / 9 filmado).</td><td><code>735606b</code></td></tr>
+    <tr><td class="green">WO-2</td><td>script/storyboard/flowpack/strategy interpolan aspecto + plataforma donde había "9:16" clavado. <code>VEO_RULES</code> y los cuerpos calibrados, intactos.</td><td>strategy con 16:9/YouTube → <code>durationSec=25</code> (el formato llega al molde). Snapshot byte-exacto del prompt sin formato.</td><td><code>24e8e11</code></td></tr>
+    <tr><td class="green">WO-3</td><td><code>renderComercial</code> usa <code>plan.width/height/fps</code> (era 9:16 clavado). Logo con <code>y</code> relativo a la altura.</td><td><b>ffprobe del mp4:</b> 9:16→1080×1920 · 1:1→1080×1080 · 16:9→1920×1080, con el mismo clip real.</td><td><code>58b8abe</code></td></tr>
+  </table>
+  <div class="callout"><b>Decisiones tomadas (del plan):</b> no se renombró <code>Comercial→Pieza</code> (D1, churn puro sobre el core con 297 tests, diferido). El <code>tipo</code> se deriva de la técnica: <code>mixto</code>→filmado, <code>slideshow</code>→animado, <code>3D</code>→filmado (D2). Se persiste solo lo ejecutable.</div>
+</section>
+
+<section>
+  <h2><span class="num">2</span> Editor que guarda — WO-4 <span class="badge b-gold">el más grande</span></h2>
+  <div class="qc">Antes: editabas la timeline (partir, eliminar, transiciones, volumen) y al salir <b>se perdía todo</b> — el botón "Listo" solo navegaba. Ahora el editor <b>invierte</b> lo que editaste a un plan persistible y lo guarda por el dueño único del estado (App). Botón <b>Guardar</b> real, y salir con cambios pregunta.</div>
+  <div class="grid g3">
+    <div class="card"><div class="label">Núcleo nuevo</div><div class="val accent">montajeFromTracks</div><div class="hint">El inverso puro de <code>buildEditorTimeline</code>. Espejo exacto: lo que aquel expande, esto lo colapsa.</div></div>
+    <div class="card"><div class="label">Honestidad (D5)</div><div class="val gold">solo ejecutable</div><div class="hint">Persiste lo que el mp4 ejecuta (orden/in/out/transición/volumen/ducking/textos/voz/música). Transform/opacidad/fades siguen preview con hint — persistirlos sería mentir.</div></div>
+    <div class="card"><div class="label">Bug de fondo cerrado</div><div class="val green">split srcIn</div><div class="hint">Al partir un clip, la parte B ahora corre su offset de origen — antes ambas mitades mostraban el mismo frame.</div></div>
+  </div>
+  <div class="callout green"><b>Cubierto por 12 tests:</b> round-trip identidad (invertir el timeline de un plan devuelve un plan equivalente) + un caso por edición (split, eliminar con su silencio, duplicar, transición, texto, volumen, ducking). La única "pérdida" es de etiqueta, no de comportamiento: el editor distingue 3 tipos de transición, así que <code>fade</code> vuelve como <code>crossfade</code> — misma duración de xfade, mp4 idéntico. Documentado.</div>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Auto-armar — WO-5 <span class="badge b-info">sin gastar IA</span></h2>
+  <div class="qc">Un botón que arma la timeline sola con todo lo ya generado: clips del rodaje, voz grabada, música por mood, y los textos del hook/CTA. Es <b>determinístico</b> (algoritmo, no IA): los insumos ya salieron de moldes, el armado es puro acomodamiento — gratis, sin latencia, testeable, deshacible con undo.</div>
+  <ul class="tips">
+    <li><strong>El texto nunca se inventa:</strong> el hook y el CTA salen de <code>publicacion</code> (dato real). La posición/duración sí es criterio de layout (permitido). Sin publicación → sin textos, vacío honesto.</li>
+    <li><strong>El chip que mentía</strong> ("Auto-armado por IA") pasó a ser un <strong>botón real</strong> "Auto-armar" — y no usa IA, así que ya no miente.</li>
+    <li><strong>Idempotente:</strong> correrlo dos veces da el mismo plan. 7 tests (con/sin voz, con/sin publicación, filmado/animado).</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Menores — WO-6 <span class="badge b-info">6a · 6b · 6c</span></h2>
+  <table>
+    <tr><th>Parte</th><th>Qué se hizo</th><th>Nota</th></tr>
+    <tr><td class="green">6a · Drag biblioteca</td><td>Arrastrar clips/voz/música/texto de la biblioteca a la timeline. <code>dropLibItem()</code> puro (5 tests): clip→append, voz/música→reemplaza, texto→playhead. Efectos/Marca no son droppables (el render no los ejecuta).</td><td><span class="badge b-warn">DOM no verificado en browser</span> — la lógica está testeada; el drag&drop se cableó con el patrón HTML5 estándar (modo ahorro, sin Playwright).</td></tr>
+    <tr><td class="green">6b · Link video↔escena</td><td><code>Toma</code> guarda el <code>promptUsado</code> (snapshot del prompt de Flow que originó el clip). El detalle de Videos lo muestra con su origen. Videos suma las tomas de proyectos como fuente de solo lectura (nada se sube a Cloudinary).</td><td>Dato histórico real (D8): el packFlow se puede regenerar, pero la toma preserva el prompt con el que se generó.</td></tr>
+    <tr><td class="green">6c · Molde videoprompt</td><td>Único molde de IA nuevo (D9): genera un prompt de Google Flow suelto (talking-head o b-roll), fuera de un proyecto. Reusa <code>VEO_RULES</code> verbatim. Modal en Videos → prompt copiable. 6 tests.</td><td>Tier <code>sonnet</code> (llamada corta). Opus escribió el código; el molde en runtime corre con el tier del catálogo.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">5</span> Invariantes respetados</h2>
+  <div class="grid g2">
+    <div class="card"><div class="label">Dueño único del estado</div><div class="val green">intacto</div><div class="hint">Toda persistencia nueva (editor) pasa por <code>App.updateProject</code>. El editor no conoce localStorage ni fetch.</div></div>
+    <div class="card"><div class="label">VEO_RULES</div><div class="val green">sin tocar</div><div class="hint">La calibración battle-tested de idioma/cámara/talking-head no se modificó en ningún WO.</div></div>
+    <div class="card"><div class="label">Retrocompat</div><div class="val green">byte-idéntica</div><div class="hint">Sin formato: mismo prompt (snapshot exacto) y mismas medidas de render (ffprobe). Verificable.</div></div>
+    <div class="card"><div class="label">No inventar datos</div><div class="val green">cumplido</div><div class="hint">Placeholder = vacío y marcado. Los textos del auto-armado salen de datos reales; el molde nuevo no fabrica hechos.</div></div>
+  </div>
+</section>
+
+<footer>
+  Media Studio · cableado IA/algoritmos WO-0..WO-6 · Opus (director: Fable) · 2026-07-13 ·
+  commits <code>735606b · 24e8e11 · 58b8abe · e8a980f · 94aa79b · a614632</code>
+</footer>
+
+</body>
+</html>
