@@ -43,6 +43,31 @@ describe('storyboard — parametrización por formato', () => {
   });
 });
 
+describe('concept — bifurcación por técnica de la pieza (filmado vs animado)', () => {
+  const PROJECT_SCREENS = { ...PROJECT, screens: [{ label: 'Panel de trámites', kind: 'dashboard' }] };
+  it('animado: el prompt le prohíbe filmar y le pide motion graphics sobre la UI', () => {
+    const p = build('concept', { project: PROJECT_SCREENS, piece: { tipo: 'animado' } }).prompt;
+    expect(p).toContain('VIDEO ANIMADO');
+    expect(p).toContain('motion graphics');
+    expect(p).toContain('NO hay actores');
+    expect(p).toContain('DIRECCIÓN DE MOTION/UI');
+    // las pantallas del KB entran como materia prima del concepto animado
+    expect(p).toContain('Panel de trámites');
+  });
+  it('SIN tipo no menciona la técnica animada (comportamiento actual)', () => {
+    const p = build('concept', { project: PROJECT, piece: {} }).prompt;
+    expect(p).not.toContain('VIDEO ANIMADO');
+    expect(p).not.toContain('motion graphics');
+  });
+  it('SIN tipo el prompt es byte-idéntico al de tipo filmado (retrocompat)', () => {
+    const sinTipo = build('concept', { project: PROJECT, piece: {} }).prompt;
+    const filmado = build('concept', { project: PROJECT, piece: { tipo: 'filmado' } }).prompt;
+    expect(sinTipo).toBe(filmado);
+    // 1ª y 2ª línea exactas: un proyecto viejo no puede haber cambiado NI UN BYTE.
+    expect(sinTipo.split('\n')[1]).toContain('Cada concepto: la IDEA');
+  });
+});
+
 describe('strategy — parametrización por formato (nivel proyecto)', () => {
   it('SIN formato el shape de ejemplo usa "reel 9:16"/20 (byte-idéntico)', () => {
     const p = build('strategy', { project: PROJECT }, { perfil: 'campaña' }).prompt;

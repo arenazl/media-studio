@@ -266,6 +266,14 @@
 }
 .paso-chip:hover { color: var(--pw-text-1); background: color-mix(in srgb, var(--pw-text-1) 6%, transparent); }
 .paso-chip--on { color: var(--pw-text-1); background: var(--pw-bg-3); }
+/* técnica FIJADA por el formato: mismo peso visual que un chip, pero informativa (no se toca) */
+.paso-tipo-fijo {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px; border-radius: var(--pw-r-s);
+  background: var(--pw-field); border: 1px solid var(--pw-line-1);
+  font-size: 12.5px; font-weight: 600; color: var(--pw-text-1);
+}
+.paso-tipo-src { font-size: 11.5px; font-weight: 500; color: var(--pw-text-3); }
 
 /* ── concepto ───────────────────────────────────────────────────────────── */
 .concept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--pw-sp-4); align-items: start; }

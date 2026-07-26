@@ -219,8 +219,18 @@ ${material}` };
       const angulo = piece.angulo || piece.angle || '';
       const creativeBrief = piece.creativeBrief || '';
       const perfil = options.perfil || 'campaña';
+      // La TÉCNICA de la pieza manda sobre el concepto (mismo criterio que el molde storyboard, que
+      // bifurca por `piece.tipo`): sin esto la IA proponía comerciales FILMADOS (actriz, cocina real)
+      // para una pieza ANIMADA. Retrocompat DURA: sin `tipo` —o con 'filmado'— el bloque queda vacío
+      // y el prompt es byte-idéntico al anterior; el texto extra SOLO aparece en animado.
+      const tipo = piece.tipo || 'filmado';
+      const bloqueTecnica = tipo === 'animado'
+        ? `TÉCNICA — VIDEO ANIMADO (regla DURA, no la rompas): la pieza se produce como motion graphics sobre las PANTALLAS/UI REALES del producto. NO hay actores, ni personas a cámara, ni locaciones, ni nada filmado: JAMÁS propongas una escena grabada con gente (nada de "una mujer en su cocina"). Cada IDEA tiene que funcionar mostrando la interfaz EN MOVIMIENTO (recorrido entre pantallas, elementos que entran, datos que se completan, zoom/paneo sobre la UI, texto en pantalla, voz en off). La ESTÉTICA describe la DIRECCIÓN DE MOTION/UI (ritmo, tipo de transiciones, tipografía, paleta, cómo se encuadran las pantallas), NO fotografía, luz de set ni casting. La REFERENCIA es a un video de producto/app animado, no a un comercial filmado.
+PANTALLAS DEL PRODUCTO: ${screensText(project) || '(sin pantallas en el KB: proponé pantallas recreadas y marcalas [demo])'}
+`
+        : '';
       return { prompt: `Sos director creativo de publicidad. Del BRIEF, proponé 2-3 CONCEPTOS de comercial de ~20-30s para redes que desarrollen ESTE approach: ${angulo || '(inferí un ángulo del brief)'} — ${creativeBrief || '(sin brief creativo: usá el brief del negocio)'}.
-Cada concepto: la IDEA (una situación/gancho concreto — puede ser humor, problema-solución, día-en-la-vida), TONO, ESTÉTICA (dirección visual: luz, paleta, estilo de fotografía, coherente con la marca), REFERENCIA (a qué tipo de anuncio conocido se parece), POR QUÉ FUNCIONA (1 frase).
+${bloqueTecnica}Cada concepto: la IDEA (una situación/gancho concreto — puede ser humor, problema-solución, día-en-la-vida), TONO, ESTÉTICA (dirección visual: luz, paleta, estilo de fotografía, coherente con la marca), REFERENCIA (a qué tipo de anuncio conocido se parece), POR QUÉ FUNCIONA (1 frase).
 ENFOQUE GLOBAL (obligatorio): cada concepto cuenta TODA la propuesta, JAMÁS un solo módulo.
 Devolvé SOLO JSON (sin texto ni markdown): { "conceptos": [{ "id": "c1", "idea": "...", "tono": "...", "estetica": "...", "referencia": "...", "porQueFunciona": "..." }] }
 Reglas: español rioplatense, sin emojis, NO inventes datos/precios como reales.

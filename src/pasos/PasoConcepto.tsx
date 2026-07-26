@@ -1,9 +1,11 @@
 // Paso 2 — CONCEPTO. Corre el molde `concept` (2-3 propuestas para el ángulo del comercial),
-// el usuario elige una (persiste), y ACÁ vive el selector de TIPO (filmado/animado).
+// el usuario elige una (persiste). El TIPO (filmado/animado) lo fija el FORMATO de la pieza; el
+// selector de acá sobrevive SOLO para piezas viejas sin formatoId.
 import { useState } from 'react';
 import { Check, Users, Monitor, Lightbulb } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
+import { getFormato } from '../lib/formato';
 import type { Concepto, TipoComercial } from '../lib/comercial';
 
 export default function PasoConcepto({ project, comercial, setComercial, goNext }: PasoProps) {
@@ -12,13 +14,19 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   // las 2-3 opciones son transitorias (la ELEGIDA persiste en comercial.concepto).
   const [opciones, setOpciones] = useState<Concepto[]>(comercial?.concepto ? [comercial.concepto] : []);
   const tipo: TipoComercial = comercial?.tipo ?? 'filmado';
+  // La técnica la fija el FORMATO elegido en el wizard (WO-1/D2: tecnicaProduccion → tipo). Si la
+  // pieza nació con formato, acá NO se re-elige (volvería a desincronizar formato↔pipeline): se
+  // muestra informativa. Sin formatoId (piezas viejas) el selector sigue siendo la única fuente.
+  const formato = getFormato(comercial?.formatoId);
   const elegido = comercial?.concepto;
 
   const generar = async () => {
     setBusy(true); setError('');
     try {
       // C7: el ángulo/brief sembrados por strategy diferencian el concepto; el título es solo fallback.
-      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', durationSec: 20 };
+      // `tipo` viaja al molde: sin él la IA proponía comerciales FILMADOS (actores/locación) para
+      // piezas animadas. `formato` lo inyecta runMolde desde el comercial (WO-2).
+      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', durationSec: 20, tipo };
       const res = await runMolde('concept', project, piece, { perfil: 'campaña' }, undefined, comercial);
       setOpciones((res.conceptos as Concepto[]) || []);
       setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
@@ -41,14 +49,22 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
     >
       <div className="paso-tipo">
         <span className="paso-tipo-lbl">Tipo de comercial</span>
-        <div className="paso-chips">
-          <button className={tipo === 'filmado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('filmado')}>
-            <Users size={14} /> Filmado
-          </button>
-          <button className={tipo === 'animado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('animado')}>
-            <Monitor size={14} /> Animado
-          </button>
-        </div>
+        {formato ? (
+          <span className="paso-tipo-fijo">
+            {tipo === 'animado' ? <Monitor size={14} /> : <Users size={14} />}
+            {tipo === 'animado' ? 'Animado' : 'Filmado'}
+            <span className="paso-tipo-src">por el formato {formato.nombre}</span>
+          </span>
+        ) : (
+          <div className="paso-chips">
+            <button className={tipo === 'filmado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('filmado')}>
+              <Users size={14} /> Filmado
+            </button>
+            <button className={tipo === 'animado' ? 'paso-chip paso-chip--on' : 'paso-chip'} onClick={() => setTipo('animado')}>
+              <Monitor size={14} /> Animado
+            </button>
+          </div>
+        )}
       </div>
 
       {opciones.length > 0 ? (
