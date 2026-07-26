@@ -118,7 +118,16 @@ export function PasoShell({
         </div>
       </div>
       {error && <div className="paso-error">{error}</div>}
-      <div className="paso-body">{children}</div>
+      {/* mientras genera, el cuerpo NO puede quedar en blanco: los pasos pintan su empty state con
+          `!busy && <PasoEmpty/>`, así que durante los ~50s de la IA el panel quedaba vacío y parecía
+          colgado. El aviso se agrega acá (una sola vez, para todos los pasos) en vez de repetirlo
+          en cada pantalla — sólo cuando todavía no hay contenido que mirar. */}
+      <div className="paso-body">
+        {children}
+        {busy && !hasContent && (
+          <PasoEmpty icon={Loader2} spin>Generando con IA… esto puede tardar cerca de un minuto.</PasoEmpty>
+        )}
+      </div>
       {hayPie && (
         <div className={`paso-foot${estado ? ' paso-foot--split' : ''}`}>
           {estado && <span className="paso-estado">{estado}</span>}
@@ -135,10 +144,11 @@ export function PasoShell({
 
 // Empty state diseñado (icono lucide grande + una línea de qué es el paso). El CTA vive en el header.
 // `--full` = ocupa el cuerpo del panel y centra vertical (no una caja perdida en un océano).
-export function PasoEmpty({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
+// `spin` gira el icono (reusa la animación del botón) → el mismo bloque sirve de estado "generando".
+export function PasoEmpty({ icon: Icon, children, spin }: { icon: LucideIcon; children: ReactNode; spin?: boolean }) {
   return (
     <div className="paso-empty paso-empty--full">
-      <Icon size={34} strokeWidth={1.5} className="paso-empty-ico" />
+      <Icon size={34} strokeWidth={1.5} className={spin ? 'paso-empty-ico paso-spin' : 'paso-empty-ico'} />
       <span>{children}</span>
     </div>
   );
