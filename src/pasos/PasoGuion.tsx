@@ -4,17 +4,24 @@ import { useState } from 'react';
 import { RefreshCw, Loader2, Camera, Music2, FileText } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
+import { getFormato } from '../lib/formato';
 import type { GuionEstructurado, GuionBloque, EstadoPaso } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 
-export default function PasoGuion({ project, comercial, setComercial, goNext }: PasoProps) {
+export default function PasoGuion({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
   const [busyIdx, setBusyIdx] = useState<number | null>(null);
   const [error, setError] = useState('');
   const guion = comercial?.guion;
   const blocks = guion?.blocks || [];
+  const tipo = comercial?.tipo ?? 'filmado';
+  // Duración REAL de la pieza: la del reel (la sembró `strategy`) → la default del formato → 20 (el
+  // hardcodeo viejo, retrocompat). Ojo con `options.duracion`: en el molde le GANA al durationSec
+  // (`options.duracion || x.durationSec`), así que mandarlo dejaba muerta la duración del formato.
+  const durationSec = project.reels.find((r) => r.id === reelId)?.durationSec
+    ?? getFormato(comercial?.formatoId)?.duracion.default ?? 20;
 
   const applyGuion = (g: GuionEstructurado, estado: EstadoPaso = 'generado') =>
     setComercial((c) => ({ ...c, guion: g, estados: { ...c.estados, guion: c.estados.guion === 'aprobado' ? 'aprobado' : estado } }));
@@ -22,7 +29,9 @@ export default function PasoGuion({ project, comercial, setComercial, goNext }: 
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec: 20 }, { tono: 'cercano', duracion: '20' }, undefined, comercial);
+      // `tipo` viaja al molde (mismo criterio que concept/storyboard): sin él el guion animado pedía
+      // escenas filmadas. La duración va SOLO por piece.durationSec (ver el comentario de arriba).
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo }, { tono: 'cercano' }, undefined, comercial);
       applyGuion({ blocks: (res.blocks as GuionBloque[]) || [], music: res.music as { mood: string } | undefined });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };

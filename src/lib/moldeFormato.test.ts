@@ -68,6 +68,68 @@ describe('concept — bifurcación por técnica de la pieza (filmado vs animado)
   });
 });
 
+describe('cast — aspecto del formato (antes 9:16 hardcodeado)', () => {
+  it('SIN formato castea para un "comercial 9:16" (byte-idéntico)', () => {
+    const p = build('cast', { project: PROJECT, piece: {} }).prompt;
+    expect(p).toContain('location scout de un comercial 9:16');
+  });
+  it('CON formato 16:9 castea para 16:9 (encuadre horizontal, no vertical)', () => {
+    const p = build('cast', { project: PROJECT, piece: { formato: FMT_YT } }).prompt;
+    expect(p).toContain('location scout de un comercial 16:9');
+    expect(p).not.toContain('comercial 9:16');
+  });
+});
+
+describe('script — bifurcación por técnica de la pieza (filmado vs animado)', () => {
+  it('animado: le prohíbe actores/locación y le pide las pantallas en movimiento', () => {
+    const p = build('script', { project: PROJECT, piece: { tipo: 'animado' } }).prompt;
+    expect(p).toContain('VIDEO ANIMADO');
+    expect(p).toContain('PANTALLAS/UI REALES');
+    expect(p).toContain('JAMÁS una persona');
+  });
+  it('SIN tipo el prompt es byte-idéntico al de tipo filmado (retrocompat)', () => {
+    const sinTipo = build('script', { project: PROJECT, piece: {} }).prompt;
+    const filmado = build('script', { project: PROJECT, piece: { tipo: 'filmado' } }).prompt;
+    expect(sinTipo).toBe(filmado);
+    expect(sinTipo).not.toContain('VIDEO ANIMADO');
+  });
+});
+
+describe('script — la duración sale de la pieza (options.duracion ya no la pisa)', () => {
+  it('la durationSec de la pieza manda en el prompt', () => {
+    const p = build('script', { project: PROJECT, piece: { durationSec: 25 } }).prompt;
+    expect(p).toContain('comercial de 25s');
+    expect(p).toContain('que entre en 25s');
+  });
+  it('sin durationSec toma la default del formato (spot de 25s, no 20)', () => {
+    const p = build('script', { project: PROJECT, piece: { formato: FMT_YT } }).prompt;
+    expect(p).toContain('comercial de 25s');
+  });
+});
+
+describe('publish — la red sale del formato de la pieza', () => {
+  it('sin red: specs de Instagram Reels (byte-idéntico al default viejo)', () => {
+    const p = build('publish', { project: PROJECT }).prompt;
+    expect(p).toContain('para instagram');
+    expect(p).toContain('Instagram Reels: caption con gancho en la 1ª línea');
+  });
+  it('facebook y ambas siguen cayendo en su rama de siempre (retrocompat)', () => {
+    expect(build('publish', { project: PROJECT }, { red: 'facebook' }).prompt)
+      .toContain('Facebook: caption puede ser un poco más largo');
+    expect(build('publish', { project: PROJECT }, { red: 'ambas' }).prompt)
+      .toContain('Para Instagram Reels y Facebook');
+  });
+  it('la plataforma del formato (YouTube) trae specs de Shorts, no de Reels', () => {
+    const p = build('publish', { project: PROJECT }, { red: 'YouTube' }).prompt;
+    expect(p).toContain('YouTube Shorts');
+    expect(p).not.toContain('Instagram Reels: caption con gancho');
+  });
+  it('la plataforma "Instagram / TikTok" cubre las dos redes', () => {
+    const p = build('publish', { project: PROJECT }, { red: 'Instagram / TikTok' }).prompt;
+    expect(p).toContain('Instagram Reels y TikTok');
+  });
+});
+
 describe('strategy — parametrización por formato (nivel proyecto)', () => {
   it('SIN formato el shape de ejemplo usa "reel 9:16"/20 (byte-idéntico)', () => {
     const p = build('strategy', { project: PROJECT }, { perfil: 'campaña' }).prompt;

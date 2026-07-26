@@ -137,6 +137,15 @@ BRIEF (los hechos): ${x.brief}` };
       // verbatim (retrocompat byte-idéntica — no cambiar el prompt de proyectos viejos). Incluye el
       // artículo para que la frase quede gramatical con cualquier formato ("para una pieza …").
       const piezaDesc = piece.formato ? `una pieza ${x.aspecto} para ${x.plataforma}` : 'un reel 9:16';
+      // La TÉCNICA de la pieza también manda sobre el GUION (mismo criterio y misma retrocompat DURA
+      // que los moldes concept/storyboard): sin esto el guion de una pieza ANIMADA describía "visual"
+      // con actores, planos y locaciones que el pipeline animado no puede producir. Sin `tipo` —o con
+      // 'filmado'— el bloque queda vacío y el prompt es byte-idéntico al anterior.
+      const tipo = piece.tipo || 'filmado';
+      const bloqueTecnica = tipo === 'animado'
+        ? `TÉCNICA — VIDEO ANIMADO (regla DURA): no hay actores, ni personas a cámara, ni locaciones. Lo que se VE son las PANTALLAS/UI REALES del producto EN MOVIMIENTO (recorrido entre pantallas, elementos que entran, datos que se completan, zoom/paneo sobre la interfaz, texto en pantalla) y la narración va en OFF. El campo "visual" de cada bloque describe la PANTALLA y su movimiento — JAMÁS una persona, un plano de cámara ni una locación.
+`
+        : '';
       if (regenerate && regenerate.index != null) {
         const cur = (regenerate.blocks || [])[regenerate.index] || {};
         return { mode: 'item', prompt: `Actuás como promo-director. Rehacé SOLO ESTE bloque del guion (tono ${tono}), con una propuesta DISTINTA y mejor. Mantené su rol.
@@ -145,7 +154,7 @@ NEGOCIO: ${x.name} · BLOQUE ACTUAL (hacelo distinto): ${JSON.stringify(cur)}
 Rioplatense, sin emojis, no inventes datos.` };
       }
       return { mode: 'set', prompt: `Actuás como promo-director. Escribí el guion de un comercial de ${dur}s para ${piezaDesc}, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
-${concepto ? `CONCEPTO ELEGIDO (respetalo, es la dirección creativa del comercial): ${concepto}\n` : ''}ENFOQUE GLOBAL (clave): contá TODA la propuesta del negocio en ESTE video — no un solo módulo/producto. Enganchá explicando el funcionamiento, CONECTÁ los puntos fuertes en un hilo, reforzá con la prueba y cerrá con el CTA.
+${concepto ? `CONCEPTO ELEGIDO (respetalo, es la dirección creativa del comercial): ${concepto}\n` : ''}${bloqueTecnica}ENFOQUE GLOBAL (clave): contá TODA la propuesta del negocio en ESTE video — no un solo módulo/producto. Enganchá explicando el funcionamiento, CONECTÁ los puntos fuertes en un hilo, reforzá con la prueba y cerrá con el CTA.
 Estructura NARRATIVA por bloques con estos roles EXACTOS: hook (primeros 2s, roba la atención, sin logo ni "somos X") -> desarrollo (cómo funciona / la propuesta en vivo) -> gag (el REMATE: el momento más fuerte — humor si el concepto es humorístico, si no la prueba/beneficio contundente) -> cta (llamado a la acción claro). El gag va SIEMPRE ANTES del cta.
 Narración calibrada para TTS a ~2.7 palabras/seg (que entre en ${dur}s); estimá el durSec de cada bloque.
 Devolvé SOLO JSON: { "blocks": [{ "role": "hook|desarrollo|gag|cta", "narration": "lo que se DICE (voz)", "visual": "lo que se VE en pantalla", "durSec": <segundos> }], "music": { "mood": "el mood de la música en 1 frase" } }
@@ -166,8 +175,17 @@ No inventes precios/cifras/integraciones como reales. Es GLOBAL: cuenta TODO el 
     build({ context, options = {} }) {
       const x = ctx(context);
       const red = options.red || 'instagram';
-      const specs = red === 'facebook' ? 'Facebook: caption puede ser un poco más largo, menos hashtags (2-3).'
-        : red === 'ambas' ? 'Para Instagram Reels y Facebook: caption que sirva a las dos, 3-6 hashtags.'
+      // La red ahora puede venir del FORMATO de la pieza ("Instagram / TikTok", "Meta Ads", "YouTube",
+      // "TV") además de los valores viejos ('instagram'|'facebook'|'ambas'). Se compara en minúsculas
+      // por inclusión: los 3 valores viejos caen EXACTAMENTE en la misma rama que antes (retrocompat
+      // byte-idéntica) y los nuevos dejan de recibir specs de Reels.
+      const redLc = String(red).toLowerCase();
+      const specs = redLc.includes('facebook') ? 'Facebook: caption puede ser un poco más largo, menos hashtags (2-3).'
+        : redLc === 'ambas' ? 'Para Instagram Reels y Facebook: caption que sirva a las dos, 3-6 hashtags.'
+        : redLc.includes('youtube') ? 'YouTube Shorts: título corto y buscable al principio, descripción de 1-2 líneas con la idea principal, 3-5 hashtags.'
+        : redLc.includes('tiktok') ? 'Instagram Reels y TikTok: caption con gancho en la 1ª línea, texto MUY corto, 3-6 hashtags relevantes.'
+        : redLc.includes('meta') ? 'Meta Ads (feed): el caption tiene que funcionar SIN sonido y sin depender del video, 2-3 hashtags como mucho.'
+        : redLc === 'tv' ? 'Spot de TV: sin hashtags — un copy corto de acompañamiento para el posteo de la marca.'
         : 'Instagram Reels: caption con gancho en la 1ª línea, 3-6 hashtags relevantes.';
       return { prompt: `Actuás como social-platform-specialist. Dame el paquete de PUBLICACIÓN para ${red}. ${specs}
 Devolvé SOLO JSON: { "hookOnScreen": "texto en pantalla los primeros 2s, <=6 palabras", "caption": "el copy del posteo, 2-4 líneas", "hashtags": ["#sin-espacios", "..."], "cta": "el llamado a la acción" }
@@ -252,7 +270,10 @@ BRIEF (los hechos): ${brief}` };
       const name = project.name || 'el producto';
       const concepto = piece.concepto ? JSON.stringify(piece.concepto) : '(sin concepto elegido: inferilo del guion)';
       const guion = pieceGuionText(piece);
-      return { prompt: `Sos casting director + location scout de un comercial 9:16. Del CONCEPTO y el GUION, definí los PERSONAJES (1-2, los que el guion necesita) y la LOCACIÓN.
+      // WO-2/D4: el aspecto sale del formato de la pieza (mismo patrón que storyboard). Con 9:16
+      // hardcodeado, un Spot 16:9 casteaba encuadres verticales. Sin formato → '9:16' byte-idéntico.
+      const asp = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
+      return { prompt: `Sos casting director + location scout de un comercial ${asp}. Del CONCEPTO y el GUION, definí los PERSONAJES (1-2, los que el guion necesita) y la LOCACIÓN.
 Por personaje:
 - "fisicoEn" = descripción física EXACTA en INGLÉS para pegar VERBATIM en prompts de video (edad, pelo con corte y color, rasgos de la cara, tono de piel, contextura, vestuario completo con colores). Reglas de casting: "a striking, conventionally beautiful and charismatic person in their late 20s to early 30s, polished and camera-ready, with defined attractive features and a confident, magnetic presence", vestido/a SEGÚN el rubro del negocio (nunca fuera de contexto). Sé ESPECÍFICO: nada de "a woman" genérica — la MISMA descripción se pega en TODOS los clips.
 - "fisicoEs" = resumen en español para la UI. Sumá "nombre", "rol" (su papel en el comercial), "vestuario", "personalidad".

@@ -4,21 +4,26 @@ import { useState } from 'react';
 import { Link2, Clapperboard } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
+import { getFormato } from '../lib/formato';
 import { escenasAPrompts, type Escena } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 
-export default function PasoStoryboard({ project, comercial, setComercial, goNext }: PasoProps) {
+export default function PasoStoryboard({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const escenas = comercial?.storyboard || [];
   const tipo = comercial?.tipo ?? 'filmado';
+  // Duración REAL de la pieza (la suma de durSec del storyboard apunta acá): reel → formato → 20
+  // (el hardcodeo viejo, retrocompat). Con 20 fijo, un Spot TV de 25s salía cortado de fábrica.
+  const durationSec = project.reels.find((r) => r.id === reelId)?.durationSec
+    ?? getFormato(comercial?.formatoId)?.duracion.default ?? 20;
 
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('storyboard', project, { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec: 20 }, {}, undefined, comercial);
+      const res = await runMolde('storyboard', project, { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec }, {}, undefined, comercial);
       setComercial((c) => ({ ...c, storyboard: (res.escenas as Escena[]) || [], estados: { ...c.estados, storyboard: c.estados.storyboard === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
