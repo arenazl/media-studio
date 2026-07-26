@@ -15,6 +15,7 @@ export interface EditorToolbarProps {
   canEdit: boolean;
   canSave: boolean;
   canPublish: boolean;
+  guardable: boolean;     // hay una PIEZA donde guardar (sin eso, el chip de estado no significa nada)
   saveHint?: string;      // motivo cuando Guardar/Publicar están cerrados (ej. sin pieza abierta)
   canAutoArmar: boolean;
   onUndo: () => void;
@@ -30,7 +31,7 @@ export interface EditorToolbarProps {
 }
 
 export default function EditorToolbar({
-  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canPublish, saveHint, canAutoArmar,
+  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canPublish, guardable, saveHint, canAutoArmar,
   onUndo, onRedo, onSplit, onDuplicate, onDelete, onSave, onAutoArmar, previewFocus, onTogglePreviewFocus, onPublish,
 }: EditorToolbarProps) {
   return (
@@ -43,9 +44,13 @@ export default function EditorToolbar({
         <button className="ed-chip ed-chip--gold ed-chip--btn" disabled={!canAutoArmar} onClick={onAutoArmar} title="Armar la timeline sola con lo ya generado (clips, voz, música y textos)">
           <Sparkles size={11} /> Auto-armar
         </button>
-        <span className={dirty ? 'ed-chip ed-chip--blue' : 'ed-chip ed-chip--green'}>
-          {dirty ? <><Pencil size={11} /> Cambios sin guardar</> : <><Check size={11} /> Guardado</>}
-        </span>
+        {/* el chip de estado sólo tiene sentido si HAY dónde guardar: sin pieza abierta pintaba un
+            "Guardado" verde que mentía (no se persistió nada — ver `puedeGuardar` en Editor.tsx). */}
+        {guardable && (
+          <span className={dirty ? 'ed-chip ed-chip--blue' : 'ed-chip ed-chip--green'}>
+            {dirty ? <><Pencil size={11} /> Cambios sin guardar</> : <><Check size={11} /> Guardado</>}
+          </span>
+        )}
       </div>
       <div className="ed-toolbar-right">
         <button className="ed-tool" title="Deshacer" disabled={!canUndo} onClick={onUndo}><Undo2 size={15} /></button>

@@ -314,6 +314,7 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         canEdit={canEdit}
         canSave={dirty && puedeGuardar}
         canPublish={puedeGuardar}
+        guardable={puedeGuardar}
         saveHint={puedeGuardar ? undefined : 'Abrí una pieza para guardar'}
         canAutoArmar={!!comercial?.storyboard?.length}
         onUndo={onUndo}
