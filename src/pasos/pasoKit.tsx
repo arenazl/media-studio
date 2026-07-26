@@ -1,6 +1,6 @@
 // Kit compartido de las pantallas de PASO del pipeline (Fase 2): el runner de moldes contra el
 // backend + el shell visual común (título + Generar/Regenerar + Aprobar y seguir) + helpers.
-import { useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useSyncExternalStore, type ReactNode } from 'react';
 import { Loader2, Wand2, RefreshCw, ArrowRight, type LucideIcon } from 'lucide-react';
 import { API_BASE } from '../config';
 import type { Project } from '../lib/projects';
@@ -72,6 +72,17 @@ function useEffectiveModel(functionId: string | undefined) {
   return useSyncExternalStore(subscribeAiModel, () => (functionId ? effectiveModel(functionId) : undefined));
 }
 
+// GATE del paso, en profundidad. El spine ya deshabilita los pasos cerrados, pero el panel es un
+// componente aparte: si por lo que fuera se muestra un paso cerrado (aterrizaje, estado que cambia
+// bajo los pies), su botón "Generar con IA" seguía vivo y un click salteaba el gate. El Pipeline
+// envuelve el panel con <PasoGate motivo="…"> y PasoShell cierra el botón con ese motivo de hint.
+// El contexto queda PRIVADO del módulo a propósito (el provider es la única API pública).
+const PasoGateCtx = createContext<string>('');
+
+export function PasoGate({ motivo, children }: { motivo: string; children: ReactNode }) {
+  return <PasoGateCtx.Provider value={motivo}>{children}</PasoGateCtx.Provider>;
+}
+
 export function PasoShell({
   titulo, sub, hasContent, busy, onGenerate, generarLabel, error, children, onApprove, canApprove, approveLabel, functionId, estado,
 }: {
@@ -82,6 +93,7 @@ export function PasoShell({
   estado?: string;       // línea de estado/contexto del PIE (derivada del estado real vía estadoDelPaso)
 }) {
   const modelHint = useEffectiveModel(functionId);
+  const bloqueo = useContext(PasoGateCtx);
   const hayPie = !!(estado || onApprove);
   return (
     <div className="paso">
@@ -91,11 +103,18 @@ export function PasoShell({
           <p className="paso-sub">{sub}</p>
         </div>
         <div className="paso-head-actions">
-          <button className={hasContent && !busy ? 'paso-regen' : 'paso-gen'} onClick={onGenerate} disabled={busy}>
+          <button
+            className={hasContent && !busy ? 'paso-regen' : 'paso-gen'}
+            onClick={onGenerate}
+            disabled={busy || !!bloqueo}
+            title={bloqueo || undefined}
+          >
             {busy ? <Loader2 size={15} className="paso-spin" /> : hasContent ? <RefreshCw size={15} /> : <Wand2 size={15} />}
             {busy ? 'Generando…' : generarLabel || (hasContent ? 'Regenerar' : 'Generar con IA')}
           </button>
-          {modelHint && <span className="paso-model-hint">IA: {modelHint}</span>}
+          {bloqueo
+            ? <span className="paso-model-hint">{bloqueo}</span>
+            : modelHint && <span className="paso-model-hint">IA: {modelHint}</span>}
         </div>
       </div>
       {error && <div className="paso-error">{error}</div>}

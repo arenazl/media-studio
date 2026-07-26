@@ -7,7 +7,7 @@
 // mutador único de App — así ninguna otra pantalla puede pisar lo que se arma acá con una copia vieja.
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, PanelRightOpen, Settings, Check } from 'lucide-react';
-import PipelineStepper from './PipelineStepper';
+import PipelineStepper, { pasoLabel } from './PipelineStepper';
 import Copiloto from './Copiloto';
 import ProjectInfo from './ProjectInfo';
 import PasoConcepto from './pasos/PasoConcepto';
@@ -19,9 +19,9 @@ import PasoRodaje from './pasos/PasoRodaje';
 import PasoMontaje from './pasos/PasoMontaje';
 import PasoPublicar from './pasos/PasoPublicar';
 import PasoRender from './pasos/PasoRender';
-import type { PasoProps } from './pasos/pasoKit';
+import { PasoGate, type PasoProps } from './pasos/pasoKit';
 import type { Project } from './lib/projects';
-import { nuevoComercial, pasosVisibles, type Comercial, type PasoId } from './lib/comercial';
+import { nuevoComercial, pasosVisibles, pasoHabilitado, pasoDeEntrada, type Comercial, type PasoId } from './lib/comercial';
 import { getFormato, tipoDesdeFormato } from './lib/formato';
 import { getCopilotOpen, setCopilotOpen, getAiModel, setAiModel, subscribeAiModel, type AiModelSetting } from './lib/settings';
 import './Pipeline.css';
@@ -36,9 +36,13 @@ const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[]
   { value: 'haiku', label: 'Haiku', hint: 'económico' },
 ];
 
-export default function Pipeline({ project, onChange, onHome, onGoEditor }: { project: Project; onChange: ChangeFn; onHome: () => void; onGoEditor?: () => void }) {
+export default function Pipeline({ project, onChange, onFlush, onHome, onGoEditor }: { project: Project; onChange: ChangeFn; onFlush: () => void; onHome: () => void; onGoEditor?: () => void }) {
   const [reelId, setReelId] = useState<string>(project.reels[0]?.id || '');
-  const [activePaso, setActivePaso] = useState<PasoId>('concepto');
+  const comercialInicial = (project.reels.find((r) => r.id === reelId) || project.reels[0])?.comercial;
+  // Aterrizaje: el primer paso HABILITADO sin aprobar (pasoDeEntrada). Abrir siempre en 'concepto'
+  // fijo mostraba el panel de un paso que el spine tenía cerrado — con su "Generar con IA" vivo, un
+  // click salteaba el gate (ej. pieza con el Negocio todavía pendiente).
+  const [activePaso, setActivePaso] = useState<PasoId>(() => pasoDeEntrada(comercialInicial));
   // copiloto: panel de guia a la derecha. Su estado abierto/cerrado persiste (settings.ts). Solo UI.
   const [copilotOpen, setCopilotOpenState] = useState<boolean>(getCopilotOpen);
   const toggleCopilot = (open: boolean) => { setCopilotOpenState(open); setCopilotOpen(open); };
@@ -89,11 +93,29 @@ export default function Pipeline({ project, onChange, onHome, onGoEditor }: { pr
     setComercial((c) => ({ ...c, estados: { ...c.estados, [activePaso]: 'aprobado' } }), 'flush');
     if (i >= 0 && i < vis.length - 1) setActivePaso(vis[i + 1]);
   };
-  // navegar (cambiar de paso / de comercial): flush de lo pendiente antes de moverse.
-  const pickPaso = (p: PasoId) => { onChange((x) => x, 'flush'); setActivePaso(p); };
-  const pickReel = (id: string) => { onChange((x) => x, 'flush'); setReelId(id); };
+  // navegar (cambiar de paso / de comercial): flush de lo PENDIENTE antes de moverse. Ojo con el
+  // atajo viejo `onChange((x) => x, 'flush')`: forzaba un guardado aunque no hubiera nada en vuelo,
+  // así que sólo MIRAR una pieza la reescribía (localStorage + POST /api/projects con updated_at
+  // nuevo) y la subía en "Piezas recientes". `onFlush` (App.flushPending) sólo persiste si hay un
+  // guardado con retraso agendado — el autosave de 500ms queda igual.
+  const pickPaso = (p: PasoId) => { onFlush(); setActivePaso(p); };
+  const pickReel = (id: string) => {
+    onFlush();
+    setReelId(id);
+    // cada comercial va por su propio pipeline: recalcular el aterrizaje con SU estado (si no, al
+    // cambiar de pieza quedabas parado en un paso que para ésta puede estar cerrado).
+    setActivePaso(pasoDeEntrada(project.reels.find((r) => r.id === id)?.comercial));
+  };
 
   const pasoProps: PasoProps = { project, reelId: reel?.id || '', comercial, setComercial, goNext };
+
+  // motivo del bloqueo del paso ACTIVO (defensa en profundidad del gate, ver PasoGate en pasoKit):
+  // vacío = habilitado. Mismo copy que el tooltip del spine.
+  const visibles = pasosVisibles(tipo);
+  const idxActivo = visibles.indexOf(activePaso);
+  const bloqueoMotivo = comercial && idxActivo > 0 && !pasoHabilitado(comercial, activePaso)
+    ? `Completá antes ${pasoLabel(visibles[idxActivo - 1])}`
+    : '';
 
   const renderPaso = () => {
     switch (activePaso) {
@@ -152,7 +174,9 @@ export default function Pipeline({ project, onChange, onHome, onGoEditor }: { pr
       </aside>
 
       <div className="pw-center">
-        {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
+        <PasoGate motivo={bloqueoMotivo}>
+          {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
+        </PasoGate>
       </div>
 
       <div className={`pw-copilot-dock${copilotOpen ? '' : ' pw-copilot-dock--closed'}`}>

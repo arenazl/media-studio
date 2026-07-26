@@ -174,15 +174,35 @@ export function avanzarEstado(c: Comercial, paso: PasoId, estado: EstadoPaso): C
   return { ...c, estados: { ...c.estados, [paso]: estado } };
 }
 
+// rango del estado de un paso, tolerante con piezas viejas (estados incompleto → 'pendiente').
+const rangoDe = (c: Comercial, p: PasoId): number => RANK[c.estados?.[p] ?? 'pendiente'] ?? 0;
+
 // Un paso se habilita cuando el ANTERIOR VISIBLE de su tipo está ≥ 'generado'. El primer paso
 // visible ('negocio') siempre habilitado. Un paso no visible para el tipo → false.
+// Además: un paso que YA tiene lo suyo producido (estado ≥ 'generado') NUNCA se cierra. Mirar sólo
+// el paso anterior encerraba trabajo real: en `munify-ejemplo` el Montaje estaba 'generado' con
+// exports mp4 y el gate lo dejaba afuera ("Completá antes Rodaje") porque el rodaje figuraba
+// 'pendiente' (las tomas entraron por otro camino). El gate frena lo que falta, no lo ya hecho.
 export function pasoHabilitado(c: Comercial, paso: PasoId): boolean {
   const visibles = pasosVisibles(c.tipo);
   const idx = visibles.indexOf(paso);
   if (idx === -1) return false;
   if (idx === 0) return true;                       // 'negocio' siempre
+  if (rangoDe(c, paso) >= RANK.generado) return true;
   const anterior = visibles[idx - 1];
-  return RANK[c.estados[anterior]] >= RANK.generado;
+  return rangoDe(c, anterior) >= RANK.generado;
+}
+
+// Paso de ATERRIZAJE al abrir una pieza (o al cambiar de comercial): el primer paso visible
+// HABILITADO que todavía no está aprobado — dónde quedó el trabajo. Si están todos aprobados, el
+// último habilitado. NUNCA devuelve un paso cerrado por el gate: abrir siempre en 'concepto' fijo
+// mostraba el panel (con su botón "Generar con IA" vivo) de un paso que el spine tenía deshabilitado.
+export function pasoDeEntrada(c: Comercial | undefined): PasoId {
+  const visibles = pasosVisibles(c?.tipo ?? 'filmado');
+  if (!c) return visibles[0];
+  const habilitados = visibles.filter((p) => pasoHabilitado(c, p));
+  const pendiente = habilitados.find((p) => (c.estados?.[p] ?? 'pendiente') !== 'aprobado');
+  return pendiente ?? habilitados[habilitados.length - 1] ?? visibles[0];
 }
 
 // Validación de referencia cruzada storyboard↔cast: cada `Escena.personajes[]` debe existir en el

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  nuevoComercial, avanzarEstado, pasoHabilitado, pasosVisibles, escenasAPrompts, packProgress,
+  nuevoComercial, avanzarEstado, pasoHabilitado, pasoDeEntrada, pasosVisibles, escenasAPrompts, packProgress,
   type Escena, type Cast, type PackFlow,
 } from './comercial';
 
@@ -86,6 +86,50 @@ describe('pasoHabilitado', () => {
     expect(pasoHabilitado(c, 'montaje')).toBe(false);
     c = avanzarEstado(c, 'render', 'generado');
     expect(pasoHabilitado(c, 'montaje')).toBe(true);
+  });
+
+  // Caso REAL de `munify-ejemplo`: el montaje quedó 'generado' (tiene exports mp4) pero el rodaje
+  // figura 'pendiente' — el gate viejo lo encerraba ("Completá antes Rodaje") y no se podía abrir.
+  it('un paso con lo suyo ya producido queda habilitado aunque el anterior siga pendiente', () => {
+    let c = nuevoComercial('x', 'filmado');
+    c = avanzarEstado(c, 'montaje', 'generado');
+    expect(c.estados.rodaje).toBe('pendiente');
+    expect(pasoHabilitado(c, 'montaje')).toBe(true);
+    // el que NO tiene nada propio sigue cerrado (el gate frena lo que falta, no lo ya hecho)
+    expect(pasoHabilitado(c, 'rodaje')).toBe(false);
+    // 'editado'/'aprobado' también cuentan como contenido propio
+    expect(pasoHabilitado(avanzarEstado(c, 'publicar', 'aprobado'), 'publicar')).toBe(true);
+  });
+});
+
+describe('pasoDeEntrada', () => {
+  it('sin comercial aterriza en el primer paso visible', () => {
+    expect(pasoDeEntrada(undefined)).toBe('negocio');
+  });
+
+  it('pieza nueva (negocio pendiente) aterriza en negocio, no en concepto', () => {
+    expect(pasoDeEntrada(nuevoComercial('x', 'filmado'))).toBe('negocio');
+    expect(pasoDeEntrada(nuevoComercial('x', 'animado'))).toBe('negocio');
+  });
+
+  it('aterriza en el primer paso habilitado que todavía no está aprobado', () => {
+    let c = nuevoComercial('x', 'filmado');
+    c = avanzarEstado(c, 'negocio', 'aprobado');
+    expect(pasoDeEntrada(c)).toBe('concepto');          // habilitado por negocio, sin aprobar
+    c = avanzarEstado(c, 'concepto', 'aprobado');
+    expect(pasoDeEntrada(c)).toBe('guion');
+  });
+
+  it('con todo aprobado aterriza en el último paso habilitado', () => {
+    let c = nuevoComercial('x', 'animado');
+    for (const p of pasosVisibles('animado')) c = avanzarEstado(c, p, 'aprobado');
+    expect(pasoDeEntrada(c)).toBe('publicar');
+  });
+
+  it('nunca devuelve un paso cerrado por el gate', () => {
+    const c = nuevoComercial('x', 'filmado');       // todo pendiente: sólo 'negocio' está abierto
+    const entrada = pasoDeEntrada(c);
+    expect(pasoHabilitado(c, entrada)).toBe(true);
   });
 });
 

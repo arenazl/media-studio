@@ -171,7 +171,7 @@ export default function App() {
       <Rail route={route} onNavigate={goRoute} />
       <div className="ms-maincol">
         {route === 'project' && activeProject ? (
-          <Pipeline key={activeProject.id} project={activeProject} onChange={updateProject} onHome={() => goRoute('home')} onGoEditor={() => goRoute('editor')} />
+          <Pipeline key={activeProject.id} project={activeProject} onChange={updateProject} onFlush={flushPending} onHome={() => goRoute('home')} onGoEditor={() => goRoute('editor')} />
         ) : route === 'wizard' ? (
           <div className="ms-page">
             {wizardProject ? (
