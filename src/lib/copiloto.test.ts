@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { COPILOTO, copilotoDinamico } from './copiloto';
+import { COPILOTO, copilotoStep, copilotoDinamico } from './copiloto';
 import { nuevoComercial, pasosVisibles, type Comercial, type PackFlow } from './comercial';
 
 describe('COPILOTO (contenido)', () => {
@@ -15,6 +15,42 @@ describe('COPILOTO (contenido)', () => {
   it('sólo el paso pack lleva la nota del logo (se quema en el Montaje)', () => {
     expect(COPILOTO.pack.nota).toMatch(/Montaje/);
     expect(COPILOTO.concepto.nota).toBeUndefined();
+  });
+});
+
+describe('copilotoStep — el contenido efectivo depende de la pieza', () => {
+  const CPT = { id: 'c1', idea: 'i', tono: 't', estetica: 'e', referencia: 'r', porQueFunciona: 'p' };
+  const conFormato = (): Comercial => ({ ...nuevoComercial('x', 'animado'), formatoId: 'reel-animado-9-16' });
+
+  it('concepto CON formato: no pide definir la técnica (ya la fijó el formato)', () => {
+    const step = copilotoStep('concepto', conFormato());
+    expect(step.hace).toHaveLength(COPILOTO.concepto.hace.length - 1);
+    expect(step.hace.some((h) => /Filmado o Animado/.test(h))).toBe(false);
+  });
+
+  it('concepto SIN formato: el ítem sigue estando (piezas viejas)', () => {
+    expect(copilotoStep('concepto', nuevoComercial('x', 'filmado')).hace).toEqual(COPILOTO.concepto.hace);
+  });
+
+  it('con formato, elegir el concepto CIERRA el paso (no queda un ítem colgado para siempre)', () => {
+    const base = conFormato();
+    const c: Comercial = { ...base, estados: { ...base.estados, concepto: 'editado' }, concepto: CPT };
+    const d = copilotoDinamico('concepto', c);
+    expect(d.avance).toBe(3);
+    expect(d.nextItem).toBe(-1);
+  });
+
+  it('sin formato, elegir el concepto deja el ítem de técnica como próximo (como antes)', () => {
+    const base = nuevoComercial('x', 'filmado');
+    const c: Comercial = { ...base, estados: { ...base.estados, concepto: 'editado' }, concepto: CPT };
+    expect(copilotoDinamico('concepto', c).nextItem).toBe(3);
+  });
+
+  it('montaje animado: el tip manda al Render (en animado no hay paso Rodaje)', () => {
+    const tip = copilotoStep('montaje', nuevoComercial('x', 'animado')).tip!;
+    expect(tip).toMatch(/animado/);
+    expect(tip).not.toMatch(/rodaje/i);
+    expect(copilotoStep('montaje', nuevoComercial('x', 'filmado')).tip).toBe(COPILOTO.montaje.tip);
   });
 });
 

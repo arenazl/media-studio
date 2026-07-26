@@ -119,6 +119,10 @@
 }
 .pw-step:hover { background: var(--pw-bg-3); }
 .pw-step--active { background: var(--pw-bg-3); }
+/* paso todavía cerrado por el gate (pasoHabilitado): navegable recién cuando el anterior generó algo */
+.pw-step:disabled { opacity: 0.42; cursor: not-allowed; }
+.pw-step:disabled:hover { background: transparent; }
+.pw-step--active:disabled { background: var(--pw-bg-3); }
 .pw-step-dot {
   width: 24px; height: 24px; flex: 0 0 24px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;

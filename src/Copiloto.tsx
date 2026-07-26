@@ -3,7 +3,7 @@
 // resaltado y los cumplidos tildados) · un tip · el progreso dinámico. Es SÓLO presentación: lee el
 // comercial real (nunca lo muta) y deriva todo de lib/copiloto.ts (datos puros y testeados).
 import { Sparkles, Info, Wand2, ListChecks, Lightbulb, CheckCircle2, ArrowRight, PanelRightClose, BadgeInfo } from 'lucide-react';
-import { COPILOTO, copilotoDinamico } from './lib/copiloto';
+import { copilotoStep, copilotoDinamico } from './lib/copiloto';
 import { packProgress, type Comercial, type PasoId } from './lib/comercial';
 import { pasoLabel } from './PipelineStepper';
 import BrandBlock from './BrandBlock';
@@ -18,7 +18,9 @@ interface CopilotoProps {
 }
 
 export default function Copiloto({ paso, comercial, project, onClose }: CopilotoProps) {
-  const step = COPILOTO[paso];
+  // contenido EFECTIVO para ESTA pieza (sin el ítem de técnica si el formato ya la fijó, tip del
+  // montaje según filmado/animado) — misma fuente que usa copilotoDinamico para contar el total.
+  const step = copilotoStep(paso, comercial);
   const dyn = copilotoDinamico(paso, comercial);
   if (!step) return null;
 

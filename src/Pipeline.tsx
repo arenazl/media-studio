@@ -5,7 +5,7 @@
 // Es CONTROLLED: el proyecto y su persistencia los maneja App (dueño único de los datos); acá solo
 // vive el estado de navegación (reel/paso activo/copiloto/ajustes). Escribe vía `onChange`, el
 // mutador único de App — así ninguna otra pantalla puede pisar lo que se arma acá con una copia vieja.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, PanelRightOpen, Settings, Check } from 'lucide-react';
 import PipelineStepper from './PipelineStepper';
 import Copiloto from './Copiloto';
@@ -22,7 +22,8 @@ import PasoRender from './pasos/PasoRender';
 import type { PasoProps } from './pasos/pasoKit';
 import type { Project } from './lib/projects';
 import { nuevoComercial, pasosVisibles, type Comercial, type PasoId } from './lib/comercial';
-import { getCopilotOpen, setCopilotOpen, getAiModel, setAiModel, type AiModelSetting } from './lib/settings';
+import { getFormato, tipoDesdeFormato } from './lib/formato';
+import { getCopilotOpen, setCopilotOpen, getAiModel, setAiModel, subscribeAiModel, type AiModelSetting } from './lib/settings';
 import './Pipeline.css';
 
 // El guardado lo maneja App: 'debounced' (tipear = 1 POST a los 500ms) o 'flush' (ya, botones/navegación).
@@ -45,13 +46,16 @@ export default function Pipeline({ project, onChange, onHome, onGoEditor }: { pr
   // colgado de un engranaje chico en la cabecera de la spine.
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
-  const [aiModel, setAiModelState] = useState<AiModelSetting>(() => getAiModel());
+  // el ajuste vive en localStorage (settings.ts) y lo tocan DOS engranajes (éste y el del rail):
+  // con useState local, cambiarlo en uno dejaba al otro mostrando el valor viejo hasta un F5. El
+  // pub/sub de settings.ts + useSyncExternalStore los mantiene en el mismo valor (igual que RailSettings).
+  const aiModel = useSyncExternalStore(subscribeAiModel, getAiModel, () => 'auto' as AiModelSetting);
   useEffect(() => {
     const onDoc = (e: MouseEvent) => { if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) setSettingsOpen(false); };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
-  const pickModel = (v: AiModelSetting) => { setAiModel(v); setAiModelState(v); setSettingsOpen(false); };
+  const pickModel = (v: AiModelSetting) => { setAiModel(v); setSettingsOpen(false); };
 
   const reel = project.reels.find((r) => r.id === reelId) || project.reels[0];
   const comercial = reel?.comercial;
@@ -63,7 +67,12 @@ export default function Pipeline({ project, onChange, onHome, onGoEditor }: { pr
     onChange((cur) => {
       const rl = cur.reels.find((r) => r.id === reelId) || cur.reels[0];
       if (!rl) return cur;
-      const base = rl.comercial ?? nuevoComercial(rl.angulo || rl.nombre || 'Comercial', 'filmado');
+      // Un comercial creado ACÁ (reel sin comercial, ej. proyectos viejos o reels sembrados sin pieza)
+      // nacía SIEMPRE 'filmado' e ignorando el formato del proyecto — la misma desincronización que
+      // WO-1 arregló en el wizard. Mismo criterio que ProjectWizard: la técnica sale del formato y el
+      // formatoId se estampa en el comercial. Sin formato (proyectos viejos) → 'filmado', como antes.
+      const formatoProj = getFormato(cur.formatoId);
+      const base = rl.comercial ?? { ...nuevoComercial(rl.angulo || rl.nombre || 'Comercial', tipoDesdeFormato(formatoProj)), formatoId: cur.formatoId };
       const next = updater(base);
       const narraciones = next.guion?.blocks?.map((b) => b.narration).filter(Boolean);
       const reels = cur.reels.map((r) => (r.id === rl.id
@@ -88,7 +97,7 @@ export default function Pipeline({ project, onChange, onHome, onGoEditor }: { pr
 
   const renderPaso = () => {
     switch (activePaso) {
-      case 'negocio': return <ProjectInfo project={project} />;
+      case 'negocio': return <ProjectInfo project={project} onApprove={goNext} aprobado={comercial?.estados?.negocio === 'aprobado'} />;
       case 'concepto': return <PasoConcepto {...pasoProps} />;
       case 'guion': return <PasoGuion {...pasoProps} />;
       case 'cast': return <PasoCast {...pasoProps} />;
@@ -139,7 +148,7 @@ export default function Pipeline({ project, onChange, onHome, onGoEditor }: { pr
           </div>
         )}
 
-        <PipelineStepper tipo={tipo} estados={comercial?.estados} activePaso={activePaso} onPick={pickPaso} />
+        <PipelineStepper tipo={tipo} comercial={comercial} activePaso={activePaso} onPick={pickPaso} />
       </aside>
 
       <div className="pw-center">

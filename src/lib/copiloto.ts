@@ -127,6 +127,30 @@ export const COPILOTO: Record<PasoId, CopilotoStep> = {
   },
 };
 
+// índice del ítem "Definí si el comercial va a ser Filmado o Animado" dentro de COPILOTO.concepto.hace
+// (va ÚLTIMO). Con formato elegido ese ítem NO existe — ver copilotoStep.
+const CONCEPTO_ITEM_TECNICA = 3;
+
+// ── Contenido EFECTIVO del paso para ESTA pieza ───────────────────────────────
+// El contenido de arriba es el caso general; dos ítems dependen de la pieza y quedaban mintiendo:
+//  (a) concepto: "Definí si va a ser Filmado o Animado" no aplica si la pieza tiene `formatoId` — la
+//      técnica ya la fijó el formato (el selector es informativo), así que el ítem era IMPOSIBLE de
+//      cumplir y el copiloto se quedaba eternamente en 3/4 con ese "próximo paso" colgado.
+//  (b) montaje: el tip habla del RODAJE, que en una pieza animada no existe (ahí el insumo del
+//      montaje es el mp4 del paso Render).
+// Devuelve el step ya resuelto: lo consumen el panel (Copiloto.tsx) y el cálculo de avance de abajo,
+// para que el total y lo que se muestra NUNCA se desincronicen.
+export function copilotoStep(paso: PasoId, c: Comercial | undefined): CopilotoStep {
+  const base = COPILOTO[paso];
+  if (paso === 'concepto' && c?.formatoId) {
+    return { ...base, hace: base.hace.filter((_, i) => i !== CONCEPTO_ITEM_TECNICA) };
+  }
+  if (paso === 'montaje' && c?.tipo === 'animado') {
+    return { ...base, tip: 'El export se bloquea si falta el video: renderizá el reel animado primero.' };
+  }
+  return base;
+}
+
 // ── ¿el paso ya tiene su artefacto generado? ─────────────────────────────────
 function tieneContenido(paso: PasoId, c: Comercial | undefined): boolean {
   if (!c) return false;
@@ -154,7 +178,7 @@ function escenasConClip(c: Comercial | undefined): number {
 // Deriva `avance` (ítems cumplidos desde arriba) del estado REAL. Para pack/rodaje usa los
 // contadores concretos; para el resto: generado = arrancaste (avance 1), aprobado = terminaste.
 export function copilotoDinamico(paso: PasoId, c: Comercial | undefined): CopilotoDinamico {
-  const total = COPILOTO[paso].hace.length;
+  const total = copilotoStep(paso, c).hace.length;   // el contenido EFECTIVO manda (ver copilotoStep)
   const estado = c?.estados?.[paso] ?? 'pendiente';
   const aprobado = estado === 'aprobado';
   const hasContent = tieneContenido(paso, c);

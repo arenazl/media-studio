@@ -1,7 +1,7 @@
 // Sección "Negocio" — muestra TODA la metadata que se trajo del KB de la app al importar:
 // el brief (negocio, productos, diferenciadores, objeciones, oferta, qué no decir), la marca
 // (color, fonética, logo) y las pantallas. Es la base de lo que generan las funciones — read-only.
-import { Building2, Palette, MonitorSmartphone } from 'lucide-react';
+import { Building2, Palette, MonitorSmartphone, ArrowRight, Check } from 'lucide-react';
 import type { Project } from './lib/projects';
 import './ProjectInfo.css';
 
@@ -28,7 +28,11 @@ function Brief({ md }: { md: string }) {
   );
 }
 
-export default function ProjectInfo({ project }: { project: Project }) {
+// `onApprove`/`aprobado`: el paso Negocio es el PRIMERO del pipeline y no genera nada con IA, así que
+// sin un CTA propio su estado quedaba 'pendiente' para siempre — y con él el gate del spine cerrado
+// (pasoHabilitado exige el anterior ≥ generado) y el progreso del Home clavado. Mismo patrón
+// onApprove/goNext que los pasos con PasoShell.
+export default function ProjectInfo({ project, onApprove, aprobado }: { project: Project; onApprove?: () => void; aprobado?: boolean }) {
   const bk = project.brandKit;
   const shots = project.screenshots || [];
   const briefLen = project.brief?.length ?? 0;
@@ -77,6 +81,11 @@ export default function ProjectInfo({ project }: { project: Project }) {
 
       <div className="paso-foot paso-foot--split">
         <span className="paso-estado">{estado}</span>
+        {onApprove && (
+          <button className="paso-approve" onClick={onApprove}>
+            {aprobado ? <><Check size={15} /> Negocio aprobado</> : <>Negocio revisado, al concepto <ArrowRight size={15} /></>}
+          </button>
+        )}
       </div>
     </div>
   );

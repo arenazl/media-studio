@@ -47,6 +47,9 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const sinClip = plan ? plan.scenes.filter((s) => !s.src).map((s) => s.escenaN) : [];
   const reel = project.reels.find((r) => r.id === reelId);
   const voiceGrabada = reel?.voiceConfig?.audioRef;   // voz persistida desde la tab Audio
+  // En una pieza ANIMADA no hay paso Rodaje (pasosVisibles lo excluye): el video sale del paso Render.
+  // Los avisos de "faltan clips" mandaban a importar en un paso que ese pipeline ni muestra.
+  const esAnimado = comercial?.tipo === 'animado';
 
   // Arma el plan desde el storyboard y le suma el logo del proyecto (rasterizado a PNG) para el overlay.
   const armar = async () => {
@@ -267,9 +270,17 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           )}
 
           {/* avisos de clips faltantes (explican por qué el export queda bloqueado) */}
-          {!conClip && <div className="paso-empty">Faltan clips importados en el Rodaje: el render necesita al menos una escena con clip.</div>}
+          {!conClip && (
+            <div className="paso-empty">
+              {esAnimado
+                ? 'Falta el video: renderizá el reel animado primero (paso Render).'
+                : 'Faltan clips importados en el Rodaje: el render necesita al menos una escena con clip.'}
+            </div>
+          )}
           {conClip > 0 && sinClip.length > 0 && (
-            <div className="paso-empty">Faltan clips en las escenas {sinClip.join(', ')} — importalos en Rodaje o sacalas del montaje antes de exportar.</div>
+            <div className="paso-empty">
+              Faltan clips en las escenas {sinClip.join(', ')} — {esAnimado ? 'renderizá el reel animado de nuevo' : 'importalos en Rodaje'} o sacalas del montaje antes de exportar.
+            </div>
           )}
 
           {ultimo && (
@@ -286,7 +297,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           )}
           </>
         ) : (
-          <PasoEmpty icon={Clapperboard}>Armá el montaje desde el storyboard. Necesitás clips importados en el Rodaje.</PasoEmpty>
+          <PasoEmpty icon={Clapperboard}>Armá el montaje desde el storyboard. Necesitás {esAnimado ? 'el reel animado renderizado (paso Render)' : 'clips importados en el Rodaje'}.</PasoEmpty>
         )}
       </div>
       {/* PIE del panel: estado del montaje (izq) + acciones chequear/exportar (der) */}

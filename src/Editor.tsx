@@ -89,6 +89,10 @@ function beginAxisDrag(e: React.MouseEvent, opts: {
 export default function Editor({ project, onBack, onPublish, onSaveMontaje }: EditorProps) {
   const reel: ProjectReel | undefined = project?.reels[0];
   const comercial = reel?.comercial;
+  // Sin una PIEZA abierta (entrada por Videos/Audio, o un proyecto cuyo reel no tiene comercial) no hay
+  // dónde guardar: App.saveMontaje saltea los reels sin comercial, pero el editor reseteaba `dirty`
+  // igual y el chip pasaba a "Guardado" sin haber persistido NADA. Guardar/Publicar quedan cerrados.
+  const puedeGuardar = !!comercial && !!onSaveMontaje;
 
   // seed: se calcula UNA sola vez al montar (el editor entero remonta al cambiar de ruta — App.tsx
   // no lo mantiene vivo en background — así que no hace falta re-derivar en un efecto).
@@ -308,7 +312,9 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         canUndo={history.past.length > 0}
         canRedo={history.future.length > 0}
         canEdit={canEdit}
-        canSave={dirty && !!onSaveMontaje}
+        canSave={dirty && puedeGuardar}
+        canPublish={puedeGuardar}
+        saveHint={puedeGuardar ? undefined : 'Abrí una pieza para guardar'}
         canAutoArmar={!!comercial?.storyboard?.length}
         onUndo={onUndo}
         onRedo={onRedo}

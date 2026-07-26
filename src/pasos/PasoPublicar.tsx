@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { Copy, Check, Download, Megaphone, Film } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
+import { getFormato } from '../lib/formato';
 import { API_BASE } from '../config';
 import type { PublishPack } from '../lib/comercial';
 import type { MontajeState } from '../lib/montajePlan';
 
-export default function PasoPublicar({ project, comercial, setComercial }: PasoProps) {
+export default function PasoPublicar({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState('');
@@ -16,11 +17,16 @@ export default function PasoPublicar({ project, comercial, setComercial }: PasoP
   const exports = (comercial?.montaje as MontajeState | undefined)?.exports || [];
   const ultimo = exports[exports.length - 1];
 
+  // La red sale del FORMATO de la pieza (plataforma: "Instagram / TikTok", "Meta Ads", "YouTube", "TV"):
+  // con 'instagram' fijo, un Spot de YouTube pedía copy de Reels. Sin formatoId (piezas viejas) queda
+  // 'instagram' y el molde arma el mismo prompt de siempre.
+  const red = getFormato(comercial?.formatoId)?.plataforma || 'instagram';
+
   const generar = async () => {
     setBusy(true); setError('');
     try {
       const narr = comercial?.guion?.blocks?.map((b) => b.narration).filter(Boolean) || [];
-      const res = await runMolde('publish', project, { guion: narr, objetivo: comercial?.concepto?.idea }, { red: 'instagram' }, undefined, comercial);
+      const res = await runMolde('publish', project, { guion: narr, objetivo: comercial?.concepto?.idea }, { red }, undefined, comercial);
       setComercial((c) => ({ ...c, publicacion: res as unknown as PublishPack, estados: { ...c.estados, publicar: c.estados.publicar === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
@@ -39,6 +45,7 @@ export default function PasoPublicar({ project, comercial, setComercial }: PasoP
     <PasoShell
       titulo="Publicar" sub="El copy del posteo + el paquete final (mp4 + texto) para subir a la red."
       hasContent={!!pub} busy={busy} onGenerate={generar} error={error}
+      onApprove={goNext} canApprove={!!pub} approveLabel="Marcar publicada"
       functionId="publish" estado={estadoDelPaso('publicar', comercial)}
     >
       {pub ? (

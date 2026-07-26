@@ -14,6 +14,8 @@ export interface EditorToolbarProps {
   canRedo: boolean;
   canEdit: boolean;
   canSave: boolean;
+  canPublish: boolean;
+  saveHint?: string;      // motivo cuando Guardar/Publicar están cerrados (ej. sin pieza abierta)
   canAutoArmar: boolean;
   onUndo: () => void;
   onRedo: () => void;
@@ -28,7 +30,7 @@ export interface EditorToolbarProps {
 }
 
 export default function EditorToolbar({
-  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canAutoArmar,
+  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canPublish, saveHint, canAutoArmar,
   onUndo, onRedo, onSplit, onDuplicate, onDelete, onSave, onAutoArmar, previewFocus, onTogglePreviewFocus, onPublish,
 }: EditorToolbarProps) {
   return (
@@ -55,10 +57,12 @@ export default function EditorToolbar({
         <button className={previewFocus ? 'ed-btn ed-btn--on' : 'ed-btn'} onClick={onTogglePreviewFocus}>
           <Eye size={13} /> Vista previa
         </button>
-        <button className="ed-btn" disabled={!canSave} onClick={onSave} title="Guardar las ediciones en la pieza">
+        <button className="ed-btn" disabled={!canSave} onClick={onSave} title={saveHint || 'Guardar las ediciones en la pieza'}>
           <Save size={13} /> Guardar
         </button>
-        <button className="ed-btn ed-btn--primary" onClick={onPublish}>Listo → Publicar</button>
+        <button className="ed-btn ed-btn--primary" disabled={!canPublish} onClick={onPublish} title={saveHint || 'Guardar y volver al paso Publicar'}>
+          Listo → Publicar
+        </button>
       </div>
     </div>
   );
