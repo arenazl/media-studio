@@ -903,39 +903,18 @@ ${src}`;
       const body = JSON.parse((await readBody(req)) || '{}');
       const app = loadKbApps().find((a) => a.id === body.appId);
       if (!app) return json(res, 404, { error: 'esa Integración no está en el registro' });
+
+      const mk = readMediaKit(app.id) || readMediaKit(app.id.toLowerCase());
+      let kb = null;
       try {
-        const kb = await fetchKbFor(app);
-        // logo: 1.2 puede venir SVG inline (brand.logo.svg) o URL propia. inline = ok directo.
-        const logoSvg = kb.brand?.logo?.svg;
-        const logoUrl = kb.brand?.logo?.primary || kb.brand?.logo?.isotype || '';
-        const logo = logoSvg ? { ok: true, inline: true }
-          : logoUrl ? { url: logoUrl, ...(await inspectUrl(logoUrl, 'svg')) }
-          : { ok: false, reason: 'sin logo en el KB' };
-        // screens 1.2 = metadata: ok si está bien descrita (kind + components/data/layout). NO se chequea URL.
-        const screens = (kb.screens || []).map((s) => {
-          const dataN = Array.isArray(s.data) ? s.data.length : (s.data ? 1 : 0);
-          const ok = !!(s.kind && ((s.components || []).length || dataN || s.layout));
-          return { label: s.label, kind: s.kind, headline: s.headline, components: (s.components || []).length, data: dataN, ok, reason: ok ? undefined : 'falta metadata (kind/components/data)' };
-        });
-        const encodingOk = !JSON.stringify(kb).includes('â€');
-        return json(res, 200, { app: { id: app.id, name: app.nombre }, kb, health: { logo, screens, encodingOk } });
-      } catch (e) {
-        const mk = readMediaKit(app.id) || readMediaKit(app.id.toLowerCase());
-        if (mk) {
-          const logoSvg = mk.marca?.logo?.svg;
-          const logoUrl = mk.marca?.logo?.principal || '';
-          const logo = logoSvg ? { ok: true, inline: true }
-            : logoUrl ? { ok: true, url: logoUrl }
-            : { ok: false, reason: 'sin logo en el kit' };
-          const screens = (mk.pantallas || []).map((s) => ({
-            label: s.nombre || s.archivo,
-            kind: s.viewport || 'desktop',
-            headline: s.queDemuestra,
-            components: (s.datosVisibles || []).length,
-            data: 1,
-            ok: true,
-          }));
-          const fallbackKb = {
+        kb = await fetchKbFor(app);
+      } catch {
+        /* remote offline */
+      }
+
+      if (mk) {
+        if (!kb) {
+          kb = {
             contract_version: '1.2-mediakit',
             last_updated: mk.generado || new Date().toISOString(),
             business: {
@@ -946,23 +925,54 @@ ${src}`;
               industry: mk.negocio?.zona,
             },
             differentiators: mk.negocio?.diferenciales || [],
-            brand: {
-              colors: { primary: mk.marca?.colores?.primario, accent: mk.marca?.colores?.acento },
-              fonts: { titles: mk.marca?.tipografias?.titulos, body: mk.marca?.tipografias?.texto },
-              phonetic: mk.marca?.fonetica,
-              logo: { primary: logoUrl, svg: logoSvg },
-            },
-            screens: (mk.pantallas || []).map((p) => ({
-              label: p.nombre || p.archivo,
-              kind: p.viewport || 'desktop',
-              headline: p.queDemuestra,
-              components: p.datosVisibles || [],
-            })),
           };
-          return json(res, 200, { app: { id: app.id, name: app.nombre }, kb: fallbackKb, health: { logo, screens, encodingOk: true }, fromMediaKit: true });
         }
-        return json(res, 502, { error: e instanceof Error ? e.message : 'error inspeccionando' });
+
+        if (!kb.brand) kb.brand = {};
+        if (!kb.brand.colors || !kb.brand.colors.primary) {
+          kb.brand.colors = {
+            primary: mk.marca?.colores?.primario || '#0f172a',
+            accent: mk.marca?.colores?.acento || '#e11d48',
+          };
+        }
+        if (!kb.brand.fonts || !kb.brand.fonts.titles) {
+          kb.brand.fonts = {
+            titles: mk.marca?.tipografias?.titulos || 'Inter',
+            body: mk.marca?.tipografias?.texto || 'Inter',
+          };
+        }
+        const logoUrl = mk.marca?.logo?.principal
+          ? `http://localhost:${PORT}/api/media-kit/${encodeURIComponent(mk.id)}/file/${mk.marca.logo.principal.replace(/^\/+/, '')}`
+          : '';
+        if (!kb.brand.logo || !kb.brand.logo.primary) {
+          kb.brand.logo = { primary: logoUrl, svg: mk.marca?.logo?.svg };
+        }
+        if (!kb.screens || !kb.screens.length) {
+          kb.screens = (mk.pantallas || []).map((p) => ({
+            label: p.nombre || p.archivo,
+            kind: p.viewport || 'desktop',
+            headline: p.queDemuestra,
+            components: p.datosVisibles || [],
+          }));
+        }
       }
+
+      if (kb) {
+        const logoSvg = kb.brand?.logo?.svg;
+        const logoUrl = kb.brand?.logo?.primary || kb.brand?.logo?.isotype || '';
+        const logo = logoSvg ? { ok: true, inline: true }
+          : logoUrl ? { url: logoUrl, ...(await inspectUrl(logoUrl, 'svg')) }
+          : { ok: false, reason: 'sin logo en el KB' };
+        const screens = (kb.screens || []).map((s) => {
+          const dataN = Array.isArray(s.data) ? s.data.length : (s.data ? 1 : 0);
+          const ok = !!(s.kind && ((s.components || []).length || dataN || s.layout));
+          return { label: s.label, kind: s.kind, headline: s.headline, components: (s.components || []).length, data: dataN, ok, reason: ok ? undefined : 'falta metadata (kind/components/data)' };
+        });
+        const encodingOk = !JSON.stringify(kb).includes('â€');
+        return json(res, 200, { app: { id: app.id, name: app.nombre }, kb, health: { logo, screens, encodingOk }, fromMediaKit: !!mk });
+      }
+
+      return json(res, 502, { error: 'No se pudo leer el KB ni el Media Kit de la aplicación' });
     }
     // ── MEDIA KIT (WO-K1): los kits que cada app deja en SU repo (contrato base-compartida/16) ──
     // Descubrimiento on-demand (sin cache, como el KSP): cada request re-escanea D:\Code. El `id` del
