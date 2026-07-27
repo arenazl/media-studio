@@ -5,6 +5,9 @@
 // Origen: docs/07-rework/01-vision-y-pipeline.md §5 y 02-fase-1-datos-y-moldes.md §Datos.
 // El shape del MONTAJE (`MontajePlan`) lo define la Fase 4; acá `Comercial.montaje` queda laxo.
 
+import type { BrandKit } from './brandKit';
+import type { MarcaKit, MediaKitCta } from './mediaKit';
+
 // ── Pasos del pipeline ────────────────────────────────────────────────────────
 export type PasoId =
   | 'negocio' | 'concepto' | 'guion' | 'cast' | 'storyboard'
@@ -131,6 +134,10 @@ export interface Comercial {
   montaje?: unknown;                 // paso 8 — MontajePlan lo define la Fase 4 (tipado laxo hasta entonces)
   qa?: QaResult;                     // paso 8 — QA holístico persistido (C9: antes vivía en useState y se perdía)
   publicacion?: PublishPack;         // paso 9
+  mediaKitId?: string;
+  marcaKit?: MarcaKit;
+  brandKit?: BrandKit;
+  cta?: MediaKitCta;
 }
 
 // ── Orden canónico + visibilidad por tipo ─────────────────────────────────────

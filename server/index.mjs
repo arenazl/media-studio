@@ -919,7 +919,50 @@ ${src}`;
         });
         const encodingOk = !JSON.stringify(kb).includes('â€');
         return json(res, 200, { app: { id: app.id, name: app.nombre }, kb, health: { logo, screens, encodingOk } });
-      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error inspeccionando' }); }
+      } catch (e) {
+        const mk = readMediaKit(app.id) || readMediaKit(app.id.toLowerCase());
+        if (mk) {
+          const logoSvg = mk.marca?.logo?.svg;
+          const logoUrl = mk.marca?.logo?.principal || '';
+          const logo = logoSvg ? { ok: true, inline: true }
+            : logoUrl ? { ok: true, url: logoUrl }
+            : { ok: false, reason: 'sin logo en el kit' };
+          const screens = (mk.pantallas || []).map((s) => ({
+            label: s.nombre || s.archivo,
+            kind: s.viewport || 'desktop',
+            headline: s.queDemuestra,
+            components: (s.datosVisibles || []).length,
+            data: 1,
+            ok: true,
+          }));
+          const fallbackKb = {
+            contract_version: '1.2-mediakit',
+            last_updated: mk.generado || new Date().toISOString(),
+            business: {
+              name: mk.app || mk.marca?.nombreExacto || app.nombre,
+              tagline: mk.negocio?.queEs,
+              description: mk.negocio?.queVende,
+              target_audience: mk.negocio?.audienciaPrioritaria || (Array.isArray(mk.negocio?.aQuien) ? mk.negocio.aQuien.join(', ') : ''),
+              industry: mk.negocio?.zona,
+            },
+            differentiators: mk.negocio?.diferenciales || [],
+            brand: {
+              colors: { primary: mk.marca?.colores?.primario, accent: mk.marca?.colores?.acento },
+              fonts: { titles: mk.marca?.tipografias?.titulos, body: mk.marca?.tipografias?.texto },
+              phonetic: mk.marca?.fonetica,
+              logo: { primary: logoUrl, svg: logoSvg },
+            },
+            screens: (mk.pantallas || []).map((p) => ({
+              label: p.nombre || p.archivo,
+              kind: p.viewport || 'desktop',
+              headline: p.queDemuestra,
+              components: p.datosVisibles || [],
+            })),
+          };
+          return json(res, 200, { app: { id: app.id, name: app.nombre }, kb: fallbackKb, health: { logo, screens, encodingOk: true }, fromMediaKit: true });
+        }
+        return json(res, 502, { error: e instanceof Error ? e.message : 'error inspeccionando' });
+      }
     }
     // ── MEDIA KIT (WO-K1): los kits que cada app deja en SU repo (contrato base-compartida/16) ──
     // Descubrimiento on-demand (sin cache, como el KSP): cada request re-escanea D:\Code. El `id` del
