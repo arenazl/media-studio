@@ -119,7 +119,7 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
 
   const renderPaso = () => {
     switch (activePaso) {
-      case 'negocio': return <ProjectInfo project={project} onApprove={goNext} aprobado={comercial?.estados?.negocio === 'aprobado'} />;
+      case 'negocio': return <ProjectInfo project={project} onChange={onChange} onApprove={goNext} aprobado={comercial?.estados?.negocio === 'aprobado'} />;
       case 'concepto': return <PasoConcepto {...pasoProps} />;
       case 'guion': return <PasoGuion {...pasoProps} />;
       case 'cast': return <PasoCast {...pasoProps} />;
