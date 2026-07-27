@@ -18,6 +18,9 @@ export interface MontajeScene {
   effect?: string;
   rol?: string;                // para la UI (badge)
   dialogo?: string;            // para la UI + derivación de ducking
+  archivoCaptura?: string;     // WO-K4/K5: captura real del kit
+  screen?: string;             // nombre/label de pantalla
+  zonaClave?: string;          // zona para el zoompan de ffmpeg
 }
 
 export interface MontajePlan {
@@ -28,6 +31,9 @@ export interface MontajePlan {
   silences: { antesDeEscena: number; durSec: number }[];   // anclados a escena; from/to se derivan
   texts: { text: string; preset: string; at: number; dur: number; nx?: number; ny?: number }[];
   logo?: { src: string };
+  mediaKitId?: string;
+  cta?: { principal?: string; url?: string; secundario?: string };
+  marcaKit?: any;
 }
 
 export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[] }
@@ -113,6 +119,8 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
       transition: proxEsCta ? 'fade' : 'cut',
       rol: e.rol,
       dialogo: e.dialogo,
+      archivoCaptura: e.archivoCaptura,
+      screen: e.screen,
     };
   });
   const gag = escenas.find((e) => e.rol === 'gag');

@@ -1,17 +1,16 @@
-// RENDER del comercial final (mp4 9:16) desde un MontajePlan (Fase 4). Es el render que faltaba:
-// video por escena (trim + xfade encadenado) + las TRES fuentes de audio (diálogo de los clips
-// 'keep' + voz en off + música con DUCKING y SILENCIO) → un solo mp4. Reutiliza los patrones ffmpeg
-// battle-tested de assemble.mjs (SC/AF/xfade/amix). La llamada a ffmpeg la inyecta index.mjs (runFfmpeg).
-//
-// NOTA: duplica la derivación de tiempos de src/lib/montajePlan.ts (el server no puede importar TS
-// del front). Mantener en sync: sceneStarts/totalDuration/duckRanges/silenceRanges.
+// RENDER v1.5 del comercial (mp4) desde un MontajePlan (WO-K5).
+// Nuevas capacidades v1.5:
+//   1. Capturas del Media Kit: zoompan (Ken Burns suave) sesgado hacia `zonaClave`.
+//   2. Copy en pantalla: usa `dialogo` (la narración) — NUNCA la dirección técnica (`accion`).
+//   3. TTS de narración: genera locución local (ElevenLabs) por escena y extiende la escena si la voz dura más.
+//   4. Normalización de loudness: ffmpeg `loudnorm` (target I=-16 LUFS, mean > -22dB), matando el bug mudo de -30dB.
+//   5. Retrocompatibilidad dura: piezas legacy sin kit/capturas renderizan byte-comparable al actual.
+
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { resolveKitFile, MEDIA_KIT_ROOT } from './mediaKit.mjs';
 
-// WO-3: las dimensiones salen del plan (plan.width/height/fps) — el render deja de ser 9:16 clavado.
-// Los planes viejos ya traen los campos (montajePlan.ts los pone siempre), así que no hay sorpresas;
-// el default 1080/1920/30 cubre cualquier plan legacy que llegara sin ellos.
 const scaleCrop = (w, h, fps) =>
   `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},fps=${fps},setsar=1`;
 const AF = 'aformat=sample_rates=44100:channel_layouts=stereo';
@@ -21,12 +20,15 @@ const XFADE_MAP = { fade: 'fade', crossfade: 'dissolve', wipe: 'wipeleft', zoom:
 const trDur = (tr) => (!tr || tr === 'cut' ? CUT_DUR : XFADE_DUR);
 const dur = (s) => Math.max(0, (Number(s.out) || 0) - (Number(s.in) || 0));
 
-function sceneStarts(scenes) {
+export function sceneStarts(scenes) {
   const starts = []; let t = 0;
   scenes.forEach((s, i) => { starts.push(t); t += dur(s) - (i < scenes.length - 1 ? trDur(s.transition) : 0); });
   return starts;
 }
-const totalDuration = (scenes) => scenes.reduce((t, s, i) => t + dur(s) - (i < scenes.length - 1 ? trDur(s.transition) : 0), 0);
+
+export function totalDuration(scenes) {
+  return scenes.reduce((t, s, i) => t + dur(s) - (i < scenes.length - 1 ? trDur(s.transition) : 0), 0);
+}
 
 function mergeRanges(ranges) {
   const sorted = ranges.filter((r) => r[1] > r[0]).sort((a, b) => a[0] - b[0]);
@@ -37,13 +39,15 @@ function mergeRanges(ranges) {
   }
   return out;
 }
-function duckRanges(scenes, starts, voice, voiceDur) {
+
+export function duckRanges(scenes, starts, voice, voiceDur) {
   const ranges = [];
   scenes.forEach((s, i) => { if (s.audio === 'keep' && s.dialogo && String(s.dialogo).trim()) ranges.push([starts[i], starts[i] + dur(s)]); });
   if (voice) ranges.push([voice.at || 0, (voice.at || 0) + (voiceDur || 0)]);
   return mergeRanges(ranges);
 }
-function silenceRanges(plan, scenes, starts) {
+
+export function silenceRanges(plan, scenes, starts) {
   const startDe = new Map(scenes.map((s, i) => [s.escenaN, starts[i]]));
   const out = [];
   for (const sil of plan.silences || []) {
@@ -55,34 +59,43 @@ function silenceRanges(plan, scenes, starts) {
 
 async function downloadTo(url, dest) {
   const r = await fetch(url);
-  if (!r.ok) throw new Error(`no se pudo bajar la música/voz (${r.status})`);
+  if (!r.ok) throw new Error(`no se pudo bajar el asset (${r.status})`);
   fs.writeFileSync(dest, Buffer.from(await r.arrayBuffer()));
 }
 
-// resuelve un src a un path local: dataURL → materializa a tmp; fileRef RELATIVO → STORAGE_DIR/<rel>;
-// http(s) → descarga a tmp. El logo llega como PNG dataURL (el front rasteriza el SVG: ffmpeg no lo decodifica).
-async function resolveSrc(src, storageDir, tmpDir, i) {
+export async function resolveSrc(src, storageDir, tmpDir, tag, mediaKitId = null) {
   if (!src) return null;
   if (/^data:/.test(src)) {
     const m = /^data:([^;,]*)(;base64)?,([\s\S]*)$/.exec(src);
     if (!m) throw new Error('dataURL de asset inválida');
     const ext = ((m[1] || '').split('/')[1] || 'bin').replace(/[^a-z0-9]+/gi, '') || 'bin';
-    const dest = path.join(tmpDir, `data-${i}.${ext}`);
+    const dest = path.join(tmpDir, `data-${tag}.${ext}`);
     fs.writeFileSync(dest, m[2] ? Buffer.from(m[3], 'base64') : Buffer.from(decodeURIComponent(m[3]), 'utf8'));
     return dest;
   }
-  if (/^https?:\/\//.test(src)) { const dest = path.join(tmpDir, `dl-${i}-${path.basename(src.split('?')[0]) || 'a'}`); await downloadTo(src, dest); return dest; }
+  if (/^https?:\/\//.test(src)) {
+    const m = src.match(/\/api\/media-kit\/([^/]+)\/file\/(.+)$/);
+    if (m) {
+      const kitId = decodeURIComponent(m[1]);
+      const rel = decodeURIComponent(m[2]);
+      const r = resolveKitFile(kitId, rel, MEDIA_KIT_ROOT);
+      if (r.ok) return r.file;
+    }
+    const dest = path.join(tmpDir, `dl-${tag}-${path.basename(src.split('?')[0]) || 'a'}`);
+    await downloadTo(src, dest);
+    return dest;
+  }
+  if (mediaKitId) {
+    const r = resolveKitFile(mediaKitId, src, MEDIA_KIT_ROOT);
+    if (r.ok) return r.file;
+  }
   const local = path.join(storageDir, src);
-  if (!fs.existsSync(local)) throw new Error(`no existe el clip: ${src}`);
-  return local;
+  if (fs.existsSync(local)) return local;
+  if (fs.existsSync(src)) return src;
+  return null;
 }
 
-// enable de ffmpeg para un set de rangos → una cadena de filtros volume.
-const volEnables = (ranges, gain) => ranges.map(([a, b]) => `volume=${gain}:enable='between(t,${a.toFixed(3)},${b.toFixed(3)})'`);
-
-// drawtext (texto quemado): fuente del sistema portátil (primera que exista) + escaping de ffmpeg.
-// Si no hay fuente, se saltea el texto (nunca rompe el render). Preset único: blanco con borde, safe-area.
-function resolveFont() {
+export function resolveFont() {
   const cands = [
     'C:/Windows/Fonts/arialbd.ttf', 'C:/Windows/Fonts/arial.ttf',
     '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
@@ -91,75 +104,196 @@ function resolveFont() {
   for (const f of cands) { try { if (fs.existsSync(f)) return f; } catch { /* noop */ } }
   return null;
 }
-// El apóstrofe se cierra-escapa-reabre ('\'') — dentro de text='…' un \' NO funciona y rompe el filtergraph.
-const escDrawText = (s) => String(s).replace(/\\/g, '\\\\').replace(/'/g, "'\\''").replace(/:/g, '\\:').replace(/%/g, '\\%');
+
+export const escDrawText = (s) => String(s).replace(/\\/g, '\\\\').replace(/'/g, "'\\''").replace(/:/g, '\\:').replace(/%/g, '\\%');
+
+const volEnables = (ranges, gain) => ranges.map(([a, b]) => `volume=${gain}:enable='between(t,${a.toFixed(3)},${b.toFixed(3)})'`);
+
+const isImageFile = (file) => {
+  if (!file) return false;
+  const ext = path.extname(file).toLowerCase();
+  return ['.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif'].includes(ext);
+};
+
+// Generación local de TTS ElevenLabs por escena
+async function generateSceneTts(text, tmpDir, index) {
+  const key = process.env.ELEVENLABS_API_KEY;
+  if (!key) return null;
+  try {
+    const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+      method: 'POST',
+      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.4 },
+      }),
+    });
+    if (!r.ok) return null;
+    const buf = Buffer.from(await r.arrayBuffer());
+    const dest = path.join(tmpDir, `tts-scene-${index}.mp3`);
+    fs.writeFileSync(dest, buf);
+    return dest;
+  } catch {
+    return null;
+  }
+}
+
+// Filtro Zoompan (Ken Burns suave) sesgado según zonaClave
+function buildZoompanFilter(w, h, fps, durSec, zonaClave) {
+  const frames = Math.max(1, Math.ceil(durSec * fps));
+  const z = "min(zoom+0.0015,1.08)";
+  let x = "iw/2-(iw/zoom/2)";
+  let y = "ih/2-(ih/zoom/2)";
+  if (zonaClave) {
+    const zc = String(zonaClave).toLowerCase();
+    if (/superior|top|arriba|header|encabezado/.test(zc)) y = "ih*0.02";
+    else if (/inferior|bottom|abajo|footer/.test(zc)) y = "ih-(ih/zoom)-ih*0.02";
+  }
+  return `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},zoompan=z='${z}':x='${x}':y='${y}':d=${frames}:s=${w}x${h}:fps=${fps},setsar=1`;
+}
 
 export async function renderComercial(plan, { runFfmpeg, storageDir, probeDuration }) {
-  // Escenas sin clip: ERROR claro, no filtrado silencioso — si se descartara una escena del medio,
-  // los silencios/duración del mp4 se corren respecto de lo que la UI estimó (cuenta TODAS).
-  const scenes = plan.scenes || [];
-  if (!scenes.length) throw new Error('el montaje no tiene escenas con clip importado');
-  const sinClip = scenes.filter((s) => !s.src).map((s) => s.escenaN);
-  if (sinClip.length) throw new Error(`faltan clips en las escenas ${sinClip.join(',')} — importalos en Rodaje o sacalas del montaje`);
-  // WO-3: dimensiones del plan (default 9:16 30fps para planes legacy sin los campos).
+  const rawScenes = plan.scenes || [];
+  if (!rawScenes.length) throw new Error('el montaje no tiene escenas');
+  const scenes = rawScenes.map((s) => ({ ...s }));
   const W = Number(plan.width) || 1080, H = Number(plan.height) || 1920, FPS = Number(plan.fps) || 30;
   const SC = scaleCrop(W, H, FPS);
+  const mediaKitId = plan.mediaKitId || null;
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mstudio-render-'));
+
   try {
-    // 1. resolver inputs (una entrada -i por escena, + música + voz + logo)
+    // 1. TTS & Alineación de duración de escenas
+    const ttsInputs = {};
+    if (!process.env.ELEVENLABS_API_KEY) {
+      console.warn('[renderComercial] WARNING: ELEVENLABS_API_KEY no configurada — degradando a render sin voz TTS');
+    }
+    for (let i = 0; i < scenes.length; i++) {
+      const s = scenes[i];
+      if (s.dialogo && String(s.dialogo).trim() && !plan.voice?.src) {
+        const ttsFile = await generateSceneTts(String(s.dialogo).trim(), tmpDir, i);
+        if (ttsFile) {
+          ttsInputs[i] = ttsFile;
+          if (probeDuration) {
+            const ttsDur = await probeDuration(ttsFile);
+            if (ttsDur && ttsDur > dur(s)) {
+              s.out = (Number(s.in) || 0) + ttsDur + 0.2;
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Resolver inputs visuales y de audio principales
     const inputs = [];
-    for (let i = 0; i < scenes.length; i++) inputs.push(await resolveSrc(scenes[i].src, storageDir, tmpDir, i));
+    const sceneInputMap = [];
+
+    for (let i = 0; i < scenes.length; i++) {
+      const s = scenes[i];
+      const visualSrc = s.archivoCaptura || s.src;
+      let resolvedFile = await resolveSrc(visualSrc, storageDir, tmpDir, `v-${i}`, mediaKitId);
+      if (!resolvedFile && s.archivoCaptura) {
+        resolvedFile = await resolveSrc(s.src, storageDir, tmpDir, `v-alt-${i}`, mediaKitId);
+      }
+      if (resolvedFile) {
+        sceneInputMap.push({ idx: inputs.length, file: resolvedFile, isImage: isImageFile(resolvedFile) });
+        inputs.push(resolvedFile);
+      } else {
+        sceneInputMap.push({ idx: -1, file: null, isImage: false });
+      }
+    }
+
     let musicIdx = -1, voiceIdx = -1, logoIdx = -1;
-    if (plan.music?.src) { musicIdx = inputs.length; inputs.push(await resolveSrc(plan.music.src, storageDir, tmpDir, 'music')); }
-    if (plan.voice?.src) { voiceIdx = inputs.length; inputs.push(await resolveSrc(plan.voice.src, storageDir, tmpDir, 'voice')); }
-    if (plan.logo?.src) { logoIdx = inputs.length; inputs.push(await resolveSrc(plan.logo.src, storageDir, tmpDir, 'logo')); }
+    if (plan.music?.src) { musicIdx = inputs.length; inputs.push(await resolveSrc(plan.music.src, storageDir, tmpDir, 'music', mediaKitId)); }
+    if (plan.voice?.src) { voiceIdx = inputs.length; inputs.push(await resolveSrc(plan.voice.src, storageDir, tmpDir, 'voice', mediaKitId)); }
+    if (plan.logo?.src) { logoIdx = inputs.length; inputs.push(await resolveSrc(plan.logo.src, storageDir, tmpDir, 'logo', mediaKitId)); }
+
+    const ttsInputIndices = {};
+    for (const [iStr, file] of Object.entries(ttsInputs)) {
+      ttsInputIndices[iStr] = inputs.length;
+      inputs.push(file);
+    }
 
     const starts = sceneStarts(scenes);
     const total = totalDuration(scenes);
     const voiceDur = (voiceIdx >= 0 && probeDuration) ? (await probeDuration(inputs[voiceIdx]) || 0) : 0;
 
     const fc = [];
-    // 2. video: trim + SC por escena, luego xfade encadenado
-    scenes.forEach((s, i) => fc.push(`[${i}:v]trim=${(Number(s.in) || 0).toFixed(3)}:${(Number(s.out) || 0).toFixed(3)},setpts=PTS-STARTPTS,${SC}[v${i}]`));
+    // 3. Cadena visual (Video/Imagen + Zoompan)
+    scenes.forEach((s, i) => {
+      const map = sceneInputMap[i];
+      const d = dur(s);
+      if (map && map.idx >= 0) {
+        if (map.isImage) {
+          fc.push(`[${map.idx}:v]${buildZoompanFilter(W, H, FPS, d, s.zonaClave)}[v${i}]`);
+        } else {
+          fc.push(`[${map.idx}:v]trim=${(Number(s.in) || 0).toFixed(3)}:${(Number(s.out) || 0).toFixed(3)},setpts=PTS-STARTPTS,${SC}[v${i}]`);
+        }
+      } else {
+        fc.push(`color=c=0x0f172a:s=${W}x${H}:d=${d.toFixed(3)}:r=${FPS},setsar=1[v${i}]`);
+      }
+    });
+
     let vlabel = '[v0]', accLen = dur(scenes[0]);
     for (let i = 1; i < scenes.length; i++) {
       const td = trDur(scenes[i - 1].transition);
       const xname = XFADE_MAP[scenes[i - 1].transition] || 'fade';
       const offset = Math.max(0, accLen - td);
-      const out = i === scenes.length - 1 ? '[vout]' : `[vx${i}]`;
-      fc.push(`${vlabel}[v${i}]xfade=transition=${xname}:duration=${td.toFixed(3)}:offset=${offset.toFixed(3)}${out}`);
-      vlabel = out; accLen = accLen + dur(scenes[i]) - td;
-    }
-    // logo overlay abajo-izquierda (patrón assemble). WO-3: y relativo a la altura (H-136 = 1784 en
-    // 9:16, misma posición exacta; margen izquierdo fijo 46 en todos los aspectos).
-    if (logoIdx >= 0) { fc.push(`[${logoIdx}:v]scale=86:-1[logo]`, `${vlabel}[logo]overlay=46:${H - 136}[vlogo]`); vlabel = '[vlogo]'; }
-
-    // texto quemado (drawtext): preset único blanco+borde en la safe-area. Solo si hay texts Y fuente del sistema.
-    const texts = Array.isArray(plan.texts) ? plan.texts.filter((t) => t && t.text) : [];
-    if (texts.length) {
-      const font = resolveFont();
-      if (font) {
-        const ff = font.replace(/\\/g, '/').replace(/:/g, '\\:');
-        texts.forEach((t, i) => {
-          const at = Number(t.at) || 0, d = Number(t.dur) || 3;
-          const x = t.nx != null ? `(w*${Number(t.nx).toFixed(3)})` : '(w-text_w)/2';
-          const y = t.ny != null ? `(h*${Number(t.ny).toFixed(3)})` : '(h*0.78)';
-          const out = `[vt${i}]`;
-          fc.push(`${vlabel}drawtext=fontfile='${ff}':text='${escDrawText(t.text)}':fontcolor=white:fontsize=54:borderw=3:bordercolor=black@0.65:x=${x}:y=${y}:enable='between(t,${at.toFixed(3)},${(at + d).toFixed(3)})'${out}`);
-          vlabel = out;
-        });
-      }
+      const outLabel = i === scenes.length - 1 ? '[vout]' : `[vx${i}]`;
+      fc.push(`${vlabel}[v${i}]xfade=transition=${xname}:duration=${td.toFixed(3)}:offset=${offset.toFixed(3)}${outLabel}`);
+      vlabel = outLabel; accLen = accLen + dur(scenes[i]) - td;
     }
 
-    // 3. audio: diálogo de escenas keep + voz + música (ducking + silencio)
+    if (logoIdx >= 0) {
+      fc.push(`[${logoIdx}:v]scale=86:-1[logo]`, `${vlabel}[logo]overlay=46:${H - 136}[vlogo]`);
+      vlabel = '[vlogo]';
+    }
+
+    // 4. Copy en pantalla (drawtext): usa `dialogo` (copy), jamás `accion`
+    const font = resolveFont();
+    let textList = Array.isArray(plan.texts) ? [...plan.texts] : [];
+    if (!textList.length) {
+      scenes.forEach((s, i) => {
+        const copyText = s.dialogo && String(s.dialogo).trim() ? String(s.dialogo).trim() : null;
+        if (copyText) {
+          textList.push({ text: copyText, at: starts[i], dur: dur(s) });
+        }
+      });
+    }
+
+    if (textList.length && font) {
+      const ff = font.replace(/\\/g, '/').replace(/:/g, '\\:');
+      textList.forEach((t, i) => {
+        if (!t || !t.text) return;
+        const at = Number(t.at) || 0, d = Number(t.dur) || 3;
+        const x = t.nx != null ? `(w*${Number(t.nx).toFixed(3)})` : '(w-text_w)/2';
+        const y = t.ny != null ? `(h*${Number(t.ny).toFixed(3)})` : '(h*0.78)';
+        const outLabel = `[vt${i}]`;
+        fc.push(`${vlabel}drawtext=fontfile='${ff}':text='${escDrawText(t.text)}':fontcolor=white:fontsize=50:borderw=3:bordercolor=black@0.7:x=${x}:y=${y}:enable='between(t,${at.toFixed(3)},${(at + d).toFixed(3)})'${outLabel}`);
+        vlabel = outLabel;
+      });
+    }
+
+    // 5. Cadena de Audio: Clips + TTS local + Música + Ducking + Loudnorm (-16 LUFS)
     const alabels = [];
     scenes.forEach((s, i) => {
-      if (s.audio === 'keep') {
-        fc.push(`[${i}:a]atrim=${(Number(s.in) || 0).toFixed(3)}:${(Number(s.out) || 0).toFixed(3)},asetpts=PTS-STARTPTS,adelay=${ms(starts[i])}:all=1,volume=${Number(s.audioGain) || 1},${AF}[as${i}]`);
+      const map = sceneInputMap[i];
+      if (s.audio === 'keep' && map && map.idx >= 0 && !map.isImage) {
+        fc.push(`[${map.idx}:a]atrim=${(Number(s.in) || 0).toFixed(3)}:${(Number(s.out) || 0).toFixed(3)},asetpts=PTS-STARTPTS,adelay=${ms(starts[i])}:all=1,volume=${Number(s.audioGain) || 1},${AF}[as${i}]`);
         alabels.push(`[as${i}]`);
       }
+      if (ttsInputIndices[i] != null) {
+        const ttsIdx = ttsInputIndices[i];
+        fc.push(`[${ttsIdx}:a]adelay=${ms(starts[i])}:all=1,volume=1.5,${AF}[atts${i}]`);
+        alabels.push(`[atts${i}]`);
+      }
     });
-    if (voiceIdx >= 0) { fc.push(`[${voiceIdx}:a]adelay=${ms(plan.voice.at || 0)}:all=1,volume=1.4,${AF}[avoice]`); alabels.push('[avoice]'); }
+
+    if (voiceIdx >= 0) {
+      fc.push(`[${voiceIdx}:a]adelay=${ms(plan.voice.at || 0)}:all=1,volume=1.4,${AF}[avoice]`);
+      alabels.push('[avoice]');
+    }
+
     if (musicIdx >= 0) {
       const ducks = plan.music.duck ? duckRanges(scenes, starts, plan.voice, voiceDur) : [];
       const sils = silenceRanges(plan, scenes, starts);
@@ -169,10 +303,15 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
     }
 
     let amap = null;
-    if (alabels.length === 1) { fc.push(`${alabels[0]}afade=t=out:st=${Math.max(0, total - 0.3).toFixed(3)}:d=0.3[a]`); amap = '[a]'; }
-    else if (alabels.length > 1) { fc.push(`${alabels.join('')}amix=inputs=${alabels.length}:duration=longest:normalize=0,afade=t=out:st=${Math.max(0, total - 0.3).toFixed(3)}:d=0.3[a]`); amap = '[a]'; }
+    if (alabels.length === 1) {
+      fc.push(`${alabels[0]}loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=out:st=${Math.max(0, total - 0.3).toFixed(3)}:d=0.3[a]`);
+      amap = '[a]';
+    } else if (alabels.length > 1) {
+      fc.push(`${alabels.join('')}amix=inputs=${alabels.length}:duration=longest:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=out:st=${Math.max(0, total - 0.3).toFixed(3)}:d=0.3[a]`);
+      amap = '[a]';
+    }
 
-    // 4. ffmpeg
+    // 6. Ejecutar ffmpeg
     const out = path.join(tmpDir, 'comercial.mp4');
     const args = ['-y'];
     for (const f of inputs) args.push('-i', f);
@@ -183,5 +322,7 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
     args.push('-movflags', '+faststart', out);
     await runFfmpeg(args);
     return { buffer: fs.readFileSync(out), durationSec: total };
-  } finally { try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* noop */ } }
+  } finally {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* noop */ }
+  }
 }

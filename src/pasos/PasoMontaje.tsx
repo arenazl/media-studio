@@ -110,10 +110,16 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const exportar = async () => {
     if (!plan) return;
     setRendering(true); setError('');
+    const fullPlan = {
+      ...plan,
+      mediaKitId: plan.mediaKitId || project.mediaKitId,
+      cta: plan.cta || project.cta,
+      marcaKit: plan.marcaKit || project.marcaKit,
+    };
     try {
       const r = await fetch(`${API_BASE}/api/render-comercial`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, projectId: project.id, reelId }),
+        body: JSON.stringify({ plan: fullPlan, projectId: project.id, reelId }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'no se pudo renderizar');
