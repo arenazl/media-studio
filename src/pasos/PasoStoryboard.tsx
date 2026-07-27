@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { Link2, Clapperboard } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
+import { KitThumb, KitLightbox } from '../components/KitCapturas';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
+import { mediaKitParaMolde, pantallaDeEscena, type PantallaKit } from '../lib/mediaKit';
 import { escenasAPrompts, type Escena } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
@@ -20,16 +22,31 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
   const durationSec = project.reels.find((r) => r.id === reelId)?.durationSec
     ?? getFormato(comercial?.formatoId)?.duracion.default ?? 20;
 
+  // WO-K3/K4: las capturas REALES del media kit — se ven acá (thumbnail por escena) y viajan al
+  // molde como `piece.mediaKit` (que las nombra en el prompt y asigna `archivoCaptura`).
+  const pantallas = project.pantallasKit || [];
+  const [zoom, setZoom] = useState<PantallaKit | null>(null);
+
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('storyboard', project, { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec }, {}, undefined, comercial);
+      const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
+      const piece = { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec, ...(mediaKit ? { mediaKit } : {}) };
+      const res = await runMolde('storyboard', project, piece, {}, undefined, comercial);
       setComercial((c) => ({ ...c, storyboard: (res.escenas as Escena[]) || [], estados: { ...c.estados, storyboard: c.estados.storyboard === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
 
   const editDialogo = (n: number, v: string) =>
     setComercial((c) => ({ ...c, storyboard: (c.storyboard || []).map((e) => (e.n === n ? { ...e, dialogo: v } : e)), estados: { ...c.estados, storyboard: 'editado' } }));
+
+  // asignar/cambiar a mano la captura de una escena (el molde ya propone una; esto la corrige).
+  const asignarCaptura = (n: number, archivo: string) =>
+    setComercial((c) => ({
+      ...c,
+      storyboard: (c.storyboard || []).map((e) => (e.n === n ? { ...e, archivoCaptura: archivo || undefined } : e)),
+      estados: { ...c.estados, storyboard: 'editado' },
+    }));
 
   const refCheck = comercial?.cast ? escenasAPrompts(escenas, comercial.cast) : { ok: true, faltantes: [] };
 
@@ -61,6 +78,22 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
                 {(e.personajes || []).length > 0 && <span className="paso-scene-tag">{e.personajes.join(', ')}</span>}
                 {e.screen && <span className="paso-scene-tag">{e.screen}</span>}
               </div>
+              {pantallas.length > 0 && (() => {
+                const cap = pantallaDeEscena(pantallas, e);
+                return (
+                  <div className="kit-escena">
+                    {cap && <KitThumb pantalla={cap} size="md" onClick={() => setZoom(cap)} />}
+                    <select
+                      className="kit-escena-pick"
+                      value={cap?.archivo || ''}
+                      onChange={(ev) => asignarCaptura(e.n, ev.target.value)}
+                    >
+                      <option value="">Sin captura del kit</option>
+                      {pantallas.map((p) => <option key={p.archivo} value={p.archivo}>{p.nombre}</option>)}
+                    </select>
+                  </div>
+                );
+              })()}
               {e.accion && <p className="sb-accion">{e.accion}</p>}
               {tipo === 'filmado' && (
                 <div className="sb-dialogo">
@@ -74,6 +107,7 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
       ) : (
         !busy && <PasoEmpty icon={Clapperboard}>Generá el storyboard desde el guion{tipo === 'filmado' ? ' y el cast' : ''}: cada escena con su plano, duración, acción{tipo === 'filmado' ? ', diálogo' : ''} y continuidad.</PasoEmpty>
       )}
+      {zoom && <KitLightbox pantalla={zoom} onClose={() => setZoom(null)} />}
     </PasoShell>
   );
 }

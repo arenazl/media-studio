@@ -4,6 +4,8 @@
 import { useState } from 'react';
 import { Check, Users, Monitor, Lightbulb } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
+import { KitTira } from '../components/KitCapturas';
+import { mediaKitParaMolde } from '../lib/mediaKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import type { Concepto, TipoComercial } from '../lib/comercial';
@@ -26,7 +28,9 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       // C7: el ángulo/brief sembrados por strategy diferencian el concepto; el título es solo fallback.
       // `tipo` viaja al molde: sin él la IA proponía comerciales FILMADOS (actores/locación) para
       // piezas animadas. `formato` lo inyecta runMolde desde el comercial (WO-2).
-      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', durationSec: 20, tipo };
+      // WO-K4: con media kit, las pantallas REALES y los momentos entran como insumo del concepto.
+      const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
+      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', durationSec: 20, tipo, ...(mediaKit ? { mediaKit } : {}) };
       const res = await runMolde('concept', project, piece, { perfil: 'campaña' }, undefined, comercial);
       setOpciones((res.conceptos as Concepto[]) || []);
       setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
@@ -47,6 +51,9 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
       functionId="concept" estado={estadoDelPaso('concepto', comercial)}
     >
+      {/* WO-K3: el material REAL del media kit a la vista desde el primer paso (sin kit no se monta). */}
+      <KitTira pantallas={project.pantallasKit} />
+
       <div className="paso-tipo">
         <span className="paso-tipo-lbl">Tipo de comercial</span>
         {formato ? (

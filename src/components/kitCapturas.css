@@ -1,0 +1,36 @@
+/* WO-K3 — capturas del MEDIA KIT dentro de los pasos. PROTOTIPO FUNCIONAL: lo mínimo para que se
+   vea y se pueda clickear (tokens --pw-* del puente de Pipeline.css). Sin animaciones ni pulido —
+   el diseño va en otra tanda. */
+
+.kit-thumb {
+  display: block; padding: 0; overflow: hidden; cursor: pointer; flex: 0 0 auto;
+  border: 1px solid var(--pw-line-1); border-radius: var(--pw-r-s); background: var(--pw-bg-0);
+}
+.kit-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.kit-thumb--sm { width: 108px; height: 68px; }
+.kit-thumb--md { width: 100%; height: 96px; }
+
+.kit-tira {
+  border: 1px solid var(--pw-line-1); border-radius: var(--pw-r-m); background: var(--pw-bg-1);
+  padding: var(--pw-sp-3); margin-bottom: var(--pw-sp-4);
+}
+.kit-tira-h { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--pw-text-3); margin-bottom: var(--pw-sp-2); }
+.kit-tira-row { display: flex; gap: var(--pw-sp-3); overflow-x: auto; }
+.kit-tira-item { margin: 0; width: 108px; flex: 0 0 auto; }
+.kit-tira-item figcaption { font-size: 10.5px; color: var(--pw-text-3); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.kit-escena { margin: var(--pw-sp-2) 0; }
+.kit-escena-pick {
+  width: 100%; margin-top: 4px; padding: 4px 6px; font-family: var(--pw-font-sans); font-size: 11.5px;
+  background: var(--pw-field); color: var(--pw-text-2); border: 1px solid var(--pw-line-1); border-radius: var(--pw-r-s);
+}
+
+.kit-lb { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.72); padding: 24px; }
+.kit-lb-box { background: var(--pw-bg-1); border: 1px solid var(--pw-line-1); border-radius: var(--pw-r-l); max-width: min(920px, 92vw); max-height: 90vh; overflow: auto; padding: var(--pw-sp-4); }
+.kit-lb-h { display: flex; align-items: center; justify-content: space-between; gap: var(--pw-sp-4); margin-bottom: var(--pw-sp-2); }
+.kit-lb-title { font-size: 15px; font-weight: 600; color: var(--pw-text-1); }
+.kit-lb-x { padding: 4px; cursor: pointer; background: transparent; border: 1px solid var(--pw-line-1); border-radius: var(--pw-r-s); color: var(--pw-text-3); }
+.kit-lb-box img { display: block; max-width: 100%; border-radius: var(--pw-r-s); }
+.kit-lb-meta { margin-top: var(--pw-sp-3); display: grid; gap: 5px; }
+.kit-lb-meta p { margin: 0; font-size: 12.5px; color: var(--pw-text-2); }
+.kit-lb-meta span { display: inline-block; min-width: 116px; color: var(--pw-text-3); font-size: 11px; }

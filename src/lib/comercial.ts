@@ -62,6 +62,7 @@ export interface Escena {
   dialogo: string;                   // rioplatense; marca SIEMPRE fonética (vacío en animado)
   continuidad: string;               // filmado: qué matchea con la escena vecina · animado: palabra a RESALTAR
   screen?: string;                   // animado: label de la pantalla del KB
+  archivoCaptura?: string;           // WO-K4: relpath de la captura REAL del media kit (ej. "screens/01-home.png")
 }
 
 // Flujo NUEVO de Google Flow (imagen-first): el personaje es una ENTIDAD con una IMAGEN de referencia
