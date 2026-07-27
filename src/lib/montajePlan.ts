@@ -70,12 +70,13 @@ export function pickMusic(mood: string | undefined): string | undefined {
 
 // mapper mecánico storyboard(animado) → slides del reel animado (mockupReel). El molde storyboard
 // ya generó escenas orientadas a pantalla (screen + accion=título + continuidad=palabra a resaltar).
-export function escenasToSlides(comercial: Comercial): { badge: string; title: string; accent: string; durSec: number }[] {
+export function escenasToSlides(comercial: Comercial): { badge: string; title: string; accent: string; durSec: number; archivoCaptura?: string }[] {
   return (comercial.storyboard || []).map((e) => ({
     badge: e.screen || e.rol || '',
-    title: e.accion || '',
+    title: e.dialogo || e.accion || '',
     accent: e.continuidad || '',
     durSec: e.durSec || 4,
+    archivoCaptura: e.archivoCaptura,
   }));
 }
 
@@ -126,10 +127,12 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
   const gag = escenas.find((e) => e.rol === 'gag');
   const silences = gag ? [{ antesDeEscena: gag.n, durSec: SILENCE_ANTES_GAG }] : [];
   const musicUrl = pickMusic(comercial.guion?.music?.mood);
+  const logoUrl = comercial.marcaKit?.logoUrl || comercial.brandKit?.logoUrl;
   return {
     width: dims.width, height: dims.height, fps: dims.fps,
     scenes,
     music: musicUrl ? { src: musicUrl, gain: MUSIC_GAIN, duck: true } : undefined,
+    logo: logoUrl ? { src: logoUrl } : undefined,
     silences,
     texts: [],
   };

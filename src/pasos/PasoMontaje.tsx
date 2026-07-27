@@ -110,11 +110,13 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const exportar = async () => {
     if (!plan) return;
     setRendering(true); setError('');
+    const logoSrc = plan.logo?.src || project.brandKit?.logoUrl || project.marcaKit?.logoUrl;
     const fullPlan = {
       ...plan,
       mediaKitId: plan.mediaKitId || project.mediaKitId,
       cta: plan.cta || project.cta,
       marcaKit: plan.marcaKit || project.marcaKit,
+      logo: logoSrc ? { src: logoSrc } : undefined,
     };
     try {
       const r = await fetch(`${API_BASE}/api/render-comercial`, {

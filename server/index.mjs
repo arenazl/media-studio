@@ -755,15 +755,28 @@ ${src}`;
         .replace(/^(list|timeline|grid|form|detail|view|screen)[_\s]/i, '').replace(/_/g, ' ').toUpperCase().slice(0, 20);
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mreel-'));
       try {
+        const mediaKitId = b.mediaKitId || b.brand?.mediaKitId || null;
+        const brand = { ...(b.brand || {}) };
+        if (brand.logo?.principal && !brand.logoUrl && mediaKitId) {
+          brand.logoUrl = `http://localhost:${PORT}/api/media-kit/${encodeURIComponent(mediaKitId)}/file/${brand.logo.principal.replace(/^\/+/, '')}`;
+        }
         const data = {
-          brand: b.brand || {},
+          brand,
           footer: b.footer || '',
-          slides: slides.map((s) => ({
-            badge: badge(s.badge || s.screen || s.label),
-            title: s.title || s.highlight || s.copy || '',
-            accent: s.accent || s.copy || '',
-            durSec: Number(s.durSec) || undefined,
-          })),
+          mediaKitId,
+          slides: slides.map((s) => {
+            let img = s.image || s.archivoCaptura || s.url || s.shot || null;
+            if (img && !/^https?:\/\//.test(img) && !/^data:/.test(img) && mediaKitId) {
+              img = `http://localhost:${PORT}/api/media-kit/${encodeURIComponent(mediaKitId)}/file/${img.replace(/^\/+/, '')}`;
+            }
+            return {
+              badge: badge(s.badge || s.screen || s.label),
+              title: s.title || s.highlight || s.copy || s.accion || '',
+              accent: s.accent || s.copy || s.continuidad || '',
+              durSec: Number(s.durSec) || undefined,
+              image: img,
+            };
+          }),
         };
         const out = path.join(dir, 'reel.mp4');
         await renderMockupReel(data, out, { runFfmpeg, tmpDir: dir });

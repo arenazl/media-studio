@@ -4,7 +4,8 @@
 //   2. Copy en pantalla: usa `dialogo` (la narración) — NUNCA la dirección técnica (`accion`).
 //   3. TTS de narración: genera locución local (ElevenLabs) por escena y extiende la escena si la voz dura más.
 //   4. Normalización de loudness: ffmpeg `loudnorm` (target I=-16 LUFS, mean > -22dB), matando el bug mudo de -30dB.
-//   5. Retrocompatibilidad dura: piezas legacy sin kit/capturas renderizan byte-comparable al actual.
+//   5. Logo estancado visible: convierte SVG a PNG si hace falta y lo superpone con safe-area.
+//   6. Retrocompatibilidad dura: piezas legacy sin kit/capturas renderizan byte-comparable al actual.
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -93,6 +94,37 @@ export async function resolveSrc(src, storageDir, tmpDir, tag, mediaKitId = null
   if (fs.existsSync(local)) return local;
   if (fs.existsSync(src)) return src;
   return null;
+}
+
+// Convierte un SVG a PNG transparente usando Playwright para que ffmpeg lo renderice correctamente
+async function ensurePngLogo(resolvedFile, tmpDir) {
+  if (!resolvedFile || !fs.existsSync(resolvedFile)) return null;
+  if (resolvedFile.endsWith('.svg')) {
+    const destPng = path.join(tmpDir, `logo-${Date.now()}.png`);
+    try {
+      const { chromium } = await import('playwright');
+      const browser = await chromium.launch({ args: ['--no-sandbox'] });
+      try {
+        const page = await browser.newPage({ viewport: { width: 500, height: 500 } });
+        const svgContent = fs.readFileSync(resolvedFile, 'utf8');
+        await page.setContent(`<!DOCTYPE html><html><body style="margin:0;background:transparent;display:flex;align-items:center;justify-content:center;">${svgContent}</body></html>`);
+        await page.waitForTimeout(100);
+        const svgEl = await page.$('svg');
+        if (svgEl) {
+          await svgEl.screenshot({ path: destPng, omitBackground: true });
+        } else {
+          await page.screenshot({ path: destPng, omitBackground: true });
+        }
+        return destPng;
+      } finally {
+        await browser.close();
+      }
+    } catch (e) {
+      console.warn('[renderComercial] Warning rasterizando SVG logo:', e);
+      return resolvedFile;
+    }
+  }
+  return resolvedFile;
 }
 
 export function resolveFont() {
@@ -206,7 +238,18 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
     let musicIdx = -1, voiceIdx = -1, logoIdx = -1;
     if (plan.music?.src) { musicIdx = inputs.length; inputs.push(await resolveSrc(plan.music.src, storageDir, tmpDir, 'music', mediaKitId)); }
     if (plan.voice?.src) { voiceIdx = inputs.length; inputs.push(await resolveSrc(plan.voice.src, storageDir, tmpDir, 'voice', mediaKitId)); }
-    if (plan.logo?.src) { logoIdx = inputs.length; inputs.push(await resolveSrc(plan.logo.src, storageDir, tmpDir, 'logo', mediaKitId)); }
+
+    const logoSrc = plan.logo?.src || plan.marcaKit?.logoUrl || plan.brandKit?.logoUrl;
+    if (logoSrc) {
+      let resolvedLogo = await resolveSrc(logoSrc, storageDir, tmpDir, 'logo', mediaKitId);
+      if (resolvedLogo) {
+        resolvedLogo = await ensurePngLogo(resolvedLogo, tmpDir);
+        if (resolvedLogo) {
+          logoIdx = inputs.length;
+          inputs.push(resolvedLogo);
+        }
+      }
+    }
 
     const ttsInputIndices = {};
     for (const [iStr, file] of Object.entries(ttsInputs)) {
@@ -245,7 +288,7 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
     }
 
     if (logoIdx >= 0) {
-      fc.push(`[${logoIdx}:v]scale=86:-1[logo]`, `${vlabel}[logo]overlay=46:${H - 136}[vlogo]`);
+      fc.push(`[${logoIdx}:v]scale=140:-1[logo]`, `${vlabel}[logo]overlay=46:${H - 160}[vlogo]`);
       vlabel = '[vlogo]';
     }
 
