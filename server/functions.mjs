@@ -90,6 +90,115 @@ function screensText(project = {}) {
     : '';
 }
 
+// ── MEDIA KIT (WO-K4) — las piezas REALES de la app como insumo de los moldes ──────────────────
+// El front manda `context.piece.mediaKit` = { pantallas[], momentos[], cta } (src/lib/mediaKit.ts
+// ::mediaKitParaMolde). RETROCOMPAT DURA: sin kit devuelve '' y los prompts quedan byte-idénticos.
+function mediaKitText(piece = {}) {
+  const mk = piece.mediaKit;
+  if (!mk) return '';
+  const pantallas = Array.isArray(mk.pantallas) ? mk.pantallas : [];
+  const momentos = Array.isArray(mk.momentos) ? mk.momentos : [];
+  const L = [];
+  if (pantallas.length) {
+    L.push('CAPTURAS REALES DE LA APP (es lo que se VE en el video — no hay que imaginarlas). Para referirte a una pantalla usá su NOMBRE EXACTO de esta lista:');
+    for (const p of pantallas) {
+      L.push(`- ${p.nombre}${p.queDemuestra ? `: ${p.queDemuestra}` : ''}${p.microAnimacion ? ` — micro-animación: ${p.microAnimacion}` : ''}`);
+    }
+  }
+  if (momentos.length) {
+    L.push('MOMENTOS (mini-flujos que YA cuentan una historia con principio y fin — la unidad narrativa del video):');
+    for (const m of momentos) {
+      const pant = Array.isArray(m.pantallas) && m.pantallas.length ? ` [${m.pantallas.join(' → ')}]` : '';
+      L.push(`- ${m.nombre || 'momento'}: ${m.historia || ''}${m.remate ? ` — remate: ${m.remate}` : ''}${pant}`);
+    }
+  }
+  if (mk.cta && (mk.cta.principal || mk.cta.url)) {
+    L.push(`CTA VERIFICADO POR LA APP (usalo tal cual en el cierre): ${[mk.cta.principal, mk.cta.url].filter(Boolean).join(' · ')}`);
+  }
+  return L.length ? `${L.join('\n')}\n` : '';
+}
+
+// Normaliza un label para matchear PANTALLA ↔ ESCENA. ESPEJO de src/lib/mediaKit.ts::normLabel (el
+// server no importa TS): si tocás las reglas allá, tocalas ACÁ. Mismo patrón de garantía duplicada
+// con referencia cruzada que comercial.escenasAPrompts ↔ flowpack.
+const normLabel = (s) => String(s || '')
+  .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/\.[a-z0-9]+$/, '')
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim();
+
+// Reparte un texto en `cantidad` tramos contiguos, cortando por ORACIONES (nunca a mitad de palabra).
+// Con menos oraciones que tramos, los sobrantes quedan vacíos: preferimos una escena sin voz antes
+// que repetir la misma frase dos veces (el TTS la diría dos veces).
+function repartirTexto(texto, cantidad) {
+  const t = String(texto || '').trim();
+  if (!t) return [];
+  if (cantidad <= 1) return [t];
+  const oraciones = t.split(/(?<=[.!?…])\s+/).map((s) => s.trim()).filter(Boolean);
+  if (oraciones.length <= 1) return [t, ...Array(cantidad - 1).fill('')];
+  if (oraciones.length <= cantidad) {
+    return Array.from({ length: cantidad }, (_, i) => oraciones[i] || '');
+  }
+  const base = Math.floor(oraciones.length / cantidad);
+  const resto = oraciones.length % cantidad;
+  const out = [];
+  let i = 0;
+  for (let k = 0; k < cantidad; k++) {
+    const n = base + (k < resto ? 1 : 0);
+    out.push(oraciones.slice(i, i + n).join(' '));
+    i += n;
+  }
+  return out;
+}
+
+// FIX CRÍTICO (WO-K4, independiente del kit): el molde `storyboard` animado devolvía `dialogo: ""`
+// en TODAS las escenas → el render quedaba MUDO (montajePlan.ts sólo genera voz donde hay diálogo).
+// La narración YA existe en el guion: acá se PROPAGA de forma DETERMINÍSTICA (no se le pide a la IA
+// que la copie, que es justo lo que no hacía). Regla: por ROL, el texto de los bloques de ese rol se
+// reparte entre las escenas de ese mismo rol. NUNCA pisa un diálogo ya escrito (filmado intacto).
+function propagarNarracion(escenas, guion) {
+  const blocks = Array.isArray(guion?.blocks) ? guion.blocks : [];
+  if (!blocks.length) return escenas;
+  const textoPorRol = new Map();
+  for (const b of blocks) {
+    const rol = b?.role || 'desarrollo';
+    const txt = String(b?.narration || '').trim();
+    if (!txt) continue;
+    textoPorRol.set(rol, [...(textoPorRol.get(rol) || []), txt]);
+  }
+  const mudasPorRol = new Map();
+  escenas.forEach((e, i) => {
+    if (String(e?.dialogo || '').trim()) return;
+    mudasPorRol.set(e.rol, [...(mudasPorRol.get(e.rol) || []), i]);
+  });
+  const out = escenas.slice();
+  for (const [rol, idxs] of mudasPorRol) {
+    const texto = (textoPorRol.get(rol) || []).join(' ');
+    if (!texto) continue;
+    const tramos = repartirTexto(texto, idxs.length);
+    idxs.forEach((idx, k) => {
+      const t = String(tramos[k] || '').trim();
+      if (t) out[idx] = { ...out[idx], dialogo: t };
+    });
+  }
+  return out;
+}
+
+// Cada escena → la CAPTURA real del kit que le toca (`archivoCaptura` = relpath). Match por el label
+// de pantalla que devolvió la IA (`screen`) contra el `nombre` de las capturas. Sin kit: no toca nada.
+function asignarCapturas(escenas, piece = {}) {
+  const pantallas = Array.isArray(piece.mediaKit?.pantallas) ? piece.mediaKit.pantallas : [];
+  if (!pantallas.length) return escenas;
+  return escenas.map((e) => {
+    if (e.archivoCaptura) return e;
+    const label = normLabel(e.screen);
+    if (!label) return e;
+    const p = pantallas.find((x) => normLabel(x.nombre) === label)
+      || pantallas.find((x) => normLabel(x.nombre).includes(label) || label.includes(normLabel(x.nombre)));
+    return p && p.archivo ? { ...e, archivoCaptura: p.archivo } : e;
+  });
+}
+
 const RUNNERS = {
 
   // ── ESTRATEGIA (nivel proyecto) — del brief: posicionamiento + público + plan de piezas ──
@@ -153,8 +262,11 @@ Devolvé SOLO el JSON del bloque: { "role": "${cur.role || 'hook'}", "narration"
 NEGOCIO: ${x.name} · BLOQUE ACTUAL (hacelo distinto): ${JSON.stringify(cur)}
 Rioplatense, sin emojis, no inventes datos.` };
       }
+      // WO-K4: con media kit, las capturas/momentos REALES entran como insumo del prompt.
+      // Sin kit el bloque queda vacío → prompt byte-idéntico al anterior.
+      const bloqueKit = mediaKitText(piece);
       return { mode: 'set', prompt: `Actuás como promo-director. Escribí el guion de un comercial de ${dur}s para ${piezaDesc}, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
-${concepto ? `CONCEPTO ELEGIDO (respetalo, es la dirección creativa del comercial): ${concepto}\n` : ''}${bloqueTecnica}ENFOQUE GLOBAL (clave): contá TODA la propuesta del negocio en ESTE video — no un solo módulo/producto. Enganchá explicando el funcionamiento, CONECTÁ los puntos fuertes en un hilo, reforzá con la prueba y cerrá con el CTA.
+${concepto ? `CONCEPTO ELEGIDO (respetalo, es la dirección creativa del comercial): ${concepto}\n` : ''}${bloqueTecnica}${bloqueKit}ENFOQUE GLOBAL (clave): contá TODA la propuesta del negocio en ESTE video — no un solo módulo/producto. Enganchá explicando el funcionamiento, CONECTÁ los puntos fuertes en un hilo, reforzá con la prueba y cerrá con el CTA.
 Estructura NARRATIVA por bloques con estos roles EXACTOS: hook (primeros 2s, roba la atención, sin logo ni "somos X") -> desarrollo (cómo funciona / la propuesta en vivo) -> gag (el REMATE: el momento más fuerte — humor si el concepto es humorístico, si no la prueba/beneficio contundente) -> cta (llamado a la acción claro). El gag va SIEMPRE ANTES del cta.
 Narración calibrada para TTS a ~2.7 palabras/seg (que entre en ${dur}s); estimá el durSec de cada bloque.
 Devolvé SOLO JSON: { "blocks": [{ "role": "hook|desarrollo|gag|cta", "narration": "lo que se DICE (voz)", "visual": "lo que se VE en pantalla", "durSec": <segundos> }], "music": { "mood": "el mood de la música en 1 frase" } }
@@ -247,8 +359,11 @@ ${material}` };
 PANTALLAS DEL PRODUCTO: ${screensText(project) || '(sin pantallas en el KB: proponé pantallas recreadas y marcalas [demo])'}
 `
         : '';
+      // WO-K4: con media kit, las capturas/momentos REALES entran como insumo del prompt.
+      // Sin kit el bloque queda vacío → prompt byte-idéntico al anterior.
+      const bloqueKit = mediaKitText(piece);
       return { prompt: `Sos director creativo de publicidad. Del BRIEF, proponé 2-3 CONCEPTOS de comercial de ~20-30s para redes que desarrollen ESTE approach: ${angulo || '(inferí un ángulo del brief)'} — ${creativeBrief || '(sin brief creativo: usá el brief del negocio)'}.
-${bloqueTecnica}Cada concepto: la IDEA (una situación/gancho concreto — puede ser humor, problema-solución, día-en-la-vida), TONO, ESTÉTICA (dirección visual: luz, paleta, estilo de fotografía, coherente con la marca), REFERENCIA (a qué tipo de anuncio conocido se parece), POR QUÉ FUNCIONA (1 frase).
+${bloqueTecnica}${bloqueKit}Cada concepto: la IDEA (una situación/gancho concreto — puede ser humor, problema-solución, día-en-la-vida), TONO, ESTÉTICA (dirección visual: luz, paleta, estilo de fotografía, coherente con la marca), REFERENCIA (a qué tipo de anuncio conocido se parece), POR QUÉ FUNCIONA (1 frase).
 ENFOQUE GLOBAL (obligatorio): cada concepto cuenta TODA la propuesta, JAMÁS un solo módulo.
 Devolvé SOLO JSON (sin texto ni markdown): { "conceptos": [{ "id": "c1", "idea": "...", "tono": "...", "estetica": "...", "referencia": "...", "porQueFunciona": "..." }] }
 Reglas: español rioplatense, sin emojis, NO inventes datos/precios como reales.
@@ -305,9 +420,13 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       const guion = pieceGuionText(piece);
       // WO-2/D4: aspecto del formato; sin formato queda '9:16' (byte-idéntico al hardcodeo anterior).
       const asp = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
+      // WO-K4: con media kit, las escenas se arman sobre las CAPTURAS reales (el `screen` de cada
+      // escena tiene que ser el nombre EXACTO de una captura → así el parse le asigna archivoCaptura).
+      // Sin kit el bloque queda vacío y los dos prompts son byte-idénticos a los de antes.
+      const bloqueKit = mediaKitText(piece);
       if (tipo === 'animado') {
         return { prompt: `Sos director de un reel ANIMADO ${asp} (se recrean las PANTALLAS del producto, sin personas). Convertí el guion en un STORYBOARD de escenas numeradas, una por PANTALLA.
-Por escena: n (número), rol (hook|desarrollo|gag|cta), durSec (3-5s), screen (label de la pantalla del KB), accion (un título corto de <=8 palabras que vende ese momento), dialogo "" (vacío), continuidad (la palabra a RESALTAR del título). Dejá plano/angulo vacíos y personajes [].
+${bloqueKit}Por escena: n (número), rol (hook|desarrollo|gag|cta), durSec (3-5s), screen (label de la pantalla del KB), accion (un título corto de <=8 palabras que vende ese momento), dialogo "" (vacío), continuidad (la palabra a RESALTAR del título). Dejá plano/angulo vacíos y personajes [].
 La suma de durSec ≈ ${durationSec}s.
 Devolvé SOLO JSON: { "escenas": [{ "n": 1, "rol": "hook", "durSec": 4, "screen": "...", "plano": "", "angulo": "", "personajes": [], "accion": "título corto", "dialogo": "", "continuidad": "palabra a resaltar" }] }
 Reglas: español rioplatense, sin emojis, no inventes datos. Marca fonética (nunca el nombre escrito): ${phonetic}.
@@ -317,7 +436,7 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       }
       const cast = piece.cast ? JSON.stringify(piece.cast) : '(sin cast todavía: usá ids p1/p2 y descripciones genéricas)';
       return { prompt: `Sos director de un comercial FILMADO ${asp}. Convertí el guion en un STORYBOARD de escenas numeradas.
-Por escena: n, rol (hook|desarrollo|gag|cta), durSec (talking head = 8 MÍNIMO, jamás menos; b-roll 4-8), plano (medium shot waist-up para talking heads — NUNCA wide lejano), angulo (eye-level, etc.), personajes (ids del CAST — USÁ SIEMPRE los mismos), accion, dialogo (rioplatense, frase ENTERA de ~24-30 palabras si es talking head, que COMENTA el producto; marca SIEMPRE fonética: ${phonetic}), continuidad (qué debe matchear con la escena anterior: ropa, luz, posición).
+${bloqueKit}Por escena: n, rol (hook|desarrollo|gag|cta), durSec (talking head = 8 MÍNIMO, jamás menos; b-roll 4-8), plano (medium shot waist-up para talking heads — NUNCA wide lejano), angulo (eye-level, etc.), personajes (ids del CAST — USÁ SIEMPRE los mismos), accion, dialogo (rioplatense, frase ENTERA de ~24-30 palabras si es talking head, que COMENTA el producto; marca SIEMPRE fonética: ${phonetic}), continuidad (qué debe matchear con la escena anterior: ropa, luz, posición).
 La suma de durSec ≈ ${durationSec}s (puede pasarse antes que recortar un talking head). El gag/remate va ANTES del CTA.
 Devolvé SOLO JSON: { "escenas": [{ "n": 1, "rol": "hook", "durSec": 8, "plano": "medium shot waist-up", "angulo": "eye-level", "personajes": ["p1"], "accion": "...", "dialogo": "...", "continuidad": "..." }] }
 Reglas: sin emojis, no inventes datos/precios como reales.
@@ -325,17 +444,25 @@ NEGOCIO: ${name}
 CAST: ${cast}
 GUION: ${guion || '(usá el brief del negocio)'}` };
     },
-    parse(text) {
+    // `body` (contrato extendido) trae el guion y el media kit de la pieza: el parse los usa para
+    // (1) PROPAGAR la narración a `dialogo` — la fuga que dejaba los renders mudos — y (2) asignar
+    // `archivoCaptura` con la captura real que le toca a cada escena.
+    parse(text, body) {
       const o = extractJson(text);
       if (!Array.isArray(o.escenas) || !o.escenas.length) throw new Error('el molde storyboard no trajo escenas');
       const ROLES = new Set(['hook', 'desarrollo', 'gag', 'cta']);
-      o.escenas = o.escenas.map((e) => {
+      const piece = (body && body.context && body.context.piece) || {};
+      let escenas = o.escenas.map((e) => {
         if (!ROLES.has(e.rol)) throw new Error(`rol de escena inválido: ${e.rol}`);
         const rawDur = Number(e.durSec) || 0;
-        // talking head (tiene diálogo) < 8s → corregir a 8 (regla dura), no throw
+        // talking head (la IA le escribió diálogo) < 8s → 8 (regla dura de Flow). Se evalúa ANTES de
+        // propagar: en ANIMADO las escenas duran 3-5s y no son talking heads — la voz en off que se
+        // propaga abajo NO puede inflarlas a 8s (rompería la duración total de la pieza).
         const durSec = (e.dialogo && String(e.dialogo).trim() && rawDur < 8) ? 8 : rawDur;
         return { ...e, durSec };
       });
+      escenas = propagarNarracion(escenas, piece.guion);
+      o.escenas = asignarCapturas(escenas, piece);
       return o;
     },
   },
