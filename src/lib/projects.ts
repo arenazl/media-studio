@@ -5,6 +5,7 @@
 import type { ContentType } from '../NewProjectWizard';
 import { fitpassProject } from '../data/demoFitpass';
 import type { BrandKit } from './brandKit';
+import type { MarcaKit, MediaKitCta, MediaKitMomento, PantallaKit } from './mediaKit';
 import type { MontageSnapshot } from './montageStore';
 import type { Comercial } from './comercial';
 import { API_BASE } from '../config';
@@ -67,6 +68,12 @@ export interface Project {
   screens?: unknown[];           // metadata de pantallas del KB 1.2 (kind/components/data…) → reel animado
   brandKit?: BrandKit;           // marca del proyecto (logo/color/fonética) — agnóstico
   formatoId?: string;            // WO-1: formato default que eligió el wizard (id de FORMATOS_DEF) — se usa en la siembra
+  // ── MEDIA KIT (WO-K2) — TODO opcional: un proyecto sin kit funciona EXACTAMENTE como antes ──
+  mediaKitId?: string;           // id del kit del que se importó (= id del registro KSP)
+  marcaKit?: MarcaKit;           // ficha de marca COMPLETA del kit (brandKit NO cambia de shape)
+  cta?: MediaKitCta;             // el cierre del video, con URL verificada por la app
+  momentos?: MediaKitMomento[];  // mini-flujos narrativos (2-3 pantallas que cuentan una historia)
+  pantallasKit?: PantallaKit[];  // capturas REALES: relpath + URL + zonaClave/microAnimacion/datosVisibles
   reels: ProjectReel[];
   created_at: number;
   updated_at: number;
@@ -125,7 +132,12 @@ export function listProjects(): Project[] {
 export function getProject(id: string): Project | undefined {
   return load().find((p) => p.id === id);
 }
-export function saveProject(input: { id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType; brief?: string; screenshots?: string[]; screens?: unknown[]; brandKit?: BrandKit; formatoId?: string; reels?: ProjectReel[] }): Project {
+export function saveProject(input: {
+  id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType;
+  brief?: string; screenshots?: string[]; screens?: unknown[]; brandKit?: BrandKit; formatoId?: string;
+  mediaKitId?: string; marcaKit?: MarcaKit; cta?: MediaKitCta; momentos?: MediaKitMomento[]; pantallasKit?: PantallaKit[];
+  reels?: ProjectReel[];
+}): Project {
   const ps = load();
   const id = input.id || `${slug(input.name) || 'proj'}-${Date.now().toString(36).slice(-4)}`;
   const existing = ps.find((p) => p.id === id);
@@ -139,6 +151,13 @@ export function saveProject(input: { id?: string; name: string; type?: string; p
     screens: input.screens ?? existing?.screens,
     brandKit: input.brandKit ?? existing?.brandKit,
     formatoId: input.formatoId ?? existing?.formatoId,   // WO-1 hecho 2: sin esta línea el campo se pierde al guardar
+    // media kit (WO-K2): mismo criterio que formatoId — sin estas líneas el import se perdería en el
+    // primer guardado. `?? existing` = un save parcial NUNCA borra el kit ya importado.
+    mediaKitId: input.mediaKitId ?? existing?.mediaKitId,
+    marcaKit: input.marcaKit ?? existing?.marcaKit,
+    cta: input.cta ?? existing?.cta,
+    momentos: input.momentos ?? existing?.momentos,
+    pantallasKit: input.pantallasKit ?? existing?.pantallasKit,
     reels: (input.reels ?? existing?.reels ?? []).map(normReel),
     created_at: existing?.created_at ?? now, updated_at: now,
   };

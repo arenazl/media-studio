@@ -65,6 +65,25 @@
 .wz-app-check { color: var(--rd-green); flex: 0 0 auto; }
 .wz-muted { grid-column: 1 / -1; color: var(--rd-ink-mute); font-size: 13px; padding: 18px; text-align: center; }
 
+/* ── MEDIA KIT (WO-K2): la materia prima a la vista ANTES de crear. PROTOTIPO: lo mínimo. ── */
+.wz-kit-badge { display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; font-size: 11.5px; color: var(--rd-green); }
+.wz-kit-badge--warn { color: var(--rd-gold); }
+.wz-kit {
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: var(--rd-r-card);
+  padding: 14px 16px; margin: 0 0 22px;
+}
+.wz-kit-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--rd-green); }
+.wz-kit-title { font-size: 14.5px; font-weight: 600; color: var(--rd-ink); }
+.wz-kit-meta { font-size: 12px; color: var(--rd-ink-mute); }
+.wz-kit-warn { font-size: 12.5px; color: var(--rd-ink-mute); margin: 8px 0 0; }
+.wz-kit-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 12px; }
+.wz-shot { margin: 0; min-width: 0; }
+.wz-shot img {
+  display: block; width: 100%; height: 88px; object-fit: cover; object-position: top center;
+  border: 1px solid var(--rd-border); border-radius: var(--rd-r-md); background: var(--rd-surface-2);
+}
+.wz-shot figcaption { font-size: 11px; color: var(--rd-ink-mute); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .wz-error {
   color: var(--rd-danger); background: color-mix(in srgb, var(--rd-danger) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--rd-danger) 30%, transparent); border-radius: var(--rd-r-md);

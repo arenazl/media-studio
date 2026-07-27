@@ -24,6 +24,9 @@
 //   GET    /api/apps/<id>                 → config de voz de una app
 //   POST   /api/apps/<id>                 → guardar config de voz
 //   DELETE /api/apps/<id>
+//   GET    /api/media-kit                 → media kits descubiertos en D:\Code\<app>\media-kit
+//   GET    /api/media-kit/<id>            → el media-kit.json completo
+//   GET    /api/media-kit/<id>/file/<rel> → capturas/logo/fuentes del kit (sanitizado)
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -38,6 +41,7 @@ import {
   DB_PATH,
 } from './db.mjs';
 import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS, extractJson } from './functions.mjs';
+import { scanMediaKits, readMediaKit, resolveKitFile, MEDIA_KIT_ROOT } from './mediaKit.mjs';
 import { assemble } from './assemble.mjs';
 import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
@@ -904,6 +908,40 @@ ${src}`;
         return json(res, 200, { app: { id: app.id, name: app.nombre }, kb, health: { logo, screens, encodingOk } });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error inspeccionando' }); }
     }
+    // ── MEDIA KIT (WO-K1): los kits que cada app deja en SU repo (contrato base-compartida/16) ──
+    // Descubrimiento on-demand (sin cache, como el KSP): cada request re-escanea D:\Code. El `id` del
+    // kit es la MISMA llave que el registro KSP → se cruza para marcar los kits sin app registrada.
+    // Los archivos (capturas/logo/fuentes) SIEMPRE se sirven por este endpoint — el front nunca usa file://.
+    if (p === '/api/media-kit' && req.method === 'GET') {
+      // el cruce con el registro es CASE-INSENSITIVE: el primer kit real (sinvueltas) vino sin `id`
+      // y cayó al nombre de su carpeta ("EventMarker") contra el id del registro ("eventmarker").
+      // El id es una llave, no un dato de negocio: tolerar la caja acá evita un falso "sin registro".
+      const registradas = new Set(loadKbApps().map((a) => String(a.id || '').toLowerCase()));
+      const kits = scanMediaKits(MEDIA_KIT_ROOT).map((k) => ({ ...k, sinRegistro: !registradas.has(k.id.toLowerCase()) }));
+      return json(res, 200, { root: MEDIA_KIT_ROOT, kits });
+    }
+    if (p.match(/^\/api\/media-kit\/[^/]+\/file\/.+$/) && req.method === 'GET') {
+      const m = p.match(/^\/api\/media-kit\/([^/]+)\/file\/(.+)$/);
+      const id = decodeURIComponent(m[1]);
+      let rel = '';
+      try { rel = decodeURIComponent(m[2]); } catch { return json(res, 400, { error: 'ruta inválida' }); }
+      const r = resolveKitFile(id, rel, MEDIA_KIT_ROOT);
+      if (!r.ok) return json(res, r.code, { error: r.error });
+      const st = fs.statSync(r.file);
+      res.writeHead(200, {
+        'Content-Type': r.mime, 'Content-Length': st.size,
+        'Cache-Control': 'no-cache',                 // el kit se PISA al regenerarse: nada de thumbs viejos
+        'X-Content-Type-Options': 'nosniff',
+        'Access-Control-Allow-Origin': '*',
+      });
+      return fs.createReadStream(r.file).pipe(res);
+    }
+    if (p.startsWith('/api/media-kit/') && req.method === 'GET') {
+      const id = decodeURIComponent(p.slice('/api/media-kit/'.length));
+      const kit = readMediaKit(id, MEDIA_KIT_ROOT);
+      return kit ? json(res, 200, { kit }) : json(res, 404, { error: 'ese media kit no existe' });
+    }
+
     // del KB → prospecto + propuesta de trabajo (con IA).
     if (p === '/api/kb/plan' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');

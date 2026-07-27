@@ -1,0 +1,75 @@
+{
+  "id": "app-demo",
+  "app": "[DEMO] Kit de prueba",
+  "generado": "2026-07-26",
+  "ambiente": "fixture de tests (no es una app real)",
+  "negocio": {
+    "queEs": "[DEMO] Producto de ejemplo usado SOLO para los tests del media kit",
+    "queVende": "[DEMO] un servicio de ejemplo",
+    "aQuien": ["[DEMO] público de ejemplo A", "[DEMO] público de ejemplo B"],
+    "zona": "[DEMO] zona de ejemplo",
+    "diferenciales": [
+      "[DEMO] diferencial de ejemplo uno",
+      "[DEMO] diferencial de ejemplo dos",
+      "[DEMO] diferencial de ejemplo tres"
+    ],
+    "numerosReales": [],
+    "dolorDelCliente": [
+      "[DEMO] dolor de ejemplo uno",
+      "[DEMO] dolor de ejemplo dos"
+    ],
+    "queNoDecir": ["[DEMO] cosa que no se dice"],
+    "audienciaPrioritaria": "[DEMO] público de ejemplo A",
+    "sugerencias": ["[DEMO] sugerencia de la app (opinión, no hecho)"]
+  },
+  "cta": {
+    "principal": "[DEMO] Entrá y probalo",
+    "url": "https://example.com/demo"
+  },
+  "pruebaSocial": [],
+  "marca": {
+    "nombreExacto": "[DEMO] Kit de prueba",
+    "fonetica": "demo kit de prueba",
+    "logo": { "principal": "logo.svg" },
+    "colores": { "primario": "#264358", "acento": "#584326", "fondo": "#0E1116", "texto": "#E8EDF2", "modoNativo": "oscuro" },
+    "tipografias": { "titulos": "[DEMO] Fuente de títulos", "texto": "[DEMO] Fuente de texto", "fallback": "sans-serif" },
+    "estiloUI": {
+      "bordes": "[DEMO] cards redondeadas",
+      "sombras": "[DEMO] suaves",
+      "botones": "[DEMO] sólidos",
+      "densidad": "[DEMO] aireada",
+      "rasgoDistintivo": "[DEMO] rasgo visual de ejemplo"
+    },
+    "tono": "[DEMO] tono de ejemplo"
+  },
+  "pantallas": [
+    {
+      "archivo": "screens/01-demo-home.png",
+      "viewport": "desktop",
+      "nombre": "[DEMO] Home",
+      "ruta": "/",
+      "queDemuestra": "[DEMO] lo que se ve en el home de ejemplo",
+      "zonaClave": "[DEMO] tercio superior",
+      "datosVisibles": ["[DEMO] dato uno", "[DEMO] dato dos"],
+      "microAnimacion": "[DEMO] el buscador se despliega"
+    },
+    {
+      "archivo": "screens/02-demo-detalle.png",
+      "viewport": "mobile",
+      "nombre": "[DEMO] Detalle",
+      "ruta": "/detalle",
+      "queDemuestra": "[DEMO] lo que se ve en el detalle de ejemplo",
+      "zonaClave": "[DEMO] centro de la pantalla",
+      "datosVisibles": ["[DEMO] dato tres"],
+      "microAnimacion": "[DEMO] la ficha entra desde abajo"
+    }
+  ],
+  "momentos": [
+    {
+      "nombre": "[DEMO] Del home al detalle",
+      "historia": "[DEMO] entro al home y abro el detalle",
+      "pantallas": ["screens/01-demo-home.png", "screens/02-demo-detalle.png"],
+      "remate": "[DEMO] remate de ejemplo"
+    }
+  ]
+}
