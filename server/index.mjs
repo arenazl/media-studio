@@ -61,7 +61,8 @@ try {
 } catch { /* noop */ }
 
 const PORT      = Number(process.env.STUDIO_PORT || 5301);
-const VIDEOS_DIR = process.env.VIDEOS_DIR || 'D:/Code/sugerenciasMun/reels/videos';
+const VIDEOS_DIR = process.env.VIDEOS_DIR || path.resolve('./starting-videos');
+const ALT_VIDEOS_DIR = 'D:/Code/sugerenciasMun/reels/videos';
 const REPO_CWD  = process.env.STUDIO_CWD  || 'D:/Code';
 const IS_WIN    = process.platform === 'win32';
 const IS_PROD   = process.env.IS_PROD === 'true';   // LOCAL (Claude headless) por default; prod (Gemini) SOLO con IS_PROD=true
@@ -452,18 +453,29 @@ async function renderMp4({ width = 1080, height = 1920, fps = 30, scenes, audio 
 
 // ── Videos locales (dev) ─────────────────────────────────────────────────────
 function listLocalVideos() {
-  const files = fs.existsSync(VIDEOS_DIR) ? fs.readdirSync(VIDEOS_DIR) : [];
-  return files
-    .filter((f) => VIDEO_EXT.has(path.extname(f).toLowerCase()))
-    .map((name) => {
-      const st = fs.statSync(path.join(VIDEOS_DIR, name));
-      return { name, size: st.size, mtime: st.mtimeMs, url: `/api/videos/file/${encodeURIComponent(name)}` };
-    })
-    .sort((a, b) => b.mtime - a.mtime);
+  const dirs = [VIDEOS_DIR, ALT_VIDEOS_DIR].filter((d) => d && fs.existsSync(d));
+  const seen = new Set();
+  const list = [];
+  for (const dir of dirs) {
+    const files = fs.readdirSync(dir);
+    for (const name of files) {
+      if (!VIDEO_EXT.has(path.extname(name).toLowerCase())) continue;
+      if (seen.has(name)) continue;
+      seen.add(name);
+      const st = fs.statSync(path.join(dir, name));
+      list.push({ name, size: st.size, mtime: st.mtimeMs, url: `/api/videos/file/${encodeURIComponent(name)}` });
+    }
+  }
+  return list.sort((a, b) => b.mtime - a.mtime);
 }
 
 function streamVideo(req, res, name) {
-  const file = path.join(VIDEOS_DIR, path.basename(name));
+  const base = path.basename(name);
+  let file = path.join(VIDEOS_DIR, base);
+  if (!fs.existsSync(file) && fs.existsSync(ALT_VIDEOS_DIR)) {
+    const altFile = path.join(ALT_VIDEOS_DIR, base);
+    if (fs.existsSync(altFile)) file = altFile;
+  }
   if (!fs.existsSync(file)) return json(res, 404, { error: 'no existe' });
   const st   = fs.statSync(file);
   const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';

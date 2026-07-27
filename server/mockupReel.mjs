@@ -53,7 +53,19 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
   const cards = timed.map(({ s, off, d }, i) => {
     const badge = esc(s.badge || s.screen || s.label || `PANTALLA 0${i + 1}`);
     const { head, tail } = splitTitle(s.title || s.highlight || s.copy || '', s.accent || s.copy);
-    const imgSrc = s.image || s.archivoCaptura || s.url || '';
+    let imgSrc = s.image || s.archivoCaptura || s.video || s.url || '';
+
+    // Convertir rutas locales de windows (D:\...) a file:/// o HTTP para que Chromium las renderice sin fallar
+    if (imgSrc && /^[a-zA-Z]:[\\/]/.test(imgSrc)) {
+      imgSrc = 'file:///' + imgSrc.replace(/\\/g, '/');
+    }
+
+    const isVideo = /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(imgSrc);
+    const mediaElement = isVideo
+      ? `<video src="${imgSrc}" class="device-img" autoplay loop muted playsinline style="object-fit:cover; width:100%; height:100%;"></video>`
+      : imgSrc
+      ? `<img src="${imgSrc}" class="device-img" alt="${badge}" />`
+      : `<div class="device-fallback"><div class="fb-icon">${logoSvg || '✨'}</div><div class="fb-text">${badge}</div></div>`;
 
     return `<div class="slide" style="--off:${off.toFixed(2)}s;--dur:${d.toFixed(2)}s">
       <div class="device-mockup">
@@ -61,10 +73,10 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
           <span class="dot-btn red"></span>
           <span class="dot-btn yellow"></span>
           <span class="dot-btn green"></span>
-          <span class="device-url">${badge.toLowerCase()}.sinvueltasya.com.ar</span>
+          <span class="device-url">${badge.toLowerCase().replace(/\s+/g, '-')}.sinvueltasya.com.ar</span>
         </div>
         <div class="device-body">
-          ${imgSrc ? `<img src="${imgSrc}" class="device-img" alt="${badge}" />` : `<div class="device-fallback">${badge}</div>`}
+          ${mediaElement}
         </div>
       </div>
 
@@ -143,9 +155,11 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
       100% { transform: translateY(-18%) scale(1.05); }
     }
     .device-fallback {
-      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-      font-size: 32px; font-weight: 700; color: rgba(255,255,255,.4);
+      width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 20px; background: linear-gradient(135deg, rgba(124,58,237,0.25) 0%, rgba(245,158,11,0.15) 100%);
+      font-size: 32px; font-weight: 700; color: #fff;
     }
+    .device-fallback .fb-icon { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
 
     /* COPY INFERIOR */
     .content-box {
