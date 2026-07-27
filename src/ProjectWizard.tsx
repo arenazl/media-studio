@@ -71,8 +71,30 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
         });
       } catch { /* strategy falló → no bloquear el import; abajo se siembra un comercial base */ }
 
-      // Sin piezas (strategy caído o vacío): 1 comercial base para que el pipeline arranque igual.
-      if (!reels.length) reels = [{ id: `reel-${project.id}`, nombre: project.name, frases: 0, guion: [], comercial: { ...nuevoComercial(project.name, tipoPieza), formatoId: project.formatoId } }];
+      // Sin piezas (strategy caído o vacío): generar el número de comerciales base según el perfil.
+      if (!reels.length) {
+        if (perfil === 'campaña') {
+          const defaultPieces = [
+            { title: 'Gancho & Problema', obj: 'awareness' },
+            { title: 'Demo de Producto', obj: 'consideracion' },
+            { title: 'Beneficios Clave', obj: 'consideracion' },
+            { title: 'Prueba Social & Garantía', obj: 'consideracion' },
+            { title: 'Oferta & Conversión', obj: 'conversion' },
+            { title: 'Solo Mockups Animados', obj: 'consideracion' },
+          ];
+          reels = defaultPieces.map((p, i) => ({
+            id: `reel-${i + 1}`,
+            nombre: p.title,
+            frases: 0,
+            guion: [],
+            objetivo: p.obj,
+            angulo: p.title,
+            comercial: { ...nuevoComercial(p.title, tipoPieza), formatoId: project.formatoId, angulo: p.title },
+          }));
+        } else {
+          reels = [{ id: `reel-${project.id}`, nombre: project.name, frases: 0, guion: [], comercial: { ...nuevoComercial(project.name, tipoPieza), formatoId: project.formatoId } }];
+        }
+      }
 
       setProgress('Guardando el proyecto…');
       const proj = saveProject({
