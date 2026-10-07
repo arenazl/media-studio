@@ -33,7 +33,7 @@
 }
 .kft-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .kft-btn--primary { border-color: var(--rd-gold); color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 10%, transparent); }
-.kft-btn--start { border: none; background: var(--rd-green); color: #06241a; }
+.kft-btn--start { border: none; background: var(--rd-green); color: var(--rd-on-accent); }
 
 .kft-spin { animation: kft-spin 0.9s linear infinite; }
 @keyframes kft-spin { to { transform: rotate(360deg); } }

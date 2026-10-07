@@ -197,8 +197,11 @@
   place-items: center;
 }
 
-.tema-panel--compacto .tema-acento { height: 32px; border-radius: 9px; }
-.tema-panel--compacto .tema-acento-bola { width: 18px; height: 18px; }
+/* Los ocho en UNA fila: en dos filas, la de abajo se va del alto del popover
+   que lo contiene y hay que descubrir que la lista scrollea. */
+.tema-panel--compacto .tema-grid-4 { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+.tema-panel--compacto .tema-acento { height: 26px; border-radius: 7px; }
+.tema-panel--compacto .tema-acento-bola { width: 16px; height: 16px; }
 
 /* Vista previa */
 .tema-prev {

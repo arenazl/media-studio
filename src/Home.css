@@ -10,7 +10,7 @@
 .home-sub { color: var(--rd-ink-dim); font-size: 15px; margin: 8px 0 0; max-width: 60ch; }
 .home-cta {
   display: flex; align-items: center; gap: 9px; cursor: pointer;
-  background: var(--rd-green); color: #04170f; border: none;
+  background: var(--rd-green); color: var(--rd-on-accent); border: none;
   padding: 13px 20px; border-radius: 12px; font-family: var(--rd-font-sans); font-size: 14.5px; font-weight: 600;
   box-shadow: 0 6px 18px color-mix(in srgb, var(--rd-green) 30%, transparent);
   transition: filter var(--rd-dur-ui) var(--rd-ease), transform var(--rd-dur-ui) var(--rd-ease);
@@ -32,7 +32,7 @@
   font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: 8px; cursor: pointer;
   color: var(--rd-ink-dim); background: var(--rd-surface-1); border: none;
 }
-.home-filter--on { color: #04170f; background: var(--rd-green); }
+.home-filter--on { color: var(--rd-on-accent); background: var(--rd-green); }
 
 .home-link { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--rd-green); font-weight: 500; background: none; border: none; cursor: pointer; padding: 0; }
 .home-link:hover { text-decoration: underline; }

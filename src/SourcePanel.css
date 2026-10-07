@@ -27,7 +27,7 @@
   background: var(--surface-3); border: 1px solid var(--bd-2); border-radius: var(--pill); padding: 3px 9px;
 }
 .sp-fchip:hover { color: var(--txt); }
-.sp-fchip--on { color: var(--ink); background: var(--accent); border-color: var(--accent); }
+.sp-fchip--on { color: var(--on-brand); background: var(--accent); border-color: var(--accent); }
 .sp-search { display: flex; align-items: center; gap: 6px; background: var(--field); border: 1px solid var(--bd-2); border-radius: var(--r-sm); padding: 5px 9px; }
 .sp-search-icon { color: var(--txt-40); flex: 0 0 auto; }
 .sp-search-input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--txt); font: inherit; font-size: 12px; }
@@ -42,7 +42,7 @@
 .sp-chip-wrap { display: inline-flex; align-items: stretch; }
 .sp-play {
   cursor: pointer; display: flex; align-items: center; justify-content: center; width: 24px; flex: 0 0 auto; padding: 0;
-  color: var(--ink); background: var(--accent); border: 1px solid var(--accent); border-radius: var(--pill) 0 0 var(--pill);
+  color: var(--on-brand); background: var(--accent); border: 1px solid var(--accent); border-radius: var(--pill) 0 0 var(--pill);
 }
 .sp-play:hover { filter: brightness(1.08); }
 .sp-play:disabled { opacity: 0.7; cursor: default; }
@@ -53,7 +53,7 @@
 }
 .sp-chip:hover { border-color: var(--accent); color: var(--txt); }
 .sp-chip--withplay { border-radius: 0 var(--pill) var(--pill) 0; border-left: none; }
-.sp-chip--active { color: var(--ink); background: var(--accent); border-color: var(--accent); }
+.sp-chip--active { color: var(--on-brand); background: var(--accent); border-color: var(--accent); }
 .sp-chip-sub { color: var(--txt-40); font-weight: 600; }
 .sp-chip--active .sp-chip-sub { color: color-mix(in srgb, var(--ink) 65%, transparent); }
 
@@ -68,7 +68,7 @@
 .sp-card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sp-img-broken { visibility: hidden; }
 .sp-card-ph { width: 100%; height: 100%; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, var(--ink)), var(--ink-2)); }
-.sp-card-check { position: absolute; top: 3px; right: 3px; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; color: var(--ink); background: var(--accent); }
+.sp-card-check { position: absolute; top: 3px; right: 3px; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; color: var(--on-brand); background: var(--accent); }
 .sp-card-lbl { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 4px; font-size: 9px; font-weight: 700; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.72)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── vista LIST (librería · guiones) ── */
@@ -90,7 +90,7 @@
 /* ── acción multi-selección ── */
 .sp-addmany {
   margin-top: 9px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-  font: inherit; font-size: 12px; font-weight: 800; color: var(--ink);
+  font: inherit; font-size: 12px; font-weight: 800; color: var(--on-brand);
   background: var(--accent); border: none; border-radius: var(--pill); padding: 7px 14px;
 }
 .sp-addmany:hover { filter: brightness(1.06); }

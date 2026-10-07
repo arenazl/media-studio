@@ -28,7 +28,7 @@
   --pw-gold: var(--rd-gold);
   --pw-gold-soft: color-mix(in srgb, var(--rd-gold) 75%, white 20%);
   --pw-blue: var(--rd-blue);
-  --pw-ok: var(--rd-green);
+  --pw-ok: #00b37e;                                                              /* "aprobado": SEMANTICO, no sigue al acento */
   --pw-warn: color-mix(in srgb, var(--rd-gold) 70%, var(--rd-danger) 25%);       /* aviso: ni el dorado de IA ni el rojo de error */
   --pw-violet: var(--rd-app-munify);                                             /* acento decorativo (gradientes de frame, rol "gag" en la timeline) */
   --pw-danger: var(--rd-danger);
@@ -47,6 +47,16 @@
   --pw-col-max: 900px;
   --pw-ease: var(--rd-ease);
   --pw-dur: var(--rd-dur-ui);
+}
+
+/* Modo claro: lo que no puede salir del framework de tema.
+   El verde del "aprobado" pierde contraste sobre crema, y los dos valores
+   fijos en rgba(255,255,255,…) / rgba(0,0,0,0.22) estaban calculados para
+   fondo oscuro — sobre claro el campo quedaba un agujero negro. */
+html[data-theme="light"] {
+  --pw-ok: #009e6d;
+  --pw-line-2: rgba(0, 0, 0, 0.16);
+  --pw-field: rgba(0, 0, 0, 0.05);
 }
 
 /* ═══ SHELL: spine (220px) · centro (flex) · copiloto (dock colapsable) ═══════ */

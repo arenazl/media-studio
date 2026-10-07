@@ -62,44 +62,10 @@ export function setCopilotOpen(open: boolean): void {
   try { localStorage.setItem(LS_COPILOT, open ? '1' : '0'); } catch { /* noop */ }
 }
 
-// ── Tema Claro / Oscuro ──────────────────────────────────────────────────────
-export type ThemeSetting = 'dark' | 'light';
-const LS_THEME = 'ms.settings.theme';
-
-export function getTheme(): ThemeSetting {
-  try {
-    const raw = localStorage.getItem(LS_THEME);
-    if (raw === 'light') return 'light';
-  } catch { /* noop */ }
-  return 'dark';
-}
-
-function applyTheme(v: ThemeSetting) {
-  if (typeof document !== 'undefined') {
-    if (v === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
-  }
-}
-
-const themeListeners = new Set<() => void>();
-export function subscribeTheme(fn: () => void): () => void {
-  themeListeners.add(fn);
-  return () => { themeListeners.delete(fn); };
-}
-
-export function setTheme(v: ThemeSetting): void {
-  try {
-    localStorage.setItem(LS_THEME, v);
-    applyTheme(v);
-  } catch { /* noop */ }
-  for (const fn of themeListeners) fn();
-}
-
-// Carga inicial al cargar el módulo
-if (typeof document !== 'undefined') {
-  applyTheme(getTheme());
-}
-
+// ── Tema ────────────────────────────────────────────────────────────────────
+// YA NO VIVE ACÁ. El tema (modo claro/oscuro + los seis fondos + los ocho
+// acentos) lo maneja el framework compartido del kit v3: `src/tema/store.ts`,
+// que tiene su propia persistencia (`ms.tema.*`) y escribe los tokens en el
+// <html>. Lo que había acá era un claro/oscuro suelto con la clave
+// `ms.settings.theme`: se fue entero para que no haya DOS cosas escribiendo
+// `data-theme` y peleándose por quién pinta la app.

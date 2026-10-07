@@ -19,7 +19,7 @@
 
 /* palabra que está sonando ahora (karaoke) */
 .st-w--on {
-  color: var(--ink);
+  color: var(--on-gold);
   background: var(--gold);
   box-shadow: 0 0 0 2px var(--gold);
 }

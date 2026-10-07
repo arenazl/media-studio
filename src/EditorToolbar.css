@@ -46,6 +46,6 @@
    cerrados se pintaban con opacidad 1 y cursor pointer: parecían clickeables y no hacían nada. */
 .ed-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .ed-btn--primary {
-  background: var(--rd-green); color: #04170f; border: none; font-weight: 600; padding: 9px 16px;
+  background: var(--rd-green); color: var(--rd-on-accent); border: none; font-weight: 600; padding: 9px 16px;
 }
 .ed-btn--primary:hover:not(:disabled) { filter: brightness(1.06); }

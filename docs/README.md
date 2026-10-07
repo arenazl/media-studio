@@ -19,6 +19,7 @@ Organizado con el **criterio cross-app** (raíz de `docs/` solo este README; tem
 | [`05-prompting-video/`](05-prompting-video/) | **Playbook Flow/Veo** (fuente única de prompting de reels humanos). |
 | [`06-video-referencia-stotyboard/`](06-video-referencia-stotyboard/) | El workflow de referencia (storyboard → comercial IA) que inspira el rework. |
 | [`07-rework/`](07-rework/) | **EL REWORK** — visión + 5 fases ejecutables: pipeline de producción KB→comercial (storyboard-driven). |
+| [`15-tema/`](15-tema/) | **La apariencia**: la luna, los seis fondos y el acento — framework compartido del kit v3. |
 | [`agents/`](agents/) | Guías de agentes (App / Infra / Veo) — dominio base, sin numerar. |
 | [`historico/`](historico/) | Docs superados o cerrados, por fecha. |
 

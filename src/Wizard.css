@@ -13,7 +13,7 @@
 
 .wz-step-h { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .wz-step-num {
-  width: 22px; height: 22px; border-radius: 50%; background: var(--rd-green); color: #04170f;
+  width: 22px; height: 22px; border-radius: 50%; background: var(--rd-green); color: var(--rd-on-accent);
   display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex: 0 0 auto;
 }
 .wz-step-label { font-family: var(--rd-font-display); font-size: 15px; font-weight: 600; }
@@ -107,7 +107,7 @@
 .wz-btn-secondary:hover { color: var(--rd-ink); border-color: rgba(255, 255, 255, 0.22); }
 .wz-btn-primary {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--rd-green); color: #04170f; border: none; padding: 11px 22px; border-radius: var(--rd-r-md);
+  background: var(--rd-green); color: var(--rd-on-accent); border: none; padding: 11px 22px; border-radius: var(--rd-r-md);
   font-family: var(--rd-font-sans); font-size: 13.5px; font-weight: 600; cursor: pointer;
   transition: filter var(--rd-dur-ui) var(--rd-ease);
 }

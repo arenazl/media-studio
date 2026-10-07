@@ -75,10 +75,14 @@
   --bd-2: var(--border-2);
   --bd-3: var(--border-3);
 
-  /* `--accent` y `--azure` eran el color de lo activo en esas pantallas
-     (chips, tarjetas elegidas): son acento. `--green` también. */
+  /* `--accent` y `--green` eran el color de lo ACTIVO y de las acciones en esas
+     pantallas (chips, tarjetas elegidas, progreso): eso es el acento.
+     `--azure` NO entra: en las hojas legacy es el azul de "info" / clip de
+     slide, un rol semántico, y mezclarlo con el acento borraría la
+     distinción. VoiceStudio además tiene su propio puente local (declara
+     --azure, --gold y compañía sobre su clase raíz) y manda sobre esto: ahí
+     el dorado sigue siendo el momento de IA y el azul la información. */
   --accent: var(--brand-500);
-  --azure: var(--brand-500);
   --green: var(--brand-500);
 
   /* Tinta sobre el dorado. El dorado es claro en los dos modos, así que su

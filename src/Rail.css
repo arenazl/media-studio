@@ -9,8 +9,12 @@
 }
 .rail-logo {
   width: 40px; height: 40px; border-radius: 11px; flex: 0 0 auto;
-  background: linear-gradient(135deg, var(--rd-green), #00794f);
-  color: #fff; border: none; cursor: pointer;
+  /* El degradé va del acento a su tono oscuro: con un segundo color fijo
+     (era #00794f) el logo quedaba mitad acento y mitad verde en cuanto el
+     usuario elegía otro color. La tinta tampoco puede ser blanca fija — con
+     acento dorado no se leería. */
+  background: linear-gradient(135deg, var(--rd-green), var(--rd-green-600));
+  color: var(--rd-on-accent); border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 18px;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--rd-green) 35%, transparent);

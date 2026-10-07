@@ -1,11 +1,19 @@
-// Ajustes GLOBALES en el rail (engranaje al pie, sobre el avatar). Hoy: selector de modelo de IA —
-// disponible SIEMPRE (Home, wizard, pipeline), para elegir el modelo ANTES de la primera generación
-// (strategy corre en el wizard de campaña, antes de entrar al pipeline). Reusa la lógica pura de
-// settings.ts (getAiModel/setAiModel + pub/sub) — el mismo estado que el engranaje del Pipeline.
+// Ajustes GLOBALES en el rail (engranaje al pie, sobre el avatar). Dos cosas:
+//
+//   1. El modelo de IA — disponible SIEMPRE (Home, wizard, pipeline), para elegirlo ANTES de la
+//      primera generación (strategy corre en el wizard de campaña, antes de entrar al pipeline).
+//      Reusa la lógica pura de settings.ts (getAiModel/setAiModel + pub/sub) — el mismo estado que
+//      el engranaje del Pipeline.
+//   2. La APARIENCIA — la luna y el sol del framework compartido (kit v3), más los seis fondos y
+//      los ocho acentos en su versión compacta. No es un claro/oscuro propio de media-studio: es
+//      el mismo control que tienen SalesBot y Munify, consumido de src/tema/.
 import { useEffect, useRef, useState } from 'react';
 import { useSyncExternalStore } from 'react';
 import { Settings, Check } from 'lucide-react';
-import { getAiModel, setAiModel, subscribeAiModel, type AiModelSetting, getTheme, setTheme, subscribeTheme, type ThemeSetting } from './lib/settings';
+import { getAiModel, setAiModel, subscribeAiModel, type AiModelSetting } from './lib/settings';
+import { ToggleTema } from './tema/ToggleTema';
+import { PanelApariencia } from './tema/PanelApariencia';
+import { tema } from './tema/store';
 import './RailSettings.css';
 
 const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[] = [
@@ -16,11 +24,13 @@ const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[]
 
 export default function RailSettings() {
   const [open, setOpen] = useState(false);
+  // La apariencia se despliega dentro del mismo popover y arranca PLEGADA: el engranaje se abre
+  // casi siempre para cambiar el modelo, y seis fondos más ocho acentos tapaban esa decisión.
+  const [verApariencia, setVerApariencia] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   // el modelo vive en localStorage (settings.ts); useSyncExternalStore lo mantiene en vivo con el
   // engranaje del Pipeline (ambos comparten el mismo pub/sub → cambiar en uno repinta el otro).
   const aiModel = useSyncExternalStore(subscribeAiModel, getAiModel, () => 'intermedio' as AiModelSetting);
-  const theme = useSyncExternalStore(subscribeTheme, getTheme, () => 'dark' as ThemeSetting);
 
   useEffect(() => {
     if (!open) return;
@@ -30,11 +40,10 @@ export default function RailSettings() {
   }, [open]);
 
   const pick = (v: AiModelSetting) => { setAiModel(v); setOpen(false); };
-  const pickTheme = (v: ThemeSetting) => { setTheme(v); setOpen(false); };
 
   return (
     <div className="rs" ref={ref}>
-      <button className={open ? 'rs-gear rs-gear--on' : 'rs-gear'} title="Ajustes · Modelo de IA" onClick={() => setOpen((o) => !o)}>
+      <button className={open ? 'rs-gear rs-gear--on' : 'rs-gear'} title="Ajustes · Modelo de IA y apariencia" onClick={() => setOpen((o) => !o)}>
         <Settings size={19} />
         <span className="rs-gear-label">Ajustes</span>
       </button>
@@ -51,21 +60,21 @@ export default function RailSettings() {
             </button>
           ))}
 
-          <div className="rs-menu-lbl" style={{ marginTop: 12, borderTop: '1px solid var(--rd-border)', paddingTop: 10 }}>Tema</div>
-          <div style={{ display: 'flex', gap: 6, padding: '4px 8px' }}>
-            <button
-              className={theme === 'dark' ? 'rs-theme-btn rs-theme-btn--on' : 'rs-theme-btn'}
-              onClick={() => pickTheme('dark')}
-            >
-              Oscuro
-            </button>
-            <button
-              className={theme === 'light' ? 'rs-theme-btn rs-theme-btn--on' : 'rs-theme-btn'}
-              onClick={() => pickTheme('light')}
-            >
-              Claro
-            </button>
+          <div className="rs-sep" />
+
+          <div className="rs-tema-head">
+            <span className="rs-menu-lbl rs-menu-lbl--inline">Apariencia</span>
+            <ToggleTema store={tema} />
           </div>
+          <button
+            type="button"
+            className="rs-tema-mas"
+            onClick={() => setVerApariencia((v) => !v)}
+            aria-expanded={verApariencia}
+          >
+            {verApariencia ? 'Ocultar fondos y acentos' : 'Fondos y acentos'}
+          </button>
+          {verApariencia && <PanelApariencia store={tema} compacto className="rs-tema-panel" />}
         </div>
       )}
     </div>

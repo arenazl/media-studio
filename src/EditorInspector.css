@@ -58,7 +58,7 @@
   flex: 1; height: 32px; border-radius: 8px; background: var(--rd-surface-1); border: none;
   display: flex; align-items: center; justify-content: center; color: var(--rd-ink-mute); cursor: pointer;
 }
-.ed-insp-align-btn--on { color: #04170f; background: var(--rd-green); }
+.ed-insp-align-btn--on { color: var(--rd-on-accent); background: var(--rd-green); }
 .ed-insp-swatches { display: flex; gap: 8px; }
 .ed-insp-swatch { width: 28px; height: 28px; border-radius: 7px; border: 2px solid transparent; cursor: pointer; }
 

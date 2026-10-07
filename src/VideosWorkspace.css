@@ -23,7 +23,7 @@
 .vw-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .vw-btn--gold { background: var(--rd-gold); color: #1a1200; border: none; font-weight: 600; }
 .vw-btn--gold:disabled { opacity: 0.45; }
-.vw-btn--primary { background: var(--rd-green); color: #04170f; border: none; font-weight: 600; flex: 1.3; justify-content: center; }
+.vw-btn--primary { background: var(--rd-green); color: var(--rd-on-accent); border: none; font-weight: 600; flex: 1.3; justify-content: center; }
 .vw-btn--danger { color: var(--rd-danger); border-color: color-mix(in srgb, var(--rd-danger) 35%, transparent); }
 
 .vw-filters { display: flex; align-items: center; gap: 7px; padding: 0 34px 14px; flex: 0 0 auto; flex-wrap: wrap; }
@@ -31,7 +31,7 @@
   font-size: 12.5px; font-weight: 500; padding: 6px 13px; border-radius: var(--rd-pill); cursor: pointer;
   color: var(--rd-ink-dim); background: var(--rd-surface-1); border: none;
 }
-.vw-chip--on { color: #04170f; background: var(--rd-green); }
+.vw-chip--on { color: var(--rd-on-accent); background: var(--rd-green); }
 .vw-search {
   display: flex; align-items: center; gap: 6px; background: var(--rd-surface-1); border: 1px solid var(--rd-border);
   border-radius: var(--rd-pill); padding: 6px 12px; margin-left: 4px; color: var(--rd-ink-mute);

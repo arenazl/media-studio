@@ -16,7 +16,7 @@
   display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;
   cursor: pointer; border: none;
 }
-.ed-lib-tab--on { color: #04170f; background: var(--rd-green); }
+.ed-lib-tab--on { color: var(--rd-on-accent); background: var(--rd-green); }
 .ed-lib-collapse {
   flex: 0 0 24px; height: 32px; display: flex; align-items: center; justify-content: center;
   color: var(--rd-ink-mute); background: none; border: none; cursor: pointer;
