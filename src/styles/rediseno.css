@@ -63,24 +63,21 @@
 }
 
 /* ===================================================================
-   Tema Claro
+   Tema Claro — SÓLO los colores con SIGNIFICADO.
+
+   Los fondos, superficies, bordes y textos del modo claro ya NO se declaran
+   acá: los deriva el framework de tema (src/tema/, kit v3) del fondo que el
+   usuario eligió, y llegan por src/styles/tema-puente.css. Si volvieran a
+   declararse acá, este selector (html[data-theme]) le GANARÍA por
+   especificidad al puente (:root) y el tema claro quedaría clavado en el
+   crema de siempre, sin importar si el usuario eligió Nieve o Hielo.
+
+   Lo que sí queda: el dorado de los momentos de IA, el azul de "editado" y
+   el rojo de error necesitan una versión más oscura sobre fondo claro para
+   seguir leyéndose. No son el acento y no se derivan de él.
    =================================================================== */
 html[data-theme="light"] {
-  --rd-bg-app:    #FDFBF7;   /* warm cream white */
-  --rd-bg-rail:   #F6F3EC;   /* slightly darker rail cream background */
-  --rd-surface-1: #FFFFFF;   /* pure white cards */
-  --rd-surface-2: #EFEBE0;   /* active, hover, and chip cream background */
-  --rd-border:    rgba(0, 0, 0, 0.08);
-
-  --rd-ink:       #14110C;   /* dark ink matching old background */
-  --rd-ink-2:     #2C271E;
-  --rd-ink-dim:   #5C5548;
-  --rd-ink-mute:  #827A6C;
-  --rd-ink-faint: #A59E92;
-
-  --rd-green:  #009E6D;
   --rd-gold:   #E09F00;
   --rd-blue:   #1E85E6;
   --rd-danger: #E63C3C;
 }
-

@@ -1,0 +1,275 @@
+/* COPIA DEL CATÁLOGO v2 (APP_GUIDE/components/v2/tema) — no editar acá. */
+/* TEMA v3 — CSS de los controles del framework (ToggleTema + PanelApariencia).
+   COPIA DEL CATÁLOGO v2 — no editar en la app, se cura acá.
+
+   Se pinta SÓLO con los tokens que el propio tema escribe en :root
+   (--bg-*, --surface, --border-*, --fg-*, --brand-*, --on-brand). Por eso no
+   necesita saber nada de los nombres internos de la app que lo usa: el store
+   garantiza que esas variables existan desde el primer pintado. */
+
+/* ─────────────── LA LUNA Y EL SOL ─────────────── */
+
+.tema-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+}
+
+.tema-toggle-op {
+  width: 28px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--fg-4);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.tema-toggle-op:hover { color: var(--fg-2); }
+
+.tema-toggle-op--on,
+.tema-toggle-op--on:hover {
+  background: var(--surface);
+  color: var(--brand-600);
+  box-shadow: var(--shadow-card);
+}
+
+.tema-toggle-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-1);
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--bg-2);
+  color: var(--fg-3);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.tema-toggle-btn:hover { background: var(--bg-3); color: var(--fg-1); }
+
+/* ─────────────── EL PANEL ─────────────── */
+
+.tema-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 640px;
+  color: var(--fg-1);
+}
+
+.tema-panel--compacto { gap: 12px; max-width: none; }
+
+.tema-sec { display: flex; flex-direction: column; gap: 8px; }
+
+.tema-sec-tit {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.tema-panel--compacto .tema-sec-tit { font-size: 10px; color: var(--fg-4); }
+
+.tema-ayuda {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fg-3);
+}
+
+/* Modo: segmentado de dos, el activo elevado sobre superficie. */
+.tema-modo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+
+.tema-modo-op {
+  height: 44px;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--fg-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.tema-modo-op--on {
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--brand-600);
+  box-shadow: var(--shadow-card);
+}
+
+.tema-panel--compacto .tema-modo { gap: 3px; padding: 3px; border-radius: 9px; }
+.tema-panel--compacto .tema-modo-op { height: 32px; font-size: 12px; gap: 5px; border-radius: 7px; }
+
+/* Fondos y acentos */
+.tema-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tema-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+
+.tema-panel--compacto .tema-grid-3,
+.tema-panel--compacto .tema-grid-4 { gap: 6px; }
+
+.tema-swatch {
+  padding: 6px;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+  border: 1px solid var(--border-1);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  transition: border-color 120ms ease;
+}
+
+.tema-swatch:hover { border-color: var(--border-3); }
+
+/* El elegido se marca con el ACENTO, no con un azul fijo: así el selector
+   también muestra el acento aplicándose. El borde va de 2px, y el padding
+   compensa 1px para que la ficha no salte de tamaño al elegirla. */
+.tema-swatch--on,
+.tema-swatch--on:hover {
+  border: 2px solid var(--brand-500);
+  padding: 5px;
+}
+
+.tema-swatch-color {
+  display: block;
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border-2);
+}
+
+.tema-swatch-nombre { font-size: 13px; font-weight: 600; color: var(--fg-1); }
+.tema-swatch-temp { font-size: 11px; color: var(--fg-3); }
+
+.tema-panel--compacto .tema-swatch { padding: 4px; border-radius: 9px; gap: 4px; }
+.tema-panel--compacto .tema-swatch--on { padding: 3px; }
+.tema-panel--compacto .tema-swatch-color { height: 24px; border-radius: 6px; }
+.tema-panel--compacto .tema-swatch-nombre { font-size: 10.5px; font-weight: 500; }
+
+.tema-acento {
+  height: 52px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border-1);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  transition: border-color 120ms ease;
+}
+
+.tema-acento:hover { border-color: var(--border-3); }
+.tema-acento--on { border-width: 2px; }
+
+.tema-acento-bola {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.tema-panel--compacto .tema-acento { height: 32px; border-radius: 9px; }
+.tema-panel--compacto .tema-acento-bola { width: 18px; height: 18px; }
+
+/* Vista previa */
+.tema-prev {
+  border-radius: 12px;
+  border: 1px solid;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tema-prev-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.tema-prev-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.tema-prev-txt { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tema-prev-t1 { font-size: 14px; font-weight: 600; }
+
+.tema-prev-t2 {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tema-prev-cta {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 30px;
+  flex: 0 0 auto;
+}
+
+.tema-prev-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tema-prev-chip {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 32px;
+}
+
+/* En el teléfono las dos grillas de fondos se siguen leyendo a tres columnas
+   (son swatches, no texto), pero el acento baja a 4 y el panel ocupa el ancho. */
+@media (max-width: 480px) {
+  .tema-panel { gap: 16px; }
+  .tema-swatch-temp { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tema-toggle-op,
+  .tema-toggle-btn,
+  .tema-modo-op,
+  .tema-swatch,
+  .tema-acento { transition: none; }
+}

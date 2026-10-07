@@ -1,0 +1,89 @@
+/* ===================================================================
+   PUENTE AL FRAMEWORK DE TEMA (kit v3 — APP_GUIDE/components/v2/tema).
+
+   El framework escribe en el <html> un juego de tokens canónicos derivados
+   del fondo y el acento que el usuario eligió: --bg-1/2/3, --surface,
+   --border-1/2/3, --fg-1..5, --brand-500/600/50, --on-brand y las sombras.
+   Este archivo es lo ÚNICO que sabe cómo se llaman esos tokens acá adentro.
+
+   POR QUÉ UN PUENTE Y NO UN RENOMBRE: media-studio tiene 725 usos de --rd-*
+   y 574 del sistema legacy navy/gold repartidos en 40 hojas. Reescribirlas
+   sería el rework que ya está planificado aparte; redeclarar los tokens acá
+   hace que las 40 hojas sigan el tema sin tocar una sola de ellas. Los
+   nombres del framework NO se renombran (son los que ya corren en Munify y
+   SalesBot): el mapeo va siempre app → framework.
+
+   ORDEN DE IMPORT (main.tsx): este archivo va ÚLTIMO. Los tokens del
+   framework se escriben como estilo inline del <html>, que gana a cualquier
+   regla; y las declaraciones de acá, al ser las últimas con la misma
+   especificidad que :root, ganan a tokens.css y a rediseno.css.
+   =================================================================== */
+
+:root {
+  /* ─── El rediseño (la UI vigente: rail + las 8 rutas) ─── */
+  --rd-bg-app: var(--bg-1);
+  --rd-bg-rail: var(--bg-2);
+  --rd-surface-1: var(--surface);
+  --rd-surface-2: var(--bg-3);
+  --rd-border: var(--border-1);
+
+  --rd-ink: var(--fg-1);
+  --rd-ink-2: var(--fg-2);
+  --rd-ink-dim: var(--fg-3);
+  --rd-ink-mute: var(--fg-4);
+  --rd-ink-faint: var(--fg-5);
+
+  /* EL ACENTO es lo que en media-studio era "el verde": acciones, progreso,
+     píldora activa, playhead, botón primario. Todo eso pasa a ser del color
+     que el usuario elija — es lo que "transversal" quiere decir.
+     Los colores con SIGNIFICADO no se derivan del acento y siguen fijos:
+     --rd-gold (momentos de IA / elegido), --rd-blue (editado / info),
+     --rd-danger (error) y --pw-ok (el "aprobado" del pipeline, que tiene que
+     seguir distinguiéndose aunque el acento sea vino). */
+  --rd-green: var(--brand-500);
+  --rd-green-600: var(--brand-600);
+  --rd-green-soft: var(--brand-50);
+
+  /* La tinta legible SOBRE el acento. No es un hex: la calcula el framework
+     por luminancia perceptual, así el texto se lee igual sobre el violeta y
+     sobre el dorado. */
+  --rd-on-accent: var(--on-brand);
+
+  --rd-shadow-card: var(--shadow-card);
+  --rd-shadow-float: var(--shadow-float);
+  --rd-shadow-pop: var(--shadow-pop);
+
+  /* ─── El sistema legacy navy/gold (vivo en VoiceStudio, SourcePanel y
+         ScriptText; el resto de las hojas legacy son archivos muertos) ───
+     Sin esto, esas pantallas quedaban ancladas al navy fijo y el tema claro
+     se veía roto justo ahí. */
+  --ink: var(--bg-1);
+  --ink-2: var(--bg-2);
+
+  --txt: var(--fg-1);
+  --txt-70: var(--fg-2);
+  --txt-60: var(--fg-3);
+  --txt-55: var(--fg-3);
+  --txt-50: var(--fg-3);
+  --txt-40: var(--fg-4);
+
+  --surface-2: var(--bg-3);
+  --surface-3: var(--bg-2);
+  --field: var(--bg-3);
+
+  --bd: var(--border-1);
+  --bd-2: var(--border-2);
+  --bd-3: var(--border-3);
+
+  /* `--accent` y `--azure` eran el color de lo activo en esas pantallas
+     (chips, tarjetas elegidas): son acento. `--green` también. */
+  --accent: var(--brand-500);
+  --azure: var(--brand-500);
+  --green: var(--brand-500);
+
+  /* Tinta sobre el dorado. El dorado es claro en los dos modos, así que su
+     tinta es oscura SIEMPRE — no puede ser `--fg-1`, que en tema oscuro es
+     casi blanco (texto blanco sobre dorado: ilegible, es el bug que advertía
+     el comentario de rediseno.css). */
+  --on-gold: #14110c;
+}
