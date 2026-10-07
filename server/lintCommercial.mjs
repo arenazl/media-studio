@@ -10,6 +10,7 @@
 // ({ severity: 'alta'|'media'|'baja', note }) más `code` para testear sin depender del texto.
 
 import { scriptNarrations } from './scriptToText.mjs';
+import { esTalkingHead } from './prompting.mjs';
 
 export const LINT_VERSION = 'lint/1.0';
 const ROLES = ['hook', 'desarrollo', 'gag', 'cta'];
@@ -65,12 +66,13 @@ export function lintCommercial(piece = {}, { facts } = {}) {
   if (escenas.length) {
     const ids = new Set((cast?.personajes || []).map((p) => p.id));
     const sumaE = escenas.reduce((a, e) => a + (Number(e.durSec) || 0), 0);
-    const ths = escenas.filter((e) => S(e.dialogo) && (e.personajes || []).length);
+    const ths = escenas.filter(esTalkingHead);
     const th = ths.length;
     const topeE = th >= 2 ? Math.max(Math.round(dur * 1.35), 30) : Math.round(dur * 1.35);
     if (dur && sumaE && (sumaE > topeE || sumaE < dur * 0.65)) add('media', 'storyboard.duracion', `Las escenas suman ${sumaE}s y la pieza es de ${dur}s (${th} talking head(s) de 8s: tope ${topeE}s).`);
     if (tipo === 'filmado' && dur && th > (dur <= 24 ? 2 : 3)) add('alta', 'storyboard.demasiados-talking-heads', `${th} talking heads para ${dur}s: como máximo ${dur <= 24 ? 2 : 3}; el resto va como b-roll con voz en off.`);
     for (const e of ths) if (tipo === 'filmado' && (Number(e.durSec) || 0) >= 8 && palabras(e.dialogo) < 12) add('media', 'storyboard.talking-head-vacio', `La escena ${e.n} es un talking head de ${e.durSec}s con ${palabras(e.dialogo)} palabras: queda aire.`);
+    for (const e of escenas) { const w = palabras(e.dialogo), d = Number(e.durSec) || 0; if (tipo === 'filmado' && w && !(e.personajes || []).length && d > Math.max(4, Math.ceil(w / 2.7) + 1)) add('media', 'storyboard.broll-largo', `La escena ${e.n} es b-roll con ${w} palabras de voz en off y dura ${d}s: le sobran ${d - Math.max(4, Math.ceil(w / 2.7))}s.`); }
     const rolesE = escenas.map((e) => S(e.rol));
     const iGag = rolesE.lastIndexOf('gag'), iCta = rolesE.indexOf('cta');
     if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'storyboard.gag-despues-del-cta', 'En el storyboard el remate va después del CTA.');
@@ -93,6 +95,29 @@ export function lintCommercial(piece = {}, { facts } = {}) {
       }
       if (nombre && phonetic && norm(phonetic) !== norm(nombre) && norm(e.dialogo).includes(norm(nombre)) && !norm(e.dialogo).includes(norm(phonetic))) {
         add('baja', 'storyboard.marca-sin-fonetica', `La escena ${e.n} dice "${nombre}" escrito en el diálogo; para la voz va "${phonetic}".`);
+      }
+    }
+  }
+
+  // Diálogo repetido entre escenas (misma frase en dos escenas = la pieza se estira y la voz se repite)
+  if (escenas.length > 1) {
+    const vistos = new Map();
+    for (const e of escenas) {
+      const t = norm(e.dialogo);
+      if (t && t.split(' ').length >= 4) {
+        if (vistos.has(t)) add('media', 'storyboard.dialogo-repetido', `La escena ${e.n} repite el diálogo de la escena ${vistos.get(t)}.`);
+        else vistos.set(t, e.n);
+      }
+    }
+  }
+  // Diálogo inventado: en filmado el texto hablado tiene que salir del guion (regla del storyboard 2.0).
+  if (escenas.length && blocks.length && tipo === 'filmado') {
+    const guionWords = new Set(norm(scriptNarrations(piece.guion).join(' ')).split(/[^a-z0-9ñ]+/).filter((x) => x.length > 3));
+    for (const e of escenas) {
+      const ws = norm(e.dialogo).split(/[^a-z0-9ñ]+/).filter((x) => x.length > 3);
+      if (ws.length >= 6) {
+        const fuera = ws.filter((x) => !guionWords.has(x)).length;
+        if (fuera / ws.length > 0.5) add('media', 'storyboard.dialogo-inventado', `La escena ${e.n} dice cosas que no están en el guion (${fuera} de ${ws.length} palabras nuevas).`);
       }
     }
   }

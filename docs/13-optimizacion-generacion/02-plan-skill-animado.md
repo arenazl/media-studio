@@ -67,3 +67,38 @@ pieza real (ver §6.7 de la radiografía).
    `animation-job.json` con una pieza real de Munify (guion y storyboard salen de
    `GET http://localhost:5301/api/projects?full=1`, proyecto `munify-wmv2`; capturas en
    `D:\Code\media-studio\server\storage\`), y pedir la hoja de stills antes del render.
+
+## Fase 8, diseño acordado con el dueño (2026-10-07, después de la prueba a mano)
+
+**Lo que se probó:** la skill `dev-claude-reel` corre en esta máquina (RTX 4060, WebGL por hardware,
+0,14 s por cuadro); con Sonnet, una vuelta y sin dirección de arte sale "Minecraft"
+(`D:\Codeeel-prueba\dummy-10s.mp4`); con el formato nativo de la skill, Opus y rondas sale
+"Toy Story" (`D:\Codeeel-prueba\dummy-serio-10s.mp4`, hecho por un tercero con el mismo motor).
+La diferencia está en la escena (geometría suave, luz con intención, bokeh con luces atrás, cámara
+cerca, atmósfera), no en el motor.
+
+**Decisión: kit de escena fijo + composición por video.** Igual que el kit v3 de componentes: la
+app consume del catálogo, no inventa.
+
+- **Fijo, versionado y con golden tests de stills (código en el repo):** rig de personaje suave
+  parametrizable (piel, pelo, ropa, anteojos, edad; boca que sigue la voz), rigs de luz por
+  ambiente (día oficina, noche calle, interior cálido, pantalla que ilumina, con las luces de fondo
+  que alimentan el bokeh), sets base parametrizables (sala de espera, mostrador, auto, escritorio,
+  calle), el **objeto-producto** (celular/monitor 3D con la captura real como textura, emisivo), y
+  lo que la skill ya trae y no se toca (driver, post-proceso, timeline, subtítulos, chequeos,
+  render por tramos, mezcla).
+- **Por video, sólo datos (ficha de arte) y composición:** ambiente, paleta, rig + vestimenta,
+  set, objeto-producto, y el mapeo del storyboard de Media Studio a encuadres del kit (primer
+  plano al 60% del alto, dos personajes, inserto del celular). El agente (Opus, 2 a 3 rondas de
+  stills) compone: elige, ubica, ajusta tiempos, mira, corrige. No escribe geometría ni luz.
+- **Agnóstico por datos:** rubro → set y ambiente; capturas del kit → texturas del objeto-producto;
+  marca → colores y logo en carteles; cast → vestimenta del rig. Mismo kit para cualquier KB.
+- **Orquestación:** Media Studio piensa (estrategia, concepto, guion, cast, storyboard, lint) y
+  entrega `animation-job.json`; la skill generalizada devuelve stills para aprobar y luego el mp4.
+  Dos motores bajo la misma pieza animada: mockup rápido (hoy) y película (kit).
+- **Dónde vive el estándar:** el kit en el repo con tests; el procedimiento en `base-compartida`
+  con su puntero, para cualquier app.
+
+**Por qué no on the fly:** cada vez el modelo decide desde cero qué es una cara y qué es una luz,
+gasta 50 minutos y ~10 USD en eso y sale variable. Con el kit la calidad se cura una vez (con
+rondas) y queda; el tiempo baja a composición más render. "Lo previsible no se pide en vivo."

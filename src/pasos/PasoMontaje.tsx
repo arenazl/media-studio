@@ -137,7 +137,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       const res = await runMolde('qa', project, {
         concepto: comercial.concepto, guion: comercial.guion, cast: comercial.cast,
         storyboard: comercial.storyboard, packFlow: comercial.packFlow, objetivo: comercial.concepto?.idea,
-        tipo: comercial.tipo, durationSec: reel?.durationSec, ...(mediaKit ? { mediaKit } : {}),
+        tipo: comercial.tipo, durationSec: reel?.durationSec, messageScope: comercial.messageScope, primaryMessage: comercial.primaryMessage, ...(mediaKit ? { mediaKit } : {}),
       }, { foco: 'todo' }, undefined, comercial);
       setComercial((c) => ({ ...c, qa: res as unknown as QaResult }));   // persiste (debounce del pipeline; flush al navegar)
     } catch (e) { setError(errMsg(e)); } finally { setQaBusy(false); }

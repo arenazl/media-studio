@@ -261,3 +261,37 @@ Pieza Munify animada, pantalla Concepto, botón "Generar 3 propuestas · Animado
 Checklist de cierre: `npm run build` OK, `tsc` limpio, eslint limpio en lo tocado (los 10 hooks
 condicionales de `src/App.tsx` son del WIP previo), suite 511/512 (la falla es la decisión
 pendiente del dueño sobre la captura "en ronda").
+
+## Prompts curados 2.0 + revisión post-push — HECHO 2026-10-07
+
+Los cinco moldes curados por la otra cuenta (`docs/14-skills/04-prompts-curados-media-studio.md`)
+entraron al código con versión 2.0, más las tres decisiones del dueño (campaña global y pieza con
+un mensaje principal; idioma en el preámbulo común; duración filmada derivada de los talking heads)
+y la revisión sobre el repo real (`docs/14-skills/05-revision-post-push-broll-y-doctrina.md`).
+
+| Qué | Dónde |
+|---|---|
+| strategy/2.0: campaña cubre la propuesta, cada pieza UN mensaje; `messageScope`, `primaryMessage`, `supportingFacts` por pieza (opcionales, el shape viejo sigue válido) y viajan al comercial, al concepto, al guion y al QA | `server/functions.mjs`, `src/ProjectWizard.tsx`, `src/lib/comercial.ts`, `PasoConcepto/PasoGuion/PasoMontaje.tsx` |
+| script/2.0: el concepto manda; presupuesto hablado en lista (52 palabras para 20 s, no 54); NO ASUMIR; FOCO DE LA PIEZA si la estrategia lo definió; brand-global cuenta el sistema integral | `server/functions.mjs`, `server/prompting.mjs` |
+| cast/2.0, storyboard/2.0 (filmado y animado) tal cual curados, con las variables conservadas (formato, fonética, kit, técnica) y RUBRO del KB en cast | `server/functions.mjs` |
+| Concepto y QA sin la regla GLOBAL vieja (la revisión las encontró vivas): el alcance lo fija la estrategia | `server/functions.mjs` |
+| Idioma: en el preámbulo común de todos los moldes (`MOLDE_SYSTEM`), con la salvedad de los campos en inglés | `server/index.mjs` |
+| Definición ÚNICA de talking head (`esTalkingHead`: diálogo + personajes en cámara) para parser, normalizador, validador y lint | `server/prompting.mjs` |
+| Normalizador determinístico del storyboard filmado: talking head 8 s; b-roll con voz en off = su texto a 2,7 palabras/s (4 a 8 s, dividido en dos si no entra); b-roll mudo 4 s; talking head de menos de 12 palabras → b-roll con voz; escenas con diálogo repetido se sacan (o quedan mudas si es parte de otra); numeración consecutiva | `server/functions.mjs` (`normalizarDuraciones`) |
+| Validador: máximo 2 talking heads hasta 24 s (3 después); tope 125% o 30 s con dos; la marca se dice con su fonética en la narración | `server/prompting.mjs` |
+| Lint: `storyboard.demasiados-talking-heads`, `talking-head-vacio`, `broll-largo`, `dialogo-repetido`, `dialogo-inventado` | `server/lintCommercial.mjs` |
+
+**Medición antes/después, misma pieza "Gancho & Problema" de Munify, preset intermedio:**
+
+| | Antes (prompts viejos) | Después (2.0 + revisión) |
+|---|---|---|
+| Guion | 69 palabras en 20 s (3,5 p/s, no se puede decir); mete reclamos + RENAPER + tesorería + Excel + login | 50 palabras en 20 s (2,5 p/s); una idea; CTA del brief |
+| Storyboard filmado | 5 escenas, 36 s, 4 talking heads | 4 escenas, 22 s, 1 talking head de 18 palabras + 3 b-roll de 4 a 6 s; validación limpia al primer intento |
+| Cast | fisicoEn de 71 y 69 palabras, lugar de 108 | 35 y 33 palabras, lugar de 44 |
+| Lint técnico | sin lint | 0 errores; 1 aviso (marca escrita en el CTA del guion viejo; el validador nuevo lo atrapa en guiones nuevos) |
+
+**Lo que todavía no cierra:** el juicio creativo del QA (Sonnet) puntúa 27 a 32 sobre 50 estas
+piezas; es subjetivo y hay que leerlo, no optimizarlo a ciegas. El concepto tarda 70 a 80 s con
+Opus (prompt de 14K chars por la ficha entera + pantallas): candidato a pedir menos secciones.
+
+Suite: 516 tests, 515 pasan (la pendiente del dueño sobre la captura "en ronda").

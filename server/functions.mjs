@@ -9,7 +9,7 @@ import { scriptToText, scriptNarrations } from './scriptToText.mjs';
 import { buildProjectFacts, factsText } from './projectFacts.mjs';
 import { compileFlowPack, promptTraduccion, parseTraduccion } from './flowCompiler.mjs';
 import { lintCommercial } from './lintCommercial.mjs';
-import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords } from './prompting.mjs';
+import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
 
 // extrae el primer objeto JSON de un texto (la IA a veces mete markdown o texto/explicación alrededor).
 export function extractJson(text) {
@@ -203,6 +203,50 @@ function propagarNarracion(escenas, guion) {
     });
   }
   return out;
+}
+
+// Duraciones por REGLA, no por lo que diga el modelo (2026-10-07, medido: Sonnet ponía 8s a todas las
+// escenas y la pieza de 20s salía de 48s; la reparación por prompt no lo corregía). Filmado:
+//   talking head (hay personajes y diálogo) → 8s, la regla dura de Flow;
+//   b-roll con voz en off (diálogo sin personajes) → lo que dura su texto a 2,7 palabras/seg, de 4 a 8s;
+//   b-roll mudo → 4s (o lo que dijo el modelo si está entre 4 y 6).
+export function normalizarDuraciones(escenas) {
+  const palabras = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
+  const MAX_VO = Math.floor(8 * WPS);   // 21 palabras: lo que entra en un b-roll de 8s con voz en off
+  const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9ñ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const vistos = [];
+  const out = [];
+  for (const e0 of escenas) {
+    let e = e0;
+    const t = norm(e.dialogo);
+    if (t && t.split(' ').length >= 4) {
+      if (vistos.includes(t)) continue;                                   // mismo diálogo que otra escena: se saca
+      if (vistos.some((v) => v.includes(t))) e = { ...e, dialogo: '', dialogoModelo: e0.dialogo, personajes: [], dialogoRepetido: true };   // parte de una anterior: b-roll mudo
+      else vistos.push(t);
+    }
+    const w = palabras(e.dialogo), d = Number(e.durSec) || 0;
+    let th = esTalkingHead(e);
+    let extra = {};
+    // Un talking head de 8s con menos de 12 palabras es aire (medido: el modelo los deja y la reparación
+    // no los junta). Regla del dueño: "lo demás va como b-roll con voz en off" → se convierte acá.
+    if (th && w < 12) { th = false; extra = { personajes: [], personajesModelo: e.personajes, plano: e.plano || 'insert', talkingHeadConvertido: true }; }
+    if (th) { out.push(d === 8 ? e : { ...e, durSec: 8, durSecModelo: d }); continue; }
+    if (!w) { const durSec = d >= 4 && d <= 6 ? d : 4; out.push(durSec === d ? e : { ...e, durSec, durSecModelo: d }); continue; }
+    // b-roll con voz en off: dura lo que dura su texto; si no entra en 8s, se divide en dos por oraciones
+    if (w > MAX_VO) {
+      const oraciones = String(e.dialogo).trim().split(/(?<=[.!?…])\s+/).filter(Boolean);
+      let a = [], b = [];
+      for (const o of oraciones) ((palabras(a.join(' ') + ' ' + o) <= MAX_VO && !b.length) ? a : b).push(o);
+      if (!a.length || !b.length) { const ws = String(e.dialogo).trim().split(/\s+/); a = ws.slice(0, Math.ceil(ws.length / 2)); b = ws.slice(Math.ceil(ws.length / 2)); }
+      const mitad = (txt, k) => ({ ...e, ...extra, dialogo: Array.isArray(txt) ? txt.join(' ') : txt, durSec: Math.min(8, Math.max(4, Math.ceil(palabras(Array.isArray(txt) ? txt.join(' ') : txt) / WPS))), dividido: k, durSecModelo: d });
+      out.push(mitad(a, 1), mitad(b, 2));
+      continue;
+    }
+    const durSec = Math.min(8, Math.max(4, Math.ceil(w / WPS)));
+    out.push(durSec === d && !Object.keys(extra).length ? e : { ...e, ...extra, durSec, ...(durSec !== d ? { durSecModelo: d } : {}) });
+  }
+  // numeración consecutiva (la reparación saca escenas del medio; la división agrega)
+  return out.map((e, i) => (Number(e.n) === i + 1 && !e.dividido ? e : { ...e, n: i + 1, nModelo: e.n }));
 }
 
 // Cada escena → la CAPTURA real del kit que le toca (`archivoCaptura` = relpath). Match por el label
@@ -442,12 +486,12 @@ STORYBOARD: ${piece.storyboard ? JSON.stringify(piece.storyboard) : '(sin storyb
 PACK ESTILO: ${piece.packFlow?.estilo || piece.packFlow?.master || '(sin pack)'}`
         : `GUION DE LA PIEZA: ${x.guion || x.brief}`;
       const extra = holistico
-        ? ` Para el comercial entero, pesá MUY fuerte estos criterios profesionales DENTRO de los ejes: CONTINUIDAD (flujo nuevo de Flow: la consistencia del actor la fija la IMAGEN de referencia del personaje; los prompts de escena lo llaman por NOMBRE + "Argentine", NO repiten el fisicoEn; entre escenas cierra ropa/luz/lugar), ARCO (hook ≤2s de gancho, gag/remate ANTES del CTA, cuenta TODA la propuesta — regla GLOBAL, jamás un solo módulo), TÉCNICA (talking heads ≥8s, diálogos de ~24-30 palabras, marca fonética en TODO lo hablado).`
+        ? ` Para el comercial entero, pesá MUY fuerte estos criterios profesionales DENTRO de los ejes: CONTINUIDAD (flujo nuevo de Flow: la consistencia del actor la fija la IMAGEN de referencia del personaje; los prompts de escena lo llaman por NOMBRE + "Argentine", NO repiten el fisicoEn; entre escenas cierra ropa/luz/lugar), ARCO (hook ≤2s de gancho, gag/remate ANTES del CTA; respeta el messageScope y el primaryMessage de la pieza: una pieza focalizada desarrolla UNA idea sin dispersarse, y sólo una pieza brand-global debe cubrir explícitamente la propuesta integral), TÉCNICA (talking heads ≥8s, diálogos de ~24-30 palabras, marca fonética en TODO lo hablado).`
         : '';
       return { prompt: `Actuás como promo-critic. Evaluá ${holistico ? 'el COMERCIAL entero' : 'la pieza'} con tu rúbrica de 10 ejes (gancho, claridad, una idea, CTA, formato, marca, duración, ritmo, prueba, originalidad), 0-5 cada uno = total /50. NO lo juzgues por un solo aspecto: puntuá los 10 y sumá.${extra} Mirá ${focos[options.foco] || focos.todo}.
 Devolvé SOLO JSON: { "score": <0-50>, "verdict": "LISTO PARA PRODUCIR|AJUSTAR|REHACER", "issues": [{ "severity": "alta|media|baja", "note": "el problema + el fix concreto" }] }
 LISTO PARA PRODUCIR si score >= 38. Español rioplatense, sin emojis.
-OBJETIVO: ${x.objetivo || '(inferilo)'} · NEGOCIO: ${x.name}
+OBJETIVO: ${x.objetivo || '(inferilo)'} · NEGOCIO: ${x.name}${piece.messageScope ? ` · ALCANCE DE LA PIEZA: ${piece.messageScope}` : ''}${piece.primaryMessage ? ` · MENSAJE PRINCIPAL: ${piece.primaryMessage}` : ''}
 ${material}` };
     },
     // Fase 7 (doc §4.8): dos capas. A) lintCommercial, sin IA, los errores técnicos (roles, duración,
@@ -493,7 +537,7 @@ PANTALLAS DEL PRODUCTO: ${screensText(project) || '(sin pantallas en el KB: prop
       const bloqueKit = mediaKitText(piece);
       // Perfil de campaña → qué tiene que lograr el video (el modelo no lo adivina del nombre).
       const perfilTxt = {
-        'campaña': 'contar TODA la propuesta del negocio en un video: qué resuelve, cómo y por qué conviene',
+        'campaña': 'desarrollar el mensaje principal de esta pieza (lo fijó la estrategia); puede usar varias funciones si demuestran esa misma idea; tiene que quedar claro qué es el negocio, sin enumerar toda la plataforma',
         awareness: 'que el que nunca oyó hablar del negocio entienda en 20 segundos qué problema resuelve',
         demo: 'mostrar el producto funcionando: el espectador tiene que VER cómo se usa',
         conversion: 'empujar a una acción concreta (probar, pedir una demo, entrar al sitio) con una razón clara',
@@ -519,7 +563,7 @@ NO ASUMIR
 
 QUÉ TIENE QUE TENER CADA CONCEPTO
 - UNA sola idea, vista desde una situación concreta de la persona que sufre el problema o usa el producto.
-- El negocio entero adentro: al terminar queda claro qué resuelve ${name} de punta a punta, no un solo módulo.
+- ${piece.messageScope === 'brand-global' ? `Esta pieza es brand-global: acá sí se cuenta el sistema integral de ${name}, ordenado alrededor de una idea.` : `Una sola idea bien desarrollada: queda claro qué es ${name} y qué resuelve en esta pieza, sin enumerar toda la plataforma (varias funciones sólo si demuestran la misma idea).`}
 - Un remate antes del llamado a la acción: humor, ironía o un contraste fuerte entre el antes y el después.
 - Los tres conceptos tienen que ser DISTINTOS en tipo de gancho; tres variantes de la misma idea no sirven.
 
@@ -676,7 +720,7 @@ Cada escena tiene una función visual concreta. No agregues escenas por variedad
 POR ESCENA:
 - n: consecutivo desde 1.
 - rol: hook|desarrollo|gag|cta.
-- durSec: talking head mínimo 8s; b-roll entre 4 y 8s.
+- durSec: talking head mínimo 8s; b-roll entre 4 y 8s. Un b-roll CON voz en off dura lo que dura su texto a 2,7 palabras por segundo (10 palabras = 4s), nunca más; sin voz, 4 a 6s.
 - plano: para talking head, medium shot waist-up; evitá sujetos lejanos.
 - angulo: breve.
 - personajes: sólo ids existentes en CAST; [] si no aparece nadie.
@@ -720,10 +764,14 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
         // talking head (la IA le escribió diálogo) < 8s → 8 (regla dura de Flow). Se evalúa ANTES de
         // propagar: en ANIMADO las escenas duran 3-5s y no son talking heads — la voz en off que se
         // propaga abajo NO puede inflarlas a 8s (rompería la duración total de la pieza).
-        const durSec = (e.dialogo && String(e.dialogo).trim() && rawDur < 8) ? 8 : rawDur;
+        // definición ÚNICA (prompting.esTalkingHead): diálogo + personajes en cámara. Un b-roll con voz
+        // en off NO se sube a 8s (antes sí: cualquier escena con diálogo). Las duraciones finales las
+        // fija normalizarDuraciones, abajo.
+        const durSec = (esTalkingHead(e) && rawDur < 8) ? 8 : rawDur;
         return { ...e, durSec };
       });
       escenas = propagarNarracion(escenas, piece.guion);
+      if ((piece.tipo || 'filmado') === 'filmado') escenas = normalizarDuraciones(escenas);
       // La firma es (escenas, context, piece): pasar `piece` como context dejaba el kit afuera y
       // ninguna escena recibía su captura (test 'matchea el screen...' en rojo desde el WIP).
       o.escenas = asignarCapturas(escenas, (body && body.context) || {}, piece);

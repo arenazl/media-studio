@@ -48,7 +48,12 @@ export function presupuestoTexto(durationSec) {
 }
 
 const palabras = (t) => String(t ?? '').trim().split(/\s+/).filter(Boolean).length;
+export const contarPalabras = palabras;
 
+// Definición ÚNICA de talking head (revisión post-push 2026-10-07): hay diálogo Y hay personajes en
+// cámara. Un b-roll con voz en off tiene diálogo pero personajes []. La usan el parser del storyboard,
+// el normalizador de duraciones, el validador y el lint: antes cada capa tenía la suya.
+export const esTalkingHead = (e) => !!(String(e?.dialogo || '').trim() && Array.isArray(e?.personajes) && e.personajes.length > 0);
 // ── Validación por molde (después del parseo). Devuelve [] si está bien. ─────────────────
 const ROLES = ['hook', 'desarrollo', 'gag', 'cta'];
 export const VALIDADORES = {
@@ -81,6 +86,12 @@ export const VALIDADORES = {
     }
     const suma = blocks.reduce((a, b) => a + (Number(b.durSec) || 0), 0);
     if (dur && suma && Math.abs(suma - dur) > dur * 0.25) E.push(`los bloques suman ${suma}s y la pieza es de ${dur}s`);
+    // la marca se DICE con la fonética (TTS); el nombre escrito dentro de la narración sale mal pronunciado
+    const nombre = String(body?.context?.project?.name || '').trim(), fon = String(body?.context?.project?.phonetic || '').trim();
+    if (nombre && fon && fon.toLowerCase() !== nombre.toLowerCase()) {
+      const re = new RegExp(`\\b${nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      for (const b of blocks) if (re.test(String(b.narration || ''))) E.push(`el bloque "${b.role}" dice "${nombre}" escrito; en la narración la marca va con su fonética "${fon}"`);
+    }
     return E;
   },
   storyboard(o, body) {
@@ -99,13 +110,18 @@ export const VALIDADORES = {
     const suma = es.reduce((a, e) => a + (Number(e.durSec) || 0), 0);
     // Dueño, 2026-10-07: la duración la decide la cantidad de talking heads (8s cada uno). Tope = lo mayor
     // entre el 125% de la pieza y 8s por talking head + 4s por b-roll (+ el 25%).
-    const ths = es.filter((e) => String(e.dialogo || '').trim() && (e.personajes || []).length);
+    const ths = es.filter(esTalkingHead);
     const th = ths.length;
     const maxTh = dur && dur <= 24 ? 2 : 3;
     if (tipo === 'filmado' && th > maxTh) E.push(`hay ${th} talking heads para una pieza de ${dur}s: como máximo ${maxTh}; convertí el resto en b-roll con voz en off (personajes [])`);
     for (const e of ths) {
       const d = Number(e.durSec) || 0, w = palabras(e.dialogo);
       if (tipo === 'filmado' && d >= 8 && w < Math.round((maxNarrationWords(8) - 4) * 0.7)) E.push(`escena ${e.n}: un talking head de ${d}s con ${w} palabras es aire; juntá bloques del guion hasta ${maxNarrationWords(8) - 4} a ${maxNarrationWords(8)} palabras`);
+    }
+    if (tipo === 'filmado') for (const e of es) {
+      const w = palabras(e.dialogo), d = Number(e.durSec) || 0;
+      const broll = !(e.personajes || []).length;
+      if (broll && w && d > Math.max(4, Math.ceil(w / WPS) + 1)) E.push(`escena ${e.n}: b-roll con voz en off de ${w} palabras dura ${d}s; a 2,7 palabras por segundo son ${Math.max(4, Math.ceil(w / WPS))}s`);
     }
     // tope real: 125% de la pieza, o 24-30s si hay dos talking heads (regla del dueño, 2026-10-07)
     const tope = th >= 2 ? Math.max(Math.round(dur * 1.25), 30) : Math.round(dur * 1.25);

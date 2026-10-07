@@ -7,7 +7,7 @@ const GUION_OK = { blocks: [
   { role: 'hook', narration: 'Traje una planta. Por el turno, digo.', visual: 'x', durSec: 3 },
   { role: 'desarrollo', narration: 'Saco el celu, foto al bache, y se deriva solo a la dependencia que corresponde.', visual: 'x', durSec: 7 },
   { role: 'gag', narration: 'Capaz florece antes.', visual: 'x', durSec: 3 },
-  { role: 'cta', narration: 'Munifai. El municipio en tiempo real.', visual: 'x', durSec: 4 },
+  { role: 'cta', narration: 'Munifai. El municipio en tiempo real, desde el celular y sin hacer la fila de siempre.', visual: 'x', durSec: 6 },
 ] };
 const CAST = { personajes: [{ id: 'p1', nombre: 'Darío', fisicoEn: 'Argentine man in his late 30s, olive skin, short brown hair, short beard, tired face, navy jacket over a plain t-shirt' }], lugar: { descripcionEn: 'hall' } };
 const SB_OK = [
