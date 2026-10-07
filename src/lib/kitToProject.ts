@@ -5,6 +5,7 @@
 // Forma del kit (output de .claude/workflows/promo-kit.js): { project, profile, positioning,
 // audiences, pieces[] }. Cada pieza trae el guion por bloques + assets. Acá lo aplanamos al
 // shape que el editor ya consume (ProjectReel: guion[] + metadata).
+import { scriptNarrations } from '../../server/scriptToText.mjs';
 import type { Project, ProjectReel } from './projects';
 import type { BrandKit } from './brandKit';
 
@@ -36,9 +37,7 @@ export interface Kit {
 
 // limpia y arma las frases del guion desde los bloques de la pieza.
 function guionFromPiece(piece: KitPiece): string[] {
-  return (piece.script?.blocks || [])
-    .map((b) => (b?.narration || '').trim())
-    .filter(Boolean);
+  return scriptNarrations(piece.script);   // helper canónico (P0.2)
 }
 
 // una pieza del kit → un reel del proyecto. El guion son las narraciones; el resto del

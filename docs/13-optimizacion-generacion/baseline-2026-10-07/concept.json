@@ -1,0 +1,37 @@
+{
+  "functionId": "concept",
+  "result": {
+    "conceptos": [
+      {
+        "id": "c1",
+        "topico": "El trámite eterno",
+        "tipoGancho": "POV",
+        "idea": "Un vecino entra al municipio con un número de turno en la mano y una planta en la otra, como si fuera a quedarse a vivir ahí. Corte: saca el celular, reclama el bache con foto y GPS, valida su identidad con RENAPER, y recibe la notificación de resuelto antes de que lo llamen por altavoz. Se va con la planta todavía en la mano.",
+        "tono": "Resignado al principio, sorprendido después, seco",
+        "estetica": "Plano fijo en sala de espera, luz fluorescente gris, después pantalla de celular nítida y cálida",
+        "referencia": "sketch de espera absurda tipo oficina pública",
+        "porQueFunciona": "Todos vivieron esa espera y ver que se resuelve en el celular genera deseo inmediato de probarlo"
+      },
+      {
+        "id": "c2",
+        "topico": "El Excel que todo sabe",
+        "tipoGancho": "PARODIA",
+        "idea": "Un empleado municipal le habla a un archivo de Excel como si fuera su compañero de toda la vida, contándole penas de sueldos atrasados y órdenes de pago perdidas. El Excel no contesta, obvio. Corte a la misma persona usando un sistema único que ordena pagos, tesorería y sueldos con un solo login, y mirando a cámara dice seco: 'no te voy a extrañar'.",
+        "tono": "Dramático exagerado al inicio, indiferente y cómico al final",
+        "estetica": "Luz de oficina municipal clásica, cámara fija, corte abrupto a interfaz limpia y moderna",
+        "referencia": "parodia de monólogo dramático de telenovela",
+        "porQueFunciona": "La exageración sobre el Excel conecta con una frustración real y muestra la solución completa sin explicarla"
+      },
+      {
+        "id": "c3",
+        "topico": "Antes de la firma",
+        "tipoGancho": "ANTES Y DESPUÉS",
+        "idea": "Se ve una fila larga de gente con carpetas, sellos y caras cansadas esperando para un trámite. Freeze. Un cartel dice 'ANTES'. Corte a una sola mano tocando un celular, haciendo el mismo trámite con validación biométrica, mientras de fondo la fila sigue ahí, inmóvil, esperando. Cartel: 'AHORA'. Remate: alguien de la fila mira el celular del otro con bronca sana.",
+        "tono": "Seco, casi documental, sin exagerar la emoción",
+        "estetica": "Paleta fría para el antes, cálida para el ahora, cámara estática, cortes secos",
+        "referencia": "formato viral de comparación antes/después en loop",
+        "porQueFunciona": "El contraste visual directo entre esperar y resolver desde el celular vende la propuesta sin una palabra de más"
+      }
+    ]
+  }
+}

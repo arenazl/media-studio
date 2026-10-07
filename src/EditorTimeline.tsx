@@ -31,12 +31,15 @@ export interface EditorTimelineProps {
   onSelect: (id: string) => void;
   zoom: number;
   onZoomChange: (z: number) => void;
-  onDropItem?: (raw: string) => void;   // WO-6a: item de la biblioteca soltado (JSON serializado)
+  onDropItem?: (raw: string) => void;
+  onTrimLeft?: (clipId: string, newStartSec: number, newDurSec: number) => void;
+  onTrimRight?: (clipId: string, newDurSec: number) => void;
+  onMoveClip?: (clipId: string, newStartSec: number) => void;
 }
 
 export default function EditorTimeline({
   open, height, onToggle, onResizeStart, tracks, totalSec, playheadSec, onSeek, playing, onTogglePlay,
-  selectedId, onSelect, zoom, onZoomChange, onDropItem,
+  selectedId, onSelect, zoom, onZoomChange, onDropItem, onTrimLeft, onTrimRight, onMoveClip,
 }: EditorTimelineProps) {
   const lanesRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +60,86 @@ export default function EditorTimeline({
     onSeek(secAt(e.clientX));
     const onMove = (ev: MouseEvent) => onSeek(secAt(ev.clientX));
     const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  // Arrastre horizontal de clip
+  const beginClipDrag = (e: React.MouseEvent, c: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSelect(c.id);
+    const startX = e.clientX;
+    const initialStart = c.startSec;
+
+    const onMove = (ev: MouseEvent) => {
+      const el = lanesRef.current;
+      if (!el || totalSec <= 0) return;
+      const rect = el.getBoundingClientRect();
+      const usable = Math.max(1, rect.width - LABEL_COL);
+      const deltaSec = ((ev.clientX - startX) / usable) * totalSec;
+      const newStart = Math.max(0, Math.min(totalSec - c.durSec, initialStart + deltaSec));
+      if (onMoveClip) onMoveClip(c.id, newStart);
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  // Trim Izquierdo
+  const beginTrimLeft = (e: React.MouseEvent, c: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSelect(c.id);
+    const startX = e.clientX;
+    const initialStart = c.startSec;
+    const initialDur = c.durSec;
+
+    const onMove = (ev: MouseEvent) => {
+      const el = lanesRef.current;
+      if (!el || totalSec <= 0) return;
+      const rect = el.getBoundingClientRect();
+      const usable = Math.max(1, rect.width - LABEL_COL);
+      const deltaSec = ((ev.clientX - startX) / usable) * totalSec;
+      const newStart = Math.max(0, Math.min(initialStart + initialDur - 0.2, initialStart + deltaSec));
+      const newDur = Math.max(0.2, initialDur - (newStart - initialStart));
+      if (onTrimLeft) onTrimLeft(c.id, newStart, newDur);
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  // Trim Derecho
+  const beginTrimRight = (e: React.MouseEvent, c: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSelect(c.id);
+    const startX = e.clientX;
+    const initialDur = c.durSec;
+
+    const onMove = (ev: MouseEvent) => {
+      const el = lanesRef.current;
+      if (!el || totalSec <= 0) return;
+      const rect = el.getBoundingClientRect();
+      const usable = Math.max(1, rect.width - LABEL_COL);
+      const deltaSec = ((ev.clientX - startX) / usable) * totalSec;
+      const newDur = Math.max(0.2, initialDur + deltaSec);
+      if (onTrimRight) onTrimRight(c.id, newDur);
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   };
@@ -113,18 +196,56 @@ export default function EditorTimeline({
                         const widthPct = (c.durSec / totalSec) * 100;
                         const isVideo = track.id === 'video';
                         const wavy = track.id === 'voz' || track.id === 'musica' || track.id === 'sfx';
+                        const isSel = selectedId === c.id;
+
                         return (
                           <div key={c.id} className="ed-tl-clip-wrap" style={{ left: `${leftPct}%`, width: `${widthPct}%` }}>
-                            <button
-                              className={selectedId === c.id ? 'ed-tl-clip ed-tl-clip--sel' : 'ed-tl-clip'}
-                              style={{ background: `linear-gradient(135deg, ${c.color}66, ${c.color}22)`, borderColor: c.fileRef || track.id !== 'video' ? `${c.color}88` : 'rgba(0,0,0,0.25)' }}
+                            {/* Handle de Trim Izquierdo */}
+                            <div
+                              className="ed-tl-handle ed-tl-handle-left"
+                              style={{
+                                position: 'absolute', left: 0, top: 0, bottom: 0, width: '12px',
+                                cursor: 'col-resize', zIndex: 20, background: isSel ? '#A78BFA' : 'rgba(255,255,255,0.4)',
+                                borderRadius: '4px 0 0 4px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 0 4px rgba(0,0,0,0.5)',
+                              }}
+                              onMouseDown={(e) => beginTrimLeft(e, c)}
+                              title="Recortar inicio (Trim In) — arrastrá para ajustar"
+                            >
+                              <div style={{ width: '2px', height: '14px', background: '#FFF', borderRadius: '1px' }} />
+                            </div>
+
+                            <div
+                              className={isSel ? 'ed-tl-clip ed-tl-clip--sel' : 'ed-tl-clip'}
+                              style={{
+                                background: `linear-gradient(135deg, ${c.color}66, ${c.color}22)`,
+                                borderColor: c.fileRef || track.id !== 'video' ? `${c.color}88` : 'rgba(0,0,0,0.25)',
+                                cursor: 'grab', userSelect: 'none', width: '100%', height: '100%', display: 'flex', alignItems: 'center', padding: '0 14px',
+                              }}
                               onClick={(e) => { e.stopPropagation(); onSelect(c.id); }}
-                              title={c.dialogo || c.label}
+                              onMouseDown={(e) => beginClipDrag(e, c)}
+                              title={`${c.dialogo || c.label} — click para seleccionar, arrastrá para mover`}
                             >
                               <span className="ed-tl-clip-bar" style={{ background: c.color }} />
                               {wavy && <span className="ed-tl-clip-wave" style={{ backgroundColor: `${c.color}99` }} />}
                               <span className="ed-tl-clip-label">{c.label}{isVideo && !c.fileRef ? ' · sin clip' : ''}</span>
-                            </button>
+                            </div>
+
+                            {/* Handle de Trim Derecho */}
+                            <div
+                              className="ed-tl-handle ed-tl-handle-right"
+                              style={{
+                                position: 'absolute', right: 0, top: 0, bottom: 0, width: '12px',
+                                cursor: 'col-resize', zIndex: 20, background: isSel ? '#A78BFA' : 'rgba(255,255,255,0.4)',
+                                borderRadius: '0 4px 4px 0', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 0 4px rgba(0,0,0,0.5)',
+                              }}
+                              onMouseDown={(e) => beginTrimRight(e, c)}
+                              title="Recortar final (Trim Out) — arrastrá para ajustar"
+                            >
+                              <div style={{ width: '2px', height: '14px', background: '#FFF', borderRadius: '1px' }} />
+                            </div>
+
                             {isVideo && c.transitionAfter && (
                               <button
                                 className={selectedId === `tr-${c.id}` ? 'ed-tl-trans ed-tl-trans--sel' : 'ed-tl-trans'}

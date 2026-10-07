@@ -1,0 +1,39 @@
+/* Segunda fuente KSP: texto/JSON → KB. Card standalone en Integrar.tsx. */
+.kft-card {
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: 16px;
+  padding: 20px; display: flex; flex-direction: column; gap: 14px;
+}
+.kft-head { display: flex; align-items: flex-start; gap: 12px; color: var(--rd-gold); }
+.kft-title { font-family: var(--rd-font-display); font-size: 14px; font-weight: 600; color: var(--rd-ink); }
+.kft-desc { font-size: 12.5px; color: var(--rd-ink-mute); margin-top: 2px; line-height: 1.5; }
+
+.kft-tabs { display: flex; gap: 6px; }
+.kft-tab {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 9px;
+  border: 1px solid var(--rd-border); background: var(--rd-surface-2); color: var(--rd-ink-dim);
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.kft-tab--on { border-color: var(--rd-gold); color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 12%, transparent); }
+
+.kft-textarea {
+  width: 100%; background: var(--rd-surface-0, var(--rd-bg)); border: 1px solid var(--rd-border);
+  border-radius: 10px; color: var(--rd-ink); font-size: 13.5px; line-height: 1.5; padding: 11px 13px;
+  resize: vertical; font-family: inherit;
+}
+.kft-textarea::placeholder { color: var(--rd-ink-faint); }
+
+.kft-err { display: flex; align-items: center; gap: 7px; color: var(--rd-danger, #ff6b6b); font-size: 12.5px; }
+.kft-ready { display: flex; align-items: center; gap: 7px; color: var(--rd-green); font-size: 12.5px; }
+
+.kft-actions { display: flex; gap: 10px; }
+.kft-btn {
+  display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 10px;
+  border: 1px solid var(--rd-border); background: var(--rd-surface-2); color: var(--rd-ink);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.kft-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.kft-btn--primary { border-color: var(--rd-gold); color: var(--rd-gold); background: color-mix(in srgb, var(--rd-gold) 10%, transparent); }
+.kft-btn--start { border: none; background: var(--rd-green); color: #06241a; }
+
+.kft-spin { animation: kft-spin 0.9s linear infinite; }
+@keyframes kft-spin { to { transform: rotate(360deg); } }

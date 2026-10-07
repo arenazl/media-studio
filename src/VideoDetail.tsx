@@ -111,8 +111,13 @@ export default function VideoDetail({
           </div>
           <div className="vw-trim-actions">
             <button className="vw-btn" onClick={commitTrim} disabled={!duration}><Scissors size={13} /> Recortar</button>
-            <button className="vw-btn vw-btn--primary" onClick={onGoEditor} disabled={!onGoEditor}>
-              <ArrowRightToLine size={13} /> Al multipista
+            <button
+              className="vw-btn vw-btn--primary"
+              onClick={onGoEditor}
+              disabled={!onGoEditor}
+              style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF', fontWeight: 600 }}
+            >
+              <ArrowRightToLine size={13} /> 🚀 Al multipista
             </button>
           </div>
         </div>
@@ -124,6 +129,16 @@ export default function VideoDetail({
             <Star size={14} fill={meta.favorite ? 'currentColor' : 'none'} />
           </button>
           <span className="vw-meta-name" title={video.name}>{pretty(video.name)}</span>
+        </div>
+
+        <div className="vw-meta-label">Analizador IA · Recomendaciones</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+          <span style={{ fontSize: '10.5px', background: 'rgba(124, 58, 237, 0.2)', border: '1px solid rgba(124, 58, 237, 0.4)', color: '#C4B5FD', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
+            ⚡ {meta.tags[0] ? `Rol: ${meta.tags[0]}` : 'Toma Dinámica 9:16'}
+          </span>
+          <span style={{ fontSize: '10.5px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', color: '#6EE7B7', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
+            🎬 {meta.tags[1] ? `Uso: ${meta.tags[1]}` : 'Apto B-Roll / Hook'}
+          </span>
         </div>
 
         <div className="vw-meta-label">Origen</div>
@@ -138,7 +153,7 @@ export default function VideoDetail({
           placeholder="sin asignar"
         />
 
-        <div className="vw-meta-label">Clasificación</div>
+        <div className="vw-meta-label">Clasificación & Etiquetas</div>
         <div className="vw-meta-tags">
           {meta.tags.map((t) => (
             <span key={t} className="vw-tag">{t}<button onClick={() => onRemoveTag(t)} title="Quitar"><X size={9} /></button></span>
@@ -149,8 +164,7 @@ export default function VideoDetail({
           </span>
         </div>
 
-        {/* WO-6b/D8: si el video es una TOMA de un proyecto, mostramos el prompt de Flow que lo originó
-            (snapshot real en la Toma) + su origen. Un cloud video suelto sigue como "Sin registrar". */}
+        {/* WO-6b/D8: si el video es una TOMA de un proyecto, mostramos el prompt de Flow que lo originó */}
         <div className="vw-meta-label">Prompt usado</div>
         {video.promptUsado ? (
           <>
@@ -165,7 +179,7 @@ export default function VideoDetail({
 
         <div className="vw-meta-actions">
           <button className="vw-btn" onClick={onReclassify} disabled={reclassifying}>
-            <RefreshCw size={13} className={reclassifying ? 'vw-spin' : ''} /> {reclassifying ? 'Clasificando…' : 'Reclasificar'}
+            <RefreshCw size={13} className={reclassifying ? 'vw-spin' : ''} /> {reclassifying ? 'Clasificando…' : 'Reclasificar con IA'}
           </button>
           <a className="vw-btn" href={video.url} target="_blank" rel="noreferrer">Abrir original</a>
           <button className="vw-btn vw-btn--danger" onClick={onDelete}><Trash2 size={13} /> Eliminar</button>

@@ -2,11 +2,12 @@
 // en orden con su toma, audio keep/mute, música por mood, silencio antes del gag). "Exportar mp4"
 // llama al render server-side (video xfade + diálogo de clips + voz + música con ducking/silencio) y
 // registra el export en el comercial. Este es el botón de render que hoy NO existía.
-import { useRef, useState } from 'react';
-import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Volume2, Gauge, Mic, Upload, X, ArrowRightToLine } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Volume2, Gauge, Mic, Upload, X, ArrowRightToLine, Play, Pause } from 'lucide-react';
 import { API_BASE } from '../config';
 import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
+import { mediaKitParaMolde } from '../lib/mediaKit';
 import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
 import type { QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
@@ -39,8 +40,39 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const [qaBusy, setQaBusy] = useState(false);
   const [voiceBusy, setVoiceBusy] = useState(false);
   const voiceInput = useRef<HTMLInputElement | null>(null);
+
+  // Preescucha de audio en vivo
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const toggleAudioPreview = (url?: string) => {
+    if (!url) return;
+    if (previewUrl === url) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        setPreviewUrl(null);
+      }
+    } else {
+      if (audioRef.current) audioRef.current.pause();
+      const a = new Audio(url);
+      audioRef.current = a;
+      setPreviewUrl(url);
+      a.play().catch(() => setPreviewUrl(null));
+      a.onended = () => setPreviewUrl(null);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
   const montaje = comercial?.montaje as MontajeState | undefined;
   const plan = montaje?.plan;
+  const playingTrack = !!(previewUrl && plan?.music?.src && previewUrl === plan.music.src);
+  const playingVoice = !!(previewUrl && plan?.voice?.src && previewUrl === plan.voice.src);
   const exports = montaje?.exports || [];
   const ultimo = exports[exports.length - 1];
   const conClip = plan ? plan.scenes.filter((s) => s.src).length : 0;
@@ -99,9 +131,13 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     if (!comercial) return;
     setQaBusy(true); setError('');
     try {
+      // Fase 7: técnica, duración y kit viajan para el lint técnico del back (lintCommercial).
+      const reel = project.reels.find((r) => r.comercial?.id === comercial.id);
+      const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
       const res = await runMolde('qa', project, {
         concepto: comercial.concepto, guion: comercial.guion, cast: comercial.cast,
         storyboard: comercial.storyboard, packFlow: comercial.packFlow, objetivo: comercial.concepto?.idea,
+        tipo: comercial.tipo, durationSec: reel?.durationSec, ...(mediaKit ? { mediaKit } : {}),
       }, { foco: 'todo' }, undefined, comercial);
       setComercial((c) => ({ ...c, qa: res as unknown as QaResult }));   // persiste (debounce del pipeline; flush al navegar)
     } catch (e) { setError(errMsg(e)); } finally { setQaBusy(false); }
@@ -189,17 +225,37 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
             <div className="mont-track">
               <span className="mont-track-lbl"><Music2 size={11} /> Música</span>
               <div className="mont-track-bar">
-                {plan.music
-                  ? <span className="mont-track-fill mont-track-fill--music">{trackLabel(plan.music.src) || 'música'} · con ducking</span>
-                  : <span className="mont-track-empty">sin música</span>}
+                {plan.music ? (
+                  <span
+                    className="mont-track-fill mont-track-fill--music"
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => toggleAudioPreview(plan.music?.src)}
+                    title="Hacé click para preescuchar esta pista de música"
+                  >
+                    {playingTrack ? <Pause size={12} /> : <Play size={12} />}
+                    {trackLabel(plan.music.src) || 'música'} · con ducking ({playingTrack ? 'reproduciendo...' : 'hacé click para probar'})
+                  </span>
+                ) : (
+                  <span className="mont-track-empty">sin música</span>
+                )}
               </div>
             </div>
             <div className="mont-track">
               <span className="mont-track-lbl"><Mic size={11} /> Voz</span>
               <div className="mont-track-bar">
-                {plan.voice
-                  ? <span className="mont-track-fill mont-track-fill--voice" style={{ marginLeft: `${voiceLeftPct}%` }}>voz en off · desde {plan.voice.at}s</span>
-                  : <span className="mont-track-empty">sin voz</span>}
+                {plan.voice ? (
+                  <span
+                    className="mont-track-fill mont-track-fill--voice"
+                    style={{ marginLeft: `${voiceLeftPct}%`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => toggleAudioPreview(plan.voice?.src)}
+                    title="Hacé click para escuchar la voz en off"
+                  >
+                    {playingVoice ? <Pause size={12} /> : <Play size={12} />}
+                    voz en off · desde {plan.voice.at}s
+                  </span>
+                ) : (
+                  <span className="mont-track-empty">sin voz</span>
+                )}
               </div>
             </div>
           </div>
@@ -207,15 +263,51 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           {/* MIXER: controles de música + voz */}
           <div className="mont-mixer">
             <div className="paso-card mont-music">
-              <div className="paso-card-h"><Music2 size={12} /> Música {plan.music ? `— ${trackLabel(plan.music.src) || 'elegida'}` : '— sin música'}</div>
-              <select className="mont-select" value={plan.music?.src || ''} onChange={(e) => setMusica(e.target.value)}>
-                <option value="">Sin música</option>
-                {MUSIC_TRACKS.map((t) => <option key={t.id} value={t.url}>{t.cat} · {t.label}</option>)}
-              </select>
+              <div className="paso-card-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><Music2 size={12} /> Música {plan.music ? `— ${trackLabel(plan.music.src) || 'elegida'}` : '— sin música'}</span>
+                {plan.music?.src && (
+                  <button
+                    className="rodaje-var"
+                    style={{ background: playingTrack ? '#7C3AED' : '#1E293B', color: '#FFF', border: '1px solid #475569', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => toggleAudioPreview(plan.music?.src)}
+                  >
+                    {playingTrack ? <Pause size={12} /> : <Play size={12} />}
+                    {playingTrack ? 'Pausar' : 'Preescuchar'}
+                  </button>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <select className="mont-select" style={{ flex: 1 }} value={plan.music?.src || ''} onChange={(e) => setMusica(e.target.value)}>
+                  <option value="">Sin música</option>
+                  {MUSIC_TRACKS.map((t) => <option key={t.id} value={t.url}>{t.cat} · {t.label}</option>)}
+                </select>
+                {plan.music?.src && (
+                  <button
+                    className="rodaje-var"
+                    style={{ background: playingTrack ? '#7C3AED' : '#334155', color: '#FFF', padding: '8px 12px' }}
+                    onClick={() => toggleAudioPreview(plan.music?.src)}
+                    title="Preescuchar la música seleccionada"
+                  >
+                    {playingTrack ? <Pause size={14} /> : <Play size={14} />}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="paso-card mont-music">
-              <div className="paso-card-h"><Mic size={12} /> Voz en off {plan.voice ? '— cargada (la música baja debajo)' : '— sin voz'}</div>
+              <div className="paso-card-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span><Mic size={12} /> Voz en off {plan.voice ? '— cargada' : '— sin voz'}</span>
+                {plan.voice?.src && (
+                  <button
+                    className="rodaje-var"
+                    style={{ background: playingVoice ? '#7C3AED' : '#1E293B', color: '#FFF', border: '1px solid #475569', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => toggleAudioPreview(plan.voice?.src)}
+                  >
+                    {playingVoice ? <Pause size={12} /> : <Play size={12} />}
+                    {playingVoice ? 'Pausar voz' : 'Escuchar voz'}
+                  </button>
+                )}
+              </div>
               <div className="mont-voice">
                 {voiceGrabada && (
                   <button className="rodaje-var" onClick={usarVozGrabada} disabled={voiceBusy}>
@@ -308,19 +400,23 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           <PasoEmpty icon={Clapperboard}>Armá el montaje desde el storyboard. Necesitás {esAnimado ? 'el reel animado renderizado (paso Render)' : 'clips importados en el Rodaje'}.</PasoEmpty>
         )}
       </div>
-      {/* PIE del panel: estado del montaje (izq) + acciones chequear/exportar (der) */}
+      {/* PIE del panel: ir directo al Editor Multipista en Pantalla Completa */}
       <div className="paso-foot paso-foot--split">
         <span className="paso-estado">{estadoDelPaso('montaje', comercial)}</span>
-        {plan && (
-          <div className="mont-foot-actions">
-            <button className="rodaje-import mont-qa-btn" onClick={chequear} disabled={qaBusy || rendering}>
-              {qaBusy ? <Loader2 size={13} className="paso-spin" /> : <Gauge size={13} />} Chequear calidad
+        <div className="mont-foot-actions">
+          <button className="rodaje-import mont-qa-btn" onClick={chequear} disabled={qaBusy || rendering}>
+            {qaBusy ? <Loader2 size={13} className="paso-spin" /> : <Gauge size={13} />} Chequear calidad
+          </button>
+          {onGoEditor && (
+            <button
+              className="paso-approve mont-export"
+              style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF' }}
+              onClick={onGoEditor}
+            >
+              <Film size={15} /> 🚀 Ir al Editor Multipista (Pantalla Completa)
             </button>
-            <button className="paso-approve mont-export" onClick={exportar} disabled={rendering || !conClip || sinClip.length > 0}>
-              {rendering ? <><Loader2 size={15} className="paso-spin" /> Renderizando el mp4…</> : <><Film size={15} /> Exportar mp4</>}
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

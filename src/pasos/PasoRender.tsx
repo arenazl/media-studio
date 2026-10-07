@@ -18,9 +18,36 @@ export default function PasoRender({ project, reelId, comercial, setComercial, g
     if (!comercial) return;
     setBusy(true); setError('');
     try {
-      const bk = project.brandKit as { color?: string; logoSvg?: string } | undefined;
-      const brand = { name: project.name, colors: { accent: bk?.color }, logo: bk?.logoSvg ? { svg: bk.logoSvg } : undefined };
-      const slides = escenasToSlides(comercial);
+      const mk = (project as any).marcaKit || {};
+      const bk = (project.brandKit || {}) as { color?: string; logoSvg?: string; logoUrl?: string };
+      const primaryColor = mk.colores?.primario || bk.color || '#7C3AED';
+      const accentColor = mk.colores?.acento || '#F59E0B';
+      const logoSvg = mk.logo?.svg || bk.logoSvg || '';
+      const logoUrl = mk.logoUrl || bk.logoUrl || '';
+
+      const brand = {
+        name: project.name,
+        colors: { primary: primaryColor, secondary: '#1E1B2E', accent: accentColor },
+        logoSvg,
+        logoUrl,
+        logo: logoSvg ? { svg: logoSvg } : logoUrl ? { primary: logoUrl } : undefined,
+      };
+
+      const projScreens = (project.screens || project.screenshots || []) as any[];
+      const rawSlides = escenasToSlides(comercial);
+      const slides = rawSlides.map((s, idx) => {
+        let cap = s.archivoCaptura;
+        if (!cap && projScreens.length) {
+          const match = projScreens.find((p) => (p.nombre && p.nombre === s.badge) || (p.label && p.label === s.badge)) || projScreens[idx % projScreens.length];
+          cap = match?.archivo || match?.url || (typeof match === 'string' ? match : '');
+        }
+        return {
+          ...s,
+          image: cap,
+          archivoCaptura: cap,
+        };
+      });
+
       const r = await fetch(`${API_BASE}/api/mockup-reel`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slides, brand, projectId: project.id, reelId }),

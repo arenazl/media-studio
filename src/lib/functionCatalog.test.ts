@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { FUNCTION_CATALOG, projectFunctions, pieceFunctions, getFunction, type ModelTier } from './functionCatalog';
+import { FUNCTION_CATALOG, projectFunctions, pieceFunctions, getFunction, PRESETS, modelForPreset, type TaskClass } from './functionCatalog';
 
-const TIERS: ModelTier[] = ['opus', 'sonnet', 'haiku'];
+const CLASES: TaskClass[] = ['creativo', 'estructurado', 'transformacion'];
 
 describe('FUNCTION_CATALOG integridad', () => {
   it('los ids de función son únicos', () => {
@@ -9,10 +9,10 @@ describe('FUNCTION_CATALOG integridad', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('cada función tiene nivel y modelo válidos', () => {
+  it('cada función tiene nivel y clase de tarea válidos', () => {
     for (const f of FUNCTION_CATALOG) {
       expect(['project', 'piece']).toContain(f.level);
-      expect(TIERS).toContain(f.model);
+      expect(CLASES).toContain(f.taskClass);
       expect(f.label).toBeTruthy();
       expect(f.description).toBeTruthy();
       expect(f.icon).toBeTruthy();
@@ -78,5 +78,32 @@ describe('moldes del rework (concept/cast/storyboard/flowpack)', () => {
     for (const id of ['cast', 'storyboard', 'flowpack'] as const) {
       expect(getFunction(id)!.options).toHaveLength(0);
     }
+  });
+});
+
+describe('presets de IA (económico / intermedio / performante)', () => {
+  it('cada preset resuelve las tres clases a un modelo, y nunca a haiku', () => {
+    for (const preset of Object.keys(PRESETS) as (keyof typeof PRESETS)[]) {
+      for (const clase of CLASES) {
+        expect(['opus', 'sonnet']).toContain(PRESETS[preset][clase]);
+      }
+    }
+  });
+  it('las clases del catálogo son las acordadas: creativo decide, estructurado convierte, transformación empaqueta', () => {
+    expect(getFunction('strategy')!.taskClass).toBe('creativo');
+    expect(getFunction('concept')!.taskClass).toBe('creativo');
+    expect(getFunction('script')!.taskClass).toBe('creativo');
+    expect(getFunction('cast')!.taskClass).toBe('estructurado');
+    expect(getFunction('storyboard')!.taskClass).toBe('estructurado');
+    expect(getFunction('qa')!.taskClass).toBe('estructurado');
+    expect(getFunction('flowpack')!.taskClass).toBe('transformacion');
+    expect(getFunction('publish')!.taskClass).toBe('transformacion');
+  });
+  it('modelForPreset: intermedio pone Opus en el guion y Sonnet en el storyboard; inexistente → undefined', () => {
+    expect(modelForPreset('intermedio', 'script')).toBe('opus');
+    expect(modelForPreset('intermedio', 'storyboard')).toBe('sonnet');
+    expect(modelForPreset('economico', 'script')).toBe('sonnet');
+    expect(modelForPreset('performante', 'storyboard')).toBe('opus');
+    expect(modelForPreset('intermedio', 'no-existe')).toBeUndefined();
   });
 });

@@ -61,3 +61,26 @@
 @media (prefers-reduced-motion: reduce) {
   :root { --rd-dur-ui: 0ms; --rd-dur-panel: 0ms; }
 }
+
+/* ===================================================================
+   Tema Claro
+   =================================================================== */
+html[data-theme="light"] {
+  --rd-bg-app:    #FDFBF7;   /* warm cream white */
+  --rd-bg-rail:   #F6F3EC;   /* slightly darker rail cream background */
+  --rd-surface-1: #FFFFFF;   /* pure white cards */
+  --rd-surface-2: #EFEBE0;   /* active, hover, and chip cream background */
+  --rd-border:    rgba(0, 0, 0, 0.08);
+
+  --rd-ink:       #14110C;   /* dark ink matching old background */
+  --rd-ink-2:     #2C271E;
+  --rd-ink-dim:   #5C5548;
+  --rd-ink-mute:  #827A6C;
+  --rd-ink-faint: #A59E92;
+
+  --rd-green:  #009E6D;
+  --rd-gold:   #E09F00;
+  --rd-blue:   #1E85E6;
+  --rd-danger: #E63C3C;
+}
+

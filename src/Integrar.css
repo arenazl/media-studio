@@ -1,13 +1,30 @@
-/* Integrar · KSP (prototipo.dc.html ~línea 569). */
-.ksp-page { background: var(--rd-bg-app); min-height: 100%; color: var(--rd-ink); font-family: var(--rd-font-sans); }
-.ksp-inner { max-width: 1000px; margin: 0 auto; padding: 34px 40px 60px; animation: home-fade 0.35s ease; }
+/* Integrar · KSP */
+.ksp-page { background: var(--rd-bg-app); min-height: 100vh; color: var(--rd-ink); font-family: var(--rd-font-sans); }
+.ksp-container { display: flex; gap: 32px; max-width: 1720px; margin: 0 auto; padding: 34px 40px 60px; animation: home-fade 0.35s ease; align-items: stretch; }
+
+.ksp-left-col { flex: 1.1; min-width: 0; }
+.ksp-right-col { flex: 1.4; min-width: 0; display: flex; flex-direction: column; }
 
 .ksp-title { font-family: var(--rd-font-display); font-size: 28px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
 .ksp-lead { color: var(--rd-ink-dim); font-size: 14px; margin: 0 0 26px; max-width: 64ch; }
 .ksp-lead strong { color: var(--rd-ink); }
 
-.ksp-overview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-.ksp-ovcard { background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: 16px; padding: 20px; }
+.ksp-overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.ksp-ovcard {
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); border-radius: 16px; padding: 20px;
+  transition: border-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.ksp-ovcard:hover {
+  border-color: color-mix(in srgb, var(--rd-gold) 45%, var(--rd-border));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+.ksp-ovcard--selected {
+  border-color: var(--rd-gold);
+  box-shadow: 0 0 0 1px var(--rd-gold), 0 8px 24px rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--rd-gold) 4%, var(--rd-surface-1));
+}
+
 .ksp-ovcard-top { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
 .ksp-ovinitial {
   width: 46px; height: 46px; border-radius: 12px; flex: 0 0 auto; color: #fff;
@@ -33,10 +50,11 @@
 .ksp-register-desc { font-size: 12.5px; color: var(--rd-ink-mute); margin-top: 2px; }
 .ksp-register-desc code { font-family: var(--rd-font-mono); font-size: 11px; color: var(--rd-gold); }
 
-.ksp-inspect-h { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rd-ink-faint); margin-bottom: 10px; }
-.ksp-inspect { height: 70vh; min-height: 460px; }
+.ksp-inspect-h { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rd-ink-faint); margin-bottom: 12px; }
+.ksp-inspect { flex: 1; min-height: 500px; display: flex; flex-direction: column; }
 
-@media (max-width: 760px) {
-  .ksp-overview-grid { grid-template-columns: 1fr; }
-  .ksp-inner { padding: 20px 16px 40px; }
+@media (max-width: 1100px) {
+  .ksp-container { flex-direction: column; gap: 40px; padding: 20px 24px 60px; }
+  .ksp-left-col, .ksp-right-col { flex: none; width: 100%; }
 }
+

@@ -1,0 +1,49 @@
+/* Ajustes globales en el rail — engranaje al pie + popover que abre a la DERECHA (no tapa el rail). */
+.rs { position: relative; width: 100%; display: flex; justify-content: center; }
+
+.rs-gear {
+  width: 46px; height: 46px; border-radius: 12px; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--rd-ink-faint); background: transparent;
+  transition: background var(--rd-dur-ui) var(--rd-ease), color var(--rd-dur-ui) var(--rd-ease);
+}
+.rs-gear:hover { color: var(--rd-ink-dim); background: var(--rd-surface-1); }
+.rs-gear--on, .rs-gear--on:hover { color: var(--rd-green); background: color-mix(in srgb, var(--rd-green) 12%, transparent); }
+.rs-gear-label { font-size: 8.5px; font-weight: 500; letter-spacing: 0.02em; }
+
+.rs-menu {
+  position: absolute; left: calc(100% + 10px); bottom: 0; z-index: 40;
+  width: 232px; background: var(--rd-surface-1); border: 1px solid var(--rd-border);
+  border-radius: 12px; padding: 6px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+.rs-menu-lbl {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--rd-ink-faint); padding: 6px 10px 8px;
+}
+.rs-menu-item {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 10px; border: none; background: transparent; border-radius: 9px; cursor: pointer;
+  color: var(--rd-ink); text-align: left;
+}
+.rs-menu-item:hover { background: var(--rd-surface-2); }
+.rs-menu-item--on { background: color-mix(in srgb, var(--rd-green) 12%, transparent); color: var(--rd-green); }
+.rs-menu-item-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.rs-menu-item-name { font-size: 13px; font-weight: 600; }
+.rs-menu-item-hint { font-size: 11px; color: var(--rd-ink-faint); }
+.rs-menu-item--on .rs-menu-item-hint { color: color-mix(in srgb, var(--rd-green) 70%, var(--rd-ink-faint)); }
+
+@media (max-width: 640px) {
+  .rs-gear { width: 40px; height: 40px; }
+  .rs-gear-label { display: none; }
+}
+
+.rs-theme-btn {
+  flex: 1; padding: 6px; font-size: 11.5px; font-weight: 600; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--rd-border); background: transparent; color: var(--rd-ink-mute);
+  transition: all var(--rd-dur-ui) var(--rd-ease);
+}
+.rs-theme-btn:hover { color: var(--rd-ink-dim); background: var(--rd-surface-1); border-color: var(--rd-border); }
+.rs-theme-btn--on, .rs-theme-btn--on:hover {
+  background: var(--rd-surface-2) !important; color: var(--rd-ink) !important; border-color: var(--rd-ink-faint) !important;
+}
+

@@ -138,7 +138,7 @@ describe('kit → proyecto', () => {
   });
   it('el brandKit conserva su shape de siempre (no cambia para nadie)', () => {
     const bk = mediaKitToBrandKit(KIT)!;
-    expect(Object.keys(bk).sort()).toEqual(['color', 'logoPos', 'logoUrl', 'name', 'phonetic']);
+    expect(Object.keys(bk).sort()).toEqual(['color', 'logoPos', 'logoSvg', 'logoUrl', 'name', 'phonetic']);
     expect(bk.name).toBe('[DEMO] Kit de prueba');
     expect(bk.logoUrl).toBe('/api/media-kit/app-demo/file/logo.svg');
     expect(bk.phonetic).toBe('demo kit de prueba');

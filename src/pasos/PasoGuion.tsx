@@ -1,13 +1,13 @@
 // Paso 3 — GUION. Corre el molde `script` (adaptado: GuionEstructurado hook/desarrollo/gag/cta),
 // editable inline, con regen por bloque. Persiste el guion ENTERO en comercial.guion (no aplana).
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RefreshCw, Loader2, Camera, Music2, FileText } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { KitTira } from '../components/KitCapturas';
 import { mediaKitParaMolde } from '../lib/mediaKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
-import type { GuionEstructurado, GuionBloque, EstadoPaso } from '../lib/comercial';
+import { pasoHabilitado, type GuionEstructurado, type GuionBloque, type EstadoPaso } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
@@ -25,17 +25,27 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
   const durationSec = project.reels.find((r) => r.id === reelId)?.durationSec
     ?? getFormato(comercial?.formatoId)?.duracion.default ?? 20;
 
+  // AUTO-GENERAR al entrar: sólo si el paso está HABILITADO (el anterior visible ya generó algo) y
+  // existe el INSUMO DIRECTO del molde — acá, el concepto elegido. Entrar a un paso sin insumos no
+  // puede llamar a la IA ni marcar estados: salían guiones sin concepto y encima quemaban tokens.
+  const hasAutoFired = useRef(false);
+  useEffect(() => {
+    const listo = !!comercial && pasoHabilitado(comercial, 'guion') && !!comercial.concepto;
+    if (listo && !guion && !busy && !error && !hasAutoFired.current) {
+      hasAutoFired.current = true;
+      generar();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const applyGuion = (g: GuionEstructurado, estado: EstadoPaso = 'generado') =>
     setComercial((c) => ({ ...c, guion: g, estados: { ...c.estados, guion: c.estados.guion === 'aprobado' ? 'aprobado' : estado } }));
 
-  const generar = async () => {
+  const generar = async (provider?: 'claude' | 'gemini') => {
     setBusy(true); setError('');
     try {
-      // `tipo` viaja al molde (mismo criterio que concept/storyboard): sin él el guion animado pedía
-      // escenas filmadas. La duración va SOLO por piece.durationSec (ver el comentario de arriba).
-      // WO-K4: con media kit, las pantallas REALES y los momentos entran como insumo del guion.
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo, ...(mediaKit ? { mediaKit } : {}) }, { tono: 'cercano' }, undefined, comercial);
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo, messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, supportingFacts: comercial?.supportingFacts, ...(mediaKit ? { mediaKit } : {}) }, { tono: 'cercano' }, undefined, comercial, provider);
       applyGuion({ blocks: (res.blocks as GuionBloque[]) || [], music: res.music as { mood: string } | undefined });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };

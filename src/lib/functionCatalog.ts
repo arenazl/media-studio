@@ -11,6 +11,23 @@
 export type FunctionLevel = 'project' | 'piece';
 export type ModelTier = 'opus' | 'sonnet' | 'haiku';
 
+// Dificultad del molde (reingeniería 2026-10-07, P0.5 + presets del dueño). El front NO fija un
+// modelo por molde: fija la CLASE de tarea, y el preset elegido en el engranaje decide el modelo.
+//   creativo       = decide QUÉ se cuenta (strategy, concept, script): acá Opus se nota.
+//   estructurado   = convierte con reglas (cast, storyboard, qa): Sonnet hace lo mismo en la mitad del tiempo.
+//   transformacion = traduce/empaqueta (flowpack, publish, briefToKb, videoprompt): Sonnet.
+// Medido con la pieza "Gancho & Problema" de Munify (docs/13-optimizacion-generacion/03-baseline-y-avance.md).
+// Haiku 4.5 quedó afuera: medido fue de 4 a 8 veces MÁS LENTO que Sonnet en estos pedidos (32 a 88 s
+// contra 9 s para el guion, tiempo de API real) y peor en calidad.
+export type TaskClass = 'creativo' | 'estructurado' | 'transformacion';
+export type AiPreset = 'economico' | 'intermedio' | 'performante';
+export const PRESETS: Record<AiPreset, Record<TaskClass, ModelTier>> = {
+  economico:   { creativo: 'sonnet', estructurado: 'sonnet', transformacion: 'sonnet' },
+  intermedio:  { creativo: 'opus',   estructurado: 'sonnet', transformacion: 'sonnet' },
+  performante: { creativo: 'opus',   estructurado: 'opus',   transformacion: 'sonnet' },
+};
+export const PRESET_DEFAULT: AiPreset = 'intermedio';
+
 // un control que la UI dibuja para configurar la corrida (chips/select). Sin prompts a mano.
 export interface FnOption {
   id: string;
@@ -27,7 +44,7 @@ export interface StudioFunction {
   icon: string;                        // nombre de ícono lucide-react
   level: FunctionLevel;
   description: string;                 // qué hace, en una línea (se muestra en la UI)
-  model: ModelTier;                    // tier por defecto (el "mejor" donde importa, liviano en lo mecánico)
+  taskClass: TaskClass;                // dificultad del molde: el preset del engranaje la traduce a modelo
   options: FnOption[];                 // los controles del botón
 }
 
@@ -42,7 +59,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'Sparkles',
     level: 'project',
     description: 'Del brief saca público, ángulos y el plan de piezas de la campaña.',
-    model: 'opus',
+    taskClass: 'creativo',
     options: [
       {
         id: 'perfil', label: 'Tipo de campaña', type: 'choice', default: 'campaña',
@@ -64,7 +81,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'FileText',
     level: 'piece',
     description: 'Escribe el guion por bloques (hook → dolor → solución → prueba → CTA).',
-    model: 'opus',
+    taskClass: 'creativo',
     options: [
       {
         id: 'tono', label: 'Tono', type: 'choice', default: 'cercano',
@@ -91,7 +108,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'Megaphone',
     level: 'piece',
     description: 'Caption, hashtags, primeras palabras y CTA para la red elegida.',
-    model: 'haiku',
+    taskClass: 'transformacion',
     options: [
       {
         id: 'red', label: 'Red', type: 'choice', default: 'instagram',
@@ -105,7 +122,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'Gauge',
     level: 'piece',
     description: 'Le pone nota a la pieza (rúbrica) y marca qué ajustar.',
-    model: 'sonnet',
+    taskClass: 'estructurado',
     options: [
       {
         id: 'foco', label: 'Foco', type: 'choice', default: 'todo',
@@ -123,7 +140,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'Lightbulb',
     level: 'piece',
     description: 'Propone 2-3 conceptos de comercial para el ángulo de esta pieza (idea, tono, estética).',
-    model: 'opus',
+    taskClass: 'creativo',
     options: [
       {
         id: 'perfil', label: 'Perfil', type: 'choice', default: 'campaña',
@@ -137,7 +154,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'Users',
     level: 'piece',
     description: 'Define los personajes (descripción física exacta, reutilizable) y la locación.',
-    model: 'opus',
+    taskClass: 'estructurado',
     options: [],
   },
   {
@@ -146,7 +163,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'Clapperboard',
     level: 'piece',
     description: 'Arma las escenas numeradas: plano, ángulo, duración, acción, diálogo y continuidad.',
-    model: 'opus',
+    taskClass: 'estructurado',
     options: [],
   },
   {
@@ -155,7 +172,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'PackageOpen',
     level: 'piece',
     description: 'Prompt maestro + un prompt por clip para Google Flow, con personajes consistentes.',
-    model: 'opus',
+    taskClass: 'transformacion',
     options: [],
   },
   {
@@ -166,7 +183,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     icon: 'Sparkles',
     level: 'piece',
     description: 'Genera un prompt de Google Flow (Veo) suelto — talking head o b-roll — listo para pegar.',
-    model: 'sonnet',
+    taskClass: 'transformacion',
     options: [
       {
         id: 'modo', label: 'Tipo', type: 'choice', default: 'talking-head',
@@ -174,9 +191,27 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
       },
     ],
   },
+  {
+    // Segunda fuente de entrada (KSP por texto) — cura un brief libre al shape del KnowledgeBase.
+    // Standalone (Integrar), no se elige desde el pipeline; la UI arma options.brief.
+    id: 'briefToKb',
+    label: 'Negocio desde texto',
+    icon: 'FileText',
+    level: 'piece',
+    description: 'Convierte un texto libre sobre el negocio al Knowledge Base que consume el pipeline.',
+    taskClass: 'transformacion',
+    options: [],
+  },
 ];
 
 // helpers de lectura para la UI
 export const projectFunctions = (): StudioFunction[] => FUNCTION_CATALOG.filter((f) => f.level === 'project');
 export const pieceFunctions = (): StudioFunction[] => FUNCTION_CATALOG.filter((f) => f.level === 'piece');
 export const getFunction = (id: string): StudioFunction | undefined => FUNCTION_CATALOG.find((f) => f.id === id);
+
+// Modelo que corre un molde con un preset dado. ÚNICA resolución preset×clase → modelo (la usa
+// settings.effectiveModel; el back tiene la misma tabla para cuando el front no manda modelo).
+export function modelForPreset(preset: AiPreset, functionId: string): ModelTier | undefined {
+  const fn = getFunction(functionId);
+  return fn ? PRESETS[preset][fn.taskClass] : undefined;
+}

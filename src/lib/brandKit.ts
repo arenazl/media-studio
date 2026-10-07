@@ -7,6 +7,7 @@ export interface BrandKit {
   name?: string;       // nombre de marca (para overlays/CTA)
   color?: string;      // color de acento (hex)
   logoUrl?: string;    // dataURL/URL del logo (overlay del preview/render)
+  logoSvg?: string;    // código SVG del logo de la marca
   logoPos?: LogoPos;   // esquina donde va el logo
   phonetic?: string;   // marca fonética para TTS/Veo (ej. "Munifái")
 }

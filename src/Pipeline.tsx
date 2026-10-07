@@ -5,6 +5,7 @@
 // Es CONTROLLED: el proyecto y su persistencia los maneja App (dueño único de los datos); acá solo
 // vive el estado de navegación (reel/paso activo/copiloto/ajustes). Escribe vía `onChange`, el
 // mutador único de App — así ninguna otra pantalla puede pisar lo que se arma acá con una copia vieja.
+import { scriptNarrations } from '../server/scriptToText.mjs';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, PanelRightOpen, Settings, Check } from 'lucide-react';
 import PipelineStepper, { pasoLabel } from './PipelineStepper';
@@ -30,10 +31,9 @@ import './Pipeline.css';
 type ChangeFn = (updater: (p: Project) => Project, mode?: 'debounced' | 'flush') => void;
 
 const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[] = [
-  { value: 'auto', label: 'Auto', hint: 'recomendado — cada paso usa su modelo' },
-  { value: 'opus', label: 'Opus', hint: 'máxima calidad, caro' },
-  { value: 'sonnet', label: 'Sonnet', hint: 'equilibrado' },
-  { value: 'haiku', label: 'Haiku', hint: 'económico' },
+  { value: 'economico', label: 'Económico', hint: 'Sonnet en todo: la pieza en unos 2 minutos' },
+  { value: 'intermedio', label: 'Intermedio', hint: 'recomendado: Opus sólo en idea y guion' },
+  { value: 'performante', label: 'Performante', hint: 'Opus también en cast, storyboard y QA' },
 ];
 
 export default function Pipeline({ project, onChange, onFlush, onHome, onGoEditor }: { project: Project; onChange: ChangeFn; onFlush: () => void; onHome: () => void; onGoEditor?: () => void }) {
@@ -53,7 +53,7 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
   // el ajuste vive en localStorage (settings.ts) y lo tocan DOS engranajes (éste y el del rail):
   // con useState local, cambiarlo en uno dejaba al otro mostrando el valor viejo hasta un F5. El
   // pub/sub de settings.ts + useSyncExternalStore los mantiene en el mismo valor (igual que RailSettings).
-  const aiModel = useSyncExternalStore(subscribeAiModel, getAiModel, () => 'auto' as AiModelSetting);
+  const aiModel = useSyncExternalStore(subscribeAiModel, getAiModel, () => 'intermedio' as AiModelSetting);
   useEffect(() => {
     const onDoc = (e: MouseEvent) => { if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) setSettingsOpen(false); };
     document.addEventListener('mousedown', onDoc);
@@ -78,7 +78,7 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
       const formatoProj = getFormato(cur.formatoId);
       const base = rl.comercial ?? { ...nuevoComercial(rl.angulo || rl.nombre || 'Comercial', tipoDesdeFormato(formatoProj)), formatoId: cur.formatoId };
       const next = updater(base);
-      const narraciones = next.guion?.blocks?.map((b) => b.narration).filter(Boolean);
+      const narraciones = scriptNarrations(next.guion);   // helper canónico (P0.2)
       const reels = cur.reels.map((r) => (r.id === rl.id
         ? { ...r, comercial: next, ...(narraciones?.length ? { guion: narraciones, frases: narraciones.length } : {}) }
         : r));

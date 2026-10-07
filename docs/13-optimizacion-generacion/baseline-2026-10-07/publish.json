@@ -1,0 +1,19 @@
+{
+  "functionId": "publish",
+  "result": {
+    "hookOnScreen": "Un bache. Un celular. Listo.",
+    "caption": "El vecino saca la foto del bache y el reclamo ya viaja con GPS a la dependencia que corresponde.\nLa cuadrilla lo resuelve, sube el antes y el despues, y el vecino recibe la notificacion con numero de seguimiento.\nTramites con validacion biometrica via RENAPER y pago de tasas desde el mismo lugar, sin pisar el municipio.\nPuertas adentro, el mismo sistema ordena ordenes de pago, tesoreria y sueldos. Un solo login para gobernar y para atender al vecino.",
+    "hashtags": [
+      "#GovTech",
+      "#GestionMunicipal",
+      "#Municipios",
+      "#Intendentes",
+      "#Modernizacion"
+    ],
+    "cta": "Si gobernas un municipio o una comuna en Argentina, escribinos por mensaje directo: la implementacion lleva 1 a 2 semanas.",
+    "_meta": {
+      "platform": "instagram_reels",
+      "business": "Munify"
+    }
+  }
+}

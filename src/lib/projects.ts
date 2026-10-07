@@ -64,6 +64,7 @@ export interface Project {
   preloaded?: boolean;           // viene precargado (ej. el demo)
   contentType?: ContentType;     // configura el layout: reels | video | audio | combinado
   brief?: string;                // MD del negocio (input agnóstico)
+  kb?: unknown;                  // Fase 2: el KB 1.2 crudo (si el proyecto nació de un KB) → ProjectFacts en el back
   screenshots?: string[];        // capturas del producto (legacy)
   screens?: unknown[];           // metadata de pantallas del KB 1.2 (kind/components/data…) → reel animado
   brandKit?: BrandKit;           // marca del proyecto (logo/color/fonética) — agnóstico
@@ -134,7 +135,7 @@ export function getProject(id: string): Project | undefined {
 }
 export function saveProject(input: {
   id?: string; name: string; type?: string; preloaded?: boolean; contentType?: ContentType;
-  brief?: string; screenshots?: string[]; screens?: unknown[]; brandKit?: BrandKit; formatoId?: string;
+  brief?: string; kb?: unknown; screenshots?: string[]; screens?: unknown[]; brandKit?: BrandKit; formatoId?: string;
   mediaKitId?: string; marcaKit?: MarcaKit; cta?: MediaKitCta; momentos?: MediaKitMomento[]; pantallasKit?: PantallaKit[];
   reels?: ProjectReel[];
 }): Project {
@@ -147,6 +148,7 @@ export function saveProject(input: {
     preloaded: input.preloaded ?? existing?.preloaded ?? false,
     contentType: input.contentType ?? existing?.contentType,
     brief: input.brief ?? existing?.brief,
+    kb: input.kb ?? existing?.kb,                      // Fase 2: el KB crudo persiste con el proyecto
     screenshots: input.screenshots ?? existing?.screenshots,
     screens: input.screens ?? existing?.screens,
     brandKit: input.brandKit ?? existing?.brandKit,

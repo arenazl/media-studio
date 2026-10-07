@@ -117,6 +117,7 @@ export interface KBProjectInput {
   brief: string;
   brandKit?: BrandKit;
   screens: KBScreen[];
+  kb: KnowledgeBase;             // Fase 2: el KB crudo se guarda en el proyecto (ProjectFacts sale de acá, no del brief)
 }
 export function kbToProjectInput(kb: KnowledgeBase): KBProjectInput {
   return {
@@ -125,6 +126,7 @@ export function kbToProjectInput(kb: KnowledgeBase): KBProjectInput {
     brief: kbToBrief(kb),
     brandKit: kbToBrandKit(kb),
     screens: kb.screens || [],
+    kb,
   };
 }
 

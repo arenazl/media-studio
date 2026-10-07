@@ -1,5 +1,6 @@
 // Paso 9 — PUBLICAR. Corre el molde `publish` (PERSISTIENDO el resultado, que antes se perdía) y
 // muestra el paquete final: caption/hashtags/CTA con Copiar + el mp4 exportado del montaje.
+import { scriptNarrations } from '../../server/scriptToText.mjs';
 import { useState } from 'react';
 import { Copy, Check, Download, Megaphone, Film } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
@@ -25,7 +26,7 @@ export default function PasoPublicar({ project, comercial, setComercial, goNext 
   const generar = async () => {
     setBusy(true); setError('');
     try {
-      const narr = comercial?.guion?.blocks?.map((b) => b.narration).filter(Boolean) || [];
+      const narr = scriptNarrations(comercial?.guion);   // helper canónico (P0.2)
       const res = await runMolde('publish', project, { guion: narr, objetivo: comercial?.concepto?.idea }, { red }, undefined, comercial);
       setComercial((c) => ({ ...c, publicacion: res as unknown as PublishPack, estados: { ...c.estados, publicar: c.estados.publicar === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }

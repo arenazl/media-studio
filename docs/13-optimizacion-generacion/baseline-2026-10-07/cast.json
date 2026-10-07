@@ -1,0 +1,30 @@
+{
+  "functionId": "cast",
+  "result": {
+    "personajes": [
+      {
+        "id": "p1",
+        "nombre": "Darío",
+        "rol": "Vecino que espera su turno y resuelve todo desde el celular",
+        "fisicoEn": "Argentine man, 38 years old, olive-toned skin, short dark brown hair slightly messy, trimmed stubble beard, tired expressive brown eyes with faint under-eye circles, medium build. Wearing a plain navy blue short-sleeve polo shirt, grey work trousers and worn sneakers, a lanyard-free look, holding a paper queue ticket in one hand and a small potted green plant in the other. Everyday working-class neighbor look, photorealistic skin texture, natural pores, deadpan charisma.",
+        "fisicoEs": "Hombre de 38, piel oliva, pelo castaño corto, barba corta, cara de cansado con turno y planta en mano",
+        "vestuario": "Chomba azul marino, pantalón gris de trabajo, zapatillas gastadas",
+        "personalidad": "Resignado, irónico"
+      },
+      {
+        "id": "p2",
+        "nombre": "Mabel",
+        "rol": "Empleada municipal detrás del mostrador de atención al vecino",
+        "fisicoEn": "Argentine woman, 52 years old, light tan skin, shoulder-length dyed dark blonde hair pulled back, reading glasses low on the nose, subtle laugh lines. Wearing a light blue municipal staff shirt with a small embroidered city crest on the chest, plain cardigan over the shoulders and a laminated ID badge on a lanyard. Seated behind a public service counter with stacks of paper folders, photorealistic, warm but bureaucratic presence.",
+        "fisicoEs": "Mujer de 52, pelo rubio oscuro recogido, anteojos, camisa celeste municipal con credencial",
+        "vestuario": "Camisa celeste municipal, cárdigan y credencial colgada",
+        "personalidad": "Burocrática, cordial"
+      }
+    ],
+    "lugar": {
+      "nombre": "Sala de espera de atención al vecino en el municipio",
+      "descripcionEn": "Interior of a small-town Argentine municipal public service waiting room: rows of joined grey plastic chairs bolted to the floor, worn speckled linoleum, a wall-mounted red LED queue number display, a ceiling loudspeaker, a paper ticket dispenser, an attention counter with glass partition and stacks of paper folders, printed signs and notices taped to a pale institutional wall, a cork board with municipal announcements, a dusty water cooler in the corner. Flat cold fluorescent ceiling lighting with a slight green-grey cast, static locked-off vertical 9:16 framing, documentary photorealistic look, shallow depth of field on the foreground chair, bright clean warm phone screen glow contrasting against the grey room.",
+      "luz": "Fluorescente gris frío, con el celular cálido como único foco nítido"
+    }
+  }
+}

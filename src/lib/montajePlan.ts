@@ -107,7 +107,7 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
   const scenes: MontajeScene[] = escenas.map((e, i) => {
     const toma = tomaActiva(comercial, e.n);
     const realDur = toma?.durSec || 0;
-    const out = realDur > 0 ? Math.min(e.durSec, realDur) : e.durSec;
+    const out = realDur > 0 ? realDur : e.durSec;
     const tieneDialogo = !!(e.dialogo && e.dialogo.trim());
     const proxEsCta = i < escenas.length - 1 && escenas[i + 1].rol === 'cta';
     return {

@@ -34,6 +34,12 @@ Organizado con el **criterio cross-app** (raíz de `docs/` solo este README; tem
 - [`06-video-referencia-stotyboard/flujo_produccion_ia.md`](06-video-referencia-stotyboard/flujo_produccion_ia.md) — el workflow manual de referencia (ChatGPT + Flow + DaVinci) que el rework automatiza.
 - [`07-rework/01-vision-y-pipeline.md`](07-rework/01-vision-y-pipeline.md) — **la visión del rework** (leer primero): pipeline de 9 pasos, storyboard como columna vertebral, modelo `Comercial`.
 - [`07-rework/02..06-fase-*.md`](07-rework/) — las 5 fases ejecutables (datos+moldes, pipeline UX, pack+rodaje, montaje pro, animado+pulido).
+- [`13-optimizacion-generacion/01-radiografia-como-se-genera-cada-etapa.md`](13-optimizacion-generacion/01-radiografia-como-se-genera-cada-etapa.md) — **radiografía de la generación IA** (2026-10-07): cómo se lanza Claude headless, modelo por molde, qué se auto-dispara, el prompt textual de cada etapa, palancas y bugs. Base para la versión optimizada del dueño.
+- [`13-optimizacion-generacion/02-plan-skill-animado.md`](13-optimizacion-generacion/02-plan-skill-animado.md) — **plan de ejecución de la reingeniería**: costo por fase, qué se hace en qué cuenta, dónde difiere del doc de reingeniería.
+- [`13-optimizacion-generacion/03-baseline-y-avance.md`](13-optimizacion-generacion/03-baseline-y-avance.md) — **baseline medido** (pieza entera: 168 s, USD 0,54) y estado de cada fase; outputs en `baseline-2026-10-07/`.
+- [`13-optimizacion-generacion/04-prompts-para-curar.md`](13-optimizacion-generacion/04-prompts-para-curar.md) — **los prompts reales para que el dueño los cure** (guion, storyboard filmado y animado, cast, estrategia), rellenados con Munify; el texto fijo se corrige ahí y se pasa al código con versión nueva.
+- [`14-skills/MEDIA-STUDIO-REINGENIERIA-COMPLETA.md`](14-skills/MEDIA-STUDIO-REINGENIERIA-COMPLETA.md) — **la reingeniería funcional** (9 docs fusionados): bugs P0, Prompt Engine V2, spec por etapa, integración del skill, observabilidad, tests, orden de implementación.
+- [`14-skills/SKILL.md`](14-skills/SKILL.md) — skill externa `dev-claude-reel` (reel 3D cuadro a cuadro: three.js + Chrome headless + ElevenLabs + ffmpeg). El dueño la quiere para todo lo animado; la adaptación está en `13-optimizacion-generacion/…` §6.
 - [`agents/`](agents/) — `AGENT_GUIDE`, `APP_AGENT`, `INFRA_AGENT`, `VEO_FLOW_PROMPTING`.
 - [`historico/2026-06-variantes-narracion-munify.md`](historico/2026-06-variantes-narracion-munify.md) — 50 textos de narración Munify (enfoque viejo, referencia).
 

@@ -167,6 +167,7 @@
 
 @media (max-width: 1300px) {
   .pw-copilot-dock { width: 300px; flex-basis: 300px; }
+  .pw-copilot-dock--closed { width: 60px; flex-basis: 60px; }
 }
 @media (max-width: 1000px) {
   .pw-spine { width: 188px; flex-basis: 188px; padding: 18px 10px; }
@@ -190,6 +191,9 @@
 
 .paso-head-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex: 0 0 auto; }
 .paso-model-hint { font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; color: var(--pw-text-3); padding-right: 2px; }
+/* Fase 9: la última corrida del molde (modelo real, tiempo, validación) bajo el hint */
+.paso-corrida { font-size: 10.5px; color: var(--pw-text-3); padding-right: 2px; }
+.paso-corrida--alerta { color: var(--pw-gold); font-weight: 700; }
 
 /* "Generar con IA" — el dorado es el color de "momento de IA" (HANDOFF §1, estricto) */
 .paso-gen {
@@ -218,6 +222,28 @@
 }
 .paso > .paso-foot--split { justify-content: space-between; }
 .paso-estado { font-size: 12.5px; line-height: 1.4; color: var(--pw-text-3); min-width: 0; }
+
+/* ── pack flow guides ─────────────────────────────────────────────────────── */
+.pack-guided-experience { display: flex; flex-direction: column; gap: 40px; margin-top: 10px; }
+.pack-guide-intro h3 { margin: 0 0 8px 0; font-size: 18px; color: var(--pw-gold); }
+.pack-guide-intro p { margin: 0 0 16px 0; font-size: 13px; color: rgba(255,255,255,0.7); }
+
+.pack-guide-step { display: flex; flex-direction: column; gap: 16px; position: relative; }
+.pack-guide-step::before {
+  content: ''; position: absolute; top: 40px; bottom: -30px; left: 15px; width: 2px;
+  background: var(--pw-line-1); z-index: 0;
+}
+.pack-guide-step:last-child::before { display: none; }
+
+.step-header { display: flex; gap: 16px; align-items: flex-start; position: relative; z-index: 1; }
+.step-number {
+  flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--pw-bg-2); border: 2px solid var(--pw-gold);
+  color: var(--pw-gold); font-weight: 700; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.step-header h4 { margin: 0 0 4px 0; font-size: 16px; color: #fff; line-height: 1.2; padding-top: 6px; }
+.step-header p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.6); max-width: 600px; }
 
 /* CTA de aprobación: verde (HANDOFF §1: verde = progreso/acción) */
 .paso-approve {
@@ -268,8 +294,9 @@
   background: transparent; border: none; color: var(--pw-text-2);
   transition: color var(--pw-dur) var(--pw-ease), background var(--pw-dur) var(--pw-ease);
 }
-.paso-chip:hover { color: var(--pw-text-1); background: color-mix(in srgb, var(--pw-text-1) 6%, transparent); }
-.paso-chip--on { color: var(--pw-text-1); background: var(--pw-bg-3); }
+/* el chip elegido no tenía regla: los dos se veían igual y no se leía cuál estaba activo */
+.paso-chip--on { background: var(--pw-bg-3); color: var(--pw-text-1); }
+
 /* técnica FIJADA por el formato: mismo peso visual que un chip, pero informativa (no se toca) */
 .paso-tipo-fijo {
   display: inline-flex; align-items: center; gap: 7px;
@@ -278,34 +305,156 @@
   font-size: 12.5px; font-weight: 600; color: var(--pw-text-1);
 }
 .paso-tipo-src { font-size: 11.5px; font-weight: 500; color: var(--pw-text-3); }
+/* ── progreso "de película" mientras la IA escribe (pasoKit::PasoProgreso) ──────────────── */
+.paso-progreso {
+  flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px;
+  max-width: 560px; width: 100%; margin: 0 auto; padding: 40px 26px;
+}
+.paso-progreso-head { display: flex; justify-content: space-between; align-items: baseline; }
+.paso-progreso-escena {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pw-gold);
+}
+.paso-progreso-reloj { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--pw-text-3); font-variant-numeric: tabular-nums; }
+/* la tira: perforaciones arriba y abajo que se deslizan, y el relleno dorado que avanza */
+.paso-progreso-tira {
+  position: relative; height: 34px; border-radius: 6px; overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 6px, var(--pw-bg-1) 6px 12px) 0 0 / 18px 6px repeat-x,
+    repeating-linear-gradient(90deg, transparent 0 6px, var(--pw-bg-1) 6px 12px) 0 100% / 18px 6px repeat-x,
+    var(--pw-bg-3, #1b1b1f);
+  border: 1px solid var(--pw-line-1);
+  animation: paso-tira-corre 1.2s linear infinite;
+}
+@keyframes paso-tira-corre { to { background-position: -18px 0, -18px 100%, 0 0; } }
+.paso-progreso-fill {
+  position: absolute; top: 7px; bottom: 7px; left: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--pw-gold) 55%, transparent), var(--pw-gold));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--pw-gold) 45%, transparent);
+  border-radius: 0 3px 3px 0;
+  transition: width 0.3s ease-out;
+}
+.paso-progreso-cabezal {
+  position: absolute; top: 2px; bottom: 2px; width: 2px; background: #fff; opacity: 0.9;
+  box-shadow: 0 0 8px #fff; transform: translateX(-1px); transition: left 0.3s ease-out;
+}
+.paso-progreso-etapa { font-size: 15px; font-weight: 600; color: var(--pw-text-1); }
+.paso-progreso-puntos::after { content: ''; animation: paso-puntos 1.5s steps(4, end) infinite; }
+@keyframes paso-puntos { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+.paso-progreso-sub { font-size: 12.5px; color: var(--pw-text-3); line-height: 1.4; }
+/* CTA dentro del estado vacío (Concepto: generar recién después de elegir la técnica) */
+.paso-empty-cta { margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; }
 
 /* ── concepto ───────────────────────────────────────────────────────────── */
-.concept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--pw-sp-4); align-items: start; }
-.paso-concept {
-  position: relative;
-  background: var(--pw-bg-2); border: 1.5px solid var(--pw-line-1); border-radius: var(--pw-r-l);
-  padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;
-  transition: border-color var(--pw-dur) var(--pw-ease), transform var(--pw-dur) var(--pw-ease);
+.concept-hub {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto;
 }
+.concept-poster {
+  position: relative; border-radius: var(--pw-r-l); overflow: hidden;
+  border: 1px solid var(--pw-line-1);
+  /* Sin aspect-ratio fijo: con overflow hidden el grid item no crecía y el título quedaba
+     cortado por arriba. La tarjeta crece con su contenido y el fondo (cover) la llena igual. */
+  min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end;
+  background: var(--pw-bg-2); cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s;
+}
+.concept-poster:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: var(--pw-line-2); }
+.concept-poster.poster--on { border-color: color-mix(in srgb, var(--pw-ok) 55%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--pw-ok) 25%, transparent); }
+
+.poster-bg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 0; opacity: 0.5; color: transparent;
+}
+.poster-bg::before { content: ""; display: block; position: absolute; inset: 0; background: var(--pw-bg-1); }
+.poster-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 100%); z-index: 1;
+}
+.poster-content {
+  position: relative; z-index: 2; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px;
+}
+.poster-number { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--pw-gold); font-weight: 700; }
+.poster-title {
+  font-size: 17px; font-weight: 800; color: #fff; line-height: 1.25; margin: 4px 0 2px;
+  text-transform: uppercase; letter-spacing: 0.03em; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.poster-desc {
+  font-size: 12.5px; color: rgba(255,255,255,0.78); line-height: 1.45; margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.concept-detail-view {
+  display: flex; flex-direction: column; gap: 16px;
+  width: 100%; max-width: 1200px; margin: 0 auto;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.concept-detail-nav { display: flex; align-items: center; }
+.back-to-hub-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: none; color: var(--pw-text-2);
+  font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 12px; border-radius: var(--pw-r-s);
+  transition: 0.2s; margin-left: -12px;
+}
+.back-to-hub-btn:hover { color: #fff; background: var(--pw-bg-3); }
+
+/* La .paso-concept-cinematic se reutiliza del plan anterior */
+.paso-concept-cinematic {
+  flex: 0 0 100%; width: 100%;
+  position: relative; border-radius: var(--pw-r-l); overflow: hidden;
+  border: 1px solid var(--pw-line-1);
+  min-height: 480px; display: flex; flex-direction: column; justify-content: flex-end;
+  background: var(--pw-bg-1); /* Fallback color */
+}
+.paso-concept-cinematic.on { border-color: color-mix(in srgb, var(--pw-ok) 55%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--pw-ok) 25%, transparent); }
+
+.cinematic-bg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 0; opacity: 0.5;
+  color: transparent; /* Hides broken alt text */
+}
+.cinematic-bg::before {
+  /* Hide broken image icon in some browsers */
+  content: ""; display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--pw-bg-1);
+}
+.cinematic-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.3) 100%);
+  z-index: 1;
+}
+.cinematic-content {
+  position: relative; z-index: 2;
+  padding: 30px; display: flex; flex-direction: column; gap: 16px;
+  max-height: 100%; overflow-y: auto; /* Allow scrolling if it still overflows */
+}
+.cinematic-top { display: flex; justify-content: flex-end; min-height: 24px; }
 .paso-concept-badge {
-  position: absolute; top: 14px; right: 14px;
   display: inline-flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-  color: #04170f; background: var(--pw-ok); border-radius: var(--pw-pill); padding: 4px 9px;
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: #04170f; background: var(--pw-ok); border-radius: var(--pw-pill); padding: 5px 10px;
 }
-.paso-concept--on .paso-concept-idea { padding-right: 74px; }
-.paso-concept:hover { border-color: var(--pw-line-2); transform: translateY(-2px); }
-.paso-concept--on { border-color: color-mix(in srgb, var(--pw-ok) 55%, transparent); }
-.paso-concept-idea { margin: 0; font-size: 16px; line-height: 1.55; color: var(--pw-text-1); }
-.paso-concept-meta { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--pw-text-2); line-height: 1.5; }
-.paso-concept-row { display: flex; gap: 10px; align-items: baseline; }
-.paso-concept-k { flex: 0 0 84px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pw-text-3); padding-top: 1px; }
-.paso-concept-v { font-size: 13px; color: var(--pw-text-2); line-height: 1.5; }
-.paso-concept-why {
-  margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--pw-text-3);
-  padding-top: 8px; border-top: 1px solid var(--pw-line-1);
+.cinematic-idea {
+  font-size: 19px; font-weight: 600; color: #fff; line-height: 1.45;
+  margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
 }
-.paso-concept-why::before { content: 'Por qué funciona: '; color: var(--pw-text-2); font-weight: 600; }
+.cinematic-meta {
+  display: flex; flex-direction: row; flex-wrap: wrap; gap: 24px;
+  background: rgba(0,0,0,0.6); padding: 14px 18px; border-radius: var(--pw-r-s);
+  backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1);
+}
+.cinematic-meta .paso-concept-row { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; }
+.cinematic-meta .paso-concept-k { color: rgba(255,255,255,0.6); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+.cinematic-meta .paso-concept-v { color: #fff; font-size: 13px; font-weight: 500; line-height: 1.4; }
+
+.cinematic-footer {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; margin-top: 8px;
+}
+.paso-concept-why { margin: 0; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; max-width: 70%; }
+.paso-concept-why::before { content: 'Por qué funciona: '; color: #fff; font-weight: 600; }
 .paso-pick {
   align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 15px; border-radius: var(--pw-r-s); cursor: pointer; font-size: 12.5px; font-weight: 700;

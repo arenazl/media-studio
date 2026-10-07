@@ -128,7 +128,7 @@ export default function KbInspector({ appId, onClose, onComenzar }: { appId: str
   const comenzar = () => {
     if (!kb) return;
     const inp = kbToProjectInput(kb as unknown as KnowledgeBase);
-    const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, brandKit: inp.brandKit, screens: inp.screens, contentType: 'combinado' });
+    const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, kb: inp.kb, brandKit: inp.brandKit, screens: inp.screens, contentType: 'combinado' });
     onComenzar(proj);
   };
 

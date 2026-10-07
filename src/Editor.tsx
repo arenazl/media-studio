@@ -281,6 +281,35 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
     if (target) setPlayheadSec(target.startSec);
   };
 
+  const handleTrimLeft = (clipId: string, newStartSec: number, newDurSec: number) => {
+    mutate((tracks) =>
+      tracks.map((t) => ({
+        ...t,
+        clips: t.clips.map((c) =>
+          c.id === clipId ? { ...c, startSec: newStartSec, durSec: newDurSec, srcIn: (c.srcIn || 0) + (newStartSec - c.startSec) } : c
+        ),
+      }))
+    );
+  };
+
+  const handleTrimRight = (clipId: string, newDurSec: number) => {
+    mutate((tracks) =>
+      tracks.map((t) => ({
+        ...t,
+        clips: t.clips.map((c) => (c.id === clipId ? { ...c, durSec: newDurSec } : c)),
+      }))
+    );
+  };
+
+  const handleMoveClip = (clipId: string, newStartSec: number) => {
+    mutate((tracks) =>
+      tracks.map((t) => ({
+        ...t,
+        clips: t.clips.map((c) => (c.id === clipId ? { ...c, startSec: newStartSec } : c)),
+      }))
+    );
+  };
+
   const libTabs = useMemo(() => buildLibraryTabs(project, reel, comercial), [project, reel, comercial]);
   const libItems = useMemo(() => filterLibItems(libTabs[activeTab], search), [libTabs, activeTab, search]);
 
@@ -300,6 +329,15 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
       </div>
     );
   }
+
+  const handleColorChange = (clipId: string, color: string) => {
+    mutate((tracks) =>
+      tracks.map((t) => ({
+        ...t,
+        clips: t.clips.map((c) => (c.id === clipId ? { ...c, color } : c)),
+      }))
+    );
+  };
 
   return (
     <div className="editor-shell">
@@ -363,6 +401,7 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
           onTextContentChange={onTextContentChange}
           onTransitionTypeChange={onTransitionTypeChange}
           onMediaChange={onMediaChange}
+          onColorChange={handleColorChange}
           overlappingFx={overlappingFx}
         />
       </div>
@@ -382,6 +421,9 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         zoom={zoom}
         onZoomChange={setZoom}
         onDropItem={onDropItem}
+        onTrimLeft={handleTrimLeft}
+        onTrimRight={handleTrimRight}
+        onMoveClip={handleMoveClip}
       />
     </div>
   );

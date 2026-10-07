@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80" fill="none">
+  <!-- Iso / Icon Container -->
+  <rect x="8" y="12" width="56" height="56" rx="14" fill="#7C3AED" />
+  <!-- Torbellino Icon Vector -->
+  <g fill="#FFFFFF" transform="translate(16, 20) scale(0.40)">
+    <path d="M 22 18 Q 50 10 78 18 Q 80 24 50 26 Q 20 24 22 18 Z M 30 18 Q 50 15 70 18 Q 68 22 50 23 Q 32 22 30 18 Z" fill-rule="evenodd" />
+    <path d="M 22 32 Q 50 25 78 32 Q 78 38 50 40 Q 22 38 22 32 Z M 30 32 Q 50 29 70 32 Q 68 36 50 37 Q 35 36 30 32 Z" fill-rule="evenodd" />
+    <path d="M 25 46 Q 50 40 75 46 Q 75 51 50 53 Q 25 51 25 46 Z M 33 46 Q 50 43 67 46 Q 65 49 50 50 Q 35 49 33 46 Z" fill-rule="evenodd" />
+    <path d="M 30 60 Q 50 54 70 60 Q 70 64 50 66 Q 30 64 30 60 Z M 37 60 Q 50 57 63 60 Q 61 63 50 63 Q 39 63 37 60 Z" fill-rule="evenodd" />
+    <path d="M 36 73 Q 50 68 64 73 Q 64 77 50 78 Q 36 77 36 73 Z" fill-rule="evenodd" />
+    <path d="M 44 84 Q 50 81 56 84 Q 54 88 50 89 Q 46 88 44 84 Z" fill-rule="evenodd" />
+  </g>
+
+  <!-- Typography Text using tspan to prevent any text overlapping -->
+  <text x="80" y="48" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif" font-style="italic" font-size="28" font-weight="600" fill="#FFFFFF" letter-spacing="-0.5">sin vueltas <tspan fill="#A78BFA" font-weight="700">¡YA!</tspan></text>
+</svg>

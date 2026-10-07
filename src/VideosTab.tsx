@@ -1,9 +1,5 @@
-// Workspace de VIDEOS (rediseño F3, docs/rediseno/HANDOFF.md §6 + prototipo.dc.html ~línea 715).
-// ORGANIZADOR de la biblioteca (no editor de video: los clips los genera Flow). Lista + detalle:
-// recorte in/out, metadata (proyecto/clasificación), "Al multipista". La metadata de organización
-// vive local (lib/videoLibrary); clasificación por IA (Gemini Vision) al subir.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Upload, Search, Sparkles, Loader2, X, Copy, Check } from 'lucide-react';
+import { Upload, Search, Sparkles, Loader2, X, Copy, Check, LayoutGrid, Grid, List, GripVertical } from 'lucide-react';
 import { API_BASE } from './config';
 import { effectiveModel } from './lib/settings';
 import { fetchCloudVideos, prettyVid as pretty, thumbOf, type CloudVid } from './lib/cloudVideos';
@@ -37,8 +33,33 @@ export default function VideosTab({ onGoEditor }: { onGoEditor?: () => void } = 
   const [q, setQ] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'large' | 'list'>('grid');
+  const [listWidth, setListWidth] = useState(420);
+  const [isResizing, setIsResizing] = useState(false);
   const [classifying, setClassifying] = useState<{ done: number; total: number } | null>(null);
   const [reclassifyingIds, setReclassifyingIds] = useState<Set<string>>(new Set());
+
+  // Drag handler para redimensionar la columna izquierda
+  const handleMouseDownResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const startX = e.clientX;
+    const startW = listWidth;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const nextW = Math.max(260, Math.min(750, startW + (moveEvent.clientX - startX)));
+      setListWidth(nextW);
+    };
+
+    const onMouseUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
 
   // WO-6c: modal del molde `videoprompt` standalone (prompt de Flow suelto).
   const [vpOpen, setVpOpen] = useState(false);
@@ -175,32 +196,86 @@ export default function VideosTab({ onGoEditor }: { onGoEditor?: () => void } = 
           <Search size={12} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="buscar por nombre o tag…" />
         </div>
+
+        {/* Selector de modo de vista (Grilla chica, Grilla grande, Lista detallada) */}
+        <div className="vw-view-switcher">
+          <button
+            className={viewMode === 'grid' ? 'vw-view-btn vw-view-btn--on' : 'vw-view-btn'}
+            onClick={() => setViewMode('grid')}
+            title="Vista Grilla (Compacta)"
+          >
+            <Grid size={14} />
+          </button>
+          <button
+            className={viewMode === 'large' ? 'vw-view-btn vw-view-btn--on' : 'vw-view-btn'}
+            onClick={() => setViewMode('large')}
+            title="Vista Grilla Grande (Thumbnails Prominentes)"
+          >
+            <LayoutGrid size={14} />
+          </button>
+          <button
+            className={viewMode === 'list' ? 'vw-view-btn vw-view-btn--on' : 'vw-view-btn'}
+            onClick={() => setViewMode('list')}
+            title="Vista Lista (Con avatar e información detallada)"
+          >
+            <List size={14} />
+          </button>
+        </div>
+
         <button className="vw-refresh" onClick={loadCloud} disabled={cloudLoading}>{cloudLoading ? 'Actualizando…' : 'Actualizar'}</button>
       </div>
 
       {cloudErr && <div className="vw-error">{cloudErr}</div>}
       {classifying && (
-        <div className="vw-classifying"><Loader2 size={11} className="vw-spin" /> clasificando con IA {classifying.done}/{classifying.total}…</div>
+        <div className="vw-classifying" style={{ background: 'rgba(124, 58, 237, 0.15)', border: '1px solid rgba(124, 58, 237, 0.3)', padding: '6px 14px', borderRadius: '8px', width: 'fit-content', color: '#C4B5FD' }}>
+          <Sparkles size={13} className="vw-spin" /> Analizando con IA visual: {classifying.done}/{classifying.total} videos…
+        </div>
       )}
 
       <div className="vw-body">
-        <div className="vw-list">
+        {/* Columna izquierda con ancho dinámico arrastrable */}
+        <div className={`vw-list vw-list--${viewMode}`} style={{ width: `${listWidth}px`, flex: `0 0 ${listWidth}px` }}>
           {shown.map((v) => {
             const m = metaOf(meta, v.id);
             const on = v.id === selectedId;
+            if (viewMode === 'list') {
+              return (
+                <div key={v.id} role="button" tabIndex={0} className={on ? 'vw-row-card vw-row-card--on' : 'vw-row-card'} onClick={() => setSelectedId(v.id)}>
+                  <div className="vw-row-avatar">
+                    <img src={thumbOf(v)} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    {v.duration_sec != null && <span className="vw-thumb-dur">{Math.round(v.duration_sec)}s</span>}
+                  </div>
+                  <div className="vw-row-info">
+                    <div className="vw-row-title">{pretty(v.name)}</div>
+                    <div className="vw-row-meta">
+                      {m.tags.slice(0, 2).map((t) => (
+                        <span key={t} className="vw-row-tag">{t}</span>
+                      ))}
+                      {m.project && <span className="vw-row-proj">📁 {m.project}</span>}
+                    </div>
+                  </div>
+                  {m.favorite && <span className="vw-row-fav">★</span>}
+                </div>
+              );
+            }
             return (
-              <button key={v.id} className={on ? 'vw-card vw-card--on' : 'vw-card'} onClick={() => setSelectedId(v.id)}>
+              <div key={v.id} role="button" tabIndex={0} className={on ? `vw-card vw-card--${viewMode} vw-card--on` : `vw-card vw-card--${viewMode}`} onClick={() => setSelectedId(v.id)}>
                 <div className="vw-thumb">
-                  <img src={thumbOf(v)} alt="" loading="lazy" onError={(e) => e.currentTarget.classList.add('vw-thumb-broken')} />
+                  <img src={thumbOf(v)} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   {v.duration_sec != null && <span className="vw-thumb-dur">{Math.round(v.duration_sec)}s</span>}
                   {m.tags[0] && <span className="vw-thumb-tag">{m.tags[0]}</span>}
                   {m.favorite && <span className="vw-thumb-fav">★</span>}
                 </div>
                 <div className="vw-card-name">{pretty(v.name)}</div>
-              </button>
+              </div>
             );
           })}
           {!shown.length && !cloudLoading && <div className="vw-list-empty">Sin videos para este filtro.</div>}
+        </div>
+
+        {/* Separador arrastrable (Resize Handle) */}
+        <div className={`vw-resizer ${isResizing ? 'vw-resizer--active' : ''}`} onMouseDown={handleMouseDownResize} title="Arrastrá para cambiar el ancho de las columnas">
+          <GripVertical size={12} />
         </div>
 
         {selected ? (

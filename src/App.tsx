@@ -10,6 +10,7 @@ import Editor from './Editor';
 import Rail from './Rail';
 import Home from './Home';
 import Integrar from './Integrar';
+import DemoReels from './components/DemoReels';
 import { saveProject, type Project, type VoiceConfig } from './lib/projects';
 import { avanzarEstado, type Comercial } from './lib/comercial';
 import type { MontajePlan, MontajeState } from './lib/montajePlan';
@@ -21,6 +22,9 @@ import './App.css';
 export default function App() {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const embed = params.get('embed') === '1';
+  if (params.get('demorec') === '1') {
+    return <DemoReels />;
+  }
 
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   // audio generado por reel (objectURL del mp3): sólo se escribe (cache de sesión para VoiceStudio/

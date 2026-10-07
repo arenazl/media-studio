@@ -3,6 +3,7 @@
 //   projects     — estado del pipeline (audio, reel, videos, montaje, export) por proyecto
 //   cloud_videos — metadata de videos subidos a Cloudinary (dev: URL local; prod: URL CDN)
 //   app_configs  — configuración de voz guardada por app_id (salesbot, munify, etc.)
+//   generation_runs — una fila por llamada a la IA (Fase 9, observabilidad) y la caché por generationKey (Fase 6)
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -53,6 +54,62 @@ db.exec(`
     updated_at INTEGER NOT NULL
   );
 `);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS generation_runs (
+    id              TEXT PRIMARY KEY,
+    project_id      TEXT NOT NULL DEFAULT '',
+    piece_id        TEXT NOT NULL DEFAULT '',
+    function_id     TEXT NOT NULL,
+    prompt_version  TEXT NOT NULL DEFAULT '',
+    provider        TEXT NOT NULL DEFAULT 'claude',
+    model           TEXT NOT NULL DEFAULT '',
+    model_real      TEXT NOT NULL DEFAULT '',
+    generation_key  TEXT NOT NULL DEFAULT '',
+    started_at      INTEGER NOT NULL,
+    finished_at     INTEGER NOT NULL,
+    duration_ms     INTEGER NOT NULL DEFAULT 0,
+    api_ms          INTEGER NOT NULL DEFAULT 0,
+    input_chars     INTEGER NOT NULL DEFAULT 0,
+    output_chars    INTEGER NOT NULL DEFAULT 0,
+    input_tokens    INTEGER NOT NULL DEFAULT 0,
+    output_tokens   INTEGER NOT NULL DEFAULT 0,
+    thinking_tokens INTEGER NOT NULL DEFAULT 0,
+    cost_usd        REAL NOT NULL DEFAULT 0,
+    retry_count     INTEGER NOT NULL DEFAULT 0,
+    status          TEXT NOT NULL DEFAULT 'ok',
+    error_type      TEXT NOT NULL DEFAULT '',
+    validation_json TEXT NOT NULL DEFAULT '[]',
+    result_json     TEXT NOT NULL DEFAULT ''
+  );
+  CREATE INDEX IF NOT EXISTS generation_runs_key ON generation_runs (generation_key, finished_at);
+  CREATE INDEX IF NOT EXISTS generation_runs_fn ON generation_runs (function_id, finished_at);
+`);
+
+// ── GENERATION RUNS (Fase 9) ────────────────────────────────────────────────
+export function saveGenerationRun(r) {
+  const id = randomUUID();
+  db.prepare(`INSERT INTO generation_runs (id, project_id, piece_id, function_id, prompt_version, provider, model, model_real, generation_key,
+    started_at, finished_at, duration_ms, api_ms, input_chars, output_chars, input_tokens, output_tokens, thinking_tokens, cost_usd, retry_count, status, error_type, validation_json, result_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    id, r.project_id || '', r.piece_id || '', r.function_id, r.prompt_version || '', r.provider || 'claude', r.model || '', r.model_real || '', r.generation_key || '',
+    r.started_at, r.finished_at, r.duration_ms || 0, r.api_ms || 0, r.input_chars || 0, r.output_chars || 0, r.input_tokens || 0, r.output_tokens || 0, r.thinking_tokens || 0,
+    r.cost_usd || 0, r.retry_count || 0, r.status || 'ok', r.error_type || '', JSON.stringify(r.validation || []), r.result_json || '');
+  return id;
+}
+export function listGenerationRuns({ limit = 50, functionId } = {}) {
+  const cols = 'id, project_id, piece_id, function_id, prompt_version, provider, model, model_real, generation_key, started_at, finished_at, duration_ms, api_ms, input_chars, output_chars, input_tokens, output_tokens, thinking_tokens, cost_usd, retry_count, status, error_type, validation_json';
+  return functionId
+    ? db.prepare(`SELECT ${cols} FROM generation_runs WHERE function_id = ? ORDER BY finished_at DESC LIMIT ?`).all(functionId, limit)
+    : db.prepare(`SELECT ${cols} FROM generation_runs ORDER BY finished_at DESC LIMIT ?`).all(limit);
+}
+// Fase 6: la última corrida VÁLIDA con la misma clave (mismo molde, misma versión, mismo input, mismo modelo).
+export function findCachedRun(generationKey) {
+  // OJO: en este Node, `.get()` sin match devuelve un objeto con todo null (no undefined): rowOrNull lo filtra.
+  const row = rowOrNull(db.prepare(`SELECT result_json, finished_at, model_real FROM generation_runs WHERE generation_key = ? AND status = 'ok' AND validation_json = '[]' AND result_json != '' ORDER BY finished_at DESC LIMIT 1`).get(generationKey), 'finished_at');
+  if (!row || !row.result_json) return null;
+  try { return { result: JSON.parse(row.result_json), finished_at: row.finished_at, model_real: row.model_real }; } catch { return null; }
+}
 
 // ── PROJECTS ────────────────────────────────────────────────────────────────
 // `full` incluye `data` (el proyecto entero) — lo usa la hidratación server-first del front

@@ -1,0 +1,71 @@
+{
+  "functionId": "storyboard",
+  "result": {
+    "escenas": [
+      {
+        "n": 1,
+        "rol": "hook",
+        "durSec": 8,
+        "plano": "medium shot waist-up",
+        "angulo": "eye-level",
+        "personajes": [
+          "p1"
+        ],
+        "accion": "Darío levanta el ticket de turno y la planta frente a cámara, sentado en la silla plástica.",
+        "dialogo": "Traje una planta, eh. Por el turno, digo. Calculo que capaz florece antes de que me llamen, viste cómo es esto acá, siempre igual.",
+        "continuidad": "Arranque: chomba azul, ticket en mano derecha, planta en izquierda, fluorescente gris frío"
+      },
+      {
+        "n": 2,
+        "rol": "desarrollo",
+        "durSec": 8,
+        "plano": "medium shot waist-up",
+        "angulo": "eye-level",
+        "personajes": [
+          "p1"
+        ],
+        "accion": "Apoya la planta en la silla de al lado y opera el celular, que le ilumina la cara con luz cálida.",
+        "dialogo": "Saco el celu, le saco la foto al bache, agarra el GPS y se deriva solo a la dependencia; el trámite lo valido con mi cara, sin moverme.",
+        "continuidad": "Misma ropa, misma silla, misma luz; planta ahora en la silla contigua"
+      },
+      {
+        "n": 3,
+        "rol": "desarrollo",
+        "durSec": 4,
+        "plano": "inserto cerrado de pantalla de celular en mano",
+        "angulo": "picado leve sobre el hombro",
+        "personajes": [
+          "p1"
+        ],
+        "accion": "La pantalla muestra el reclamo con foto, mapa, validación biométrica y la tasa pagada.",
+        "dialogo": "Saco el celu: foto del bache, GPS, y se deriva solo a la dependencia. El trámite lo valido con mi cara, RENAPER, sin moverme.",
+        "continuidad": "Misma mano y chomba azul; brillo cálido del celular contra el gris de la sala"
+      },
+      {
+        "n": 4,
+        "rol": "gag",
+        "durSec": 8,
+        "plano": "medium shot waist-up",
+        "angulo": "eye-level",
+        "personajes": [
+          "p1",
+          "p2"
+        ],
+        "accion": "Darío muestra la notificación de resuelto mientras Mabel, al fondo del mostrador, sigue con sus carpetas.",
+        "dialogo": "Ya está resuelto, con foto antes y después. Adentro tienen todo ordenado, sin Excel dando vueltas. Y mirá: todavía no me llamaron por altavoz.",
+        "continuidad": "Misma ropa, misma luz, planta de nuevo en la mano, display de turnos en el número anterior"
+      },
+      {
+        "n": 5,
+        "rol": "cta",
+        "durSec": 8,
+        "plano": "medium shot del asiento vacío con el ticket olvidado",
+        "angulo": "eye-level",
+        "personajes": [],
+        "accion": "Logo Munify aparece sobre la silla vacía de la sala de espera.",
+        "dialogo": "Munifai. Un solo login para gobernar y atender al vecino. Implementado en una o dos semanas.",
+        "continuidad": "Misma sala, misma luz fluorescente, mismo asiento del plano anterior"
+      }
+    ]
+  }
+}

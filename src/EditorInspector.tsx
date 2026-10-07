@@ -37,11 +37,12 @@ export interface EditorInspectorProps {
   onTextContentChange: (clipId: string, value: string) => void;
   onTransitionTypeChange: (clipId: string, kind: TransitionKind) => void;
   onMediaChange: (clipId: string, patch: { audioGain?: number; duck?: boolean }) => void;   // WO-4: volumen/ducking ejecutables
+  onColorChange?: (clipId: string, color: string) => void;
   overlappingFx: EditorClip[];
 }
 
 export default function EditorInspector({
-  open, width, onToggle, onResizeStart, selectionKind, trackId, clip, onTextContentChange, onTransitionTypeChange, onMediaChange, overlappingFx,
+  open, width, onToggle, onResizeStart, selectionKind, trackId, clip, onTextContentChange, onTransitionTypeChange, onMediaChange, onColorChange, overlappingFx,
 }: EditorInspectorProps) {
   // overrides puramente de UI, por clip id — ver nota de honestidad arriba (preview de sesión).
   const [transforms, setTransforms] = useState<Record<string, Transform>>({});
@@ -64,6 +65,15 @@ export default function EditorInspector({
   const patchTransform = (patch: Partial<Transform>) => { if (clipId) setTransforms((m) => ({ ...m, [clipId]: { ...transform, ...patch } })); };
   const textStyle = (clipId && textStyles[clipId]) || DEFAULT_TEXT_STYLE;
   const patchTextStyle = (patch: Partial<TextStyle>) => { if (clipId) setTextStyles((m) => ({ ...m, [clipId]: { ...textStyle, ...patch } })); };
+  const currentColor = clip?.color || textStyle.color || '#7C3AED';
+
+  const handlePickColor = (colorHex: string) => {
+    if (clipId) {
+      patchTextStyle({ color: colorHex });
+      if (onColorChange) onColorChange(clipId, colorHex);
+    }
+  };
+
   const fadesLocal: FadesLocal = (clipId && fades[clipId]) || { fadeIn: false, fadeOut: false };
   const patchFades = (patch: Partial<FadesLocal>) => { if (clipId) setFades((m) => ({ ...m, [clipId]: { ...fadesLocal, ...patch } })); };
 
@@ -90,6 +100,30 @@ export default function EditorInspector({
         <div className="ed-insp-body">
           <div className="ed-insp-name">{clip.label}</div>
 
+          <div className="ed-insp-section" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px', marginBottom: '12px' }}>
+            <div className="ed-insp-lbl" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Color del Clip</span>
+              <input
+                type="color"
+                value={currentColor.length === 7 ? currentColor : '#7C3AED'}
+                onChange={(e) => handlePickColor(e.target.value)}
+                style={{ width: '28px', height: '24px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                title="Elegir color personalizado"
+              />
+            </div>
+            <div className="ed-insp-swatches" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+              {SWATCHES.concat(['#7C3AED', '#3B82F6', '#EF4444', '#10B981']).map((c) => (
+                <button
+                  key={c}
+                  className="ed-insp-swatch"
+                  style={{ background: c, width: '22px', height: '22px', borderRadius: '50%', border: currentColor === c ? '2px solid #FFF' : '1px solid transparent', cursor: 'pointer' }}
+                  onClick={() => handlePickColor(c)}
+                  title={`Cambiar color a ${c}`}
+                />
+              ))}
+            </div>
+          </div>
+
           {selectionKind === 'transition' && (
             <>
               <div className="ed-insp-lbl">Tipo de transición</div>
@@ -99,7 +133,7 @@ export default function EditorInspector({
                     <button
                       key={kind}
                       className={clip.transitionAfter === kind ? 'ed-insp-trans-opt ed-insp-trans-opt--on' : 'ed-insp-trans-opt'}
-                      onClick={() => onTransitionTypeChange(clip.id, kind as TransitionKind)}
+                      onClick={() => clipId && onTransitionTypeChange(clipId, kind as TransitionKind)}
                     >
                       <Icon size={15} />
                       <div><div className="ed-insp-trans-name">{name}</div><div className="ed-insp-trans-sub">{sub}</div></div>

@@ -1,10 +1,10 @@
 // Paso 4 — CAST (solo filmado). Corre el molde `cast`: personajes con descripción física EXACTA
 // (fisicoEn, editable, con warning de que va VERBATIM a cada prompt) + la locación.
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Users, MapPin, Sun, ChevronDown, ChevronRight } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
-import type { Cast, CharacterSheet } from '../lib/comercial';
+import { pasoHabilitado, type Cast, type CharacterSheet } from '../lib/comercial';
 
 export default function PasoCast({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
@@ -12,10 +12,22 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
   const [closed, setClosed] = useState<Record<string, boolean>>({});   // fisicoEn colapsado por personaje (default abierto)
   const cast = comercial?.cast;
 
-  const generar = async () => {
+  // AUTO-GENERAR al entrar: sólo con el paso HABILITADO y el INSUMO DIRECTO del molde (el guion —
+  // el cast se castea PARA un guion). Sin eso, entrar al paso disparaba la IA con las manos vacías.
+  const hasAutoFired = useRef(false);
+  useEffect(() => {
+    const listo = !!comercial && pasoHabilitado(comercial, 'cast') && !!comercial.guion?.blocks?.length;
+    if (listo && !cast && !busy && !error && !hasAutoFired.current) {
+      hasAutoFired.current = true;
+      generar();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const generar = async (provider?: 'claude' | 'gemini') => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('cast', project, { concepto: comercial?.concepto, guion: comercial?.guion }, {}, undefined, comercial);
+      const res = await runMolde('cast', project, { concepto: comercial?.concepto, guion: comercial?.guion }, {}, undefined, comercial, provider);
       const nuevo: Cast = { personajes: (res.personajes as CharacterSheet[]) || [], lugar: res.lugar as Cast['lugar'] };
       setComercial((c) => ({ ...c, cast: nuevo, estados: { ...c.estados, cast: c.estados.cast === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }

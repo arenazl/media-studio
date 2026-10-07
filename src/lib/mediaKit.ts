@@ -201,6 +201,7 @@ export function mediaKitToBrandKit(kit: MediaKit): BrandKit | undefined {
     name: m.nombreExacto || kitNombre(kit),
     color: m.colores?.acento || m.colores?.primario,
     logoUrl: m.logo?.principal ? kitFileUrl(kit.id, m.logo.principal) : undefined,
+    logoSvg: (m.logo as any)?.svg,
     phonetic: m.fonetica,
     logoPos: 'tr',
   };

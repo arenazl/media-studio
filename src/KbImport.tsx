@@ -43,7 +43,7 @@ export default function KbImport({ onClose, onCreated }: { onClose: () => void; 
   const crear = () => {
     if (!kb) return;
     const inp = kbToProjectInput(kb);
-    const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, brandKit: inp.brandKit, contentType: 'combinado' });
+    const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, kb: inp.kb, brandKit: inp.brandKit, contentType: 'combinado' });
     onCreated(proj);
   };
 

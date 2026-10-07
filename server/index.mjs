@@ -38,9 +38,11 @@ import {
   listProjects, getProject, saveProject, deleteProject,
   listCloudVideos, saveCloudVideo, deleteCloudVideo,
   getAppConfig, listAppConfigs, saveAppConfig, deleteAppConfig,
+  saveGenerationRun, listGenerationRuns, findCachedRun,
   DB_PATH,
 } from './db.mjs';
 import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS, extractJson } from './functions.mjs';
+import { validarResultado, promptReparacion, generationKey } from './prompting.mjs';
 import { scanMediaKits, readMediaKit, resolveKitFile, MEDIA_KIT_ROOT } from './mediaKit.mjs';
 import { assemble } from './assemble.mjs';
 import { renderMockupReel } from './mockupReel.mjs';
@@ -219,13 +221,45 @@ ${JSON.stringify(kb).slice(0, 9000)}`;
 // Selección de modelo (M1): el front manda un tier de la whitelist; cualquier otro valor se
 // ignora (cae al default del CLI) — NUNCA se inyecta un string arbitrario al spawn.
 const MODEL_WHITELIST = ['opus', 'sonnet', 'haiku'];
-function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash,Edit,Write', timeout = 900_000, model } = {}) {
+
+// Resolución del binario del CLI (fix): en Windows el PATH puede tener shims HUÉRFANOS de
+// instalaciones viejas (p.ej. el npm shim de una imagen de node de Volta apuntando a un
+// node_modules ya borrado) ANTES del binario real; spawn('claude.cmd') agarra ese y muere con
+// "exit 1: El sistema no puede encontrar la ruta especificada". Por eso resolvemos una ruta
+// concreta y verificada, con override por env (STUDIO_CLAUDE_BIN) para casos raros.
+function resolveClaudeBin() {
+  if (process.env.STUDIO_CLAUDE_BIN) return { cmd: process.env.STUDIO_CLAUDE_BIN, shell: /\.(cmd|bat)$/i.test(process.env.STUDIO_CLAUDE_BIN) };
+  if (!IS_WIN) return { cmd: 'claude', shell: false };
+  const home = process.env.USERPROFILE || os.homedir();
+  const candidatos = [
+    { cmd: path.join(home, '.local', 'bin', 'claude.exe'), shell: false },            // instalador nativo
+    { cmd: path.join(home, 'AppData', 'Local', 'Volta', 'bin', 'claude.cmd'), shell: true },
+    { cmd: path.join(process.env.APPDATA || '', 'npm', 'claude.cmd'), shell: true },  // npm -g clásico
+  ];
+  for (const c of candidatos) { try { if (c.cmd && fs.existsSync(c.cmd)) return c; } catch { /* sigue */ } }
+  return { cmd: 'claude.cmd', shell: true };                                          // último recurso: el PATH
+}
+const CLAUDE_BIN = resolveClaudeBin();
+console.log(`[media-studio] claude CLI: ${CLAUDE_BIN.cmd}`);
+// Preámbulo común de los MOLDES de texto (clean=true): reemplaza el system prompt entero de Claude
+// Code. Sin esto cada molde arrancaba con ~49K tokens de CLAUDE.md global, memoria, 40 agentes y
+// skills que no tienen nada que ver con escribir un concepto — y que además lo condicionan.
+const MOLDE_SYSTEM = 'Sos un redactor creativo que trabaja para un estudio de video de marketing. Hacés exactamente lo que te pide el pedido, en el formato que te pide, sin comentarios, sin preguntas y sin markdown. No inventás datos que no estén en el pedido. Escribís en español rioplatense natural, con voseo cuando corresponda, sin emojis ni jerga publicitaria vacía; la excepción son los campos cuyo contrato pida otro idioma (por ejemplo, descripciones en inglés para prompts de video), que van en ese idioma.';
+function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash,Edit,Write', timeout = 900_000, model, clean = false, thinking } = {}) {
   return new Promise((resolve, reject) => {
     const env = { ...process.env };
     delete env.CLAUDECODE; delete env.CLAUDE_CODE_ENTRYPOINT;
-    const args = ['-p', '--output-format', 'stream-json', '--verbose', '--allowedTools', allowedTools, '--permission-mode', 'bypassPermissions'];
+    // Pensamiento extendido del modelo (2026-10-07, medido): el CLI lo trae PRENDIDO por defecto y es
+    // la mayor parte del tiempo de un molde. Mismo concepto animado con Sonnet: 4.367 tokens de
+    // pensamiento = 50 s; con 0 = 19 s, misma salida. Se fija por clase de tarea en runAI.
+    if (thinking != null) env.MAX_THINKING_TOKENS = String(thinking);
+    const args = clean
+      // --strict-mcp-config + mcp vacío: sin esto el CLI carga igual los ~60 tools de los conectores
+      // de claude.ai (Gmail, Drive, Docs...) y son 41K tokens de contexto por molde. Medido: 198 tokens.
+      ? ['-p', '--output-format', 'stream-json', '--verbose', '--setting-sources', '', '--tools', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--system-prompt', MOLDE_SYSTEM]
+      : ['-p', '--output-format', 'stream-json', '--verbose', '--allowedTools', allowedTools, '--permission-mode', 'bypassPermissions'];
     if (MODEL_WHITELIST.includes(model)) args.push('--model', model);
-    const proc = spawn(IS_WIN ? 'claude.cmd' : 'claude', args, { cwd, env, shell: IS_WIN });
+    const proc = spawn(CLAUDE_BIN.cmd, args, { cwd, env, shell: CLAUDE_BIN.shell });
     let out = '', errb = '';
     const killer = setTimeout(() => { proc.kill(); reject(new Error(`claude timeout (${timeout / 1000}s)`)); }, timeout);
     proc.on('error', (e) => { clearTimeout(killer); reject(new Error(`no se pudo lanzar claude: ${e.message}`)); });
@@ -235,60 +269,99 @@ function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash
       clearTimeout(killer);
       if (code !== 0) return reject(new Error(`claude exit ${code}: ${(errb || out).slice(0, 600)}`));
       let text = '', cost = 0; const tools = [];
+      // Diagnóstico (2026-10-07): qué modelo corrió DE VERDAD (el init del CLI), cuántos avisos de
+      // límite de cuenta hubo y cuánto fue tiempo de API. Sin esto no se puede explicar por qué un
+      // mismo molde tarda 10 s una vez y 100 s la siguiente.
+      let modelReal = '', apiMs = 0, limites = 0, limiteInfo = '', outTok = 0, thinkTok = 0, inTok = 0;
       for (const raw of out.split('\n')) {
         const line = raw.trim(); if (!line) continue;
         let ev; try { ev = JSON.parse(line); } catch { continue; }
-        if (ev.type === 'result') { text = ev.result || ''; cost = ev.total_cost_usd || ev.cost_usd || 0; }
+        if (ev.type === 'system' && ev.subtype === 'init') modelReal = ev.model || '';
+        else if (ev.type === 'rate_limit_event') { limites++; const i = ev.rate_limit_info || {}; limiteInfo = `${i.status || ''} ${i.rateLimitType || ''} ${i.utilization != null ? Math.round(i.utilization * 100) + '%' : ''}`.trim(); }
+        else if (ev.type === 'result') {
+          text = ev.result || ''; cost = ev.total_cost_usd || ev.cost_usd || 0; apiMs = ev.duration_api_ms || 0;
+          const u = ev.usage || {}; outTok = u.output_tokens || 0; thinkTok = u.output_tokens_details?.thinking_tokens || 0;
+          inTok = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
+        }
         else if (ev.type === 'assistant') { for (const c of ev.message?.content || []) if (c.type === 'tool_use') tools.push(c.name); }
       }
       if (!text) return reject(new Error('respuesta vacía (sin evento result)'));
-      resolve({ text: text.trim(), cost, tools });
+      resolve({ text: text.trim(), cost, tools, modelReal, apiMs, limites, limiteInfo, outTok, thinkTok, inTok });
     });
     proc.stdin.write(prompt); proc.stdin.end();
   });
 }
 
-// ── Gemini (prod) ────────────────────────────────────────────────────────────
-async function runGemini(prompt) {
-  if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY no configurada');
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }),
-    }
-  );
-  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  return { text, cost: 0, tools: [] };
-}
+// ── Multi-Model LLM Provider Switcher (Claude vs Gemini) ──────────────────────────
+// 'claude' | 'gemini' | 'auto' (default: local → Claude, prod → Gemini)
+let currentLlmProvider = process.env.LLM_PROVIDER || 'auto';
 
-// ── IA: UNA interfaz, un solo switch (local → Claude headless · prod → Gemini) ──
-// runAI({prompt, imageBuffer?}) es el único punto donde se decide el proveedor.
-// Con imageBuffer = visión (en local, Claude lo lee con Read; en prod, Gemini inline).
-async function runAI({ prompt, imageBuffer = null, cwd, allowedTools, model }) {
-  if (IS_PROD) {
-    if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY no configurada');
-    const parts = [{ text: prompt }];
-    if (imageBuffer) parts.push({ inline_data: { mime_type: 'image/jpeg', data: imageBuffer.toString('base64') } });
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts }], generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }) }
+async function runGeminiModel(prompt, imageBuffer = null, modelName = 'gemini-2.0-flash') {
+  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY no configurada en .env o entorno');
+  const parts = [{ text: prompt }];
+  if (imageBuffer) parts.push({ inline_data: { mime_type: 'image/jpeg', data: imageBuffer.toString('base64') } });
+
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts }], generationConfig: { temperature: 0.7 } }),
+  });
+
+  if (!res.ok) {
+    // Fallback inteligente a gemini-1.5-flash si el modelo pro/2.0 no está disponible en la cuenta
+    const fallbackRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts }] }),
+      }
     );
-    if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
-    const data = await res.json();
+    if (!fallbackRes.ok) throw new Error(`Gemini HTTP ${res.status}`);
+    const data = await fallbackRes.json();
     return { text: data.candidates?.[0]?.content?.parts?.[0]?.text || '', cost: 0, tools: [] };
   }
-  // local → Claude headless. Con imagen: la dejo en un temp y la lee con Read.
+  const data = await res.json();
+  return { text: data.candidates?.[0]?.content?.parts?.[0]?.text || '', cost: 0, tools: [] };
+}
+
+// ── IA: Interfaz con enrutamiento inteligente por fase ───────────────────────
+// Fase Creativa (Concepto / Estrategia): Claude Sonnet/Fable vs Gemini 1.5 Pro
+// Fase Operativa (Guion / Cast / Storyboard): Claude Opus/Haiku vs Gemini 2.0 Flash
+// Fase 6: dos pedidos iguales al mismo tiempo (doble disparo, re-render) comparten UNA corrida.
+const EN_VUELO = new Map();
+
+const TASK_CLASS = { strategy: 'creativo', concept: 'creativo', script: 'creativo', cast: 'estructurado', storyboard: 'estructurado', qa: 'estructurado', flowpack: 'transformacion', publish: 'transformacion', briefToKb: 'transformacion', videoprompt: 'transformacion' };
+const MODELO_INTERMEDIO = { creativo: 'opus', estructurado: 'sonnet', transformacion: 'sonnet' };
+// Tope de tokens de pensamiento por clase: lo creativo puede pensar un poco (tope, no ilimitado);
+// convertir con reglas y traducir no necesitan pensar (0 = apagado). Override: body.thinking.
+const THINKING_POR_CLASE = { creativo: 2000, estructurado: 0, transformacion: 0 };
+async function runAI({ prompt, imageBuffer = null, cwd, allowedTools, model, functionId, provider, thinking }) {
+  const selectedProvider = provider || (currentLlmProvider === 'auto' ? (IS_PROD ? 'gemini' : 'claude') : currentLlmProvider);
+  const isCreativePhase = ['concept', 'strategy', 'angulo'].includes(functionId);
+
+  if (selectedProvider === 'gemini') {
+    const geminiModel = isCreativePhase ? 'gemini-1.5-pro' : 'gemini-2.0-flash';
+    console.log(`[media-studio] Enrutador IA → Proveedor: GEMINI (${geminiModel}) | Fase: ${isCreativePhase ? 'CREATIVA' : 'OPERATIVA'}`);
+    return await runGeminiModel(prompt, imageBuffer, geminiModel);
+  }
+
+  // Proveedor: CLAUDE. Sin modelo del front, la política del back es el preset INTERMEDIO por clase
+  // de tarea (P0.5): Opus sólo en lo creativo, Sonnet en lo demás. Misma tabla que functionCatalog.PRESETS.
+  const claudeModel = model || MODELO_INTERMEDIO[TASK_CLASS[functionId] || 'transformacion'];
+  console.log(`[media-studio] Enrutador IA → Proveedor: CLAUDE (${claudeModel}) | Clase: ${TASK_CLASS[functionId] || 'transformacion'}`);
   if (imageBuffer) {
     const tmp = path.join(os.tmpdir(), `mstudio-ai-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`);
     fs.writeFileSync(tmp, imageBuffer);
-    try { return await runClaude(`Mirá la imagen en "${tmp.replace(/\\/g, '/')}" usando la tool Read. ${prompt}`, { allowedTools: 'Read', timeout: 120_000, model }); }
+    try { return await runClaude(`Mirá la imagen en "${tmp.replace(/\\/g, '/')}" usando la tool Read. ${prompt}`, { allowedTools: 'Read', timeout: 120_000, model: claudeModel }); }
     finally { try { fs.unlinkSync(tmp); } catch { /* noop */ } }
   }
-  return await runClaude(prompt, { cwd, allowedTools, model });
+  // Molde de texto puro: sin tools ni settings del CLI (ver MOLDE_SYSTEM).
+  const tope = thinking != null ? thinking : THINKING_POR_CLASE[TASK_CLASS[functionId] || 'transformacion'];
+  const r = await runClaude(prompt, { cwd, allowedTools, model: claudeModel, clean: true, thinking: tope });
+  return { ...r, topeThinking: tope };
 }
 
 // ── Clasificación de video por IA sobre el thumbnail (los videos viven en Cloudinary) ──
@@ -565,7 +638,25 @@ const server = http.createServer(async (req, res) => {
   try {
     // ── health ──────────────────────────────────────────────────────────────
     if (p === '/api/health') {
-      return json(res, 200, { ok: true, env: IS_PROD ? 'prod' : 'local', videosDir: VIDEOS_DIR, db: DB_PATH, cloudinary: !!CLD_CLOUD, gemini: !!GEMINI_KEY, functions: IMPLEMENTED_FUNCTIONS, storage: IS_PROD ? 'cloudinary' : 'local' });
+      return json(res, 200, {
+        ok: true, env: IS_PROD ? 'prod' : 'local', videosDir: VIDEOS_DIR, db: DB_PATH,
+        cloudinary: !!CLD_CLOUD, gemini: !!GEMINI_KEY, functions: IMPLEMENTED_FUNCTIONS,
+        storage: IS_PROD ? 'cloudinary' : 'local', llmProvider: currentLlmProvider,
+      });
+    }
+
+    // ── Configuración de Proveedores LLM (Claude vs Gemini switch) ───────────
+    if (p === '/api/config/llm-provider' && req.method === 'GET') {
+      return json(res, 200, { provider: currentLlmProvider, availableProviders: ['claude', 'gemini', 'auto'] });
+    }
+    if (p === '/api/config/llm-provider' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (['claude', 'gemini', 'auto'].includes(body.provider)) {
+        currentLlmProvider = body.provider;
+        console.log(`[media-studio] Switch LLM cambiado a: ${currentLlmProvider}`);
+        return json(res, 200, { ok: true, provider: currentLlmProvider });
+      }
+      return json(res, 400, { error: 'proveedor no válido (usá: claude, gemini, o auto)' });
     }
 
     // ── assets locales (storage en dev) — sirve lo que guardó saveAsset ───────
@@ -1038,12 +1129,80 @@ ${src}`;
       const body = JSON.parse((await readBody(req)) || '{}');
       if (!body.functionId) return json(res, 400, { error: 'falta functionId' });
       try {
-        const { prompt, mode } = buildFunctionPrompt(body);
+        const { prompt, mode, compilado, promptVersion } = buildFunctionPrompt(body);
         const model = MODEL_WHITELIST.includes(body.model) ? body.model : undefined;
-        console.log(`[media-studio] run-function ${body.functionId} → modelo: ${model || 'default'}`);
-        const { text } = await runAI({ prompt, allowedTools: 'Read', model });
-        return json(res, 200, { functionId: body.functionId, mode, result: parseFunctionResult(body.functionId, text, body) });
+        const key = generationKey({ functionId: body.functionId, promptVersion, model, prompt, provider: body.provider });
+        const projectId = String(body.projectId || ''), pieceId = String(body.pieceId || '');
+        const t0 = Date.now();
+        const registrar = (extra) => { try { saveGenerationRun({ project_id: projectId, piece_id: pieceId, function_id: body.functionId, prompt_version: promptVersion, provider: body.provider || 'claude', model: model || '', generation_key: key, started_at: t0, finished_at: Date.now(), duration_ms: Date.now() - t0, input_chars: prompt.length, ...extra }); } catch (e) { console.warn('[media-studio] generation_runs:', e instanceof Error ? e.message : e); } };
+        if (compilado && !prompt) {
+          // Fase 5: molde 100% determinístico (ej. flowpack sin acciones que traducir): sin IA.
+          console.log(`[media-studio] run-function ${body.functionId} ← compilado sin IA`);
+          const result = parseFunctionResult(body.functionId, '', body);
+          registrar({ status: 'compilado', result_json: JSON.stringify(result) });
+          return json(res, 200, { functionId: body.functionId, mode, promptVersion, result });
+        }
+        // Fase 6: caché. Sólo cuando el front NO apretó un botón (auto-disparo / volver a la pantalla):
+        // un "Re-Plan" deliberado pide algo nuevo y nunca lee caché. Regenerar tampoco.
+        if (body.cache === true && !body.regenerate) {
+          const hit = findCachedRun(key);
+          if (hit) {
+            console.log(`[media-studio] run-function ${body.functionId} ← caché (${new Date(hit.finished_at).toLocaleTimeString()}, ${hit.model_real})`);
+            registrar({ status: 'cache', model_real: hit.model_real });
+            return json(res, 200, { functionId: body.functionId, mode, promptVersion, cache: 'hit', validacion: { ok: true, errores: [], reparado: false }, meta: { modelReal: hit.model_real, durationMs: Date.now() - t0, apiMs: 0, thinkingTokens: 0, outputTokens: 0, costUsd: 0 }, result: hit.result });
+          }
+        }
+        // Fase 6: dedupe en vuelo. Si ya hay una corrida igual corriendo, se espera ESA.
+        if (EN_VUELO.has(key)) {
+          console.log(`[media-studio] run-function ${body.functionId} ← compartiendo corrida en vuelo`);
+          const shared = await EN_VUELO.get(key);
+          return json(res, 200, { ...shared, cache: 'en-vuelo' });
+        }
+        const corrida = (async () => {
+          console.log(`[media-studio] run-function ${body.functionId} → modelo: ${model || 'default'} · ${promptVersion} · prompt ${prompt.length} chars`);
+          const thinking = Number.isFinite(Number(body.thinking)) && body.thinking !== undefined ? Number(body.thinking) : undefined;
+          const r1 = await runAI({ prompt, allowedTools: 'Read', model, functionId: body.functionId, provider: body.provider, thinking });
+          const { text, cost, modelReal, apiMs, limites, limiteInfo, outTok, thinkTok, inTok, topeThinking } = r1;
+          // Tiempo REAL por molde (dueño, 2026-10-07: "no sé de dónde sacaste un minuto"): queda en el log
+          // para optimizar con datos y no con estimaciones. Salida en chars porque el tiempo va con eso.
+          console.log(`[media-studio] run-function ${body.functionId} ← ${((Date.now() - t0) / 1000).toFixed(1)}s (api ${((apiMs || 0) / 1000).toFixed(1)}s) · modelo real ${modelReal || '?'} · entrada ${inTok || '?'} tok · salida ${(text || '').length} chars / ${outTok || '?'} tok (pensando ${thinkTok || 0}, tope ${topeThinking ?? 'default'}) · USD ${(cost || 0).toFixed(3)}${limites ? ` · AVISO LÍMITE x${limites} (${limiteInfo})` : ''}`);
+          let result = parseFunctionResult(body.functionId, text, body);
+          // Fase 3 (P0.7 + Regla 7): JSON válido no es resultado válido. Se valida por molde y, si falla,
+          // UN reintento de reparación corto (mismo modelo, sin pensamiento, con los errores concretos y el
+          // JSON anterior). Si sigue mal, el resultado viaja igual con `validacion.errores` visibles.
+          let errores = validarResultado(body.functionId, result, body);
+          let reparado = false, costTotal = cost || 0, outTotal = (text || '').length;
+          if (errores.length && !body.regenerate) {
+            console.warn(`[media-studio] run-function ${body.functionId}: ${errores.length} problema(s) de validación → reparación: ${errores.join(' | ')}`);
+            try {
+              const t1 = Date.now();
+              const r2 = await runAI({ prompt: promptReparacion(body.functionId, result, errores), allowedTools: 'Read', model, functionId: body.functionId, provider: body.provider, thinking: 0 });
+              costTotal += r2.cost || 0; outTotal += (r2.text || '').length;
+              const result2 = parseFunctionResult(body.functionId, r2.text, body);
+              const errores2 = validarResultado(body.functionId, result2, body);
+              console.log(`[media-studio] run-function ${body.functionId} ← reparación ${((Date.now() - t1) / 1000).toFixed(1)}s · quedan ${errores2.length} problema(s)`);
+              if (errores2.length < errores.length) { result = result2; errores = errores2; reparado = true; }
+            } catch (e2) { console.warn(`[media-studio] run-function ${body.functionId}: la reparación falló (${e2 instanceof Error ? e2.message : e2}); se devuelve el original`); }
+          }
+          registrar({ model_real: modelReal || '', api_ms: apiMs || 0, output_chars: outTotal, input_tokens: inTok || 0, output_tokens: outTok || 0, thinking_tokens: thinkTok || 0, cost_usd: costTotal, retry_count: reparado ? 1 : 0, status: 'ok', validation: errores, result_json: errores.length ? '' : JSON.stringify(result) });
+          return { functionId: body.functionId, mode, promptVersion, validacion: { ok: errores.length === 0, errores, reparado }, meta: { modelReal: modelReal || '', durationMs: Date.now() - t0, apiMs: apiMs || 0, thinkingTokens: thinkTok || 0, outputTokens: outTok || 0, costUsd: costTotal }, result };
+        })();
+        EN_VUELO.set(key, corrida);
+        try {
+          const out = await corrida;
+          return json(res, 200, out);
+        } catch (e) {
+          registrar({ status: 'error', error_type: e instanceof Error ? e.message.slice(0, 200) : 'error' });
+          throw e;
+        } finally { EN_VUELO.delete(key); }
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error corriendo la función' }); }
+    }
+
+    // ── Observabilidad (Fase 9): las corridas de la IA, de la más nueva a la más vieja ──
+    if (p === '/api/generation-runs' && req.method === 'GET') {
+      const limit = Math.min(500, Number(url.searchParams.get('limit')) || 50);
+      const functionId = url.searchParams.get('functionId') || undefined;
+      return json(res, 200, { runs: listGenerationRuns({ limit, functionId }) });
     }
 
     // ── Proxy de assets de marca (C3): baja una URL de logo y la sirve como attachment ──────

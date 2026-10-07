@@ -1,0 +1,51 @@
+{
+  "functionId": "flowpack",
+  "mode": "pack",
+  "result": {
+    "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic, not over-rendered and not CGI-perfect. Documentary-style color, soft contrast, no on-screen text.",
+    "personajes": [
+      {
+        "id": "p1",
+        "nombre": "Darío",
+        "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine man, 38 years old, olive-toned skin, short dark brown hair slightly messy, trimmed stubble beard, tired expressive brown eyes with faint under-eye circles, medium build, charismatic and camera-ready in a believable everyday way. Wearing a plain navy blue short-sleeve polo shirt, grey work trousers and worn sneakers, holding a paper queue ticket in one hand and a small potted green plant in the other. Standing relaxed, facing the camera, deadpan friendly expression. Background: softly blurred interior of a small-town Argentine municipal public service waiting room with grey plastic chairs and a pale institutional wall, flat cold fluorescent lighting. Photorealistic skin texture, natural pores, natural light, clean and well-lit, realistic expressive face, not over-rendered. Static still photo, no action, no dialogue."
+      },
+      {
+        "id": "p2",
+        "nombre": "Mabel",
+        "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine woman, 52 years old, light tan skin, shoulder-length dyed dark blonde hair pulled back, reading glasses low on the nose, subtle laugh lines, warm but bureaucratic presence. Wearing a light blue municipal staff shirt with a small embroidered city crest on the chest, a plain cardigan over the shoulders and a laminated ID badge on a lanyard. Standing upright, facing the camera, cordial neutral expression. Background: softly blurred public service attention counter with glass partition and stacks of paper folders, printed notices on a pale institutional wall, flat cold fluorescent lighting. Photorealistic skin texture, natural pores, natural light, clean and well-lit, realistic expressive face, not over-rendered. Static still photo, no action, no dialogue."
+      }
+    ],
+    "escenas": [
+      {
+        "escenaN": 1,
+        "rol": "hook",
+        "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive face, not over-rendered and not CGI-perfect. Interior of a small-town Argentine municipal public service waiting room: rows of joined grey plastic chairs bolted to the floor, worn linoleum, a wall-mounted red LED queue number display and a ticket dispenser in soft-focus behind, flat cold fluorescent lighting with a slight green-grey cast. Darío, a relatable Argentine man in his late 30s with short dark hair, stubble and a navy blue polo shirt, is seated on a plastic chair and lifts a paper queue ticket in his right hand and a small potted green plant in his left, holding them up toward the camera. Medium shot, waist-up framing, eye-level, conversational camera distance about two meters; he fills a good portion of the frame with strong, dominant presence; the camera holds steady or does a very subtle slow push-in as he speaks. He speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: 'Traje una planta, eh. Por el turno, digo. Calculo que capaz florece antes de que me llamen... viste cómo es esto acá, siempre igual.' Energetic, hooking deadpan-ironic delivery that grabs attention immediately, warm and charming, realistic expressive face; he keeps talking through the whole clip with no filler silence. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. One single continuous take, same background, no cut, no on-screen text.",
+        "estado": "pendiente"
+      },
+      {
+        "escenaN": 2,
+        "rol": "desarrollo",
+        "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive face, not over-rendered and not CGI-perfect. Same municipal waiting room interior: grey plastic chairs, pale institutional wall with taped notices, red LED queue display out of focus, flat cold fluorescent lighting. Darío, a relatable Argentine man in his late 30s with short dark hair, stubble and a navy blue polo shirt, rests the small potted plant on the adjoining chair and operates his smartphone, whose warm bright screen glow lights his face against the grey room. Medium shot, waist-up framing, eye-level, conversational camera distance; he fills a good portion of the frame with dominant presence; the camera holds steady or does a very subtle slow push-in. He speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: 'Saco el celu, le saco la foto al bache, agarra el GPS y se deriva solo a la dependencia; el trámite lo valido con mi cara, sin moverme.' Warm, confident and secure delivery, calm and convincing, realistic expressive face; he keeps talking through the whole clip with no filler silence. Phone screen not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. One single continuous take, same background, no cut, no on-screen text.",
+        "estado": "pendiente"
+      },
+      {
+        "escenaN": 3,
+        "rol": "desarrollo",
+        "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic, not over-rendered and not CGI-perfect. Same municipal waiting room interior, grey tones and cold fluorescent light. Tight insert close-up of the smartphone held in the hand of Darío, a relatable Argentine man in his late 30s wearing a navy blue polo shirt; the app shows a citizen complaint card with a photo, a map pin and a validation step, warm screen glow contrasting against the grey room. Slight high angle over the shoulder, shallow depth of field, locked-off framing with a very subtle push-in. Screen not clearly legible. Darío speaks off-camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: 'Saco el celu: foto del bache, GPS, y se deriva solo a la dependencia. El trámite lo valido con mi cara, RENAPER, sin moverme.' Warm, confident and secure delivery, natural and matter-of-fact. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. One single continuous take, same background, no cut, no on-screen text.",
+        "estado": "pendiente"
+      },
+      {
+        "escenaN": 4,
+        "rol": "gag",
+        "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive face, not over-rendered and not CGI-perfect. Same municipal waiting room interior: grey plastic chairs in the foreground, attention counter with glass partition and stacks of paper folders in soft-focus behind, red LED queue display still showing the previous number, flat cold fluorescent lighting. Darío, a relatable Argentine man in his late 30s with short dark hair, stubble and a navy blue polo shirt, holds the small potted plant again and turns his phone slightly toward the camera to show a resolved-case notification; behind him at the counter, Mabel, an Argentine woman in her early 50s with pulled-back blonde hair, reading glasses and a light blue municipal staff shirt, keeps working through her paper folders, unbothered. Medium shot, waist-up framing, eye-level, conversational camera distance; Darío fills a good portion of the frame with dominant presence; the camera holds steady or does a very subtle slow push-in. He speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: 'Ya está resuelto, con foto antes y después. Adentro tienen todo ordenado, sin Excel dando vueltas. Y mirá: todavía no me llamaron por altavoz.' Warm, confident and ironically secure delivery, charming, realistic expressive face; he keeps talking through the whole clip with no filler silence. Phone screen not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. One single continuous take, same background, no cut, no on-screen text.",
+        "estado": "pendiente"
+      },
+      {
+        "escenaN": 5,
+        "rol": "cta",
+        "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic, not over-rendered and not CGI-perfect. Same municipal waiting room interior, now with the chair empty: a joined grey plastic seat with a forgotten paper queue ticket left on it, worn linoleum floor, pale institutional wall with taped notices and the red LED queue display in soft-focus, same flat cold fluorescent lighting. Medium shot of the empty seat at eye-level, locked-off framing with a very subtle slow push-in. The uploaded brand logo 'logo.png' from assets is displayed clearly and prominently centered in the upper third of the 9:16 vertical frame. No spoken dialogue, ambient sound only, faint room tone and a distant loudspeaker hum. One single continuous take, same background, no cut, no on-screen text.",
+        "estado": "pendiente"
+      }
+    ]
+  }
+}

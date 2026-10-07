@@ -2,11 +2,11 @@
 // muestra 3 piezas — ESTILO global + PERSONAJES (cada uno con su prompt de IMAGEN de referencia para
 // generar en la sección Personaje de Flow con Nano Banana) + ESCENAS (un prompt por escena, con
 // Copiar/Regenerar/estado). Es la SALIDA 1: lo que el usuario pega a mano en Google Flow (no hay API).
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Copy, Check, RefreshCw, Loader2, Download, ChevronDown, ChevronRight, PackageOpen, User, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
-import { packProgress, type EscenaFlow, type PersonajeFlow } from '../lib/comercial';
+import { packProgress, pasoHabilitado, type EscenaFlow, type PersonajeFlow } from '../lib/comercial';
 import BrandBlock from '../BrandBlock';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
@@ -23,6 +23,18 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
   const [busy, setBusy] = useState(false);
   const [busyN, setBusyN] = useState<number | null>(null);
   const [error, setError] = useState('');
+  // AUTO-GENERAR al entrar: sólo con el paso HABILITADO y el INSUMO DIRECTO del molde (el storyboard
+  // — flowpack arma un prompt POR ESCENA). Mismo criterio de deps que el resto: corre una sola vez al
+  // montar, con el guard del ref (las deps viejas lo re-evaluaban en cada tecleo del paso).
+  const hasAutoFired = useRef(false);
+  useEffect(() => {
+    const listo = !!comercial && pasoHabilitado(comercial, 'pack') && !!comercial.storyboard?.length;
+    if (listo && !comercial?.packFlow && !busy && !error && !hasAutoFired.current) {
+      hasAutoFired.current = true;
+      generar();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [copied, setCopied] = useState('');
   const [openEstilo, setOpenEstilo] = useState(false);
   const [openPersona, setOpenPersona] = useState<string | null>(null);
@@ -39,10 +51,10 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
   // la próxima escena sin copiar (se resalta como "la que sigue"): guía el ritual de Flow
   const nextEscenaN = escenas.find((e) => e.estado === 'pendiente')?.escenaN;
 
-  const generar = async () => {
+  const generar = async (provider?: 'claude' | 'gemini') => {
     setBusy(true); setError('');
     try {
-      const res = await runMolde('flowpack', project, { storyboard: escenasSb, cast: comercial?.cast }, {}, undefined, comercial);
+      const res = await runMolde('flowpack', project, { storyboard: escenasSb, cast: comercial?.cast }, {}, undefined, comercial, provider);
       setComercial((c) => ({
         ...c,
         packFlow: {
@@ -97,7 +109,7 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
   return (
     <PasoShell
       titulo="Pack Flow"
-      sub="Creá los personajes con su imagen en Flow, animá una escena por clip, bajá los videos y volvé a Rodaje."
+      sub="¡Ya tenés los prompts perfectos! Ahora seguí esta guía paso a paso para generar tus videos en Google Flow."
       hasContent={esNuevo} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={esNuevo && !!escenas.length} approveLabel="Pack listo, al rodaje"
       functionId="flowpack" estado={estadoDelPaso('pack', comercial)}
@@ -105,31 +117,33 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
       {esViejo && (
         <div className="pack-migrate">
           <AlertTriangle size={16} />
-          <span>Este pack es del flujo <strong>viejo</strong> de Flow (un master monolítico). Google Flow ahora es imagen-first: <strong>regenerá el pack</strong> para el flujo nuevo (personajes con imagen + una escena por clip).</span>
+          <span>Este pack es del flujo <strong>viejo</strong> de Flow. <strong>Regenerá el pack</strong> para usar la nueva guía paso a paso.</span>
         </div>
       )}
 
       {esNuevo && pack ? (
-        <>
-          <div className="pack-bar">
-            <span className="pack-prog">{prog.copiados}/{prog.total} escenas copiadas · {prog.importados} importadas</span>
-            <button className="pack-export" onClick={exportTxt}><Download size={14} /> Exportar .txt</button>
+        <div className="pack-guided-experience">
+          <div className="pack-guide-intro">
+            <h3>Guía de Trabajo en Google Flow</h3>
+            <p>Mantené esta pestaña abierta. Vas a ir copiando cada prompt de acá y pegándolo en Flow para armar el comercial pieza por pieza.</p>
+            <div className="pack-bar">
+              <span className="pack-prog">{prog.copiados}/{prog.total} escenas copiadas · {prog.importados} importadas</span>
+              <button className="pack-export" onClick={exportTxt}><Download size={14} /> Exportar .txt</button>
+            </div>
           </div>
 
-          {/* los assets de marca, a mano (para subirlos a Flow como referencia) */}
-          <BrandBlock brandKit={project.brandKit} variant="pack" />
+          {/* PASO 1 */}
+          <div className="pack-guide-step">
+            <div className="step-header">
+              <span className="step-number">1</span>
+              <div>
+                <h4>Configurá el Estilo Global</h4>
+                <p>Copiá este prompt y pegalo en la configuración de estilo de tu proyecto en Flow. Si te pide assets de marca, acá los tenés a mano.</p>
+              </div>
+            </div>
+            
+            <BrandBlock brandKit={project.brandKit} variant="pack" />
 
-          {/* leyenda de estados — qué significan pendiente / copiado / importado (aplica a las escenas) */}
-          <div className="pack-legend">
-            <span className="pack-legend-lbl">Estados</span>
-            <span className="pack-legend-i"><span className="pack-estado pack-estado--pendiente">pendiente</span> sin copiar</span>
-            <span className="pack-legend-i"><span className="pack-estado pack-estado--copiado">copiado</span> ya lo animaste en Flow</span>
-            <span className="pack-legend-i"><span className="pack-estado pack-estado--importado">importado</span> ya trajiste el video a Rodaje</span>
-          </div>
-
-          {/* ESTILO: fila DESTACADA (filete dorado) — el estilo global, sin personajes ni acción */}
-          <div className="pack-group">
-            <p className="pack-group-lead">El <strong>estilo global</strong> del comercial: la estética que comparten todas las escenas.</p>
             <div className={`pack-clip pack-clip--master${openEstilo ? ' pack-clip--open' : ''}`}>
               <div className="pack-clip-row">
                 <span className="pack-clip-tag">ESTILO</span>
@@ -147,11 +161,16 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
             </div>
           </div>
 
-          {/* PERSONAJES: cada uno = un prompt de IMAGEN para la sección Personaje de Flow (Nano Banana) */}
-          {!!personajes.length && (
-            <div className="pack-group">
-              <p className="pack-group-lead">Creá cada <strong>personaje</strong> en Flow y generá su <strong>imagen</strong> con este prompt (Nano Banana). Flow reusa esa imagen en cada escena.</p>
-              <div className="pack-clips">
+          {/* PASO 2 */}
+          <div className="pack-guide-step">
+            <div className="step-header">
+              <span className="step-number">2</span>
+              <div>
+                <h4>Creá los Personajes</h4>
+                <p>Flow reusa esta imagen en cada escena. Copiá cada prompt, pegalo en la sección "Personajes" de Flow, generá la imagen y guardalo con su nombre.</p>
+              </div>
+            </div>
+            <div className="pack-clips">
                 {personajes.map((p) => {
                   const open = openPersona === p.id;
                   return (
@@ -173,13 +192,26 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
                     </div>
                   );
                 })}
+            </div>
+          </div>
+
+          {/* PASO 3 */}
+          <div className="pack-guide-step">
+            <div className="step-header">
+              <span className="step-number">3</span>
+              <div>
+                <h4>Animá las Escenas</h4>
+                <p>Ahora copiá cada prompt, generá el video en Flow, y cuando esté listo descargalo a tu computadora. Los estados se irán marcando acá para que lleves control.</p>
               </div>
             </div>
-          )}
+            
+            <div className="pack-legend">
+              <span className="pack-legend-lbl">Estados</span>
+              <span className="pack-legend-i"><span className="pack-estado pack-estado--pendiente">pendiente</span> sin copiar</span>
+              <span className="pack-legend-i"><span className="pack-estado pack-estado--copiado">copiado</span> ya lo enviaste a Flow</span>
+              <span className="pack-legend-i"><span className="pack-estado pack-estado--importado">importado</span> video descargado</span>
+            </div>
 
-          {/* ESCENAS: un prompt por escena; se resalta la próxima sin copiar (ritual de Flow) */}
-          <div className="pack-group">
-            <p className="pack-group-lead">Creá una <strong>escena por clip</strong> y animala con su prompt: Flow ya conoce al personaje por su imagen.</p>
             <div className="pack-clips">
               {escenas.map((esc) => {
                 const sb = escenasSb.find((e) => e.n === esc.escenaN);
@@ -211,7 +243,7 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
               })}
             </div>
           </div>
-        </>
+        </div>
       ) : (
         !busy && !esViejo && <PasoEmpty icon={PackageOpen}>Generá el pack desde el storyboard y el cast: personajes con su imagen de referencia + un prompt por escena para animar en Flow.</PasoEmpty>
       )}

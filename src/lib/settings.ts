@@ -1,21 +1,22 @@
-// Ajustes del usuario (M2 — selección de modelo de IA). localStorage-first, lógica PURA y
-// tolerante a la falta de localStorage (SSR/tests sin mock no rompen — mismo patrón que kits.ts).
-// 'auto' = cada función corre con SU tier del catálogo (functionCatalog.ts, ya con el comentario
-// "overrideable desde settings" — acá se resuelve); forzado = TODAS las funciones usan ese modelo
-// (ej. "estoy corto de créditos → todo Sonnet").
-import { getFunction, type ModelTier } from './functionCatalog';
+// Ajustes del usuario. localStorage-first, lógica PURA y tolerante a la falta de localStorage
+// (SSR/tests sin mock no rompen — mismo patrón que kits.ts).
+// El ajuste de IA es un PRESET (dueño, 2026-10-07: "económico, intermedio o performante"), no un
+// modelo: cada molde tiene una CLASE de dificultad en el catálogo y el preset la traduce a modelo
+// (functionCatalog.PRESETS). Reemplaza al 'auto/opus/sonnet/haiku' viejo (clave de localStorage
+// nueva: el valor viejo no se lee, así nadie queda con "haiku" forzado sin saberlo).
+import { modelForPreset, PRESET_DEFAULT, type ModelTier, type AiPreset } from './functionCatalog';
 
-export type AiModelSetting = 'auto' | ModelTier;
+export type AiModelSetting = AiPreset;
 
-const LS_KEY = 'ms.settings.aiModel';
-const VALID: readonly AiModelSetting[] = ['auto', 'opus', 'sonnet', 'haiku'];
+const LS_KEY = 'ms.settings.aiPreset';
+const VALID: readonly AiModelSetting[] = ['economico', 'intermedio', 'performante'];
 
 export function getAiModel(): AiModelSetting {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw && (VALID as readonly string[]).includes(raw)) return raw as AiModelSetting;
   } catch { /* noop */ }
-  return 'auto';
+  return PRESET_DEFAULT;
 }
 
 // pub/sub mínimo: el ajuste vive en localStorage (sin React state central), pero el hint de
@@ -35,12 +36,11 @@ export function setAiModel(v: AiModelSetting): void {
   for (const fn of listeners) fn();
 }
 
-// Modelo EFECTIVO para una función del catálogo según el ajuste global: en 'auto' devuelve el
-// tier sugerido por la función; forzado, siempre ese tier (pasoKit.runMolde, ProjectWizard y el
-// hint de la UI comparten esta única resolución — nunca duplicar el ternario).
+// Modelo EFECTIVO para una función del catálogo: preset elegido × clase del molde
+// (pasoKit.runMolde, ProjectWizard, KbFromText, VideosTab y el hint de la UI comparten esta única
+// resolución — nunca duplicar la tabla).
 export function effectiveModel(functionId: string): ModelTier | undefined {
-  const setting = getAiModel();
-  return setting === 'auto' ? getFunction(functionId)?.model : setting;
+  return modelForPreset(getAiModel(), functionId);
 }
 
 // ── Copiloto del pipeline: abierto/cerrado (persistente) ─────────────────────
@@ -61,3 +61,45 @@ export function getCopilotOpen(): boolean {
 export function setCopilotOpen(open: boolean): void {
   try { localStorage.setItem(LS_COPILOT, open ? '1' : '0'); } catch { /* noop */ }
 }
+
+// ── Tema Claro / Oscuro ──────────────────────────────────────────────────────
+export type ThemeSetting = 'dark' | 'light';
+const LS_THEME = 'ms.settings.theme';
+
+export function getTheme(): ThemeSetting {
+  try {
+    const raw = localStorage.getItem(LS_THEME);
+    if (raw === 'light') return 'light';
+  } catch { /* noop */ }
+  return 'dark';
+}
+
+function applyTheme(v: ThemeSetting) {
+  if (typeof document !== 'undefined') {
+    if (v === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }
+}
+
+const themeListeners = new Set<() => void>();
+export function subscribeTheme(fn: () => void): () => void {
+  themeListeners.add(fn);
+  return () => { themeListeners.delete(fn); };
+}
+
+export function setTheme(v: ThemeSetting): void {
+  try {
+    localStorage.setItem(LS_THEME, v);
+    applyTheme(v);
+  } catch { /* noop */ }
+  for (const fn of themeListeners) fn();
+}
+
+// Carga inicial al cargar el módulo
+if (typeof document !== 'undefined') {
+  applyTheme(getTheme());
+}
+

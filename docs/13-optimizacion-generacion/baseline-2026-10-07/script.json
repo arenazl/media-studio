@@ -1,0 +1,35 @@
+{
+  "functionId": "script",
+  "mode": "set",
+  "result": {
+    "blocks": [
+      {
+        "role": "hook",
+        "narration": "Traje una planta. Por el turno, digo. Capaz florece antes.",
+        "visual": "POV en sala de espera fluorescente: número de turno en una mano, una planta en la otra",
+        "durSec": 3
+      },
+      {
+        "role": "desarrollo",
+        "narration": "Saco el celu: foto del bache, GPS, y se deriva solo a la dependencia. El trámite lo valido con mi cara, RENAPER, sin moverme.",
+        "visual": "Pantalla del celular nítida y cálida: reclamo con foto, mapa, validación biométrica y tasa pagada",
+        "durSec": 8
+      },
+      {
+        "role": "gag",
+        "narration": "Resuelto, con foto antes y después. Adentro ya está todo ordenado, sin Excel. Todavía no me llamaron por altavoz.",
+        "visual": "Notificación de resuelto; el altavoz sigue en el número anterior y la planta sigue en la mano",
+        "durSec": 5
+      },
+      {
+        "role": "cta",
+        "narration": "Munify. Un solo login para gobernar y atender al vecino. Implementado en una o dos semanas.",
+        "visual": "Logo Munify sobre el asiento vacío de la sala de espera",
+        "durSec": 4
+      }
+    ],
+    "music": {
+      "mood": "espera irónica, giro luminoso"
+    }
+  }
+}

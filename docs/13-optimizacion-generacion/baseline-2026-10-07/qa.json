@@ -1,0 +1,41 @@
+{
+  "functionId": "qa",
+  "result": {
+    "score": 36,
+    "verdict": "AJUSTAR",
+    "issues": [
+      {
+        "severity": "alta",
+        "note": "La escena 3 repite casi textual el diálogo de la escena 2 ('Saco el celu: foto del bache, GPS, y se deriva solo a la dependencia...'), lo que rompe el ritmo y suena a error de montaje. Fix: dejar la escena 3 como inserto mudo de pantalla (sin diálogo, solo ambiente y sonido de notificación) o reescribirla con una línea nueva y corta que no repita nada, por ejemplo 'Tasa pagada, número de expediente, y sigo sentado'."
+      },
+      {
+        "severity": "alta",
+        "note": "La escena 3 tiene 26 palabras en 4 segundos: es físicamente impronunciable y viola el criterio técnico. Fix: si queda hablada, llevarla a 8s con ~24-28 palabras; si queda en 4s, sacarle el diálogo y usarla como inserto puro."
+      },
+      {
+        "severity": "media",
+        "note": "La marca no está fonetizada en todo lo hablado: el GUION escribe 'Munify' en el CTA y recién el storyboard pone 'Munifai'. Fix: unificar 'Munifai' en cada línea de diálogo de todos los documentos y dejar 'Munify' solo para el logo en imagen."
+      },
+      {
+        "severity": "media",
+        "note": "El PACK ESTILO pide 'no on-screen text' pero las escenas 1 a 4 muestran display LED de turnos, carteles pegados y pantalla de celular con reclamo, y la 5 pide logo sobre el asiento. Fix: aclarar en el pack que se permite texto diegético (display de turnos, cartelería, UI del celular) y que el logo se compone en post, no se genera.ILO contrario Flow va a inventar texto deforme."
+      },
+      {
+        "severity": "media",
+        "note": "Prueba flaca: 'implementado en una o dos semanas' es el único dato duro y no hay respaldo de escala ni caso. Fix: agregar en el CTA un dato verificable del cliente, tipo 'ya funciona en X municipios' o 'X reclamos resueltos', en lugar de repetir el beneficio genérico."
+      },
+      {
+        "severity": "baja",
+        "note": "Duración total 36s, larga para el formato vertical y arrastrada por dos escenas de desarrollo que dicen lo mismo. Fix: resolver el punto de la escena 3 y cerrar en 28-30s (8+8+4+8+8 pasa a 8+8+4+8+6, con el CTA más seco)."
+      },
+      {
+        "severity": "baja",
+        "note": "Mabel aparece una sola vez, de fondo y sin línea, así que paga ficha de casting sin devolver nada narrativo. Fix: darle un remate mínimo al final del gag (que levante la vista y diga el número de turno equivocado) o eliminarla del cast y resolver la escena 4 solo con Darío y el display."
+      },
+      {
+        "severity": "baja",
+        "note": "La continuidad de la planta va de mano a silla y vuelve a mano entre escenas 2 y 4 sin que se vea el movimiento, y eso puede leerse como salto. Fix: anotar en la escena 4 que Darío levanta la planta de la silla contigua al inicio del plano, así el gesto justifica el cambio."
+      }
+    ]
+  }
+}

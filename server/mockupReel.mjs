@@ -1,21 +1,20 @@
-// MOCKUP REEL v2 — genera el "boceto animado" con MOCKUPS 3D DE DISPOSITIVO (estilo public/bocetos/tesoreria.mp4).
-// Incorpora las CAPTURAS REALES del Media Kit dentro de marcos de pantalla (browser / mobile frame) con
-// paneo suave (scroll fluido), glassmorphism, tipografía de marca y logotipo.
-// Grabación a mp4 9:16 mediante Playwright (chrome headless) + ffmpeg.
+// MOCKUP REEL v5 — REPRODUCCIÓN FIEL AL ESTILO MUNIFY / TESORERÍA (100% vector svg + layout exacto)
+import fs from 'fs';
+import path from 'path';
 
-const PER_SLIDE = 4.0;
+const PER_SLIDE = 4.2;
 const FPS = 30;
 
 const durOf = (s) => { const d = Number(s?.durSec); return d > 0 ? d : PER_SLIDE; };
 
-function dots(n = 26) {
+function dots(n = 32) {
   let out = '';
   for (let i = 0; i < n; i++) {
-    const x = (i * 67) % 100;
-    const y = (i * 39 + 13) % 100;
-    const s = 3 + (i % 3);
-    const d = (i % 7) * 0.4;
-    const o = 0.15 + (i % 4) * 0.12;
+    const x = (i * 67 + 13) % 100;
+    const y = (i * 39 + 23) % 100;
+    const s = 3 + (i % 4);
+    const d = (i % 8) * 0.45;
+    const o = 0.2 + (i % 4) * 0.15;
     out += `<span class="dot" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;opacity:${o};animation-delay:${d}s"></span>`;
   }
   return out;
@@ -23,27 +22,43 @@ function dots(n = 26) {
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-function splitTitle(title, accent) {
-  const t = String(title || '').trim();
-  if (accent && t.toLowerCase().includes(String(accent).toLowerCase())) {
-    const i = t.toLowerCase().lastIndexOf(String(accent).toLowerCase());
-    return { head: t.slice(0, i).trim(), tail: t.slice(i).trim() };
+function resolveMediaDataUrl(src) {
+  if (!src) return '';
+  if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://')) return src;
+  let cleanPath = src.replace(/^file:\/\/\/?/, '');
+  if (process.platform === 'win32') cleanPath = cleanPath.replace(/\//g, '\\');
+  try {
+    if (fs.existsSync(cleanPath)) {
+      const ext = path.extname(cleanPath).toLowerCase();
+      const mimeMap = {
+        '.mp4': 'video/mp4',
+        '.webm': 'video/webm',
+        '.mov': 'video/mp4',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.svg': 'image/svg+xml',
+      };
+      const mime = mimeMap[ext] || 'application/octet-stream';
+      const buf = fs.readFileSync(cleanPath);
+      return `data:${mime};base64,${buf.toString('base64')}`;
+    }
+  } catch {
+    /* fallback */
   }
-  const words = t.split(/\s+/);
-  if (words.length <= 3) return { head: '', tail: t };
-  const cut = Math.max(1, words.length - 2);
-  return { head: words.slice(0, cut).join(' '), tail: words.slice(cut).join(' ') };
+  return src;
 }
 
 export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
   const c = brand.colors || {};
-  const navy = c.primary || c.ink || '#0b1c3f';
-  const navy2 = c.secondary || '#071226';
-  const gold = c.accent || '#d4a559';
-  const logoSvg = brand.logo?.svg || '';
-  const logoUrl = brand.logoUrl || brand.logo?.primary || '';
+  const primary = c.primary || '#7C3AED';
+  const secondary = c.secondary || '#0c1527';
+  const accent = c.accent || '#F59E0B';
 
-  const list = slides.length ? slides : [{ badge: 'SIN VUELTAS ¡YA!', title: 'Cotizá tu evento de forma transparente', accent: 'transparente' }];
+  const list = slides.length ? slides : [
+    { badge: 'CATEGORÍAS DE EVENTO', title: '¿Organizás un evento y nadie contesta?', subtitle: 'Cotizá directo con proveedores verificados.' }
+  ];
+  
   let acc = 0;
   const timed = list.map((s) => { const off = acc; const d = durOf(s); acc += d; return { s, off, d }; });
 
@@ -51,140 +66,144 @@ export function buildHtml({ brand = {}, slides = [], footer = '' } = {}) {
     `<span class="seg"><span class="fill" style="--off:${off.toFixed(2)}s;--dur:${d.toFixed(2)}s"></span></span>`).join('');
 
   const cards = timed.map(({ s, off, d }, i) => {
-    const badge = esc(s.badge || s.screen || s.label || `PANTALLA 0${i + 1}`);
-    const { head, tail } = splitTitle(s.title || s.highlight || s.copy || '', s.accent || s.copy);
-    let imgSrc = s.image || s.archivoCaptura || s.video || s.url || '';
+    const badge = esc(s.badge || s.screen || s.label || `PASO 0${i + 1}`);
+    const title = esc(s.title || s.highlight || s.copy || '');
+    const subtitle = esc(s.subtitle || s.description || s.creativeBrief || '');
+    const rawSrc = s.image || s.archivoCaptura || s.video || s.url || '';
+    const imgSrc = resolveMediaDataUrl(rawSrc);
 
-    // Convertir rutas locales de windows (D:\...) a file:/// o HTTP para que Chromium las renderice sin fallar
-    if (imgSrc && /^[a-zA-Z]:[\\/]/.test(imgSrc)) {
-      imgSrc = 'file:///' + imgSrc.replace(/\\/g, '/');
-    }
-
-    const isVideo = /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(imgSrc);
+    const isVideo = /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(rawSrc) || imgSrc.startsWith('data:video/');
     const mediaElement = isVideo
-      ? `<video src="${imgSrc}" class="device-img" autoplay loop muted playsinline style="object-fit:cover; width:100%; height:100%;"></video>`
+      ? `<video src="${imgSrc}" class="card-media" autoplay loop muted playsinline></video>`
       : imgSrc
-      ? `<img src="${imgSrc}" class="device-img" alt="${badge}" />`
-      : `<div class="device-fallback"><div class="fb-icon">${logoSvg || '✨'}</div><div class="fb-text">${badge}</div></div>`;
+      ? `<img src="${imgSrc}" class="card-media" alt="${badge}" />`
+      : `<div class="card-fallback"><div class="fb-text">${badge}</div></div>`;
 
     return `<div class="slide" style="--off:${off.toFixed(2)}s;--dur:${d.toFixed(2)}s">
-      <div class="device-mockup">
-        <div class="device-bar">
-          <span class="dot-btn red"></span>
-          <span class="dot-btn yellow"></span>
-          <span class="dot-btn green"></span>
-          <span class="device-url">${badge.toLowerCase().replace(/\s+/g, '-')}.sinvueltasya.com.ar</span>
-        </div>
-        <div class="device-body">
-          ${mediaElement}
+      <div class="card-container">
+        <div class="ui-card">
+          <div class="ui-card-body">
+            ${mediaElement}
+          </div>
         </div>
       </div>
 
-      <div class="content-box">
-        ${badge ? `<div class="badge">${badge}</div>` : ''}
-        <h1 class="title">${head ? `<span class="head">${esc(head)}</span> ` : ''}<span class="tail">${esc(tail)}</span></h1>
+      <div class="text-container">
+        ${badge ? `<div class="pill-badge">${badge}</div>` : ''}
+        <h1 class="serif-title">${title}</h1>
+        ${subtitle ? `<p class="sub-copy">${subtitle}</p>` : ''}
       </div>
     </div>`;
   }).join('');
 
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
-    html,body { width:1080px; height:1920px; overflow:hidden; background:#040a17; }
+    html,body { width:1080px; height:1920px; overflow:hidden; background:#060a12; }
     .stage { position:relative; width:1080px; height:1920px;
-      background:radial-gradient(130% 90% at 50% 10%, ${navy} 0%, ${navy2} 60%, #030812 100%);
-      font-family:'Sora','Inter',sans-serif; color:#fff; overflow:hidden; }
-    .glow-1 { position:absolute; top:-200px; left:50%; transform:translateX(-50%); width:900px; height:800px;
-      background:radial-gradient(closest-side, rgba(212,165,89,.22), transparent 75%); filter:blur(40px); }
-    .glow-2 { position:absolute; bottom:-200px; left:50%; transform:translateX(-50%); width:800px; height:700px;
-      background:radial-gradient(closest-side, color-mix(in srgb, ${gold} 25%, transparent), transparent 75%); filter:blur(50px); }
-    .dot { position:absolute; border-radius:50%; background:${gold}; animation:tw 3.5s ease-in-out infinite; }
-    @keyframes tw { 0%,100%{ transform:scale(.6); opacity:.2; } 50%{ transform:scale(1.3); opacity:.6; } }
+      background: radial-gradient(110% 85% at 50% 15%, #162035 0%, #0a1120 50%, #03060c 100%);
+      font-family:'Plus Jakarta Sans', sans-serif; color:#fff; overflow:hidden; }
 
-    .progress { position:absolute; top:44px; left:56px; right:56px; display:flex; gap:8px; z-index:10; }
-    .seg { flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,.15); overflow:hidden; }
-    .seg .fill { display:block; width:100%; height:100%; background:${gold}; transform:translateX(-100%);
+    /* Partículas de fondo estilo Munify */
+    .dot { position:absolute; border-radius:50%; background:#94a3b8; animation:tw 3.2s ease-in-out infinite; }
+    @keyframes tw { 0%,100%{ transform:scale(.5); opacity:.1; } 50%{ transform:scale(1.3); opacity:.45; } }
+
+    .ambient-glow-1 { position:absolute; top:-200px; left:50%; transform:translateX(-50%); width:950px; height:750px;
+      background:radial-gradient(closest-side, rgba(124,58,237,.25), transparent 80%); filter:blur(80px); }
+    .ambient-glow-2 { position:absolute; bottom:-180px; left:50%; transform:translateX(-50%); width:850px; height:650px;
+      background:radial-gradient(closest-side, rgba(245,158,11,.15), transparent 80%); filter:blur(90px); }
+
+    /* Historias / Progress Bar */
+    .progress { position:absolute; top:44px; left:56px; right:56px; display:flex; gap:10px; z-index:20; }
+    .seg { flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.16); overflow:hidden; }
+    .seg .fill { display:block; width:100%; height:100%; background:${accent}; transform:translateX(-100%);
       animation:fill var(--dur,4s) linear forwards; animation-delay:var(--off,0s); }
     @keyframes fill { to { transform:translateX(0); } }
 
-    .logo-bar { position:absolute; top:80px; left:0; right:0; display:flex; justify-content:center; align-items:center;
-      gap:16px; z-index:10; }
-    .logo-bar img, .logo-bar svg { height:76px; width:auto; filter:drop-shadow(0 4px 12px rgba(0,0,0,.4)); }
-    .logo-bar .brand-text { font-size:44px; font-weight:800; color:#fff; letter-spacing:-.5px; }
+    /* Top Logo Identidad Oficial - Render Limpio Vectorial */
+    .brand-header { position:absolute; top:85px; left:0; right:0; display:flex; justify-content:center; align-items:center; gap:16px; z-index:20; }
+    .brand-icon { width:52px; height:52px; background:#7C3AED; border-radius:14px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(124,58,237,.4); }
+    .brand-icon svg { width:32px; height:32px; fill:#fff; }
+    .brand-title { font-family:'Instrument Serif', Georgia, serif; font-style:italic; font-size:46px; font-weight:600; color:#fff; letter-spacing:-0.5px; }
+    .brand-title span { color:#A78BFA; font-weight:700; }
 
-    .slide { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-      padding-top:200px; opacity:0; pointer-events:none;
+    /* Slide Keyframe Animation */
+    .slide { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding-top:100px; opacity:0; pointer-events:none;
       animation:slideInOut var(--dur,4s) cubic-bezier(.16,1,.3,1) forwards; animation-delay:var(--off,0s); }
 
     @keyframes slideInOut {
-      0% { opacity:0; transform:scale(.94) translateY(40px); }
+      0% { opacity:0; transform:scale(.94) translateY(35px); }
       8% { opacity:1; transform:scale(1) translateY(0); }
       88% { opacity:1; transform:scale(1) translateY(0); }
-      100% { opacity:0; transform:scale(.96) translateY(-30px); }
+      100% { opacity:0; transform:scale(.96) translateY(-25px); }
     }
 
-    /* MOCKUP 3D DE DISPOSITIVO */
-    .device-mockup {
-      width: 920px; height: 980px; background: #0f172a; border-radius: 28px;
-      border: 1px solid rgba(255,255,255,.2);
-      box-shadow: 0 40px 120px rgba(0,0,0,.7), 0 0 60px rgba(212,165,89,.22);
+    /* MOCKUP CARD FLOATING (ESTILO TAL CUAL TESORERIA) */
+    .card-container {
+      perspective: 1200px; margin-top: 15px; margin-bottom: 45px;
+    }
+    .ui-card {
+      width: 760px; height: 860px; background: #0f172a; border-radius: 32px;
+      border: 1.5px solid rgba(255,255,255,.15);
+      box-shadow: 0 45px 110px rgba(0,0,0,.8), 0 0 60px rgba(124,58,237,.25);
       overflow: hidden; display: flex; flex-direction: column;
-      transform: perspective(1200px) rotateX(4deg);
-      transition: transform .5s ease;
     }
-    .device-bar {
-      height: 48px; background: #1e293b; border-bottom: 1px solid rgba(255,255,255,.1);
-      display: flex; align-items: center; padding: 0 18px; gap: 8px;
+    .ui-card-body { flex: 1; position: relative; overflow: hidden; background: #020617; }
+    .card-media {
+      width: 100%; height: 100%; object-fit: cover; object-position: top; display: block;
+      animation: smoothPan var(--dur,4s) ease-in-out infinite alternate;
     }
-    .dot-btn { width: 12px; height: 12px; border-radius: 50%; }
-    .dot-btn.red { background: #ef4444; }
-    .dot-btn.yellow { background: #f59e0b; }
-    .dot-btn.green { background: #10b981; }
-    .device-url {
-      margin-left: 12px; font-size: 14px; color: rgba(255,255,255,.6); font-family:'Inter',sans-serif;
-      background: rgba(0,0,0,.3); padding: 4px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,.05);
+    @keyframes smoothPan {
+      0% { transform: scale(1) translateY(0%); }
+      100% { transform: scale(1.05) translateY(-10%); }
     }
-
-    .device-body { flex: 1; position: relative; overflow: hidden; background: #020617; }
-    .device-img {
-      width: 100%; height: auto; display: block;
-      animation: panScroll var(--dur,4s) ease-in-out infinite alternate;
-    }
-    @keyframes panScroll {
-      0% { transform: translateY(0%) scale(1); }
-      100% { transform: translateY(-18%) scale(1.05); }
-    }
-    .device-fallback {
+    .card-fallback {
       width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 20px; background: linear-gradient(135deg, rgba(124,58,237,0.25) 0%, rgba(245,158,11,0.15) 100%);
+      background: linear-gradient(135deg, rgba(124,58,237,.3) 0%, rgba(15,23,42,1) 100%);
       font-size: 32px; font-weight: 700; color: #fff;
     }
-    .device-fallback .fb-icon { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
 
-    /* COPY INFERIOR */
-    .content-box {
-      width: 920px; margin-top: 60px; text-align: center; display: flex; flex-direction: column; align-items: center;
+    /* COPIES INFERIORES EDITORIALES CON INSTRUMENT SERIF */
+    .text-container {
+      width: 920px; text-align: center; display: flex; flex-direction: column; align-items: center;
     }
-    .badge {
-      display: inline-block; padding: 10px 24px; margin-bottom: 20px; border: 2px solid ${gold};
-      border-radius: 999px; color: ${gold}; font-family: 'Inter',sans-serif; font-weight: 800;
-      letter-spacing: .15em; font-size: 22px; text-transform: uppercase;
-      background: rgba(212,165,89,.1); backdrop-filter: blur(10px);
+    .pill-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 28px; margin-bottom: 22px; border-radius: 99px;
+      background: rgba(16,36,52,.75); border: 1.5px solid rgba(45,212,191,.5);
+      color: #2dd4bf; font-weight: 700; font-size: 19px; letter-spacing: .14em; text-transform: uppercase;
+      backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,.35);
     }
-    .title { font-size: 68px; line-height: 1.12; font-weight: 800; letter-spacing: -.5px; }
-    .title .head { color: #fff; }
-    .title .tail { color: ${gold}; font-style: italic; border-bottom: 5px solid ${gold}; padding-bottom: 2px; }
+    .serif-title {
+      font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
+      font-size: 82px; line-height: 1.08; font-weight: 400; color: #FFFFFF;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.7); margin-bottom: 12px;
+    }
+    .sub-copy {
+      font-size: 27px; line-height: 1.35; color: rgba(255,255,255,0.75); max-width: 860px; font-weight: 500;
+    }
 
-    .footer { position:absolute; bottom:60px; left:0; right:0; text-align:center;
-      font-family:'Inter',sans-serif; font-weight:600; font-size:26px; letter-spacing:.04em; color:rgba(255,255,255,.6); }
+    .footer { position:absolute; bottom:55px; left:0; right:0; text-align:center;
+      font-weight:600; font-size:24px; letter-spacing:.04em; color:rgba(255,255,255,.45); }
   </style></head><body>
     <div class="stage">
-      <div class="glow-1"></div>
-      <div class="glow-2"></div>
+      <div class="ambient-glow-1"></div>
+      <div class="ambient-glow-2"></div>
       ${dots()}
       <div class="progress">${segs}</div>
-      <div class="logo-bar">
-        ${logoSvg || (logoUrl ? `<img src="${logoUrl}" alt="logo" />` : `<span class="brand-text">${esc(brand.name || '')}</span>`)}
+      <div class="brand-header">
+        <div class="brand-icon">
+          <svg viewBox="0 0 100 100">
+            <path d="M 22 18 Q 50 10 78 18 Q 80 24 50 26 Q 20 24 22 18 Z M 30 18 Q 50 15 70 18 Q 68 22 50 23 Q 32 22 30 18 Z" fill-rule="evenodd" />
+            <path d="M 22 32 Q 50 25 78 32 Q 78 38 50 40 Q 22 38 22 32 Z M 30 32 Q 50 29 70 32 Q 68 36 50 37 Q 35 36 30 32 Z" fill-rule="evenodd" />
+            <path d="M 25 46 Q 50 40 75 46 Q 75 51 50 53 Q 25 51 25 46 Z M 33 46 Q 50 43 67 46 Q 65 49 50 50 Q 35 49 33 46 Z" fill-rule="evenodd" />
+            <path d="M 30 60 Q 50 54 70 60 Q 70 64 50 66 Q 30 64 30 60 Z M 37 60 Q 50 57 63 60 Q 61 63 50 63 Q 39 63 37 60 Z" fill-rule="evenodd" />
+            <path d="M 36 73 Q 50 68 64 73 Q 64 77 50 78 Q 36 77 36 73 Z" fill-rule="evenodd" />
+            <path d="M 44 84 Q 50 81 56 84 Q 54 88 50 89 Q 46 88 44 84 Z" fill-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="brand-title">sin vueltas <span>¡YA!</span></div>
       </div>
       ${cards}
       ${footer ? `<div class="footer">${esc(footer)}</div>` : ''}
@@ -201,7 +220,9 @@ export async function renderMockupReel(data, outPath, { runFfmpeg, tmpDir }) {
   const { chromium } = await import('playwright');
   const html = buildHtml(data);
   const total = reelDuration(data.slides || []);
-  const browser = await chromium.launch({ args: ['--no-sandbox'] });
+  const browser = await chromium.launch({
+    args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'],
+  });
   try {
     const context = await browser.newContext({
       viewport: { width: 1080, height: 1920 },
@@ -215,10 +236,12 @@ export async function renderMockupReel(data, outPath, { runFfmpeg, tmpDir }) {
     const video = page.video();
     await context.close();
     const webm = await video.path();
-    await runFfmpeg(['-y', '-i', webm, '-t', total.toFixed(2),
+    await runFfmpeg([
+      '-y', '-i', webm, '-t', total.toFixed(2),
       '-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-r', String(FPS),
       '-vf', `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=${FPS}`,
-      outPath]);
+      outPath,
+    ]);
     return outPath;
   } finally {
     await browser.close();

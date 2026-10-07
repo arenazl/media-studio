@@ -1,13 +1,13 @@
 // Paso 5 — STORYBOARD. Corre el molde `storyboard` (bifurca por tipo: filmado = planos/talking
 // heads con diálogo · animado = pantallas). Tarjetas de escena editables + chequeo cast↔escena.
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link2, Clapperboard } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { KitThumb, KitLightbox } from '../components/KitCapturas';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import { mediaKitParaMolde, pantallaDeEscena, type PantallaKit } from '../lib/mediaKit';
-import { escenasAPrompts, type Escena } from '../lib/comercial';
+import { escenasAPrompts, pasoHabilitado, type Escena } from '../lib/comercial';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
@@ -15,6 +15,20 @@ const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r
 export default function PasoStoryboard({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const storyboard = comercial?.storyboard;
+
+  // AUTO-GENERAR al entrar: sólo con el paso HABILITADO y el INSUMO DIRECTO del molde (el guion; el
+  // cast lo tolera vacío). Sin el gate, entrar al storyboard sin guion llamaba a la IA al pedo.
+  const hasAutoFired = useRef(false);
+  useEffect(() => {
+    const listo = !!comercial && pasoHabilitado(comercial, 'storyboard') && !!comercial.guion?.blocks?.length;
+    if (listo && !storyboard && !busy && !error && !hasAutoFired.current) {
+      hasAutoFired.current = true;
+      generar();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const escenas = comercial?.storyboard || [];
   const tipo = comercial?.tipo ?? 'filmado';
   // Duración REAL de la pieza (la suma de durSec del storyboard apunta acá): reel → formato → 20
@@ -27,12 +41,12 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
   const pantallas = project.pantallasKit || [];
   const [zoom, setZoom] = useState<PantallaKit | null>(null);
 
-  const generar = async () => {
+  const generar = async (provider?: 'claude' | 'gemini') => {
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
       const piece = { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec, ...(mediaKit ? { mediaKit } : {}) };
-      const res = await runMolde('storyboard', project, piece, {}, undefined, comercial);
+      const res = await runMolde('storyboard', project, piece, {}, undefined, comercial, provider);
       setComercial((c) => ({ ...c, storyboard: (res.escenas as Escena[]) || [], estados: { ...c.estados, storyboard: c.estados.storyboard === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };

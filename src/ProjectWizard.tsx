@@ -12,7 +12,7 @@ import { getFormato, tipoDesdeFormato } from './lib/formato';
 import { effectiveModel } from './lib/settings';
 import './ProjectWizard.css';
 
-interface Piece { id: string; objective?: string; angle?: string; durationSec?: number; creativeBrief?: string }
+interface Piece { id: string; objective?: string; angle?: string; durationSec?: number; creativeBrief?: string; messageScope?: string; primaryMessage?: string; supportingFacts?: string[] }
 interface Strategy { positioning?: string; pieces: Piece[] }
 
 // 1.2: usa la metadata de pantallas (kind/components/data) si vino del KB; si no, las screenshots legacy.
@@ -66,7 +66,7 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
             id: p.id || `reel-${i + 1}`, nombre: titulo, frases: 0, guion: [],
             objetivo: p.objective, angulo: p.angle, durationSec: p.durationSec,
             // El comercial nace con su ángulo → PasoConcepto lo usa como proxy diferenciado (no el título genérico).
-            comercial: { ...nuevoComercial(titulo, tipoPieza), formatoId: project.formatoId, angulo: p.angle, creativeBrief: p.creativeBrief },
+            comercial: { ...nuevoComercial(titulo, tipoPieza), formatoId: project.formatoId, angulo: p.angle, creativeBrief: p.creativeBrief, messageScope: p.messageScope, primaryMessage: p.primaryMessage, supportingFacts: p.supportingFacts },
           };
         });
       } catch { /* strategy falló → no bloquear el import; abajo se siembra un comercial base */ }

@@ -20,6 +20,8 @@ export type RolBloque = 'hook' | 'desarrollo' | 'gag' | 'cta';
 // ── Artefactos por paso ───────────────────────────────────────────────────────
 export interface Concepto {
   id: string;
+  topico?: string;           // Título grande del tópico/ángulo
+  tipoGancho?: string;       // Categoría creativa (ej: HUMOR DISRUPTIVO, VERDAD DOLOROSA)
   idea: string;              // una situación/gancho concreto
   tono: string;
   estetica: string;          // dirección visual (luz, paleta, estilo de foto)
@@ -123,6 +125,9 @@ export interface Comercial {
   formatoId?: string;                // WO-1: formato de salida (aspecto/plataforma/técnica) — id de FORMATOS_DEF (formato.ts). Ausente = proyectos viejos (default 9:16 filmado).
   angulo?: string;                   // C7: ángulo estratégico (de `strategy`) — proxy de diferenciación que alimenta el concepto
   creativeBrief?: string;            // C7: brief creativo por pieza (de `strategy`)
+  messageScope?: string;             // doctrina 2026-10-07: brand-global|problem|demo|benefit|proof|objection|conversion (de `strategy`)
+  primaryMessage?: string;           // el mensaje principal de ESTA pieza (de `strategy`)
+  supportingFacts?: string[];        // los hechos del brief que esta pieza usa (de `strategy`)
   estados: Record<PasoId, EstadoPaso>;
   concepto?: Concepto;               // paso 2
   guion?: GuionEstructurado;         // paso 3

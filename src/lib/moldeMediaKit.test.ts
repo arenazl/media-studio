@@ -37,7 +37,7 @@ describe('concept — el kit entra como materia prima', () => {
     const p = build('concept', { project: PROJECT, piece: {} }).prompt;
     expect(p).not.toContain('CAPTURAS REALES');
     expect(p).not.toContain('MOMENTOS');
-    expect(p.split('\n')[1]).toContain('Cada concepto: la IDEA');   // sin línea en blanco de más
+    expect(p.split('\n')[1]).toContain('Sos director creativo');   // sin línea en blanco de más
   });
 });
 
@@ -50,10 +50,11 @@ describe('script — el kit entra como materia prima', () => {
   it('SIN kit sigue byte-idéntico (1ª y 2ª línea exactas)', () => {
     const p = build('script', { project: PROJECT, piece: {} }).prompt;
     expect(p).not.toContain('CAPTURAS REALES');
-    expect(p.split('\n')[0]).toBe(
-      'Actuás como promo-director. Escribí el guion de un comercial de 18s para un reel 9:16, tono cercano.',
+    // prompt curado 2.0: preámbulo (línea 1), línea en blanco, y la línea del pedido (3ª) exacta
+    expect(p.split('\n')[0]).toContain('Trabajás dentro de un pipeline audiovisual');
+    expect(p.split('\n')[2]).toBe(
+      'Actuás como promo-director. Convertí el CONCEPTO ELEGIDO en un comercial de 18s para un reel 9:16, tono cercano.',
     );
-    expect(p.split('\n')[1]).toContain('ENFOQUE GLOBAL (clave)');
   });
 });
 
@@ -72,8 +73,10 @@ describe('storyboard — el kit entra en las dos técnicas', () => {
     const filmado = build('storyboard', { project: PROJECT, piece: { tipo: 'filmado' } }).prompt;
     expect(animado).not.toContain('CAPTURAS REALES');
     expect(filmado).not.toContain('CAPTURAS REALES');
-    expect(animado.split('\n')[1]).toContain('Por escena: n (número)');
-    expect(filmado.split('\n')[1]).toContain('Por escena: n, rol');
+    expect(animado.split('\n')[2]).toContain('Sos director de un reel ANIMADO');
+    expect(filmado.split('\n')[2]).toContain('Sos director de un comercial FILMADO');
+    expect(animado.split('\n')[3]).toBe('');   // sin kit, el bloque queda vacío y no corre las líneas
+    expect(filmado.split('\n')[3]).toBe('');
   });
 });
 

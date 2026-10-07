@@ -16,7 +16,7 @@ const scaleCrop = (w, h, fps) =>
   `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},fps=${fps},setsar=1`;
 const AF = 'aformat=sample_rates=44100:channel_layouts=stereo';
 const ms = (s) => Math.round(s * 1000);
-const CUT_DUR = 0.03, XFADE_DUR = 0.4, DUCK_GAIN = 0.4;
+const CUT_DUR = 0.03, XFADE_DUR = 0.4, DUCK_GAIN = 0.75;
 const XFADE_MAP = { fade: 'fade', crossfade: 'dissolve', wipe: 'wipeleft', zoom: 'zoomin', cut: 'fade' };
 const trDur = (tr) => (!tr || tr === 'cut' ? CUT_DUR : XFADE_DUR);
 const dur = (s) => Math.max(0, (Number(s.out) || 0) - (Number(s.in) || 0));
@@ -195,26 +195,9 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mstudio-render-'));
 
   try {
-    // 1. TTS & Alineación de duración de escenas
+    // 1. Duración de escenas (el campo `dialogo` es EXCLUSIVAMENTE para subtítulos/texto en pantalla)
+    // NO se genera TTS automático sobre `dialogo` para evitar la voz femenina no deseada sobre los clips del actor.
     const ttsInputs = {};
-    if (!process.env.ELEVENLABS_API_KEY) {
-      console.warn('[renderComercial] WARNING: ELEVENLABS_API_KEY no configurada — degradando a render sin voz TTS');
-    }
-    for (let i = 0; i < scenes.length; i++) {
-      const s = scenes[i];
-      if (s.dialogo && String(s.dialogo).trim() && !plan.voice?.src) {
-        const ttsFile = await generateSceneTts(String(s.dialogo).trim(), tmpDir, i);
-        if (ttsFile) {
-          ttsInputs[i] = ttsFile;
-          if (probeDuration) {
-            const ttsDur = await probeDuration(ttsFile);
-            if (ttsDur && ttsDur > dur(s)) {
-              s.out = (Number(s.in) || 0) + ttsDur + 0.2;
-            }
-          }
-        }
-      }
-    }
 
     // 2. Resolver inputs visuales y de audio principales
     const inputs = [];
@@ -258,7 +241,7 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
     }
 
     const starts = sceneStarts(scenes);
-    const total = totalDuration(scenes);
+    let total = totalDuration(scenes);
     const voiceDur = (voiceIdx >= 0 && probeDuration) ? (await probeDuration(inputs[voiceIdx]) || 0) : 0;
 
     const fc = [];
@@ -287,70 +270,14 @@ export async function renderComercial(plan, { runFfmpeg, storageDir, probeDurati
       vlabel = outLabel; accLen = accLen + dur(scenes[i]) - td;
     }
 
-    if (logoIdx >= 0) {
-      fc.push(`[${logoIdx}:v]scale=140:-1[logo]`, `${vlabel}[logo]overlay=46:${H - 160}[vlogo]`);
-      vlabel = '[vlogo]';
-    }
-
-    // 4. Copy en pantalla (drawtext): usa `dialogo` (copy), jamás `accion`
-    const font = resolveFont();
-    let textList = Array.isArray(plan.texts) ? [...plan.texts] : [];
-    if (!textList.length) {
-      scenes.forEach((s, i) => {
-        const copyText = s.dialogo && String(s.dialogo).trim() ? String(s.dialogo).trim() : null;
-        if (copyText) {
-          textList.push({ text: copyText, at: starts[i], dur: dur(s) });
-        }
-      });
-    }
-
-    if (textList.length && font) {
-      const ff = font.replace(/\\/g, '/').replace(/:/g, '\\:');
-      textList.forEach((t, i) => {
-        if (!t || !t.text) return;
-        const at = Number(t.at) || 0, d = Number(t.dur) || 3;
-        const x = t.nx != null ? `(w*${Number(t.nx).toFixed(3)})` : '(w-text_w)/2';
-        const y = t.ny != null ? `(h*${Number(t.ny).toFixed(3)})` : '(h*0.78)';
-        const outLabel = `[vt${i}]`;
-        fc.push(`${vlabel}drawtext=fontfile='${ff}':text='${escDrawText(t.text)}':fontcolor=white:fontsize=50:borderw=3:bordercolor=black@0.7:x=${x}:y=${y}:enable='between(t,${at.toFixed(3)},${(at + d).toFixed(3)})'${outLabel}`);
-        vlabel = outLabel;
-      });
-    }
-
-    // 5. Cadena de Audio: Clips + TTS local + Música + Ducking + Loudnorm (-16 LUFS)
-    const alabels = [];
-    scenes.forEach((s, i) => {
-      const map = sceneInputMap[i];
-      if (s.audio === 'keep' && map && map.idx >= 0 && !map.isImage) {
-        fc.push(`[${map.idx}:a]atrim=${(Number(s.in) || 0).toFixed(3)}:${(Number(s.out) || 0).toFixed(3)},asetpts=PTS-STARTPTS,adelay=${ms(starts[i])}:all=1,volume=${Number(s.audioGain) || 1},${AF}[as${i}]`);
-        alabels.push(`[as${i}]`);
-      }
-      if (ttsInputIndices[i] != null) {
-        const ttsIdx = ttsInputIndices[i];
-        fc.push(`[${ttsIdx}:a]adelay=${ms(starts[i])}:all=1,volume=1.5,${AF}[atts${i}]`);
-        alabels.push(`[atts${i}]`);
-      }
-    });
-
-    if (voiceIdx >= 0) {
-      fc.push(`[${voiceIdx}:a]adelay=${ms(plan.voice.at || 0)}:all=1,volume=1.4,${AF}[avoice]`);
-      alabels.push('[avoice]');
-    }
-
-    if (musicIdx >= 0) {
-      const ducks = plan.music.duck ? duckRanges(scenes, starts, plan.voice, voiceDur) : [];
-      const sils = silenceRanges(plan, scenes, starts);
-      const chain = [`volume=${Number(plan.music.gain) || 0.28}`, ...volEnables(ducks, DUCK_GAIN), ...volEnables(sils, 0), `afade=t=in:st=0:d=0.4`, AF].join(',');
-      fc.push(`[${musicIdx}:a]${chain}[amusic]`);
-      alabels.push('[amusic]');
-    }
+    total = accLen;
 
     let amap = null;
     if (alabels.length === 1) {
-      fc.push(`${alabels[0]}loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=out:st=${Math.max(0, total - 0.3).toFixed(3)}:d=0.3[a]`);
+      fc.push(`${alabels[0]}loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=out:st=${Math.max(0, total - 0.15).toFixed(3)}:d=0.15[a]`);
       amap = '[a]';
     } else if (alabels.length > 1) {
-      fc.push(`${alabels.join('')}amix=inputs=${alabels.length}:duration=longest:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=out:st=${Math.max(0, total - 0.3).toFixed(3)}:d=0.3[a]`);
+      fc.push(`${alabels.join('')}amix=inputs=${alabels.length}:duration=longest:dropout_transition=0:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=out:st=${Math.max(0, total - 0.15).toFixed(3)}:d=0.15[a]`);
       amap = '[a]';
     }
 

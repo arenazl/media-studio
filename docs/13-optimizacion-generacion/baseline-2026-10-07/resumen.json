@@ -1,0 +1,48 @@
+{
+  "reel": "Gancho & Problema",
+  "tipo": "filmado",
+  "pasos": [
+    {
+      "functionId": "concept",
+      "ms": 18655,
+      "ok": true,
+      "outChars": 2339
+    },
+    {
+      "functionId": "script",
+      "ms": 11327,
+      "ok": true,
+      "outChars": 999
+    },
+    {
+      "functionId": "cast",
+      "ms": 20425,
+      "ok": true,
+      "outChars": 2483
+    },
+    {
+      "functionId": "storyboard",
+      "ms": 26077,
+      "ok": true,
+      "outChars": 2289
+    },
+    {
+      "functionId": "flowpack",
+      "ms": 46986,
+      "ok": true,
+      "outChars": 8941
+    },
+    {
+      "functionId": "publish",
+      "ms": 9361,
+      "ok": true,
+      "outChars": 797
+    },
+    {
+      "functionId": "qa",
+      "ms": 35184,
+      "ok": true,
+      "outChars": 2599
+    }
+  ]
+}

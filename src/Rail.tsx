@@ -3,6 +3,7 @@
 // SOLO dentro de route==='project' (secciones del proyecto: pipeline/negocio/audio/videos/editor).
 import { Play, Home, LayoutTemplate, Share2, Video, AudioLines } from 'lucide-react';
 import { RAIL_ROUTES, railGroupFor, type Route } from './lib/routes';
+import RailSettings from './RailSettings';
 import './Rail.css';
 
 // Solo los 5 ítems que viven en el rail (los contextuales — project/wizard/editor — no entran acá).
@@ -35,6 +36,7 @@ export default function Rail({ route, onNavigate }: { route: Route; onNavigate: 
         })}
       </div>
       <div className="rail-spacer" />
+      <RailSettings />
       <div className="rail-avatar" title="Media Studio">MS</div>
     </nav>
   );

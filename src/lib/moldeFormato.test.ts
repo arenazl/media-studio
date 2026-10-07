@@ -4,7 +4,7 @@
 // directo (buildFunctionPrompt está exportado) — sin red, sin Claude.
 import { describe, it, expect } from 'vitest';
 // @ts-expect-error el módulo del server es .mjs sin tipos; el resolver de vitest lo carga igual.
-import { buildFunctionPrompt } from '../../server/functions.mjs';
+import { buildFunctionPrompt, parseFunctionResult } from '../../server/functions.mjs';
 
 interface Built { prompt: string }
 const build = (functionId: string, ctx: object, options: object = {}, regenerate?: object): Built =>
@@ -64,7 +64,7 @@ describe('concept — bifurcación por técnica de la pieza (filmado vs animado)
     const filmado = build('concept', { project: PROJECT, piece: { tipo: 'filmado' } }).prompt;
     expect(sinTipo).toBe(filmado);
     // 1ª y 2ª línea exactas: un proyecto viejo no puede haber cambiado NI UN BYTE.
-    expect(sinTipo.split('\n')[1]).toContain('Cada concepto: la IDEA');
+    expect(sinTipo.split('\n')[1]).toContain('Sos director creativo');
   });
 });
 
@@ -99,7 +99,7 @@ describe('script — la duración sale de la pieza (options.duracion ya no la pi
   it('la durationSec de la pieza manda en el prompt', () => {
     const p = build('script', { project: PROJECT, piece: { durationSec: 25 } }).prompt;
     expect(p).toContain('comercial de 25s');
-    expect(p).toContain('que entre en 25s');
+    expect(p).toContain('Total: 25s, máximo');
   });
   it('sin durationSec toma la default del formato (spot de 25s, no 20)', () => {
     const p = build('script', { project: PROJECT, piece: { formato: FMT_YT } }).prompt;
@@ -143,16 +143,21 @@ describe('strategy — parametrización por formato (nivel proyecto)', () => {
   });
 });
 
-describe('flowpack — parametrización por formato (VEO_RULES intacto)', () => {
-  it('SIN formato dice "comercial 9:16"', () => {
-    const p = build('flowpack', { project: PROJECT, piece: { storyboard: [], cast: null } }).prompt;
-    expect(p).toContain('comercial 9:16');
+describe('flowpack — parametrización por formato (pack COMPILADO desde la Fase 5)', () => {
+  const SB1 = [{ n: 1, rol: 'hook', durSec: 8, plano: 'medium shot waist-up', angulo: 'eye-level', personajes: [], accion: 'a', dialogo: '', continuidad: 'x' }];
+  it('SIN formato el estilo y las escenas son verticales 9:16', () => {
+    const body = { functionId: 'flowpack', context: { project: PROJECT, piece: { storyboard: SB1, cast: null } }, options: {} };
+    const out = parseFunctionResult('flowpack', '1| a', body);
+    expect(out.estilo).toContain('vertical 9:16');
+    expect(out.escenas[0].prompt).toContain('vertical 9:16');
   });
-  it('CON 16:9 dice "comercial 16:9" pero conserva VEO_RULES (talking head battle-tested)', () => {
-    const p = build('flowpack', { project: PROJECT, piece: { storyboard: [], cast: null, formato: FMT_YT } }).prompt;
-    expect(p).toContain('comercial 16:9');
-    // VEO_RULES no se toca: su bloque de estilo sigue diciendo "vertical 9:16".
-    expect(p).toContain('professional cinematic vertical 9:16');
+  it('CON 16:9 el estilo es horizontal 16:9 y conserva las reglas de Veo (b-roll, logo)', () => {
+    const body = { functionId: 'flowpack', context: { project: PROJECT, piece: { storyboard: SB1, cast: null, formato: FMT_YT } }, options: {} };
+    const out = parseFunctionResult('flowpack', '1| a', body);
+    expect(out.estilo).toContain('horizontal 16:9');
+    expect(out.estilo).not.toContain('9:16');
+    expect(out.escenas[0].prompt).toContain('No spoken dialogue, ambient sound only');
+    expect(out.escenas[0].prompt).toContain('brand logo overlay');
   });
 });
 
@@ -160,8 +165,8 @@ describe('retrocompat byte-idéntica del prompt completo (sin formato)', () => {
   // El prompt de un proyecto viejo (sin piece.formato) no puede haber cambiado NI UN BYTE.
   it('script sin formato: snapshot exacto de la 1ª línea', () => {
     const p = build('script', { project: PROJECT, piece: {} }).prompt;
-    expect(p.split('\n')[0]).toBe(
-      'Actuás como promo-director. Escribí el guion de un comercial de 18s para un reel 9:16, tono cercano.',
+    expect(p.split('\n')[2]).toBe(
+      'Actuás como promo-director. Convertí el CONCEPTO ELEGIDO en un comercial de 18s para un reel 9:16, tono cercano.',
     );
   });
 });
