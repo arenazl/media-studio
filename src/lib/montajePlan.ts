@@ -8,6 +8,12 @@ import { MUSIC_TRACKS, type MusicCat } from './music';
 
 export type Transicion = 'cut' | 'fade' | 'crossfade' | 'wipe' | 'zoom';
 
+// ── Montaje v2 (montajista + motor Remotion) — todo OPCIONAL: un plan sin estos campos renderiza como antes ──
+export interface PalabraTiempo { text: string; start: number; end: number }   // segundos, relativos al CLIP CRUDO
+export interface InsertoPantalla { atSec: number; durSec: number; src: string; nombre?: string }   // atSec relativo al clip crudo
+export interface PlacaFinal { linea1: string; linea2?: string; durSec: number; logoSrc?: string }
+export interface EstiloMarca { primario: string; acento: string; fondo: string; texto: string; fuenteTitulos?: string; fuenteTexto?: string }
+
 export interface MontajeScene {
   escenaN: number;
   src: string;                 // fileRef RELATIVO de la toma activa (public_id de saveAsset)
@@ -21,6 +27,11 @@ export interface MontajeScene {
   archivoCaptura?: string;     // WO-K4/K5: captura real del kit
   screen?: string;             // nombre/label de pantalla
   zonaClave?: string;          // zona para el zoompan de ffmpeg
+  // v2 (montajista): palabras del clip crudo, acercamiento digital e insertos de pantalla real
+  words?: PalabraTiempo[];
+  punchFrom?: number;
+  punchTo?: number;
+  inserts?: InsertoPantalla[];
 }
 
 export interface MontajePlan {
@@ -34,6 +45,10 @@ export interface MontajePlan {
   mediaKitId?: string;
   cta?: { principal?: string; url?: string; secundario?: string };
   marcaKit?: any;
+  // v2: con `motor: 'remotion'` el render y la vista previa usan la composición compartida (src/remotion)
+  motor?: 'remotion';
+  endCard?: PlacaFinal;
+  estilo?: EstiloMarca;
 }
 
 export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[] }

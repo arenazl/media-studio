@@ -47,6 +47,8 @@ import { scanMediaKits, readMediaKit, resolveKitFile, MEDIA_KIT_ROOT } from './m
 import { assemble } from './assemble.mjs';
 import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
+import { renderRemotion } from './renderRemotion.mjs';
+import { transcribirArchivo } from './transcribir.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
 // No pisa lo ya seteado en el entorno; ignora líneas vacías/comentadas.
@@ -1239,12 +1241,27 @@ ${src}`;
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error bajando el asset' }); }
     }
 
+    // ── Transcripción palabra por palabra de un clip del rodaje (montajista v2). Caché al lado del archivo. ──
+    if (p === '/api/transcribir' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const rel = String(body.fileRef || '');
+      const file = path.join(STORAGE_DIR, rel);
+      if (!rel || !path.resolve(file).startsWith(path.resolve(STORAGE_DIR))) return json(res, 400, { error: 'fileRef inválido' });
+      if (!fs.existsSync(file)) return json(res, 404, { error: 'no existe el clip' });
+      try {
+        return json(res, 200, await transcribirArchivo(file, { apiKey: process.env.ELEVENLABS_API_KEY }));
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error transcribiendo' }); }
+    }
+
     // ── Render del comercial final (Fase 4): MontajePlan → mp4 persistido en server/storage ──
+    //    plan.motor === 'remotion' (montajista v2) → composición compartida con la vista previa; si no, ffmpeg (v1.5).
     if (p === '/api/render-comercial' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
       if (!body.plan || !body.projectId) return json(res, 400, { error: 'falta plan o projectId' });
       try {
-        const { buffer, durationSec } = await renderComercial(body.plan, { runFfmpeg, storageDir: STORAGE_DIR, probeDuration });
+        const { buffer, durationSec } = body.plan.motor === 'remotion'
+          ? await renderRemotion(body.plan, { port: PORT, log: (m) => console.log('[media-studio] remotion:', m) })
+          : await renderComercial(body.plan, { runFfmpeg, storageDir: STORAGE_DIR, probeDuration });
         const folder = `${CLD_FOLDER}/${body.projectId}`;
         const saved = await saveAsset(buffer, `comercial-${body.reelId || 'x'}-${Date.now()}.mp4`, folder, 'video/mp4');
         return json(res, 200, { fileRef: saved.public_id, url: saved.secure_url, durationSec });

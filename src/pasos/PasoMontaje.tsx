@@ -2,13 +2,17 @@
 // en orden con su toma, audio keep/mute, música por mood, silencio antes del gag). "Exportar mp4"
 // llama al render server-side (video xfade + diálogo de clips + voz + música con ducking/silencio) y
 // registra el export en el comercial. Este es el botón de render que hoy NO existía.
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, lazy, Suspense } from 'react';
 import { Loader2, Clapperboard, Film, Download, Music2, VolumeX, Volume2, Gauge, Mic, Upload, X, ArrowRightToLine, Play, Pause } from 'lucide-react';
 import { API_BASE } from '../config';
 import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { mediaKitParaMolde } from '../lib/mediaKit';
-import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
+import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan, type PalabraTiempo } from '../lib/montajePlan';
+import { afinarMontaje } from '../lib/montajista';
+
+// La vista previa exacta (Player de Remotion) se carga sólo cuando hay un plan v2: no entra al bundle inicial.
+const PlayerMontaje = lazy(() => import('../remotion/PlayerMontaje'));
 import type { QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
 
@@ -35,6 +39,7 @@ async function rasterizeLogo(url: string): Promise<string | null> {
 
 export default function PasoMontaje({ project, reelId, comercial, setComercial, onGoEditor }: PasoProps & { onGoEditor?: () => void }) {
   const [rendering, setRendering] = useState(false);
+  const [armando, setArmando] = useState(false);
   const [error, setError] = useState('');
   const qa = comercial?.qa ?? null;   // C9: el QA vive en el comercial (persiste); antes era useState y se perdía al salir del paso
   const [qaBusy, setQaBusy] = useState(false);
@@ -83,18 +88,45 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   // Los avisos de "faltan clips" mandaban a importar en un paso que ese pipeline ni muestra.
   const esAnimado = comercial?.tipo === 'animado';
 
-  // Arma el plan desde el storyboard y le suma el logo del proyecto (rasterizado a PNG) para el overlay.
+  // Arma el plan desde el storyboard. FILMADO: el montajista lo afina con las palabras transcriptas de cada
+  // clip (recorta el aire, corta en frase, mete pantallas reales cuando la voz las nombra, placa final) y lo
+  // marca para el motor Remotion. ANIMADO: como antes (el reel ya viene renderizado), con el logo rasterizado.
   const armar = async () => {
-    const logoSrc = project.brandKit?.logoUrl ? await rasterizeLogo(project.brandKit.logoUrl) : null;
-    setComercial((c) => {
-      const plan = storyboardToMontaje(c);
-      const planL = logoSrc ? { ...plan, logo: { src: logoSrc } } : plan;
-      return {
+    if (!comercial) return;
+    setArmando(true); setError('');
+    try {
+      const base = storyboardToMontaje(comercial);
+      let planFinal: MontajePlan = base;
+      if (esAnimado) {
+        const logoSrc = project.brandKit?.logoUrl ? await rasterizeLogo(project.brandKit.logoUrl) : null;
+        planFinal = logoSrc ? { ...base, logo: { src: logoSrc } } : base;
+      } else {
+        const refs = [...new Set(base.scenes.map((s) => s.src).filter(Boolean))];
+        const pares = await Promise.all(refs.map(async (ref) => {
+          try {
+            const r = await fetch(`${API_BASE}/api/transcribir`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileRef: ref }) });
+            const d = await r.json();
+            return [ref, r.ok ? (d.words as PalabraTiempo[]) : undefined] as const;
+          } catch { return [ref, undefined] as const; }
+        }));
+        const colores = project.marcaKit?.colores;
+        planFinal = afinarMontaje(base, {
+          palabrasPorToma: Object.fromEntries(pares),
+          pantallas: project.pantallasKit,
+          cta: project.cta,
+          logoUrl: project.marcaKit?.logoUrl || project.brandKit?.logoUrl,
+          marca: { exacto: project.marcaKit?.nombreExacto || project.brandKit?.name, fonetica: project.marcaKit?.fonetica || project.brandKit?.phonetic },
+          estilo: colores?.primario
+            ? { primario: colores.primario, acento: colores.acento || '#F59E0B', fondo: colores.fondo || '#FAF7FF', texto: colores.texto || '#1E1B2E' }
+            : undefined,
+        });
+      }
+      setComercial((c) => ({
         ...c,
-        montaje: { plan: planL, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
+        montaje: { plan: planFinal, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
         estados: { ...c.estados, montaje: c.estados.montaje === 'aprobado' ? 'aprobado' : 'generado' },
-      };
-    });
+      }));
+    } catch (e) { setError(errMsg(e)); } finally { setArmando(false); }
   };
 
   const setMusica = (url: string) => setComercial((c) => {
@@ -186,11 +218,11 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       <div className="paso-head">
         <div className="paso-head-txt">
           <h2 className="paso-title">Montaje</h2>
-          <p className="paso-sub">Se arma solo desde el storyboard: clips en orden, diálogo de los actores, música con ducking y silencio antes del remate.</p>
+          <p className="paso-sub">Se arma solo desde el storyboard y el montajista lo afina: recorta el aire de cada clip, corta en frase, mete pantallas reales cuando la voz las nombra, subtitula palabra por palabra y cierra con la placa de la marca.</p>
         </div>
         <div className="paso-head-actions">
-          <button className={plan ? 'paso-regen' : 'paso-gen'} onClick={() => void armar()} disabled={rendering}>
-            <Clapperboard size={15} /> {plan ? 'Rearmar' : 'Armar desde el storyboard'}
+          <button className={plan ? 'paso-regen' : 'paso-gen'} onClick={() => void armar()} disabled={rendering || armando}>
+            {armando ? <Loader2 size={15} className="paso-spin" /> : <Clapperboard size={15} />} {armando ? 'Armando…' : plan ? 'Rearmar' : 'Armar el montaje'}
           </button>
           <button className="rodaje-var" onClick={onGoEditor} disabled={!onGoEditor} title="Ajustar pistas en el editor multipista">
             <ArrowRightToLine size={13} /> Al multipista
@@ -203,8 +235,20 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
         {plan ? (
           <>
           <div className="pack-bar">
-            <span className="pack-prog">{plan.scenes.length} escenas · {conClip} con clip · ~{totalDuration(plan).toFixed(1)}s</span>
+            <span className="pack-prog">{plan.scenes.length} escenas · {conClip} con clip · ~{totalDuration(plan).toFixed(1)}s{plan.motor === 'remotion' ? ` · ${plan.scenes.reduce((n, s) => n + (s.inserts?.length || 0), 0)} insertos de pantalla` : ''}</span>
           </div>
+
+          {/* VISTA PREVIA EXACTA (plan v2): el Player corre la misma composición que renderiza el servidor */}
+          {plan.motor === 'remotion' && conClip > 0 && (
+            <div className="mont-preview">
+              <div className="paso-card-h"><Play size={12} /> Vista previa exacta: lo que ves es lo que se renderiza</div>
+              <div className="mont-preview-frame">
+                <Suspense fallback={<div className="paso-empty">Cargando la vista previa…</div>}>
+                  <PlayerMontaje plan={plan} />
+                </Suspense>
+              </div>
+            </div>
+          )}
 
           {/* MINI-TIMELINE NLE: bloques proporcionales a duración + pistas de música y voz */}
           <div className="mont-nle">
@@ -407,13 +451,17 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           <button className="rodaje-import mont-qa-btn" onClick={chequear} disabled={qaBusy || rendering}>
             {qaBusy ? <Loader2 size={13} className="paso-spin" /> : <Gauge size={13} />} Chequear calidad
           </button>
+          {/* El botón de render se había perdido en la reingeniería (408108c): `exportar` quedó sin uso. */}
+          <button className="paso-approve mont-export" onClick={() => void exportar()} disabled={rendering || armando || !plan || conClip === 0} title="Renderiza el mp4 final con el motor del montaje">
+            {rendering ? <Loader2 size={15} className="paso-spin" /> : <Download size={15} />} {rendering ? 'Renderizando…' : 'Renderizar mp4'}
+          </button>
           {onGoEditor && (
             <button
               className="paso-approve mont-export"
               style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: '#FFF' }}
               onClick={onGoEditor}
             >
-              <Film size={15} /> 🚀 Ir al Editor Multipista (Pantalla Completa)
+              <Film size={15} /> Ir al Editor Multipista (Pantalla Completa)
             </button>
           )}
         </div>

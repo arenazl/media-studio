@@ -16,9 +16,14 @@
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
+    "@remotion/bundler": "^4.0.534",
+    "@remotion/google-fonts": "^4.0.534",
+    "@remotion/player": "^4.0.534",
+    "@remotion/renderer": "^4.0.534",
     "lucide-react": "^0.460.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.534"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
