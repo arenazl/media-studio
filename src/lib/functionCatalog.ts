@@ -202,6 +202,17 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     taskClass: 'transformacion',
     options: [],
   },
+  {
+    // Línea animada (2026-10-09): el dueño describe el reel con sus palabras y salen las escenas de mockups
+    // sobre las pantallas del kit. La UI del paso Render arma options.descripcion; no se elige desde el pipeline.
+    id: 'mockupsTexto',
+    label: 'Reel desde tu descripción',
+    icon: 'MessageSquareText',
+    level: 'piece',
+    description: 'Convierte una descripción libre del reel en escenas de mockups sobre las pantallas reales del kit.',
+    taskClass: 'estructurado',
+    options: [],
+  },
 ];
 
 // helpers de lectura para la UI

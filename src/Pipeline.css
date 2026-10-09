@@ -771,3 +771,8 @@ html[data-theme="light"] {
 /* ── Montaje v2: vista previa exacta (Player de Remotion = misma composición que el render) ── */
 .mont-preview { margin: 10px 0 14px; }
 .mont-preview-frame { max-width: 320px; margin: 8px auto 0; }
+
+/* ── Render animado: describir el reel con las palabras del dueño ── */
+.mont-describir { margin-bottom: 14px; }
+.mont-describir-texto { min-height: 96px; margin-top: 8px; }
+.mont-describir-acciones { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; flex-wrap: wrap; }

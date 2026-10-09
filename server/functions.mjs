@@ -900,7 +900,90 @@ ${brief}` };
       return o;
     },
   },
+
+  // ── MOCKUPSTEXTO (línea animada, 2026-10-09) — el dueño describe el reel con sus palabras y de ahí salen
+  // las escenas del storyboard animado sobre las pantallas REALES del kit. Atajo directo a Render: la
+  // descripción manda el orden y qué se destaca; el molde sólo estructura, no inventa pantallas ni datos.
+  // El storyboard decide si una escena es de pantalla (`screen` = nombre exacto del kit) o de título ("").
+  mockupsTexto: {
+    build({ context = {}, options = {} }) {
+      const descripcion = String(options.descripcion || '').trim();
+      if (!descripcion) throw new Error('falta la descripción del reel (options.descripcion)');
+      const project = context.project || {};
+      const piece = context.piece || {};
+      const name = project.name || 'el producto';
+      const asp = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
+      const bloqueKit = mediaKitText(piece);
+      const cta = piece.mediaKit?.cta;
+      const ctaTxt = cta && (cta.principal || cta.url) ? [cta.principal, cta.url].filter(Boolean).join(' · ') : '(no hay CTA verificado: el título de cierre sale de la descripción)';
+      return { prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: convertí la DESCRIPCIÓN DEL DUEÑO en las ESCENAS de un reel ANIMADO de mockups sobre las pantallas reales del producto. No inventes funciones ni pantallas.
+
+Sos director de un reel ANIMADO ${asp}, sin personas filmadas: cada escena es o una PANTALLA real del producto con un título corto, o un TÍTULO solo (sin pantalla) para abrir, cerrar o decir una idea.
+${bloqueKit}
+PRINCIPIO:
+La descripción del dueño manda: el orden, qué se muestra y qué se destaca salen de ahí, con sus palabras. Una escena = un momento visual claro. Usá sólo las escenas necesarias para contar lo que describió: mínimo 3, máximo 8.
+
+POR ESCENA:
+- n: consecutivo desde 1.
+- rol: hook (la primera), desarrollo, gag (opcional, el remate), cta (la última, siempre).
+- screen: si la escena muestra una pantalla o función que está en CAPTURAS REALES, el nombre EXACTO de esa captura. Si es una apertura, un cierre o una idea sin pantalla, "".
+- durSec: entre 3 y 5 (número).
+- accion: el título visible, de 2 a 6 palabras, en español rioplatense (voseo), sin markdown.
+- continuidad: la palabra o par de palabras del título que se resalta; tiene que estar escrita IGUAL dentro de accion. Una por escena.
+- dialogo: UNA frase de narración de 6 a 14 palabras que explica ese momento con las palabras del dueño; "" si el dueño no dijo nada de ese momento. En la escena cta, dialogo = "" (la placa final ya muestra el CTA y el dominio; no repitas la URL en ningún texto).
+- plano: "". angulo: "". personajes: [].
+
+NO ASUMIR:
+- pantallas que no estén en CAPTURAS REALES: si el dueño pide una que no existe, hacé esa escena de título (screen "");
+- funciones, cifras o resultados que el dueño no mencionó;
+- datos "plausibles": si no está en la descripción ni en las capturas, no va.
+
+Devolvé SOLO JSON:
+{ "escenas": [{ "n": 1, "rol": "hook", "durSec": 3, "screen": "", "plano": "", "angulo": "", "personajes": [], "accion": "...", "dialogo": "...", "continuidad": "..." }] }
+
+NEGOCIO: ${name}
+CTA DEL CIERRE: ${ctaTxt}
+DESCRIPCIÓN DEL DUEÑO:
+${descripcion}` };
+    },
+    parse(text, body) {
+      const o = extractJson(text);
+      const piece = (body && body.context && body.context.piece) || {};
+      const pantallas = Array.isArray(piece.mediaKit?.pantallas) ? piece.mediaKit.pantallas : [];
+      return { escenas: escenasMockupDesdeTexto(o?.escenas, pantallas) };
+    },
+  },
 };
+
+// Valida y normaliza las escenas del molde mockupsTexto. A diferencia de `asignarCapturas`, acá NO se
+// reparte una captura "por turno" a las escenas sin pantalla: sin coincidencia, la escena es de título.
+export function escenasMockupDesdeTexto(escenas, pantallas = []) {
+  if (!Array.isArray(escenas) || escenas.length < 1) throw new Error('la descripción no alcanzó para armar escenas');
+  const ROLES = new Set(['hook', 'desarrollo', 'gag', 'cta']);
+  const limpiar = (s) => String(s || '').replace(/[*_`#]+/g, '').replace(/\s+/g, ' ').trim();
+  const out = escenas.slice(0, 8).map((e, i) => {
+    const accion = limpiar(e.accion);
+    if (!accion) throw new Error(`la escena ${i + 1} vino sin título`);
+    const rol = ROLES.has(e.rol) ? e.rol : (i === 0 ? 'hook' : 'desarrollo');
+    const durSec = Math.min(5, Math.max(3, Number(e.durSec) || 4));
+    const pedido = normLabel(e.screen);
+    const p = pedido
+      ? pantallas.find((x) => normLabel(x.nombre) === pedido)
+        || pantallas.find((x) => normLabel(x.nombre).includes(pedido) || pedido.includes(normLabel(x.nombre)))
+      : null;
+    const resaltar = limpiar(e.continuidad);
+    const continuidad = resaltar && accion.toLowerCase().includes(resaltar.toLowerCase()) ? resaltar : '';
+    // sin URLs ni separadores sueltos (el modelo tiende a pegar el CTA con su dominio en la narración del cierre)
+    const dialogo = limpiar(e.dialogo).replace(/https?:\/\/\S+|www\.\S+/gi, '').replace(/\s*[·|•-]+\s*$/, '').trim().split(' ').filter(Boolean).slice(0, 20).join(' ');
+    return {
+      n: i + 1, rol, durSec, plano: '', angulo: '', personajes: [],
+      accion, dialogo, continuidad,
+      ...(p ? { screen: p.nombre, archivoCaptura: p.archivo } : {}),
+    };
+  });
+  if (out[out.length - 1].rol !== 'cta') out[out.length - 1] = { ...out[out.length - 1], rol: 'cta' };
+  return out.map((e) => (e.rol === 'cta' ? { ...e, dialogo: '' } : e));   // la placa ya dice el CTA
+}
 
 export function buildFunctionPrompt({ functionId, context, options, regenerate }) {
   const runner = RUNNERS[functionId];

@@ -3,12 +3,14 @@
 // motor Remotion del servidor (/api/render-mockups) y el mp4 queda en comercial.renderRef → habilita el MONTAJE
 // (voz + música sobre el render, igual que filmado).
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Loader2, Clapperboard, Film, ArrowRight, Play } from 'lucide-react';
+import { Loader2, Clapperboard, Film, ArrowRight, Play, MessageSquareText } from 'lucide-react';
 import { API_BASE } from '../config';
-import { errMsg, PasoEmpty, type PasoProps } from './pasoKit';
+import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { armarMockups } from '../lib/mockups';
 import { getFormato } from '../lib/formato';
+import { mediaKitParaMolde } from '../lib/mediaKit';
+import type { Escena } from '../lib/comercial';
 
 const PlayerMockups = lazy(() => import('../remotion/PlayerMockups'));
 
@@ -36,7 +38,30 @@ function useProporciones(srcs: string[]): Record<string, number> {
 export default function PasoRender({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [describiendo, setDescribiendo] = useState(false);
+  const [descripcion, setDescripcion] = useState(comercial?.descripcionReel || '');
   const renderRef = comercial?.renderRef;
+
+  // El dueño describe el reel con sus palabras (dictado o escrito) → molde mockupsTexto → escenas sobre el kit.
+  const armarDesdeDescripcion = async () => {
+    if (!comercial || !descripcion.trim()) return;
+    setDescribiendo(true); setError('');
+    try {
+      const reel = project.reels.find((r) => r.id === reelId);
+      const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
+      const res = await runMolde('mockupsTexto', project, {
+        tipo: 'animado', durationSec: reel?.durationSec, ...(mediaKit ? { mediaKit } : {}),
+      }, { descripcion: descripcion.trim() }, undefined, comercial);
+      const escenasNuevas = (res as { escenas?: Escena[] }).escenas;
+      if (!escenasNuevas?.length) throw new Error('la descripción no alcanzó para armar escenas');
+      setComercial((c) => ({
+        ...c,
+        storyboard: escenasNuevas,
+        descripcionReel: descripcion.trim(),
+        estados: { ...c.estados, storyboard: c.estados.storyboard === 'aprobado' ? 'aprobado' : 'generado' },
+      }));
+    } catch (e) { setError(errMsg(e)); } finally { setDescribiendo(false); }
+  };
   const escenas = useMemo(() => comercial?.storyboard || [], [comercial?.storyboard]);
   const pantallas = useMemo(() => project.pantallasKit || [], [project.pantallasKit]);
   const logoUrl = project.marcaKit?.logoUrl || project.brandKit?.logoUrl;
@@ -95,8 +120,26 @@ export default function PasoRender({ project, reelId, comercial, setComercial, g
       </div>
       {error && <div className="paso-error">{error}</div>}
       <div className="paso-body">
+        {/* Atajo: describir el reel con las palabras del dueño y armar las escenas sobre las pantallas del kit */}
+        <div className="paso-card mont-describir">
+          <div className="paso-card-h"><MessageSquareText size={12} /> Describí el reel con tus palabras</div>
+          <textarea
+            className="paso-inline mont-describir-texto"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Qué querés mostrar y en qué orden. Nombrá las pantallas del kit y qué destacar de cada una. Ejemplo: arrancá con un título, mostrá el tablero con los reclamos abiertos, después la lista de reclamos con su estado, y cerrá con pedí una demo."
+            rows={4}
+            disabled={describiendo}
+          />
+          <div className="mont-describir-acciones">
+            <span className="pack-prog">{pantallas.length ? `${pantallas.length} pantallas en el kit` : 'sin pantallas en el kit: las escenas saldrán como títulos'}</span>
+            <button className="rodaje-import" onClick={() => void armarDesdeDescripcion()} disabled={describiendo || busy || !descripcion.trim()}>
+              {describiendo ? <Loader2 size={13} className="paso-spin" /> : <MessageSquareText size={13} />} {describiendo ? 'Armando las escenas…' : escenas.length ? 'Rearmar las escenas desde la descripción' : 'Armar las escenas'}
+            </button>
+          </div>
+        </div>
         {!plan ? (
-          <PasoEmpty icon={Film}>Primero generá el storyboard (animado) para poder renderizar el reel.</PasoEmpty>
+          <PasoEmpty icon={Film}>Describí el reel arriba, o generá el storyboard (animado), para poder renderizar.</PasoEmpty>
         ) : (
           <>
             <div className="pack-bar">

@@ -17,6 +17,7 @@ export const PROMPT_VERSIONS = {
   qa: 'qa/1.1',                   // 1.1: lint técnico + juicio creativo
   videoprompt: 'videoprompt/1.0',
   briefToKb: 'briefToKb/1.0',
+  mockupsTexto: 'mockupsTexto/1.0', // 1.0: el dueño describe el reel con sus palabras → escenas de mockups sobre el kit (2026-10-09)
 };
 
 // ── Presupuesto de palabras ────────────────────────────────────────────────────────────────

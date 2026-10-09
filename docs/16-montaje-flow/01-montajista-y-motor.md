@@ -69,6 +69,21 @@ storyboard animado, lo muestra EXACTO en el Player y lo renderiza con Remotion. 
 `server/mockupReel.mjs` y `/api/mockup-reel` quedan en el repo sin uso desde el front (compatibilidad).
 Verificado con Playwright sobre la interfaz: Render (29 s para 816 cuadros) → Montaje → mp4 de 27,2 s a -14,0 LUFS.
 
+## Etapa 3 (misma fecha): "describilo con tus palabras" antes de renderizar
+
+**Para el dueño.** Lucas pidió describir el reel entero con sus palabras (dictado o escrito) y que de ahí salgan
+las escenas con las pantallas del kit, ver la vista previa y recién después renderizar. Quedó como una caja arriba
+del paso Render: "Describí el reel con tus palabras" → "Armar las escenas".
+
+| Pieza | Qué hace |
+|---|---|
+| Molde `mockupsTexto` (`server/functions.mjs`, versión `mockupsTexto/1.0`) | Prompt según el estándar 25 de la compartida: preámbulo, las capturas reales del kit con su nombre exacto, por escena largos en números (título 2 a 6 palabras, narración 6 a 14), NO ASUMIR (pantallas que no están en el kit → escena de título; nada de cifras ni funciones no dichas), el CTA verificado para el cierre. Entrada: `options.descripcion` + `piece.mediaKit`. |
+| `escenasMockupDesdeTexto` (parse) | Valida y normaliza sin inventar: roles, duración 3 a 5 s, `screen` sólo si coincide con una captura del kit (sin reparto por turno como hace `asignarCapturas`), `continuidad` sólo si está dentro del título, narración sin URLs y vacía en el cierre, máximo 8 escenas, la última siempre `cta`. |
+| `PasoRender.tsx` | Caja de texto (persistida en `comercial.descripcionReel`), botón "Armar las escenas" → `runMolde('mockupsTexto', …)` → reemplaza `comercial.storyboard` → el plan de mockups y la vista previa se rearman solos. Catálogo: `functionCatalog.ts` (`taskClass: 'estructurado'`). |
+
+Verificado sobre la interfaz: una descripción de 5 oraciones (título, dashboard, reclamos, tesorería, demo) → 5
+escenas, 3 con pantalla real correctamente elegidas, en 11 s con Sonnet (USD 0,03) → render de 22 s.
+
 ## Pendiente / siguiente etapa
 
 - **Voz en la línea animada**: generar la locución desde el storyboard y sincronizar el texto palabra por palabra
