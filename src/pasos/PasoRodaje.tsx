@@ -83,14 +83,26 @@ export default function PasoRodaje({ project, comercial, setComercial, goNext }:
                           clip {act.durSec.toFixed(1)}s{warn ? ` · la escena pide ${e.durSec}s` : ''}
                         </div>
                       )}
-                      <button className="rodaje-import rodaje-bin-replace" onClick={() => inputs.current[e.n]?.click()} disabled={busyN === e.n}>
+                      <button
+                        className="rodaje-import rodaje-bin-replace"
+                        onClick={() => inputs.current[e.n]?.click()}
+                        disabled={busyN === e.n}
+                        onDragOver={(ev) => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; }}
+                        onDrop={(ev) => { ev.preventDefault(); const f = ev.dataTransfer.files?.[0]; if (f && f.type.startsWith('video/')) importar(e.n, f); }}
+                      >
                         {busyN === e.n ? <Loader2 size={13} className="paso-spin" /> : <Check size={13} />} {busyN === e.n ? 'Subiendo…' : 'Reemplazar'}
                       </button>
                     </>
                   ) : (
-                    <button className="rodaje-drop" onClick={() => inputs.current[e.n]?.click()} disabled={busyN === e.n}>
+                    <button
+                      className="rodaje-drop"
+                      onClick={() => inputs.current[e.n]?.click()}
+                      disabled={busyN === e.n}
+                      onDragOver={(ev) => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; }}
+                      onDrop={(ev) => { ev.preventDefault(); const f = ev.dataTransfer.files?.[0]; if (f && f.type.startsWith('video/')) importar(e.n, f); }}
+                    >
                       {busyN === e.n ? <Loader2 size={22} className="paso-spin" /> : <Upload size={22} />}
-                      <span className="rodaje-drop-t">{busyN === e.n ? 'Subiendo…' : 'Importar clip'}</span>
+                      <span className="rodaje-drop-t">{busyN === e.n ? 'Subiendo…' : 'Importar clip o arrastralo acá'}</span>
                       <span className="rodaje-drop-sub">escena #{e.n} · {e.durSec}s objetivo</span>
                     </button>
                   )}

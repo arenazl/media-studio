@@ -2,6 +2,8 @@
 import { Composition } from 'remotion';
 import { Comercial, type ComercialProps } from './Comercial';
 import { Mockups, type MockupsProps } from './Mockups';
+import { MunifyTarjetas, type TarjetasProps, type PlanTarjetas } from './munify/Tarjetas';
+import planMunify from './munify/plan-munify.json';
 import { derivarRender } from './derivar';
 import { derivarMockups } from './derivarMockups';
 import { ESTILO_OSCURO } from '../lib/mockups';
@@ -36,6 +38,20 @@ export const RemotionRoot: React.FC = () => (
       calculateMetadata={({ props }: { props: MockupsProps }) => {
         const r = derivarMockups(props.plan, props.base || '');
         return { durationInFrames: r.totalFrames, fps: r.fps, width: r.width, height: r.height };
+      }}
+    />
+    <Composition
+      id="MunifyTarjetas"
+      component={MunifyTarjetas}
+      defaultProps={{ plan: planMunify as unknown as PlanTarjetas }}
+      durationInFrames={30}
+      fps={30}
+      width={1080}
+      height={1920}
+      calculateMetadata={({ props }: { props: TarjetasProps }) => {
+        const fps = props.plan.fps || 30;
+        const total = props.plan.escenas.reduce((n, e) => n + Math.round(e.durSec * fps), 0) + Math.round(props.plan.placa.durSec * fps);
+        return { durationInFrames: Math.max(1, total), fps, width: props.plan.width, height: props.plan.height };
       }}
     />
   </>

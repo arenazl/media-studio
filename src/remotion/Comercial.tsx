@@ -10,6 +10,7 @@ import type { MontajePlan } from '../lib/montajePlan';
 import { derivarRender, volumenMusica, type InsertoRender, type PaginaSubtitulo, type PlanRender, type SegmentoRender } from './derivar';
 
 const { fontFamily: sans } = loadSans('normal', { weights: ['600', '700', '800'], subsets: ['latin', 'latin-ext'] });
+const { fontFamily: serif } = loadSerif('normal', { weights: ['400'], subsets: ['latin', 'latin-ext'] });
 const { fontFamily: serifItalic } = loadSerif('italic', { weights: ['400'], subsets: ['latin', 'latin-ext'] });
 
 // type (no interface): el Player y la Composition exigen props asignables a Record<string, unknown>.
@@ -103,20 +104,31 @@ const Logo: React.FC<{ src: string; width: number }> = ({ src, width }) => {
   );
 };
 
-const PlacaFinal: React.FC<{ card: NonNullable<PlanRender['endCard']>; estilo: PlanRender['estilo']; width: number }> = ({ card, estilo, width }) => {
+// Placa final con el mismo sistema que las tarjetas de Munify: noche con estrellas, isotipo chico con el nombre en
+// serif, la llamada en serif cursiva, el dominio como botón dorado. Nada de degradé de marca a pantalla completa.
+const ESTRELLAS = Array.from({ length: 60 }, (_, i) => ({ x: (i * 73) % 100, y: (i * 37) % 100, r: 1 + (i % 3), f: 0.2 + ((i * 11) % 10) / 10 }));
+const PlacaFinal: React.FC<{ card: NonNullable<PlanRender['endCard']>; estilo: PlanRender['estilo']; width: number; nombre?: string }> = ({ card, estilo, width, nombre }) => {
   const frame = useCurrentFrame();
-  const a = interpolate(frame, [0, 9], [0, 1], { extrapolateRight: 'clamp' });
+  const a = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: 'clamp' });
   const up = interpolate(frame, [4, 24], [26, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
   const b = interpolate(frame, [10, 24], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const u = width / 1080;
+  const oro = '#F2B84B';
+  const [r, g, bl] = [parseInt(estilo.primario.slice(1, 3), 16), parseInt(estilo.primario.slice(3, 5), 16), parseInt(estilo.primario.slice(5, 7), 16)];
   return (
-    <AbsoluteFill style={{ background: `linear-gradient(180deg, ${estilo.primario} 0%, ${estilo.texto} 160%)`, justifyContent: 'center', alignItems: 'center', opacity: a, padding: `0 ${80 * u}px` }}>
-      {card.logoSrc ? <Img src={card.logoSrc} style={{ width: 620 * u, transform: `translateY(${up}px)` }} /> : null}
-      <div style={{ marginTop: 80 * u, fontFamily: serifItalic, fontSize: (card.linea1.length > 26 ? 72 : 96) * u, color: '#fff', textAlign: 'center', lineHeight: 1.1, opacity: b, transform: `translateY(${up * 1.3}px)` }}>
+    <AbsoluteFill style={{ background: `radial-gradient(70% 45% at 50% 20%, rgba(${r},${g},${bl},0.35) 0%, rgba(0,0,0,0) 70%), linear-gradient(180deg, #0E2140 0%, #0A1428 50%, #060B16 100%)`, justifyContent: 'center', alignItems: 'center', opacity: a, padding: `0 ${80 * u}px` }}>
+      {ESTRELLAS.map((s, i) => (
+        <div key={i} style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: s.r * 2 * u, height: s.r * 2 * u, borderRadius: '50%', background: '#fff', opacity: 0.25 + 0.45 * Math.abs(Math.sin((frame / 30) * s.f * 2 + i)) }} />
+      ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 22 * u, transform: `translateY(${up}px)` }}>
+        {card.logoSrc ? <Img src={card.logoSrc} style={{ height: 96 * u, maxWidth: 300 * u, objectFit: 'contain' }} /> : null}
+        {nombre ? <span style={{ fontFamily: serif, fontSize: 96 * u, color: '#fff', letterSpacing: -1 }}>{nombre}</span> : null}
+      </div>
+      <div style={{ marginTop: 70 * u, fontFamily: serifItalic, fontSize: (card.linea1.length > 26 ? 72 : 88) * u, color: '#fff', textAlign: 'center', lineHeight: 1.1, opacity: b, transform: `translateY(${up * 1.3}px)` }}>
         {card.linea1}
       </div>
       {card.linea2 ? (
-        <div style={{ marginTop: 40 * u, fontFamily: sans, fontWeight: 700, fontSize: 42 * u, color: estilo.acento, letterSpacing: 0.3, opacity: b, textAlign: 'center' }}>
+        <div style={{ marginTop: 44 * u, padding: `${18 * u}px ${40 * u}px`, borderRadius: 999, background: oro, color: '#1a1206', fontFamily: sans, fontWeight: 800, fontSize: 32 * u, boxShadow: `0 20px 60px ${oro}55`, opacity: b }}>
           {card.linea2}
         </div>
       ) : null}
@@ -146,7 +158,7 @@ export const Comercial: React.FC<ComercialProps> = ({ plan, base = '' }) => {
       <Subtitulos pages={r.captions} acento="#FBBF24" width={r.width} height={r.height} />
       {r.endCard ? (
         <Sequence from={r.endCard.from} durationInFrames={r.endCard.dur} name="placa final">
-          <PlacaFinal card={r.endCard} estilo={r.estilo} width={r.width} />
+          <PlacaFinal card={r.endCard} estilo={r.estilo} width={r.width} nombre={plan.marcaNombre} />
         </Sequence>
       ) : null}
       {r.voice ? (

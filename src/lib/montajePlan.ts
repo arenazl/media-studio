@@ -70,6 +70,7 @@ export interface MontajePlan {
   motor?: 'remotion';
   endCard?: PlacaFinal;
   estilo?: EstiloMarca;
+  marcaNombre?: string;       // se escribe al lado del logo cuando el logo es sólo isotipo
 }
 
 export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[] }

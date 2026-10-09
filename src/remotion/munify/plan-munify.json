@@ -1,0 +1,14 @@
+{
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "logoSrc": "https://app.munify.com.ar/brand/Munify.svg",
+  "escenas": [
+    { "tipo": "titulo", "durSec": 3.2, "chip": "Reclamos", "titulo": "El bache de la esquina ya tiene solución.", "resaltar": "ya tiene solución", "sub": "Un vecino lo reporta desde el celular, con foto y ubicación." },
+    { "tipo": "semaforo", "durSec": 6, "chip": "Seguimiento", "titulo": "Lo seguís como un envío", "resaltar": "como un envío", "sub": "Recibido, en curso, resuelto. El vecino ve cada paso." },
+    { "tipo": "tramite", "durSec": 6.5, "chip": "Trámites", "titulo": "Trámites sin pisar el municipio", "resaltar": "sin pisar", "sub": "Identidad validada con RENAPER, desde el celular." },
+    { "tipo": "mapa", "durSec": 4.5, "chip": "Mapa de calor", "titulo": "Dónde están los problemas", "resaltar": "los problemas", "sub": "La concentración de reclamos por zona, en vivo." },
+    { "tipo": "dashboard", "durSec": 5, "chip": "Dashboard", "titulo": "Goberná con datos", "resaltar": "con datos", "sub": "Reclamos, trámites y tiempos de resolución en una pantalla." }
+  ],
+  "placa": { "linea1": "Tu ciudad te escucha.", "linea2": "Pedí una demo para tu municipio", "durSec": 3.2 }
+}
