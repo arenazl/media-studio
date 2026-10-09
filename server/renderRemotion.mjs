@@ -84,7 +84,9 @@ async function renderComposicion({ id, inputProps, root = process.cwd(), log = (
   });
   log(`${id}: ${composition.durationInFrames} cuadros en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   if (normalizar) await normalizarVolumen(raw, out);
-  else await ffmpeg(['-y', '-i', raw, '-c', 'copy', '-movflags', '+faststart', out]);
+  // sin audio (mockups): el mp4 vuelve a entrar al motor como clip del montaje. Keyframe cada segundo para que el
+  // compositor de Remotion lo pueda buscar sin fallar ("No frame found at position" con GOP de 8 s) y rápido.
+  else await ffmpeg(['-y', '-i', raw, '-c:v', 'libx264', '-crf', '18', '-preset', 'medium', '-g', '30', '-keyint_min', '30', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', out]);
   const buffer = fs.readFileSync(out);
   fs.rmSync(tmp, { recursive: true, force: true });
   return { buffer, durationSec: composition.durationInFrames / composition.fps };

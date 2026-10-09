@@ -627,6 +627,11 @@ function streamFile(req, res, file) {
   }
 }
 
+// Un render de Remotion que muere mal (el compositor emite 'error' al matar su proceso: kill EPERM) tiraba
+// abajo TODO el backend. El pedido ya respondió 500; el servidor sigue vivo.
+process.on('uncaughtException', (e) => { console.error('[media-studio] uncaughtException (el servidor sigue):', e instanceof Error ? e.stack || e.message : e); });
+process.on('unhandledRejection', (e) => { console.error('[media-studio] unhandledRejection (el servidor sigue):', e instanceof Error ? e.stack || e.message : e); });
+
 // ── HTTP server ──────────────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
