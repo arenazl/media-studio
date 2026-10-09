@@ -84,6 +84,32 @@ del paso Render: "Describí el reel con tus palabras" → "Armar las escenas".
 Verificado sobre la interfaz: una descripción de 5 oraciones (título, dashboard, reclamos, tesorería, demo) → 5
 escenas, 3 con pantalla real correctamente elegidas, en 11 s con Sonnet (USD 0,03) → render de 22 s.
 
+## Etapa 4 (2026-10-09, tarde): tres salidas de Munify por el pipeline real, y lo que se rompió en el camino
+
+**Para el dueño.** Con el brief de Munify que ya estaba en Media Studio se generaron por API, con los moldes
+reales, tres piezas: el pack de prompts para Google Flow (concepto → guion → cast → storyboard → pack), el reel
+animado (concepto → guion → storyboard animado → render → montaje) y el reel de slides (la caja "describí el
+reel" con los mensajes clave). Página: `https://looklogic.com.ar/docs/mediastudio/munify-tres-salidas/`.
+Driver: `scratchpad/salidas/salidas.py` de la sesión (crea un proyecto [DEMO] por salida y corre los moldes).
+
+Lo que se encontró y se arregló (cada uno con su commit):
+- `asignarCapturas` repartía una captura por turno a las escenas sin coincidencia: la tesorería caía en la escena
+  de la cuadrilla, y con el montajista v2 eso era un inserto falso. Sacado; el test que lo exigía desde `408108c`
+  pasa (576/576).
+- Remotion elegía el puerto 3000 para servir el bundle estando ocupado por otra app: "Error while getting
+  compositions". Ahora pide un puerto libre en 127.0.0.1.
+- El compositor de Remotion, al morir mal, emitía `kill EPERM` y tiraba abajo TODO el backend: guardia de
+  `uncaughtException`/`unhandledRejection` en `index.mjs`.
+- "No frame found at position" al montar el mp4 de mockups: el mp4 de mockups ahora se recodifica con keyframe
+  cada 30 cuadros (antes GOP de 8 s).
+- Playwright: el botón "Renderizar el reel" se deshabilita mientras renderiza y el click esperaba 30 s a que se
+  habilitara; y `/^Render/` matcheaba "Renderizar el reel" en vez del paso. Sólo afecta la prueba E2E.
+- El cierre (`cta`) de los mockups no lleva chip ni línea secundaria (la placa ya dice el CTA).
+
+**Pendiente de esta etapa:** el montaje del reel de slides (31 s) falló dos veces desde la interfaz con
+"No frame found at position" a los 28,4 s y salió bien lanzado directo por `/api/render-comercial` con el mismo
+clip. No encontré la diferencia entre los dos planes; el reel animado (23 s) sí pasó por la interfaz. Revisar.
+
 ## Pendiente / siguiente etapa
 
 - **Voz en la línea animada**: generar la locución desde el storyboard y sincronizar el texto palabra por palabra
