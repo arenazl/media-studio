@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import net from 'node:net';
 import { bundle } from '@remotion/bundler';
 import { ensureBrowser, renderMedia, selectComposition } from '@remotion/renderer';
 
@@ -58,9 +59,20 @@ export async function normalizarVolumen(input, output) {
 
 // Renderiza una composición del bundle. `normalizar: false` para composiciones sin audio (los mockups): ahí sólo
 // se mueve el moov al principio para que el navegador arranque rápido.
+// Puerto libre en 127.0.0.1 para el servidor interno del bundle: Remotion eligió el 3000 estando ocupado por otra
+// app (que contestaba "Cannot GET /index.html") y el render moría en "Error while getting compositions".
+function puertoLibre() {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer();
+    srv.once('error', reject);
+    srv.listen(0, '127.0.0.1', () => { const { port } = srv.address(); srv.close(() => resolve(port)); });
+  });
+}
+
 async function renderComposicion({ id, inputProps, root = process.cwd(), log = () => {}, normalizar = true }) {
   const [serveUrl] = await Promise.all([obtenerBundle(root, log), ensureBrowser()]);
-  const composition = await selectComposition({ serveUrl, id, inputProps });
+  const port = await puertoLibre();
+  const composition = await selectComposition({ serveUrl, id, inputProps, port });
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ms-remotion-'));
   const raw = path.join(tmp, 'raw.mp4');
   const out = path.join(tmp, 'out.mp4');
@@ -68,7 +80,7 @@ async function renderComposicion({ id, inputProps, root = process.cwd(), log = (
   await renderMedia({
     composition, serveUrl, inputProps,
     codec: 'h264', crf: 18, audioCodec: 'aac', imageFormat: 'jpeg', jpegQuality: 90,
-    outputLocation: raw,
+    outputLocation: raw, port,
   });
   log(`${id}: ${composition.durationInFrames} cuadros en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   if (normalizar) await normalizarVolumen(raw, out);

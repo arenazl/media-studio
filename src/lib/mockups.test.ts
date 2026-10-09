@@ -64,7 +64,7 @@ describe('armarMockups', () => {
     expect(p.escenas[1]).toMatchObject({ badge: 'Dashboard municipal', captura: { src: '/api/storage/p/dash.png', alto: false } });
     expect(p.escenas[2].captura?.alto).toBe(true);
     expect(p.escenas[2].durSec).toBe(2.5);                 // mínimo por escena
-    expect(p.escenas[3]).toMatchObject({ tipo: 'titulo', badge: 'Dashboard municipal' });
+    expect(p.escenas[3]).toMatchObject({ tipo: 'titulo', badge: undefined, sub: undefined });   // el cierre: sin chip ni línea secundaria
   });
   it('la cifra sólo sale del texto; la placa usa el CTA y el dominio; los colores de la marca pisan el estilo oscuro', () => {
     const p = armarMockups(comercial([escena(1, 'hook', '1.229 reclamos gestionados', { continuidad: 'reclamos' })]), insumos);

@@ -77,7 +77,8 @@ export function armarMockups(comercial: Comercial, insumos: InsumosMockups): Pla
     const titulo = (e.accion || e.dialogo || '').trim();
     const resaltar = e.continuidad && titulo.toLowerCase().includes(e.continuidad.toLowerCase()) ? e.continuidad : undefined;
     const dialogo = (e.dialogo || '').trim();
-    const sub = dialogo && dialogo !== titulo && dialogo.length <= SUB_MAX ? dialogo : undefined;
+    // el cierre no lleva línea secundaria ni chip: la placa final ya dice el CTA y el dominio
+    const sub = e.rol !== 'cta' && dialogo && dialogo !== titulo && dialogo.length <= SUB_MAX ? dialogo : undefined;
     const base: EscenaMockup = { n: e.n, tipo: captura ? 'pantalla' : 'titulo', durSec: Math.max(ESCENA_MIN, e.durSec || 4), titulo, resaltar, sub };
     if (captura) {
       const src = captura.url || captura.archivo;
@@ -85,7 +86,7 @@ export function armarMockups(comercial: Comercial, insumos: InsumosMockups): Pla
       const alto = proporcion ? proporcion > 1 : /mobile|movil|móvil|celular|phone/i.test(captura.viewport || '');
       return { ...base, badge: captura.nombre, captura: { src, nombre: captura.nombre, alto, proporcion } };
     }
-    return { ...base, badge: e.screen || undefined, numero: numeroDe(e.accion || '') || numeroDe(e.dialogo || '') };
+    return { ...base, badge: e.rol === 'cta' ? undefined : e.screen || undefined, numero: numeroDe(e.accion || '') || numeroDe(e.dialogo || '') };
   });
   const host = hostnameDe(cta?.url || marca.url);
   const principal = (cta?.principal || '').trim();
