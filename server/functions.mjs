@@ -266,7 +266,8 @@ function asignarCapturas(escenas, context = {}, piece = {}) {
       ? pantallas.find((x) => normLabel(x.nombre || x.label) === label)
         || pantallas.find((x) => normLabel(x.nombre || x.label).includes(label) || label.includes(normLabel(x.nombre || x.label)))
       : null;
-    if (!p) p = pantallas[idx % pantallas.length];
+    // sin coincidencia NO se reparte una captura por turno: la escena queda sin captura (el montajista y los mockups
+    // la tratan como escena sin pantalla). El reparto por turno metía la tesorería en la escena de la cuadrilla.
     const cap = p?.archivo || p?.url || p?.fileRef || p?.image || '';
     return cap ? { ...e, archivoCaptura: cap } : e;
   });
