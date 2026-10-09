@@ -20,6 +20,8 @@ Organizado con el **criterio cross-app** (raíz de `docs/` solo este README; tem
 | [`06-video-referencia-stotyboard/`](06-video-referencia-stotyboard/) | El workflow de referencia (storyboard → comercial IA) que inspira el rework. |
 | [`07-rework/`](07-rework/) | **EL REWORK** — visión + 5 fases ejecutables: pipeline de producción KB→comercial (storyboard-driven). |
 | [`15-tema/`](15-tema/) | **La apariencia**: la luna, los seis fondos y el acento — framework compartido del kit v3. |
+| [`15-personajes-realistas/`](15-personajes-realistas/) | Pruebas de animación con personajes (2026-10-08/09): cara realista, storyboard, presentadora animada, playa. Copias locales de lo publicado. |
+| [`handoffs/`](handoffs/) | Cierres de sesión por fecha. |
 | [`agents/`](agents/) | Guías de agentes (App / Infra / Veo) — dominio base, sin numerar. |
 | [`historico/`](historico/) | Docs superados o cerrados, por fecha. |
 
@@ -42,6 +44,7 @@ Organizado con el **criterio cross-app** (raíz de `docs/` solo este README; tem
 - [`14-skills/04-prompts-curados-media-studio.md`](14-skills/04-prompts-curados-media-studio.md) y [`05-revision-post-push-broll-y-doctrina.md`](14-skills/05-revision-post-push-broll-y-doctrina.md) — los prompts curados 2.0 y la revisión sobre el repo real (talking head único, b-roll por texto, doctrina en Concepto y QA). Aplicados; medición en `13-.../03-baseline-y-avance.md`.
 - [`14-skills/MEDIA-STUDIO-REINGENIERIA-COMPLETA.md`](14-skills/MEDIA-STUDIO-REINGENIERIA-COMPLETA.md) — **la reingeniería funcional** (9 docs fusionados): bugs P0, Prompt Engine V2, spec por etapa, integración del skill, observabilidad, tests, orden de implementación.
 - [`14-skills/SKILL.md`](14-skills/SKILL.md) — skill externa `dev-claude-reel` (reel 3D cuadro a cuadro: three.js + Chrome headless + ElevenLabs + ffmpeg). El dueño la quiere para todo lo animado; la adaptación está en `13-optimizacion-generacion/…` §6.
+- [`handoffs/2026-10-09_cierre-laboratorio-animacion.md`](handoffs/2026-10-09_cierre-laboratorio-animacion.md) — **traspaso del laboratorio de animación**: qué se probó, qué salió mal y por qué, qué queda útil con rutas, y la recomendación (pedir el código del amigo, seguir el skill al pie de la letra).
 - [`agents/`](agents/) — `AGENT_GUIDE`, `APP_AGENT`, `INFRA_AGENT`, `VEO_FLOW_PROMPTING`.
 - [`historico/2026-06-variantes-narracion-munify.md`](historico/2026-06-variantes-narracion-munify.md) — 50 textos de narración Munify (enfoque viejo, referencia).
 
