@@ -47,7 +47,7 @@ import { scanMediaKits, readMediaKit, resolveKitFile, MEDIA_KIT_ROOT } from './m
 import { assemble } from './assemble.mjs';
 import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
-import { renderRemotion } from './renderRemotion.mjs';
+import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import { transcribirArchivo } from './transcribir.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
@@ -1251,6 +1251,19 @@ ${src}`;
       try {
         return json(res, 200, await transcribirArchivo(file, { apiKey: process.env.ELEVENLABS_API_KEY }));
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error transcribiendo' }); }
+    }
+
+    // ── Render de MOCKUPS (línea animada, motor Remotion): PlanMockup → mp4 silencioso (el Montaje le pone voz y música) ──
+    if (p === '/api/render-mockups' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!body.plan || !body.projectId) return json(res, 400, { error: 'falta plan o projectId' });
+      if (!Array.isArray(body.plan.escenas) || !body.plan.escenas.length) return json(res, 400, { error: 'el plan de mockups no tiene escenas' });
+      try {
+        const { buffer, durationSec } = await renderMockups(body.plan, { port: PORT, log: (m) => console.log('[media-studio] remotion:', m) });
+        const folder = `${CLD_FOLDER}/${body.projectId}`;
+        const saved = await saveAsset(buffer, `mockups-${body.reelId || 'x'}-${Date.now()}.mp4`, folder, 'video/mp4');
+        return json(res, 200, { fileRef: saved.public_id, url: saved.secure_url, durationSec });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error renderizando los mockups' }); }
     }
 
     // ── Render del comercial final (Fase 4): MontajePlan → mp4 persistido en server/storage ──

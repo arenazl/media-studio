@@ -56,11 +56,11 @@ export async function normalizarVolumen(input, output) {
   await ffmpeg(['-y', '-i', input, '-c:v', 'copy', '-af', af, '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', output]);
 }
 
-export async function renderRemotion(plan, { port, root = process.cwd(), log = () => {} } = {}) {
-  const base = `http://localhost:${port}`;
-  const inputProps = { plan, base };
+// Renderiza una composición del bundle. `normalizar: false` para composiciones sin audio (los mockups): ahí sólo
+// se mueve el moov al principio para que el navegador arranque rápido.
+async function renderComposicion({ id, inputProps, root = process.cwd(), log = () => {}, normalizar = true }) {
   const [serveUrl] = await Promise.all([obtenerBundle(root, log), ensureBrowser()]);
-  const composition = await selectComposition({ serveUrl, id: 'Comercial', inputProps });
+  const composition = await selectComposition({ serveUrl, id, inputProps });
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ms-remotion-'));
   const raw = path.join(tmp, 'raw.mp4');
   const out = path.join(tmp, 'out.mp4');
@@ -70,9 +70,20 @@ export async function renderRemotion(plan, { port, root = process.cwd(), log = (
     codec: 'h264', crf: 18, audioCodec: 'aac', imageFormat: 'jpeg', jpegQuality: 90,
     outputLocation: raw,
   });
-  log(`render ${composition.durationInFrames} cuadros en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
-  await normalizarVolumen(raw, out);
+  log(`${id}: ${composition.durationInFrames} cuadros en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  if (normalizar) await normalizarVolumen(raw, out);
+  else await ffmpeg(['-y', '-i', raw, '-c', 'copy', '-movflags', '+faststart', out]);
   const buffer = fs.readFileSync(out);
   fs.rmSync(tmp, { recursive: true, force: true });
   return { buffer, durationSec: composition.durationInFrames / composition.fps };
+}
+
+// Comercial (línea Flow / montaje): clips + voz + música → con normalización de volumen.
+export async function renderRemotion(plan, { port, root, log } = {}) {
+  return renderComposicion({ id: 'Comercial', inputProps: { plan, base: `http://localhost:${port}` }, root, log, normalizar: true });
+}
+
+// Mockups (línea animada): sólo imagen; la voz y la música las pone el paso Montaje.
+export async function renderMockups(plan, { port, root, log } = {}) {
+  return renderComposicion({ id: 'Mockups', inputProps: { plan, base: `http://localhost:${port}` }, root, log, normalizar: false });
 }

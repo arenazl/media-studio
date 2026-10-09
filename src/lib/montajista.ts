@@ -75,7 +75,7 @@ export function corregirMarca(words: PalabraTiempo[], marca?: { exacto?: string;
   return out.filter((w) => w.text);
 }
 
-const normalizar = (s: string) =>
+export const normalizar = (s: string) =>
   String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ñ ]+/g, ' ');
 
 const STOP = new Set(['para', 'como', 'este', 'esta', 'esto', 'desde', 'hasta', 'entre', 'sobre', 'todo', 'toda', 'todos', 'cada', 'tiene', 'tienen', 'donde', 'cuando', 'pero', 'porque', 'mas', 'menos', 'ahora', 'ante', 'bajo', 'con', 'sin', 'que', 'una', 'uno', 'unos', 'unas', 'del', 'las', 'los', 'por', 'sus', 'mis', 'tus']);

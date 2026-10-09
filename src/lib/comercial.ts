@@ -135,6 +135,7 @@ export interface Comercial {
   storyboard?: Escena[];             // paso 5
   packFlow?: PackFlow;               // paso 6a (solo filmado)
   renderRef?: string;                // paso 6b (solo animado): el mp4 renderizado del storyboard
+  renderDurSec?: number;             // su duración real (el montaje la usa para no cortar la placa final)
   rodaje?: Toma[];                   // paso 7 (solo filmado; refs a server/storage)
   montaje?: unknown;                 // paso 8 — MontajePlan lo define la Fase 4 (tipado laxo hasta entonces)
   qa?: QaResult;                     // paso 8 — QA holístico persistido (C9: antes vivía en useState y se perdía)

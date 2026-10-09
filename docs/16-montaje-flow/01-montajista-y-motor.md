@@ -51,12 +51,32 @@ que es EXACTAMENTE lo que se renderiza. La comparación antes/después está en
 - E2E real con Playwright sobre la interfaz (`localhost:5180`): proyecto de prueba `sinvueltas-montaje-v2 [DEMO]`
   con los cuatro clips de Flow de Sin Vueltas → Armar (8 s) → vista previa → Renderizar → mp4 de 32,9 s a -14,2 LUFS.
 
+## Etapa 2 (misma fecha): la línea animada, mockups "PowerPoint avanzado" sobre el mismo motor
+
+**Para el dueño.** El paso Render ya no graba una página con Playwright: arma un plan de mockups desde el
+storyboard animado, lo muestra EXACTO en el Player y lo renderiza con Remotion. Pieza de prueba de Munify
+(siete escenas, cinco con pantallas reales) publicada en
+`https://looklogic.com.ar/docs/mediastudio/mockups-munify/`, al lado del boceto del intendente.
+
+| Pieza | Qué hace |
+|---|---|
+| `src/lib/mockups.ts` | `armarMockups(comercial, insumos)`: storyboard animado → `PlanMockup`. El storyboard decide si una escena es de pantalla (`screen`/`archivoCaptura`) o de título; el kit decide qué captura (nombre pesa más que zona clave). Narración corta como `sub`. Cifra que cuenta sólo si viene en el texto (`numeroDe`). Placa desde el CTA. Tests en `mockups.test.ts`. |
+| `src/remotion/Mockups.tsx` + `derivarMockups.ts` | La composición: fondo con degradé y grano del color de marca, barra de progreso, logo (+ nombre si es isotipo), escena `titulo` (serif, resaltado subrayado, contador) o `pantalla` (marco navegador con altura según la proporción real, o teléfono si la captura es alta; zoom lento; chip; título; sub), placa final. El cuadro 1 ya es la portada (la primera escena no tiene entrada animada). |
+| `src/remotion/PlayerMockups.tsx` + `PasoRender.tsx` | Vista previa exacta; mide las imágenes en el front (`useProporciones`) para marco y para saber si el logo es isotipo; "Renderizar el reel" → `POST /api/render-mockups`; guarda `renderRef` + `renderDurSec`. |
+| `server/renderRemotion.mjs` | `renderComposicion` genérico; `renderMockups` (sin normalizar audio: no tiene) y `renderRemotion` (Comercial). |
+| PasoMontaje (animado) | El plan va con `motor: 'remotion'`: el video de mockups es un clip mudo + música con ducking + voz si la hay; sin placa ni logo porque el video ya los trae. En `exportar`, con motor remotion el plan es la fuente de verdad (antes inyectaba el logo de la marca y salía duplicado). |
+
+`server/mockupReel.mjs` y `/api/mockup-reel` quedan en el repo sin uso desde el front (compatibilidad).
+Verificado con Playwright sobre la interfaz: Render (29 s para 816 cuadros) → Montaje → mp4 de 27,2 s a -14,0 LUFS.
+
 ## Pendiente / siguiente etapa
 
-- **Mockups "PowerPoint avanzado"** sobre el mismo motor: escenas `titulo` (serif + número que cuenta), `pantalla`
-  (captura en marco con zoom al dato), `placa`; referencia de nivel: `public/bocetos/intendente.mp4`, más moderno.
-  Reemplaza `server/mockupReel.mjs` (grabación en vivo con Playwright) en la línea animada.
+- **Voz en la línea animada**: generar la locución desde el storyboard y sincronizar el texto palabra por palabra
+  (como en Flow). Hoy va música + narración como texto.
+- Capturas de celular en los kits (el marco de teléfono está hecho y testeado, pero sin ejercitar en Munify).
 - El multipista (`ReelEditor`) sigue con su vista previa vieja: cambiarla por el mismo Player.
+- El espacio bajo el título en las escenas de pantalla quedó libre a propósito: decidir con Lucas si va un dato
+  destacado o un marco más grande.
 - Warning de consola del Player en dev ("Function components cannot be given refs", `AbsoluteFillInner`): viene de
   Remotion con React 18 en modo desarrollo, no afecta el render.
 - La palabra "Conquit" en el clip de la solución es lo que dice el actor; el guion de esa pieza no está en la base.

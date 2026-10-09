@@ -19,24 +19,6 @@ import { MUSIC_TRACKS } from '../lib/music';
 const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
 
-// Rasteriza el logo (SVG o raster) a PNG dataURL para el overlay del render: ffmpeg NO decodifica SVG.
-// Si falla (CORS de una URL externa, formato raro), devuelve null → el montaje se arma sin logo (no rompe).
-async function rasterizeLogo(url: string): Promise<string | null> {
-  try {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error('logo')); img.src = url; });
-    const w = 172;                                   // 2× el ancho del overlay (86px) para nitidez
-    const h = img.width ? Math.round((img.height / img.width) * w) : w;
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h || w;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    ctx.drawImage(img, 0, 0, w, h || w);
-    return canvas.toDataURL('image/png');
-  } catch { return null; }
-}
-
 export default function PasoMontaje({ project, reelId, comercial, setComercial, onGoEditor }: PasoProps & { onGoEditor?: () => void }) {
   const [rendering, setRendering] = useState(false);
   const [armando, setArmando] = useState(false);
@@ -97,9 +79,11 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     try {
       const base = storyboardToMontaje(comercial);
       let planFinal: MontajePlan = base;
+      const marca = { exacto: project.marcaKit?.nombreExacto || project.brandKit?.name, fonetica: project.marcaKit?.fonetica || project.brandKit?.phonetic };
       if (esAnimado) {
-        const logoSrc = project.brandKit?.logoUrl ? await rasterizeLogo(project.brandKit.logoUrl) : null;
-        planFinal = logoSrc ? { ...base, logo: { src: logoSrc } } : base;
+        // el video de mockups ya trae logo y placa final: acá sólo se le suman voz y música, sin acercamientos
+        const afinado = afinarMontaje(base, { palabrasPorToma: {}, marca });
+        planFinal = { ...afinado, scenes: afinado.scenes.map((s) => ({ ...s, punchFrom: 1, punchTo: 1 })) };
       } else {
         const refs = [...new Set(base.scenes.map((s) => s.src).filter(Boolean))];
         const pares = await Promise.all(refs.map(async (ref) => {
@@ -115,7 +99,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           pantallas: project.pantallasKit,
           cta: project.cta,
           logoUrl: project.marcaKit?.logoUrl || project.brandKit?.logoUrl,
-          marca: { exacto: project.marcaKit?.nombreExacto || project.brandKit?.name, fonetica: project.marcaKit?.fonetica || project.brandKit?.phonetic },
+          marca,
           estilo: colores?.primario
             ? { primario: colores.primario, acento: colores.acento || '#F59E0B', fondo: colores.fondo || '#FAF7FF', texto: colores.texto || '#1E1B2E' }
             : undefined,
@@ -178,7 +162,9 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const exportar = async () => {
     if (!plan) return;
     setRendering(true); setError('');
-    const logoSrc = plan.logo?.src || project.brandKit?.logoUrl || project.marcaKit?.logoUrl;
+    // motor remotion: el plan es la fuente de verdad (el montajista ya decidió logo y placa; en una pieza animada el
+    // video de mockups los trae puestos). Legacy ffmpeg: se le inyecta el logo de la marca como siempre.
+    const logoSrc = plan.motor === 'remotion' ? plan.logo?.src : (plan.logo?.src || project.brandKit?.logoUrl || project.marcaKit?.logoUrl);
     const fullPlan = {
       ...plan,
       mediaKitId: plan.mediaKitId || project.mediaKitId,

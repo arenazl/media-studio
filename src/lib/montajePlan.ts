@@ -14,6 +14,27 @@ export interface InsertoPantalla { atSec: number; durSec: number; src: string; n
 export interface PlacaFinal { linea1: string; linea2?: string; durSec: number; logoSrc?: string }
 export interface EstiloMarca { primario: string; acento: string; fondo: string; texto: string; fuenteTitulos?: string; fuenteTexto?: string }
 
+// ── Mockups (línea animada, motor Remotion): el storyboard animado como escenas de "PowerPoint avanzado" ──
+export type TipoEscenaMockup = 'titulo' | 'pantalla';
+export interface CapturaMockup { src: string; nombre?: string; alto?: boolean; proporcion?: number }   // alto = celular (marco de teléfono); proporcion = alto/ancho medido
+export interface EscenaMockup {
+  n: number;
+  tipo: TipoEscenaMockup;
+  durSec: number;
+  titulo: string;            // `accion` del storyboard: el título corto que vende el momento
+  resaltar?: string;         // `continuidad`: la palabra o palabras del título que se pintan con el acento
+  badge?: string;            // nombre de la pantalla (chip arriba del título)
+  sub?: string;              // línea secundaria, opcional
+  numero?: string;           // cifra que cuenta (sólo si viene en el texto; nunca inventada)
+  captura?: CapturaMockup;
+}
+export interface PlanMockup {
+  width: number; height: number; fps: number;
+  escenas: EscenaMockup[];
+  placa?: PlacaFinal;
+  marca: { nombre: string; logoSrc?: string; mostrarNombre?: boolean; sitio?: string; estilo: EstiloMarca };   // mostrarNombre: el logo es sólo isotipo
+}
+
 export interface MontajeScene {
   escenaN: number;
   src: string;                 // fileRef RELATIVO de la toma activa (public_id de saveAsset)
@@ -108,7 +129,7 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
   const dims = dimsDeComercial(comercial);
   // ANIMADO: el reel ya está renderizado (comercial.renderRef); el montaje le pone voz + música.
   if (comercial.tipo === 'animado') {
-    const total = escenas.reduce((s, e) => s + (e.durSec || 4), 0) || 8;
+    const total = comercial.renderDurSec || escenas.reduce((s, e) => s + (e.durSec || 4), 0) || 8;
     const scenes: MontajeScene[] = comercial.renderRef
       ? [{ escenaN: 1, src: comercial.renderRef, in: 0, out: total, audio: 'mute', audioGain: 1, transition: 'cut', rol: 'animado' }]
       : [];
