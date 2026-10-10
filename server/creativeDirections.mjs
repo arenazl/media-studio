@@ -11,8 +11,8 @@ export function creativeDirectionPrompt({ enfoque = 'caso', tratamiento = 'sobri
   const style = byId(DATA.tratamientos, approach.id === 'humor' ? 'humor' : tratamiento, 'sobrio');
   const ficha = approach.ficha;
   const humo = style.id === 'humor'
-    ? '\\nHERRAMIENTAS DE COMEDIA (elegí sólo 1 o 2, NO las enumeres en la respuesta):\\n' + DATA.recursosHumor.map((r) => '- ' + r.nombre + ': ' + r.mecanismo + ' EVITÁ: ' + r.fallo).join('\\n') + '\\nAntes de responder, descartá internamente premisas que sólo resulten raras, que humillen, que no tengan giro o que oculten el valor del producto. El humor se prueba por situación y remate, no por poner la etiqueta HUMOR.'
-    : '\\nNO INCLUIR COMEDIA por defecto: ningún remate gracioso, ironía o parodia es obligatorio. Buscá un cierre publicitario con sentido.';
+    ? '\nHERRAMIENTAS DE COMEDIA (elegí sólo 1 o 2, NO las enumeres en la respuesta):\n' + DATA.recursosHumor.map((r) => '- ' + r.nombre + ': ' + r.mecanismo + ' EVITÁ: ' + r.fallo).join('\n') + '\nAntes de responder, descartá internamente premisas que sólo resulten raras, que humillen, que no tengan giro o que oculten el valor del producto. El humor se prueba por situación y remate, no por poner la etiqueta HUMOR.'
+    : '\nNO INCLUIR COMEDIA por defecto: ningún remate gracioso, ironía o parodia es obligatorio. Buscá un cierre publicitario con sentido.';
   return `DIRECCIÓN CREATIVA ELEGIDA (manda sobre ejemplos genéricos del resto del prompt):
 ENFOQUE: ${approach.label}
 IDEA CENTRAL: ${ficha.ideaCentral}
