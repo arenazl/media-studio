@@ -776,3 +776,17 @@ html[data-theme="light"] {
 .mont-describir { margin-bottom: 14px; }
 .mont-describir-texto { min-height: 96px; margin-top: 8px; }
 .mont-describir-acciones { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+
+/* ── Pack Flow: rutina automática Media Studio → Flow ── */
+.pack-auto { margin-left: 8px; }
+.pack-job { margin: 10px 0 14px; padding: 12px 14px; border-radius: var(--pw-r-l); background: var(--pw-bg-2); border: 1px solid var(--pw-line-1); }
+.pack-job--listo { border-color: rgba(34,197,94,.45); }
+.pack-job--error { border-color: rgba(239,68,68,.45); }
+.pack-job-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.pack-job-h b { font-weight: 700; }
+.pack-job-paso { color: var(--pw-text-3); font-size: 12px; flex: 1; }
+.pack-job-escenas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pack-job-escenas .tag { font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--pw-line-1); color: var(--pw-text-2); }
+.pack-job-escenas .pack-job-ok { border-color: rgba(34,197,94,.45); color: #4ade80; }
+.pack-job-escenas .pack-job-run { color: var(--pw-gold); border-color: rgba(242,184,75,.4); }
+.pack-job-log { margin: 8px 0 0; max-height: 220px; overflow: auto; font-size: 11px; line-height: 1.45; padding: 8px 10px; border-radius: var(--pw-r-s); background: var(--pw-bg-0); color: var(--pw-text-2); white-space: pre-wrap; }

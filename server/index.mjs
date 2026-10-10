@@ -48,6 +48,7 @@ import { assemble } from './assemble.mjs';
 import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
+import * as puente from './flowPuente.mjs';
 import { transcribirArchivo } from './transcribir.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
@@ -1244,6 +1245,70 @@ ${src}`;
         });
         return res.end(buf);
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error bajando el asset' }); }
+    }
+
+    // ── Automatizar la creación en Flow (rutina Playwright): arranca un job y devuelve su id; el front lo sigue por GET ──
+    if (p === '/api/flow/automatizar' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!body.projectId || !body.pack?.escenas?.length) return json(res, 400, { error: 'falta projectId o el pack de Flow' });
+      const projectId = String(body.projectId), reelId = String(body.reelId || '');
+      const folder = `${CLD_FOLDER}/${projectId}`;
+      const guardarClip = async (buffer, nombre) => {
+        const saved = await saveAsset(buffer, nombre, folder, 'video/mp4');
+        let durSec = 8;
+        try { durSec = (await probeDuration(path.join(STORAGE_DIR, saved.public_id))) || 8; } catch { /* noop */ }
+        return { fileRef: saved.public_id, durSec };
+      };
+      const agregarToma = async (escenaN, toma) => {
+        const proj = getProject(projectId);
+        if (!proj) return;
+        const data = proj.data || {};
+        const reel = (data.reels || []).find((r) => r.id === reelId) || (data.reels || [])[0];
+        if (!reel?.comercial) return;
+        const rodaje = (reel.comercial.rodaje || []).filter((t) => t.escenaN !== escenaN);
+        rodaje.push({ id: `toma-${escenaN}-${Date.now()}`, escenaN, fileRef: toma.fileRef, durSec: toma.durSec, promptUsado: (body.pack.escenas.find((e) => e.escenaN === escenaN) || {}).prompt });
+        reel.comercial.rodaje = rodaje.sort((a, b) => a.escenaN - b.escenaN);
+        reel.comercial.estados = { ...(reel.comercial.estados || {}), rodaje: 'generado' };
+        data.updated_at = Date.now();
+        saveProject({ id: projectId, name: proj.name, data });
+      };
+      // el proyecto de Flow que la rutina crea queda asociado al reel: la próxima corrida lo reutiliza (personajes incluidos)
+      const guardarFlowUrl = async (urlFlow) => {
+        const proj = getProject(projectId);
+        if (!proj) return;
+        const data = proj.data || {};
+        const reel = (data.reels || []).find((r) => r.id === reelId) || (data.reels || [])[0];
+        if (!reel?.comercial) return;
+        reel.comercial.flowProjectUrl = urlFlow;
+        data.updated_at = Date.now();
+        saveProject({ id: projectId, name: proj.name, data });
+      };
+      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, guardarClip, agregarToma, guardarFlowUrl });
+      return json(res, 200, { job });
+    }
+    if (p === '/api/flow/jobs' && req.method === 'GET') return json(res, 200, { jobs: puente.listarJobs(), extension: puente.extensionViva() });
+    if (p.startsWith('/api/flow/jobs/') && req.method === 'GET') {
+      const job = puente.verJob(decodeURIComponent(p.slice('/api/flow/jobs/'.length)));
+      return job ? json(res, 200, { job }) : json(res, 404, { error: 'job no existe' });
+    }
+    // ── lo que habla la extensión Puente Flow (extension-flow/) ──
+    if (p === '/api/flow/puente/latido' && req.method === 'POST') {
+      // sólo cuenta el latido de la extensión v0.3.0 o más nueva: una v2 vieja sin recargar seguía latiendo y parecía conectada
+      let body = {};
+      try { body = JSON.parse((await readBody(req)) || '{}'); } catch { /* sin cuerpo */ }
+      if (String(body.version || '0') >= '0.3.0') puente.latido();
+      return json(res, 200, { ok: true });
+    }
+    if (p === '/api/flow/puente/estado' && req.method === 'GET') return json(res, 200, puente.estadoPuente());
+    if (p === '/api/flow/puente/comando' && req.method === 'GET') return json(res, 200, { paso: puente.proximoComando({ origen: url.searchParams.get('origen') || '', version: url.searchParams.get('v') || '', pestanas: url.searchParams.has('pestanas') ? Number(url.searchParams.get('pestanas')) : undefined }) });
+    if (p === '/api/flow/puente/resultado' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      return json(res, 200, { ok: puente.resultado(body) });
+    }
+    if (p === '/api/flow/puente/descarga' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (body.filename) puente.descargaLista(body);
+      return json(res, 200, { ok: true });
     }
 
     // ── Transcripción palabra por palabra de un clip del rodaje (montajista v2). Caché al lado del archivo. ──

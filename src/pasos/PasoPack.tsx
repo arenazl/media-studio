@@ -3,7 +3,8 @@
 // generar en la sección Personaje de Flow con Nano Banana) + ESCENAS (un prompt por escena, con
 // Copiar/Regenerar/estado). Es la SALIDA 1: lo que el usuario pega a mano en Google Flow (no hay API).
 import { useState, useEffect, useRef } from 'react';
-import { Copy, Check, RefreshCw, Loader2, Download, ChevronDown, ChevronRight, PackageOpen, User, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { Copy, Check, RefreshCw, Loader2, Download, ChevronDown, ChevronRight, PackageOpen, User, Image as ImageIcon, AlertTriangle, Bot, Clapperboard } from 'lucide-react';
+import { API_BASE } from '../config';
 import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { packProgress, pasoHabilitado, type EscenaFlow, type PersonajeFlow } from '../lib/comercial';
@@ -19,7 +20,55 @@ function downloadTxt(name: string, text: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export default function PasoPack({ project, comercial, setComercial, goNext }: PasoProps) {
+// Job de la rutina automática Media Studio → Flow (server/flowDriver.mjs): el front lo arranca y lo sigue por polling.
+interface FlowJob { id: string; estado: string; paso: string; log: string[]; escenas: { escenaN: number; estado: string; fileRef: string | null }[]; error: string | null; flowProjectUrl: string | null; extension?: boolean; pestanas?: number }
+
+export default function PasoPack({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
+  const [job, setJob] = useState<FlowJob | null>(null);
+  const [autoBusy, setAutoBusy] = useState(false);
+  const [verLog, setVerLog] = useState(false);
+  useEffect(() => {
+    if (!job || job.estado === 'listo' || job.estado === 'error') return;
+    const t = setInterval(async () => {
+      try {
+        const r = await fetch(`${API_BASE}/api/flow/jobs/${encodeURIComponent(job.id)}`);
+        const d = await r.json();
+        if (r.ok && d.job) {
+          const j = d.job as FlowJob;
+          setJob(j);
+          // cada clip que la rutina importó entra al rodaje del comercial en pantalla (el server ya lo guardó en la base)
+          const importadas = j.escenas.filter((e) => e.estado === 'importada' && e.fileRef);
+          if (importadas.length) {
+            setComercial((c) => {
+              const actuales = c.rodaje || [];
+              const faltan = importadas.filter((e) => !actuales.some((t2) => t2.fileRef === e.fileRef));
+              if (!faltan.length) return c;
+              const rodaje = [...actuales.filter((t2) => !faltan.some((e) => e.escenaN === t2.escenaN)), ...faltan.map((e) => ({ id: `toma-${e.escenaN}-${Date.now()}`, escenaN: e.escenaN, fileRef: e.fileRef as string, durSec: 8 }))].sort((a, b) => a.escenaN - b.escenaN);
+              const packFlow = c.packFlow ? { ...c.packFlow, escenas: c.packFlow.escenas.map((k) => (faltan.some((e) => e.escenaN === k.escenaN) ? { ...k, estado: 'importado' as const } : k)) } : c.packFlow;
+              return { ...c, rodaje, packFlow, estados: { ...c.estados, rodaje: c.estados.rodaje === 'aprobado' ? 'aprobado' : 'generado' } };
+            });
+          }
+        }
+      } catch { /* el próximo tick reintenta */ }
+    }, 3000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job?.id, job?.estado]);
+
+  const automatizar = async () => {
+    if (!comercial?.packFlow || !Array.isArray(comercial.packFlow.escenas)) return;
+    setAutoBusy(true); setError('');
+    try {
+      const r = await fetch(`${API_BASE}/api/flow/automatizar`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id, reelId, pack: comercial.packFlow, storyboard: comercial.storyboard || [], flowProjectUrl: (comercial as unknown as { flowProjectUrl?: string }).flowProjectUrl }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'no se pudo arrancar la rutina de Flow');
+      setJob(d.job as FlowJob);
+    } catch (e) { setError(errMsg(e)); } finally { setAutoBusy(false); }
+  };
+
   const [busy, setBusy] = useState(false);
   const [busyN, setBusyN] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -129,8 +178,40 @@ export default function PasoPack({ project, comercial, setComercial, goNext }: P
             <div className="pack-bar">
               <span className="pack-prog">{prog.copiados}/{prog.total} escenas copiadas · {prog.importados} importadas</span>
               <button className="pack-export" onClick={exportTxt}><Download size={14} /> Exportar .txt</button>
+              <button className="paso-gen pack-auto" onClick={() => void automatizar()} disabled={autoBusy || (!!job && job.estado !== 'listo' && job.estado !== 'error')} title="Media Studio abre Flow en un Chrome propio, crea los personajes, genera cada escena y deja los clips en el Rodaje">
+                {autoBusy || (job && job.estado !== 'listo' && job.estado !== 'error') ? <Loader2 size={14} className="paso-spin" /> : <Bot size={14} />} Automatizar creación en Flow
+              </button>
             </div>
           </div>
+
+          {job && (
+            <div className={`pack-job pack-job--${job.estado}`}>
+              <div className="pack-job-h">
+                <Clapperboard size={13} />
+                <b>{job.estado === 'listo' ? 'Clips importados en el Rodaje' : job.estado === 'error' ? 'La rutina se detuvo' : 'Generando en Flow…'}</b>
+                <span className="pack-job-paso">{job.paso}</span>
+                <button className="rodaje-var" onClick={() => setVerLog((v) => !v)}>{verLog ? 'ocultar detalle' : 'ver detalle'}</button>
+              </div>
+              {job.error && <div className="paso-error" style={{ marginTop: 6 }}>{job.error}</div>}
+              {!!job.escenas.length && (
+                <div className="pack-job-escenas">
+                  {job.escenas.map((e) => <span key={e.escenaN} className={`tag ${e.estado === 'importada' ? 'pack-job-ok' : 'pack-job-run'}`}>Escena {e.escenaN} · {e.estado === 'importada' ? 'en el Rodaje' : 'generando'}</span>)}
+                </div>
+              )}
+              {job.estado === 'corriendo' && job.extension === false && (
+                <div className="paso-empty" style={{ marginTop: 6 }}>
+                  No veo la extensión <b>Media Studio · Puente Flow</b> en tu Chrome. Una sola vez: en Chrome abrí <code>chrome://extensions</code>, activá <b>Modo de desarrollador</b>, <b>Cargar descomprimida</b> y elegí la carpeta <code>D:\\Code\\media-studio\\extension-flow</code> (si ya estaba, tocá <b>Recargar</b> ahí mismo). La rutina arranca sola en cuanto conecta.
+                </div>
+              )}
+              {job.estado === 'corriendo' && job.extension !== false && job.pestanas === 0 && (
+                <div className="paso-empty" style={{ marginTop: 6 }}>
+                  La extensión está, pero no hay ninguna pestaña de <code>flow.google.com</code> abierta. Abrí una (no hace falta que quede a la vista) y la rutina sigue sola.
+                </div>
+              )}
+              {verLog && <pre className="pack-job-log">{job.log.join('\n')}</pre>}
+              {job.estado === 'listo' && <button className="paso-approve" style={{ marginTop: 8 }} onClick={goNext}>Ir al Rodaje</button>}
+            </div>
+          )}
 
           {/* PASO 1 */}
           <div className="pack-guide-step">
