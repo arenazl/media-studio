@@ -9,7 +9,7 @@ import { getFormato } from '../lib/formato';
 import { mediaKitParaMolde, pantallaDeEscena, type PantallaKit } from '../lib/mediaKit';
 import { escenasAPrompts, pasoHabilitado, type Escena } from '../lib/comercial';
 
-const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
+const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Giro / prueba', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 
 export default function PasoStoryboard({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
@@ -45,7 +45,7 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const piece = { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec, ...(mediaKit ? { mediaKit } : {}) };
+      const piece = { guion: comercial?.guion, cast: comercial?.cast, enfoque: comercial?.enfoque || 'caso', tratamiento: comercial?.tratamiento || 'sobrio', tipo, durationSec, ...(mediaKit ? { mediaKit } : {}) };
       const res = await runMolde('storyboard', project, piece, {}, undefined, comercial, provider);
       setComercial((c) => ({ ...c, storyboard: (res.escenas as Escena[]) || [], estados: { ...c.estados, storyboard: c.estados.storyboard === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
