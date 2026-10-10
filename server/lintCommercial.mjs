@@ -39,7 +39,7 @@ export function lintCommercial(piece = {}, { facts } = {}) {
     const roles = blocks.map((b) => S(b.role));
     for (const r of ROLES) if (!roles.includes(r)) add('alta', 'guion.rol-faltante', `Al guion le falta el bloque "${r}".`);
     const iGag = roles.indexOf('gag'), iCta = roles.indexOf('cta');
-    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'guion.gag-despues-del-cta', 'El remate (gag) tiene que ir ANTES del llamado a la acción.');
+    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'guion.gag-despues-del-cta', 'El giro o prueba (rol gag) tiene que ir ANTES del llamado a la acción.');
     if (roles[0] && roles[0] !== 'hook') add('media', 'guion.no-arranca-con-hook', `El guion arranca con "${roles[0]}" en vez del hook.`);
     const suma = blocks.reduce((a, b) => a + (Number(b.durSec) || 0), 0);
     if (dur && suma && Math.abs(suma - dur) > dur * 0.25) add('media', 'guion.duracion', `Los bloques suman ${suma}s y la pieza es de ${dur}s (más del 25% de diferencia).`);
@@ -75,7 +75,7 @@ export function lintCommercial(piece = {}, { facts } = {}) {
     for (const e of escenas) { const w = palabras(e.dialogo), d = Number(e.durSec) || 0; if (tipo === 'filmado' && w && !(e.personajes || []).length && d > Math.max(4, Math.ceil(w / 2.7) + 1)) add('media', 'storyboard.broll-largo', `La escena ${e.n} es b-roll con ${w} palabras de voz en off y dura ${d}s: le sobran ${d - Math.max(4, Math.ceil(w / 2.7))}s.`); }
     const rolesE = escenas.map((e) => S(e.rol));
     const iGag = rolesE.lastIndexOf('gag'), iCta = rolesE.indexOf('cta');
-    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'storyboard.gag-despues-del-cta', 'En el storyboard el remate va después del CTA.');
+    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'storyboard.gag-despues-del-cta', 'En el storyboard el giro o prueba va después del CTA.');
     const pantallas = new Set([
       ...(Array.isArray(piece.mediaKit?.pantallas) ? piece.mediaKit.pantallas.map((p) => norm(p.nombre)) : []),
       ...(Array.isArray(piece.screens) ? piece.screens.map((s) => norm(typeof s === 'string' ? s : s.label)) : []),
