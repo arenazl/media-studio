@@ -1,0 +1,289 @@
+{
+  "version": "3.0",
+  "enfoques": [
+    {
+      "id": "caso",
+      "label": "Un caso de principio a fin",
+      "ficha": {
+        "ideaCentral": "Un problema específico afecta a una persona; se ve cómo el producto permite atenderlo y cerrar el circuito. Es una historia publicitaria, no una demostración exhaustiva.",
+        "quienesAparecen": [
+          "persona afectada o usuaria",
+          "equipo que gestiona o resuelve, si agrega valor",
+          "voz o presentadora de marca, opcional"
+        ],
+        "recorrido": [
+          "situación concreta y reconocible",
+          "acción relevante con el producto",
+          "consecuencia verificable de esa acción",
+          "beneficio para usuario y comprador",
+          "cierre de marca"
+        ],
+        "pantallasDelProducto": "Mostralas solo cuando aportan evidencia; si no existe una captura verificable, no inventes su interfaz.",
+        "tono": "Cercano y creíble por defecto; el tratamiento seleccionado decide el registro final.",
+        "noAsumir": [
+          "Que el caso ocurrió realmente",
+          "Que existe un cliente o ciudad concreta si no figura en la ficha",
+          "Resultados, notificaciones o automatismos no documentados"
+        ],
+        "cierre": "Beneficio más marca; presentadora, locución o placa según la técnica."
+      }
+    },
+    {
+      "id": "producto",
+      "label": "Producto a la vista",
+      "ficha": {
+        "ideaCentral": "El protagonista es el producto haciendo una tarea real que le importa al público comprador. La interfaz demuestra el beneficio sin convertirse en una lista de pantallas.",
+        "quienesAparecen": [
+          "producto o interfaz",
+          "usuario en contexto si es filmado",
+          "voz de marca opcional"
+        ],
+        "recorrido": [
+          "problema o tarea identificable",
+          "acción principal en la interfaz",
+          "cambio observable en el flujo",
+          "beneficio concreto",
+          "cierre de marca"
+        ],
+        "pantallasDelProducto": "Priorizar capturas del kit con nombre exacto y movimientos plausibles; nunca inventar botones, textos o pantallas reales.",
+        "tono": "Claro, demostrativo y publicitario; no tutorial técnico.",
+        "noAsumir": [
+          "Capacidades no documentadas",
+          "Velocidades, métricas o resultados no medidos",
+          "Pantallas que no existen en el kit"
+        ],
+        "cierre": "Beneficio demostrado y acción comercial concreta, sin promesas adicionales."
+      }
+    },
+    {
+      "id": "dos-lados",
+      "label": "Los dos lados",
+      "ficha": {
+        "ideaCentral": "La misma situación mirada desde quien necesita una solución y desde quien debe gestionarla; el producto conecta ambas perspectivas.",
+        "quienesAparecen": [
+          "usuario o vecino",
+          "persona del equipo comprador o gestor",
+          "representación del producto"
+        ],
+        "recorrido": [
+          "necesidad vista desde una parte",
+          "respuesta o coordinación desde la otra",
+          "punto de contacto gracias al producto",
+          "beneficio para ambas",
+          "cierre de marca"
+        ],
+        "pantallasDelProducto": "Cada pantalla debe justificar un cruce entre perspectivas, no decorar.",
+        "tono": "Humano y equilibrado; no ridiculizar a ninguna parte.",
+        "noAsumir": [
+          "Que la organización hoy trabaja mal",
+          "Que todas las funciones se ejecutan automáticamente",
+          "Que ambas partes usan exactamente la misma interfaz"
+        ],
+        "cierre": "La marca une las dos perspectivas en una promesa comprensible."
+      }
+    },
+    {
+      "id": "antes-despues",
+      "label": "Antes y después",
+      "ficha": {
+        "ideaCentral": "Comparar una tarea reconocible hecha con fricción frente a un proceso mejor organizado gracias al producto, sin caricaturizar a clientes ni prometer milagros.",
+        "quienesAparecen": [
+          "misma persona o mismo equipo en ambas situaciones",
+          "producto como catalizador",
+          "voz de marca opcional"
+        ],
+        "recorrido": [
+          "situación inicial representativa",
+          "fricción realista",
+          "entrada del producto",
+          "diferencia observable respaldada por el brief",
+          "cierre de marca"
+        ],
+        "pantallasDelProducto": "Mostrar únicamente el momento del cambio; evitar pantallazos inconexos.",
+        "tono": "Contundente y sobrio salvo que el tratamiento pida otro registro.",
+        "noAsumir": [
+          "Ahorros cuantificados no demostrados",
+          "Desorganización real del municipio o empresa",
+          "Que el producto resuelve absolutamente todo"
+        ],
+        "cierre": "Una ventaja concreta y una marca asociada a ella."
+      }
+    },
+    {
+      "id": "testimonio",
+      "label": "Testimonio dramatizado",
+      "ficha": {
+        "ideaCentral": "Una voz en primera persona plantea una dificultad y explica el beneficio de usar el producto; si no existe un testimonio real, tratarlo como actuación ficticia, nunca como aval auténtico.",
+        "quienesAparecen": [
+          "personaje ficticio que representa al público objetivo",
+          "producto en un momento relevante",
+          "presentadora opcional"
+        ],
+        "recorrido": [
+          "experiencia cotidiana",
+          "necesidad expresada con naturalidad",
+          "uso relevante del producto",
+          "beneficio plausible",
+          "cierre de marca"
+        ],
+        "pantallasDelProducto": "Insertos de interfaz para sustentar lo que se cuenta, nunca como prueba de un cliente inventado.",
+        "tono": "Conversacional, espontáneo, no testimonial de influencer forzado.",
+        "noAsumir": [
+          "Nombre, cargo, cliente o reseña auténticos",
+          "Resultados concretos no documentados",
+          "Endosos de personas reales"
+        ],
+        "cierre": "La marca toma el relevo; no atribuir eslóganes a un cliente ficticio."
+      }
+    },
+    {
+      "id": "institucional",
+      "label": "Institucional de marca",
+      "ficha": {
+        "ideaCentral": "El comercial vende una visión concreta del negocio al público que toma la decisión; muestra mundo, servicio y producto como un sistema articulado.",
+        "quienesAparecen": [
+          "entorno o comunidad a la que se dirige",
+          "equipo usuario o comprador",
+          "voz o presentadora de marca, opcional"
+        ],
+        "recorrido": [
+          "observación sobre el contexto",
+          "idea de marca que responde",
+          "evidencia desde funciones reales",
+          "beneficio estratégico",
+          "cierre e identidad"
+        ],
+        "pantallasDelProducto": "Solo las indispensables para respaldar la promesa, no catálogo de módulos.",
+        "tono": "Profesional, confiable, con personalidad; nunca genérico ni grandilocuente.",
+        "noAsumir": [
+          "Liderazgo de mercado",
+          "Premios, volumen de usuarios o clientes",
+          "Resultados públicos no documentados"
+        ],
+        "cierre": "Firma de marca clara; puede ser a cámara, en off o en placa."
+      }
+    },
+    {
+      "id": "humor",
+      "label": "Comedia de situación",
+      "ficha": {
+        "ideaCentral": "Un problema real da pie a una situación cómica humana, reconocible y visual; el producto llega como resolución útil. La marca debe quedar mejor recordada que el chiste.",
+        "quienesAparecen": [
+          "persona en una dificultad cotidiana",
+          "contrapunto humano opcional",
+          "producto que resuelve",
+          "marca al cierre"
+        ],
+        "recorrido": [
+          "premisa cotidiana observable",
+          "una sola regla de comedia clara",
+          "pequeña escalada o giro lógico",
+          "resolución ligada a una capacidad real",
+          "cierre de marca"
+        ],
+        "pantallasDelProducto": "Aparece en el punto de resolución; un gag no justifica inventar una funcionalidad.",
+        "tono": "Humor observacional y preciso; no absurdo gratuito ni stand-up explicativo.",
+        "noAsumir": [
+          "Que hacer algo raro es automáticamente gracioso",
+          "Personificar objetos por defecto",
+          "Burlarse del comprador, funcionarios, vecinos o usuarios",
+          "Inventar errores o precariedad de un cliente real"
+        ],
+        "cierre": "Remate compatible con el beneficio y la marca; no chiste extra desconectado."
+      }
+    }
+  ],
+  "tratamientos": [
+    {
+      "id": "sobrio",
+      "label": "Sobrio",
+      "descripcion": "Creíble, simple, sin ironía ni actuación exagerada.",
+      "indicaciones": "Diálogos naturales, hechos concretos, ritmo seguro. La emoción la aporta la situación.",
+      "evitar": "Chistes, sermones y lenguaje corporativo vacío."
+    },
+    {
+      "id": "cercano",
+      "label": "Cercano",
+      "descripcion": "Humano, cálido y cotidiano.",
+      "indicaciones": "Personas reconocibles, vocabulario sencillo, complicidad sin caricaturas.",
+      "evitar": "Exceso de ternura o frases de folleto."
+    },
+    {
+      "id": "emotivo",
+      "label": "Emotivo",
+      "descripcion": "El cambio importa por lo que significa para alguien.",
+      "indicaciones": "Mostrar consecuencia humana del beneficio sin dramatización artificial.",
+      "evitar": "Catástrofes inventadas, música lacrimógena y manipulación."
+    },
+    {
+      "id": "aspiracional",
+      "label": "Aspiracional",
+      "descripcion": "Marca confiable que invita a imaginar una forma mejor de trabajar o vivir.",
+      "indicaciones": "Visión y beneficio concretos, estética cuidada, evidencia del producto.",
+      "evitar": "Esloganes huecos, lujo incongruente y promesas desmedidas."
+    },
+    {
+      "id": "humor",
+      "label": "Con humor",
+      "descripcion": "Comicidad nacida de una verdad cotidiana; la marca resuelve el conflicto.",
+      "indicaciones": "Elegir una técnica de humor, formular premisa y giro, descartar lo forzado; no explicar el chiste.",
+      "evitar": "Absurdos aleatorios, mascota-objeto, chistes humillantes y humor que tapa el producto."
+    }
+  ],
+  "recursosHumor": [
+    {
+      "id": "observacion",
+      "nombre": "Verdad cotidiana",
+      "mecanismo": "Amplificar algo pequeño que el público ya reconoce como real.",
+      "fallo": "Inventar rarezas que nadie experimentó."
+    },
+    {
+      "id": "contraste",
+      "nombre": "Contraste de expectativas",
+      "mecanismo": "Una persona espera un proceso complicado y encuentra uno claro, o viceversa si no desinforma.",
+      "fallo": "Exagerar defectos de organizaciones reales."
+    },
+    {
+      "id": "inversion",
+      "nombre": "Inversión de roles",
+      "mecanismo": "Alguien actúa como quien normalmente recibe la pregunta, sin perder plausibilidad.",
+      "fallo": "Confundir la inversión con disfraz o burla."
+    },
+    {
+      "id": "repeticion",
+      "nombre": "Regla de tres",
+      "mecanismo": "Una situación se repite dos veces y cambia de manera inesperada en la tercera.",
+      "fallo": "Repetir sin aumentar tensión ni cambiar sentido."
+    },
+    {
+      "id": "escalada",
+      "nombre": "Escalada controlada",
+      "mecanismo": "La consecuencia de una incomodidad crece de modo lógico y medido.",
+      "fallo": "Convertir un problema simple en desastre apocalíptico."
+    },
+    {
+      "id": "malentendido",
+      "nombre": "Malentendido plausible",
+      "mecanismo": "Dos personas entienden distinto una situación común hasta que se aclara.",
+      "fallo": "Hacer que actúen de forma inverosímil."
+    },
+    {
+      "id": "literalismo",
+      "nombre": "Literalidad visual",
+      "mecanismo": "Visualizar una frase o hábito conocido con un detalle nuevo y económico.",
+      "fallo": "Objetos parlantes y personificaciones sin razón."
+    },
+    {
+      "id": "timing",
+      "nombre": "Pausa y reacción",
+      "mecanismo": "Una pausa o mirada cambia el significado de una frase breve.",
+      "fallo": "Depender de mucha explicación verbal."
+    },
+    {
+      "id": "callback",
+      "nombre": "Retorno de detalle",
+      "mecanismo": "Un detalle inicial regresa con un significado distinto luego de usar el producto.",
+      "fallo": "Repetir un elemento sin vínculo con el beneficio."
+    }
+  ]
+}

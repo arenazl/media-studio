@@ -1,4 +1,4 @@
-// Paso 3 — GUION. Corre el molde `script` (adaptado: GuionEstructurado hook/desarrollo/gag/cta),
+// Paso 3 — GUION. Mantiene el rol legacy gag (giro/prueba; humor sólo cuando se elige),
 // editable inline, con regen por bloque. Persiste el guion ENTERO en comercial.guion (no aplana).
 import { useState, useEffect, useRef } from 'react';
 import { RefreshCw, Loader2, Camera, Music2, FileText } from 'lucide-react';
@@ -9,7 +9,7 @@ import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import { pasoHabilitado, type GuionEstructurado, type GuionBloque, type EstadoPaso } from '../lib/comercial';
 
-const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
+const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Giro / prueba', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
 
 export default function PasoGuion({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
@@ -45,7 +45,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo, messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, supportingFacts: comercial?.supportingFacts, ...(mediaKit ? { mediaKit } : {}) }, { tono: 'cercano' }, undefined, comercial, provider);
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, enfoque: comercial?.enfoque || 'caso', tratamiento: comercial?.tratamiento || 'sobrio', durationSec, tipo, messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, supportingFacts: comercial?.supportingFacts, ...(mediaKit ? { mediaKit } : {}) }, { tono: comercial?.tratamiento || 'sobrio' }, undefined, comercial, provider);
       applyGuion({ blocks: (res.blocks as GuionBloque[]) || [], music: res.music as { mood: string } | undefined });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
@@ -54,7 +54,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     if (!guion) return;
     setBusyIdx(i); setError('');
     try {
-      const res = await runMolde('script', project, { concepto: comercial?.concepto }, { tono: 'cercano' }, { index: i, blocks }, comercial);
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, enfoque: comercial?.enfoque || 'caso', tratamiento: comercial?.tratamiento || 'sobrio', tipo }, { tono: comercial?.tratamiento || 'sobrio' }, { index: i, blocks }, comercial);
       const item = res.item as GuionBloque | undefined;
       if (item) applyGuion({ ...guion, blocks: blocks.map((b, j) => (j === i ? item : b)) }, 'editado');
     } catch (e) { setError(errMsg(e)); } finally { setBusyIdx(null); }
@@ -67,7 +67,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
 
   return (
     <PasoShell
-      titulo="Guion" sub="El guion por bloques: hook → desarrollo → remate → CTA, con timing."
+      titulo="Guion" sub="El guion por bloques: apertura → desarrollo → giro o prueba → marca y CTA."
       hasContent={blocks.length > 0} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={blocks.length > 0} approveLabel="Guion listo, al cast"
       functionId="script" estado={estadoDelPaso('guion', comercial)}
@@ -100,7 +100,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
           )}
         </>
       ) : (
-        !busy && <PasoEmpty icon={FileText}>Generá el guion desde el concepto elegido: hook, desarrollo, remate y CTA con su timing y su intención visual.</PasoEmpty>
+        !busy && <PasoEmpty icon={FileText}>Generá el guion desde el concepto elegido: apertura, desarrollo, giro o demostración y cierre de marca.</PasoEmpty>
       )}
     </PasoShell>
   );

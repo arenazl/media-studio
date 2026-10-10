@@ -8,10 +8,10 @@
 
 export const PROMPT_VERSIONS = {
   strategy: 'strategy/2.0',       // 2.0: curado 2026-10-07 (la campaña cubre la propuesta; cada pieza UNA cosa)
-  concept: 'concept/2.0',         // 2.0: curado 2026-10-07 (secciones, largos en números, sin referencias inventadas)
-  script: 'script/2.0',           // 2.0: curado 2026-10-07 (el concepto manda; presupuesto en lista; NO ASUMIR)
+  concept: 'concept/3.0',         // 3.0: enfoque y tratamiento publicitario; humor opcional
+  script: 'script/3.0',           // 3.0: gag = giro/prueba; respeta enfoque sin humor obligatorio
   cast: 'cast/2.0',               // 2.0: curado 2026-10-07 (sin ejemplos copiables; largos en números; 2º personaje sólo con función)
-  storyboard: 'storyboard/2.0',   // 2.0: curado 2026-10-07 (puesta en escena, no reescritura; animado por momento, [demo])
+  storyboard: 'storyboard/3.0',   // 3.0: giro en vez de remate cómico forzado
   flowpack: 'flowpack/2.0-compilado',
   publish: 'publish/1.1',         // 1.1: lee el guion canónico
   qa: 'qa/1.1',                   // 1.1: lint técnico + juicio creativo
@@ -62,11 +62,11 @@ export const VALIDADORES = {
     const E = [];
     const cs = Array.isArray(o?.conceptos) ? o.conceptos : [];
     if (cs.length !== 3) E.push(`tienen que ser 3 conceptos (vinieron ${cs.length})`);
-    const ganchos = new Set(cs.map((c) => String(c.tipoGancho || '').toUpperCase().trim()));
-    if (cs.length > 1 && ganchos.size < cs.length) E.push('los tipos de gancho tienen que ser distintos entre sí');
+    const titulos = cs.map((c) => String(c.topico || '').trim().toLowerCase());
+    if (new Set(titulos).size !== titulos.length) E.push('los conceptos tienen títulos repetidos; deben proponer premisas distintas');
     cs.forEach((c, i) => {
       const w = palabras(c.idea);
-      if (w < 30 || w > 75) E.push(`concepto ${i + 1}: la idea tiene ${w} palabras (va de 40 a 60)`);
+      if (w < 40 || w > 60) E.push(`concepto ${i + 1}: la idea tiene ${w} palabras (va de 40 a 60)`);
       if (!String(c.topico || '').trim()) E.push(`concepto ${i + 1}: falta el tópico`);
       if (/\b\d+\s?s\b|\bsegundos?\b|\bplano\b/i.test(String(c.idea))) E.push(`concepto ${i + 1}: la idea trae tiempos o planos (eso es del storyboard)`);
     });
