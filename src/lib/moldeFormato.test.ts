@@ -64,7 +64,7 @@ describe('concept — bifurcación por técnica de la pieza (filmado vs animado)
     const filmado = build('concept', { project: PROJECT, piece: { tipo: 'filmado' } }).prompt;
     expect(sinTipo).toBe(filmado);
     // 1ª y 2ª línea exactas: un proyecto viejo no puede haber cambiado NI UN BYTE.
-    expect(sinTipo.split('\n')[1]).toContain('Sos director creativo');
+    expect(sinTipo.split('\n')[1]).toContain('Sos la dupla director/a creativo/a');   // concept/3.0
   });
 });
 

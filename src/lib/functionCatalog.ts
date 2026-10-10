@@ -50,6 +50,12 @@ export interface StudioFunction {
 
 // helper de chips
 const c = (value: string, label = value) => ({ value, label });
+// concept/3.0 (curación 2026-10-10): los ids y etiquetas son los de server/media-studio-enfoques-v3.json.
+const ENFOQUES = [
+  c('caso', 'Un caso de principio a fin'), c('producto', 'Producto a la vista'), c('dos-lados', 'Los dos lados'),
+  c('antes-despues', 'Antes y después'), c('testimonio', 'Voz de una persona'), c('institucional', 'Marca y visión'), c('humor', 'Situación con humor'),
+];
+const TRATAMIENTOS = [c('natural', 'Cotidiano'), c('sobrio', 'Sobrio'), c('calido', 'Cálido'), c('aspiracional', 'Aspiracional'), c('humor', 'Con humor')];
 
 export const FUNCTION_CATALOG: StudioFunction[] = [
   // ── NIVEL PROYECTO ───────────────────────────────────────────────────────────
@@ -71,6 +77,9 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
           c('solo-mockups', 'Solo mockups'),
         ],
       },
+      // El asistente estampa el enfoque y el tratamiento en cada pieza; después se pueden cambiar por pieza en Concepto.
+      { id: 'enfoque', label: 'Enfoque', type: 'choice', default: 'caso', choices: ENFOQUES },
+      { id: 'tratamiento', label: 'Tratamiento', type: 'choice', default: 'natural', choices: TRATAMIENTOS },
     ],
   },
 
@@ -139,12 +148,21 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     label: 'Concepto',
     icon: 'Lightbulb',
     level: 'piece',
-    description: 'Propone 2-3 conceptos de comercial para el ángulo de esta pieza (idea, tono, estética).',
+    description: 'Propone 3 conceptos de comercial para el ángulo de esta pieza, dentro del enfoque y el tratamiento elegidos.',
     taskClass: 'creativo',
     options: [
       {
         id: 'perfil', label: 'Perfil', type: 'choice', default: 'campaña',
         choices: [c('campaña', 'Campaña completa'), c('awareness', 'Awareness'), c('demo', 'Demo de producto'), c('conversion', 'Conversión')],
+      },
+      // concept/3.0 (curación 2026-10-10): ids = server/media-studio-enfoques-v3.json. El enfoque organiza la historia;
+      // el tratamiento decide el registro; la intensidad y el mecanismo sólo aparecen cuando hay humor.
+      { id: 'enfoque', label: 'Enfoque', type: 'choice', default: 'caso', choices: ENFOQUES },
+      { id: 'tratamiento', label: 'Tratamiento', type: 'choice', default: 'natural', choices: TRATAMIENTOS },
+      { id: 'intensidadHumor', label: 'Intensidad del humor', type: 'choice', default: 'sutil', choices: [c('sutil', 'Sutil'), c('media', 'Media'), c('alta', 'Alta')] },
+      {
+        id: 'recursoHumorId', label: 'Mecanismo de humor', type: 'choice', default: 'auto',
+        choices: [c('auto', 'Automático'), c('observacion', 'Observación cotidiana'), c('contraste', 'Contraste de escala'), c('inversion', 'Inversión de expectativas'), c('repeticion', 'Repetición'), c('malentendido', 'Malentendido'), c('literalidad', 'Literalidad'), c('deadpan', 'Deadpan'), c('callback', 'Callback'), c('cambio_perspectiva', 'Cambio de perspectiva')],
       },
     ],
   },

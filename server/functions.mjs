@@ -10,6 +10,25 @@ import { buildProjectFacts, factsText } from './projectFacts.mjs';
 import { compileFlowPack, promptTraduccion, parseTraduccion } from './flowCompiler.mjs';
 import { lintCommercial } from './lintCommercial.mjs';
 import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
+import { buildConceptPromptV3, CATALOGO_CONCEPTO_V3 } from './media-studio-concept-v3.mjs';
+
+// Herencia de concept/3.0 a guion, cast y storyboard (LEEME de la curación): viaja la MISMA ficha del enfoque y el
+// tratamiento elegidos, con la regla de cada etapa. Sin enfoque en la pieza el bloque queda vacío (prompts viejos intactos).
+function bloqueEnfoque(piece = {}, etapa = 'guion') {
+  const enfoque = CATALOGO_CONCEPTO_V3.enfoques.find((e) => e.id === piece.enfoque);
+  if (!enfoque) return '';
+  const trat = CATALOGO_CONCEPTO_V3.tratamientos.find((t) => t.id === piece.tratamiento);
+  const regla = {
+    guion: 'Conservá el beneficio, el registro y, si lo hubo, el mecanismo cómico del concepto elegido; no inventes funciones.',
+    cast: 'Elegí sólo los personajes y roles que la historia elegida necesita: "quienesAparecen" es una lista de opciones, no un reparto obligatorio.',
+    storyboard: 'Recién acá la historia se traduce a escenas y se comprueba que entra en 20 a 30 segundos. El "recorrido" de la ficha es un banco de posibilidades, nunca una orden de escenas ni un orden fijo.',
+  }[etapa] || '';
+  return `ENFOQUE Y TRATAMIENTO ELEGIDOS POR EL DUEÑO (vienen del concepto; respetalos)
+ENFOQUE: ${enfoque.label} [${enfoque.id}]
+${JSON.stringify(enfoque.ficha, null, 2)}
+${trat ? `TRATAMIENTO: ${trat.label} [${trat.id}]. ${trat.instruccion}\n` : ''}${regla}
+`;
+}
 
 // extrae el primer objeto JSON de un texto (la IA a veces mete markdown o texto/explicación alrededor).
 export function extractJson(text) {
@@ -406,7 +425,7 @@ Rioplatense, sin emojis, no inventes datos. Sé estricto con la brevedad.` };
       return { mode: 'set', prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: escribí el GUION. No adelantes casting, planos ni decisiones técnicas del storyboard. Usá únicamente los hechos provistos; si un dato no está, no lo inventes.
 
 Actuás como promo-director. Convertí el CONCEPTO ELEGIDO en un comercial de ${dur}s para ${piezaDesc}, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
-${regenPrompt}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo reemplaces por otra idea): ${concepto}\n` : ''}${bloqueTecnica}${bloqueKit}
+${regenPrompt}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo reemplaces por otra idea): ${concepto}\n` : ''}${bloqueEnfoque(piece, 'guion')}${bloqueTecnica}${bloqueKit}
 ${focoPieza}OBJETIVO NARRATIVO:
 - Mantené UNA idea central de principio a fin.
 ${objetivoScope.replace('${x.name}', x.name)}
@@ -548,6 +567,19 @@ PANTALLAS DEL PRODUCTO: ${screensText(project) || '(sin pantallas en el KB: prop
         creativeBrief && `DIRECCIÓN CREATIVA DE ESTA PIEZA: ${creativeBrief}`,
         piece.primaryMessage && `MENSAJE PRINCIPAL DE ESTA PIEZA (la estrategia lo fijó; los tres conceptos lo demuestran de formas distintas): ${piece.primaryMessage}${piece.messageScope === 'brand-global' ? ' (pieza brand-global: acá sí se cuenta el sistema integral)' : ''}`,
       ].filter(Boolean).join('\n');
+      // concept/3.0 (curación externa del 2026-10-10, guardada en base-compartida/mediastudio/curaciones/01-concepto-con-enfoque):
+      // el dueño elige el ENFOQUE (cómo se organiza la historia) y el TRATAMIENTO (cómo se siente); el humor sólo entra si
+      // lo pide. El prompt y su catálogo viven en media-studio-concept-v3.mjs tal como vinieron. El 2.0 queda abajo para
+      // comparar o volver (options.molde === 'v2'). Sin brief el 3.0 corta a propósito: no inventa capacidades desde el nombre.
+      if (options.molde !== 'v2') {
+        const sel = (k, def) => String(options[k] || piece[k] || def);
+        return { prompt: buildConceptPromptV3({
+          name, brief, perfil, tipo, bloquePieza, bloqueTecnica, bloqueKit,
+          enfoqueId: sel('enfoque', 'caso'), tratamientoId: sel('tratamiento', 'natural'),
+          intensidadHumor: sel('intensidadHumor', 'sutil'), recursoHumorId: sel('recursoHumorId', 'auto'),
+          cierreMarca: String(piece.cierreMarca || ''),
+        }) };
+      }
       return { prompt: `QUÉ ES ESTO
 Sos director creativo de reels verticales de 20 a 30 segundos. Tenés que proponer TRES CONCEPTOS de comercial para que el dueño del negocio elija uno. Un concepto es UNA idea contada en pocas líneas, no un guion: las escenas, los planos y los tiempos se escriben en otro paso, después. Si escribís un guion acá, el trabajo no sirve.
 
@@ -645,7 +677,7 @@ NO ASUMIR:
 Devolvé SOLO JSON:
 { "personajes": [{ "id": "p1", "nombre": "...", "rol": "...", "fisicoEn": "...", "fisicoEs": "...", "vestuario": "...", "personalidad": "..." }], "lugar": { "nombre": "...", "descripcionEn": "...", "luz": "..." } }
 
-NEGOCIO: ${name}
+${bloqueEnfoque(piece, 'cast')}NEGOCIO: ${name}
 RUBRO: ${rubroNegocio}
 CONCEPTO: ${concepto}
 GUION: ${guion || '(usá el brief del negocio)'}` };
@@ -748,7 +780,7 @@ Devolvé SOLO JSON:
 
 NEGOCIO: ${name}
 MARCA FONÉTICA para cualquier diálogo: ${phonetic}
-CAST: ${cast}
+${bloqueEnfoque(piece, 'storyboard')}CAST: ${cast}
 GUION: ${guion || '(usá el brief del negocio)'}` };
     },
     // `body` (contrato extendido) trae el guion y el media kit de la pieza: el parse los usa para

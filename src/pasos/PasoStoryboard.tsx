@@ -45,7 +45,7 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const piece = { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec, ...(mediaKit ? { mediaKit } : {}) };
+      const piece = { guion: comercial?.guion, cast: comercial?.cast, tipo, durationSec, enfoque: comercial?.enfoque, tratamiento: comercial?.tratamiento, ...(mediaKit ? { mediaKit } : {}) };
       const res = await runMolde('storyboard', project, piece, {}, undefined, comercial, provider);
       setComercial((c) => ({ ...c, storyboard: (res.escenas as Escena[]) || [], estados: { ...c.estados, storyboard: c.estados.storyboard === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }

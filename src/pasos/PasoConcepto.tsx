@@ -6,6 +6,16 @@ import { mediaKitParaMolde } from '../lib/mediaKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import { pasoHabilitado, type Concepto, type TipoComercial } from '../lib/comercial';
+import { getFunction } from '../lib/functionCatalog';
+
+// concept/3.0 (curación 2026-10-10): lo que el dueño elige antes de pedir propuestas. Intensidad y mecanismo sólo con humor.
+type Eleccion = 'enfoque' | 'tratamiento' | 'intensidadHumor' | 'recursoHumorId';
+const ELECCIONES: { id: Eleccion; label: string; def: string; soloHumor?: boolean }[] = [
+  { id: 'enfoque', label: 'Enfoque', def: 'caso' },
+  { id: 'tratamiento', label: 'Tratamiento', def: 'natural' },
+  { id: 'intensidadHumor', label: 'Intensidad del humor', def: 'sutil', soloHumor: true },
+  { id: 'recursoHumorId', label: 'Mecanismo de humor', def: 'auto', soloHumor: true },
+];
 
 export default function PasoConcepto({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
@@ -45,8 +55,9 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, durationSec: 20, tipo, ...(mediaKit ? { mediaKit } : {}) };
-      const res = await runMolde('concept', project, piece, { perfil: 'campaña' }, undefined, comercial, provider);
+      const eleccion = Object.fromEntries(ELECCIONES.map((e) => [e.id, comercial?.[e.id] || e.def])) as Record<Eleccion, string>;
+      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, durationSec: 20, tipo, ...eleccion, cierreMarca: comercial?.cierreMarca || '', ...(mediaKit ? { mediaKit } : {}) };
+      const res = await runMolde('concept', project, piece, { perfil: 'campaña', ...eleccion }, undefined, comercial, provider);
       setOpciones((res.conceptos as Concepto[]) || []);
       setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
@@ -60,6 +71,15 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
     setComercial((c) => ({ ...c, tipo: t }));
     setOpciones([]);   // las propuestas eran para la otra técnica: se vuelven a pedir
   };
+
+  // cambiar enfoque o tratamiento invalida las propuestas (eran para otra forma de contar): se vuelven a pedir
+  const elegirOpcion = (k: Eleccion, v: string) => {
+    if ((comercial?.[k] || ELECCIONES.find((e) => e.id === k)?.def) === v) return;
+    setComercial((c) => ({ ...c, [k]: v }));
+    setOpciones([]);
+  };
+  const conHumor = (comercial?.enfoque || 'caso') === 'humor' || (comercial?.tratamiento || 'natural') === 'humor';
+  const opcionesConcept = getFunction('concept')?.options || [];
 
   const previewCpt = opciones.find(c => c.id === previewCptId);
 
@@ -94,6 +114,21 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
           </div>
         )}
       </div>
+
+      {ELECCIONES.filter((e) => !e.soloHumor || conHumor).map((e) => {
+        const opt = opcionesConcept.find((o) => o.id === e.id);
+        const actual = comercial?.[e.id] || e.def;
+        return (
+          <div className="paso-tipo" key={e.id}>
+            <span className="paso-tipo-lbl">{e.label}</span>
+            <div className="paso-chips">
+              {(opt?.choices || []).map((ch) => (
+                <button key={ch.value} className={actual === ch.value ? 'paso-chip paso-chip--on' : 'paso-chip'} disabled={busy} onClick={() => elegirOpcion(e.id, ch.value)}>{ch.label}</button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
 
       {opciones.length > 0 ? (
         !previewCpt ? (

@@ -45,7 +45,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo, messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, supportingFacts: comercial?.supportingFacts, ...(mediaKit ? { mediaKit } : {}) }, { tono: 'cercano' }, undefined, comercial, provider);
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo, messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, supportingFacts: comercial?.supportingFacts, enfoque: comercial?.enfoque, tratamiento: comercial?.tratamiento, ...(mediaKit ? { mediaKit } : {}) }, { tono: 'cercano' }, undefined, comercial, provider);
       applyGuion({ blocks: (res.blocks as GuionBloque[]) || [], music: res.music as { mood: string } | undefined });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };

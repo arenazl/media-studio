@@ -6,9 +6,11 @@
 // de REPARACIÓN corto (Regla 7: primer reintento = mismo modelo, errores concretos, sin pedir la
 // creatividad de nuevo). El texto creativo de cada prompt se cura aparte con el dueño.
 
+import { validateConceptResponseV3 } from './media-studio-concept-v3.mjs';
+
 export const PROMPT_VERSIONS = {
   strategy: 'strategy/2.0',       // 2.0: curado 2026-10-07 (la campaña cubre la propuesta; cada pieza UNA cosa)
-  concept: 'concept/2.0',         // 2.0: curado 2026-10-07 (secciones, largos en números, sin referencias inventadas)
+  concept: 'concept/3.0',         // 3.0: curación externa 2026-10-10 (ENFOQUE + TRATAMIENTO elegidos por el dueño; humor sólo a pedido; spots de marca, no sketches)
   script: 'script/2.0',           // 2.0: curado 2026-10-07 (el concepto manda; presupuesto en lista; NO ASUMIR)
   cast: 'cast/2.0',               // 2.0: curado 2026-10-07 (sin ejemplos copiables; largos en números; 2º personaje sólo con función)
   storyboard: 'storyboard/2.0',   // 2.0: curado 2026-10-07 (puesta en escena, no reescritura; animado por momento, [demo])
@@ -59,18 +61,10 @@ export const esTalkingHead = (e) => !!(String(e?.dialogo || '').trim() && Array.
 const ROLES = ['hook', 'desarrollo', 'gag', 'cta'];
 export const VALIDADORES = {
   concept(o) {
-    const E = [];
-    const cs = Array.isArray(o?.conceptos) ? o.conceptos : [];
-    if (cs.length !== 3) E.push(`tienen que ser 3 conceptos (vinieron ${cs.length})`);
-    const ganchos = new Set(cs.map((c) => String(c.tipoGancho || '').toUpperCase().trim()));
-    if (cs.length > 1 && ganchos.size < cs.length) E.push('los tipos de gancho tienen que ser distintos entre sí');
-    cs.forEach((c, i) => {
-      const w = palabras(c.idea);
-      if (w < 30 || w > 75) E.push(`concepto ${i + 1}: la idea tiene ${w} palabras (va de 40 a 60)`);
-      if (!String(c.topico || '').trim()) E.push(`concepto ${i + 1}: falta el tópico`);
-      if (/\b\d+\s?s\b|\bsegundos?\b|\bplano\b/i.test(String(c.idea))) E.push(`concepto ${i + 1}: la idea trae tiempos o planos (eso es del storyboard)`);
-    });
-    return E;
+    // concept/3.0: el validador vino con la curación (estructura, ids, largos por campo, mayúsculas en tipoGancho,
+    // sin segundos ni planos en la idea). La veracidad y la diversidad real las mira el dueño.
+    const r = validateConceptResponseV3(o);
+    return r.ok ? [] : r.errors;
   },
   script(o, body) {
     const E = [];

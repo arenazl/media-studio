@@ -37,7 +37,7 @@ describe('concept — el kit entra como materia prima', () => {
     const p = build('concept', { project: PROJECT, piece: {} }).prompt;
     expect(p).not.toContain('CAPTURAS REALES');
     expect(p).not.toContain('MOMENTOS');
-    expect(p.split('\n')[1]).toContain('Sos director creativo');   // sin línea en blanco de más
+    expect(p.split('\n')[1]).toContain('Sos la dupla director/a creativo/a');   // sin línea en blanco de más (concept/3.0)
   });
 });
 

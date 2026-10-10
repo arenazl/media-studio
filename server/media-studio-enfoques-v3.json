@@ -1,0 +1,342 @@
+{
+  "version": "3.0",
+  "principio": "El enfoque organiza la historia; el tratamiento decide el registro emocional; el recurso creativo aporta interés. Ninguno autoriza a inventar hechos o funciones.",
+  "notas": [
+    "El recorrido es un banco de posibilidades, NO una secuencia obligatoria de planos ni escenas.",
+    "El enfoque humor permite que el mecanismo cómico sea protagonista; el tratamiento humor puede aplicarse también a los otros seis enfoques.",
+    "Para Concepto sólo se inyecta la ficha seleccionada, no el catálogo completo.",
+    "Los conceptos ficticios son situaciones dramatizadas, no clientes ni testimonios acreditados."
+  ],
+  "enfoques": [
+    {
+      "id": "caso",
+      "label": "Un caso de principio a fin",
+      "ficha": {
+        "ideaCentral": "Un problema verificable y cotidiano de una persona se conecta con una función real del producto. Se sigue la transformación de la situación desde la perspectiva humana hasta una consecuencia visible; no hace falta mostrar todos los pasos.",
+        "quienesAparecen": [
+          "persona afectada o usuaria",
+          "personal que interviene, si aporta comprensión",
+          "representante de marca al cierre, opcional"
+        ],
+        "recorrido": [
+          "situación inicial específica",
+          "acción sencilla del usuario",
+          "intervención del producto vinculada a una función documentada",
+          "resultado o avance verosímil",
+          "firma de marca"
+        ],
+        "pantallasDelProducto": "Insertos puntuales únicamente de interfaces verificadas en el media kit. Si no hay capturas, describir la acción sin inventar pantallas ni textos literales.",
+        "tono": "Cercano y creíble; el tratamiento elegido decide si es sobrio, cálido o humorístico.",
+        "noAsumir": [
+          "garantizar que todo reclamo se resuelve",
+          "inventar plazos, interfaces o pantallas",
+          "convertir una ciudad mencionada en un cliente real",
+          "presentar un caso inventado como caso documentado"
+        ],
+        "cierre": "Una consecuencia humana ligada al beneficio, con firma o mensaje de marca si está disponible.",
+        "variablesDeDiferenciacion": [
+          "tipo de necesidad",
+          "persona y contexto",
+          "momento del día",
+          "beneficio específico",
+          "qué parte de la operación se evidencia"
+        ]
+      }
+    },
+    {
+      "id": "producto",
+      "label": "Producto a la vista",
+      "ficha": {
+        "ideaCentral": "La propuesta vende claridad: demuestra una tarea valiosa que alguien puede hacer con el producto. El atractivo está en la utilidad visible, no en enumerar módulos.",
+        "quienesAparecen": [
+          "usuario realista del producto",
+          "narrador o presentador, opcional",
+          "persona beneficiada, si aclara el efecto"
+        ],
+        "recorrido": [
+          "necesidad concreta",
+          "operación principal en el producto",
+          "cambio producido en el trabajo",
+          "beneficio comprensible",
+          "firma de marca"
+        ],
+        "pantallasDelProducto": "Mostrar sólo capturas o momentos confirmados en el kit; nunca inventar textos, menús, métricas o diseño. Si no hay kit, proponer una demostración conceptual pendiente de validar.",
+        "tono": "Preciso, claro y activo; puede ser cálido o con humor suave de situación.",
+        "noAsumir": [
+          "flujos no presentes en la ficha",
+          "velocidad o automatización no confirmada",
+          "que el público conozca las pantallas de antemano"
+        ],
+        "cierre": "Nombre del producto, beneficio concreto y CTA si está definido.",
+        "variablesDeDiferenciacion": [
+          "usuario que opera",
+          "tarea seleccionada",
+          "beneficio operativo",
+          "interfaz disponible",
+          "contexto de uso"
+        ]
+      }
+    },
+    {
+      "id": "dos-lados",
+      "label": "Los dos lados",
+      "ficha": {
+        "ideaCentral": "La misma necesidad conecta dos perspectivas que se benefician de un sistema compartido: quien inicia o necesita algo y quien lo gestiona o atiende.",
+        "quienesAparecen": [
+          "persona solicitante o destinataria",
+          "operador, supervisor o equipo",
+          "representante de marca, opcional"
+        ],
+        "recorrido": [
+          "una necesidad común",
+          "perspectiva A: qué necesita saber o hacer",
+          "perspectiva B: qué necesita organizar o resolver",
+          "punto de conexión mediante el producto",
+          "resultado coherente para ambos"
+        ],
+        "pantallasDelProducto": "Usar únicamente interfaces reales para representar la conexión; evitar pantallas imaginarias de interoperabilidad.",
+        "tono": "Humano, colaborativo, equilibrado entre las dos perspectivas.",
+        "noAsumir": [
+          "que el equipo municipal es negligente",
+          "que la solución garantiza respuesta inmediata",
+          "que ambas partes ven exactamente la misma información"
+        ],
+        "cierre": "Un beneficio compartido: claridad para la persona y orden para la organización.",
+        "variablesDeDiferenciacion": [
+          "pareja de roles",
+          "punto de contacto",
+          "tipo de solicitud",
+          "perspectiva dominante",
+          "beneficio común"
+        ]
+      }
+    },
+    {
+      "id": "antes-despues",
+      "label": "Antes y después",
+      "ficha": {
+        "ideaCentral": "Un contraste entendible muestra qué cambia al introducir una capacidad real del producto. No se trata de ridiculizar el pasado sino de iluminar un beneficio.",
+        "quienesAparecen": [
+          "persona que realiza una tarea",
+          "una segunda persona, si la comparación lo justifica",
+          "representante de marca, opcional"
+        ],
+        "recorrido": [
+          "misma necesidad en dos situaciones",
+          "fricción genérica plausible",
+          "uso de una función probada del producto",
+          "diferencia concreta y visible",
+          "firma de marca"
+        ],
+        "pantallasDelProducto": "Las pantallas reales sólo aparecen si permiten demostrar el cambio. Sin media kit, no recrear una UI como si fuera auténtica.",
+        "tono": "Didáctico y ágil; admite ironía leve si el tratamiento lo permite.",
+        "noAsumir": [
+          "que un cliente real tenía mala gestión",
+          "comparaciones de tiempos sin datos",
+          "atribuir resultados cuantificados no documentados"
+        ],
+        "cierre": "La misma necesidad, ahora más fácil de seguir o gestionar, formulada sin promesas absolutas.",
+        "variablesDeDiferenciacion": [
+          "fricción elegida",
+          "usuario",
+          "operación comparada",
+          "beneficio",
+          "grado de contraste"
+        ]
+      }
+    },
+    {
+      "id": "testimonio",
+      "label": "Voz de una persona",
+      "ficha": {
+        "ideaCentral": "Un relato en primera persona permite comprender el valor humano o profesional del producto. Si no hay testimonios autorizados, debe ser una dramatización evidente, jamás la voz de un cliente real inventado.",
+        "quienesAparecen": [
+          "protagonista narrador o narradora",
+          "personas de su entorno, opcionales",
+          "presentador de marca, opcional"
+        ],
+        "recorrido": [
+          "experiencia o necesidad específica",
+          "momento de decisión",
+          "uso o interacción fundada en la ficha",
+          "qué cambió para esa persona",
+          "cierre honesto"
+        ],
+        "pantallasDelProducto": "La voz puede acompañarse de producto real del kit. Evitar falsos pantallazos de testimonios o reseñas.",
+        "tono": "Sencillo, espontáneo, sin actuaciones de éxito exageradas.",
+        "noAsumir": [
+          "nombres o cargos de clientes reales sin autorización",
+          "citas atribuidas a personas existentes",
+          "promesas de resultado garantizado",
+          "presentar una actuación como testimonio verificado"
+        ],
+        "cierre": "Frase simple atribuible al personaje ficticio o cierre de marca; identificar dramatización si corresponde.",
+        "variablesDeDiferenciacion": [
+          "perfil de narrador",
+          "situación",
+          "función utilizada",
+          "beneficio",
+          "registro de voz"
+        ]
+      }
+    },
+    {
+      "id": "institucional",
+      "label": "Marca y visión",
+      "ficha": {
+        "ideaCentral": "Presenta la promesa central y la identidad de la marca alrededor de una idea unificadora, con imágenes significativas de usuarios, contextos o producto. No requiere un protagonista único.",
+        "quienesAparecen": [
+          "personas que representan al público objetivo",
+          "equipos o colaboradores si aplica",
+          "locutor o presentador opcional"
+        ],
+        "recorrido": [
+          "territorio o situación donde importa la marca",
+          "idea fuerza",
+          "pruebas visuales basadas en capacidades reales",
+          "beneficio global sin lista de módulos",
+          "firma de marca"
+        ],
+        "pantallasDelProducto": "Pantallas breves y reales pueden funcionar como prueba, nunca como un catálogo rápido de funciones inexistentes.",
+        "tono": "Profesional, memorables imágenes, voz humana; no grandilocuente ni genérico.",
+        "noAsumir": [
+          "liderazgo de mercado",
+          "impacto o escala sin cifras en ficha",
+          "clientes, convenios o logos gubernamentales no autorizados"
+        ],
+        "cierre": "Firma visual/verbal sólida, con claim definido o propuesta de claim nueva claramente creativa.",
+        "variablesDeDiferenciacion": [
+          "idea de marca",
+          "público principal",
+          "prueba del valor",
+          "universo visual",
+          "CTA"
+        ]
+      }
+    },
+    {
+      "id": "humor",
+      "label": "Situación con humor",
+      "ficha": {
+        "ideaCentral": "Un spot de marca usa una observación humana reconocible y un mecanismo cómico preciso. La risa destaca el problema o el contraste; el producto entra como respuesta relevante. Un chiste no reemplaza la propuesta de valor.",
+        "quienesAparecen": [
+          "persona o rol cotidiano reconocible",
+          "contrapunto o segundo personaje sólo si suma",
+          "representante de marca al cierre, opcional"
+        ],
+        "recorrido": [
+          "una verdad cotidiana concreta",
+          "expectativa reconocible",
+          "quiebre o progresión cómica",
+          "uso orgánico del producto",
+          "cierre ligado al beneficio de marca"
+        ],
+        "pantallasDelProducto": "Producto y pantallas reales cuando la ficha y el media kit lo avalan; evitar falsas interfaces o efectos mágicos.",
+        "tono": "Humor observacional o de contraste; intensidad según el tratamiento. Priorizar actuación natural y precisión antes que sobreactuación.",
+        "noAsumir": [
+          "mascotas o personificaciones absurdas por defecto",
+          "chistes sin relación con el producto",
+          "ridiculizar funcionarios, vecinos o clientes",
+          "falsos casos de corrupción o negligencia",
+          "explicar el remate con una locución"
+        ],
+        "cierre": "El beneficio se entiende también si el espectador no se ríe; firma de marca y CTA cuando corresponda.",
+        "variablesDeDiferenciacion": [
+          "fricción observada",
+          "mecanismo de humor",
+          "personaje",
+          "objeto o situación que produce el quiebre",
+          "función real que resuelve el conflicto"
+        ]
+      }
+    }
+  ],
+  "tratamientos": [
+    {
+      "id": "natural",
+      "label": "Cotidiano",
+      "instruccion": "Personas verosímiles, diálogo espontáneo, escenas reconocibles. Ni solemne ni caricaturesco."
+    },
+    {
+      "id": "sobrio",
+      "label": "Sobrio",
+      "instruccion": "Precisión, confianza y calma. Evitá solemnidad vacía y dramatismo artificial."
+    },
+    {
+      "id": "calido",
+      "label": "Cálido",
+      "instruccion": "Cercanía y vínculo humano. Emoción que nace de la situación, no de frases inspiracionales."
+    },
+    {
+      "id": "aspiracional",
+      "label": "Aspiracional",
+      "instruccion": "Visión de mejora, claridad y profesionalismo con pruebas visuales concretas, sin promesas grandiosas."
+    },
+    {
+      "id": "humor",
+      "label": "Con humor",
+      "instruccion": "Aplicá recursos cómicos observacionales a la estructura elegida, con un único mecanismo dominante por concepto. Que la utilidad del producto sobreviva al chiste."
+    }
+  ],
+  "intensidadHumor": {
+    "sutil": "Sonrisa reconocible: observación, ironía leve o gesto seco. Un único quiebre.",
+    "media": "Contraste cómico claro, giro o repetición breve, siempre plausible para un comercial de marca.",
+    "alta": "Se permite mayor exageración de la situación, nunca de las funciones del producto ni de hechos sobre personas o instituciones."
+  },
+  "herramientasHumor": [
+    {
+      "id": "observacion",
+      "nombre": "Observación cotidiana",
+      "comoFunciona": "Detectá una conducta, frase o incomodidad real y ligeramente reconocible que el público ya vivió. El humor nace de identificarla.",
+      "evitar": "chistes genéricos sin observación concreta"
+    },
+    {
+      "id": "contraste",
+      "nombre": "Contraste de escala",
+      "comoFunciona": "Enfrentá la complejidad innecesaria de una situación con la simplicidad de una acción útil, sin inventar cifras ni operaciones del producto.",
+      "evitar": "ridiculizar a una persona o institución"
+    },
+    {
+      "id": "inversion",
+      "nombre": "Inversión de expectativas",
+      "comoFunciona": "Prepará una expectativa normal y cambiala por una consecuencia sorprendente pero lógica; la sorpresa revela el beneficio.",
+      "evitar": "giros arbitrarios o imposibles"
+    },
+    {
+      "id": "repeticion",
+      "nombre": "Repetición con variación",
+      "comoFunciona": "Repetí dos veces un patrón reconocible y cambiá un detalle en la tercera para producir un pequeño remate.",
+      "evitar": "tres escenas idénticas sin avance"
+    },
+    {
+      "id": "malentendido",
+      "nombre": "Malentendido plausible",
+      "comoFunciona": "Dos personajes interpretan de forma distinta una palabra o situación creíble. Se aclara con una funcionalidad real.",
+      "evitar": "hacer que los personajes parezcan tontos"
+    },
+    {
+      "id": "literalidad",
+      "nombre": "Literalidad visual",
+      "comoFunciona": "Volvé visual una expresión cotidiana de manera contenida y fácil de producir. Debe sentirse como metáfora, no como producto con poderes.",
+      "evitar": "mascotas mágicas, objetos parlantes o efectos imposibles por defecto"
+    },
+    {
+      "id": "deadpan",
+      "nombre": "Seriedad ante lo mínimo",
+      "comoFunciona": "Una actuación completamente seria frente a una pequeña incomodidad reconocible produce un contraste seco.",
+      "evitar": "sobreactuar o forzar carcajadas"
+    },
+    {
+      "id": "callback",
+      "nombre": "Retorno de un detalle",
+      "comoFunciona": "Un detalle inicial aparentemente secundario reaparece transformado y le da un segundo sentido al cierre.",
+      "evitar": "complejidad que exija rever el video"
+    },
+    {
+      "id": "cambio_perspectiva",
+      "nombre": "Cambio de perspectiva",
+      "comoFunciona": "Mostrá la misma situación desde un segundo rol: la información nueva cambia la lectura de lo anterior.",
+      "evitar": "acusar o burlarse de quien gestiona"
+    }
+  ]
+}

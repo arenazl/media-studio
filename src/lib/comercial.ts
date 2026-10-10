@@ -125,6 +125,12 @@ export interface Comercial {
   formatoId?: string;                // WO-1: formato de salida (aspecto/plataforma/técnica) — id de FORMATOS_DEF (formato.ts). Ausente = proyectos viejos (default 9:16 filmado).
   angulo?: string;                   // C7: ángulo estratégico (de `strategy`) — proxy de diferenciación que alimenta el concepto
   creativeBrief?: string;            // C7: brief creativo por pieza (de `strategy`)
+  // concept/3.0 (2026-10-10): el dueño elige cómo se cuenta la pieza; ids del catálogo server/media-studio-enfoques-v3.json
+  enfoque?: string;                  // cómo se organiza la historia: caso | producto | dos-lados | antes-despues | testimonio | institucional | humor
+  tratamiento?: string;              // cómo se siente: natural | sobrio | calido | aspiracional | humor
+  intensidadHumor?: string;          // sutil | media | alta (sólo si enfoque o tratamiento es humor)
+  recursoHumorId?: string;           // auto o un mecanismo de humor del catálogo
+  cierreMarca?: string;              // claim aprobado por el dueño (p. ej. "Munify, para vos"); vacío = el modelo propone una firma simple
   messageScope?: string;             // doctrina 2026-10-07: brand-global|problem|demo|benefit|proof|objection|conversion (de `strategy`)
   primaryMessage?: string;           // el mensaje principal de ESTA pieza (de `strategy`)
   supportingFacts?: string[];        // los hechos del brief que esta pieza usa (de `strategy`)

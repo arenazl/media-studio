@@ -44,22 +44,23 @@ describe('versionado (Regla 2)', () => {
     for (const id of ['strategy', 'concept', 'script', 'cast', 'storyboard', 'flowpack', 'publish', 'qa', 'videoprompt', 'briefToKb']) {
       expect(PROMPT_VERSIONS[id], id).toMatch(/^[a-zA-Z]+\/\d/);
     }
-    expect(buildFunctionPrompt({ functionId: 'concept', context: { project: { name: 'X', brief: 'b' }, piece: {} }, options: {} }).promptVersion).toBe('concept/2.0');
+    expect(buildFunctionPrompt({ functionId: 'concept', context: { project: { name: 'X', brief: 'b' }, piece: {} }, options: {} }).promptVersion).toBe('concept/3.0');
   });
 });
 
 describe('validación por molde (P0.7)', () => {
   const idea = (n: number) => Array.from({ length: n }, (_, i) => `p${i}`).join(' ');
-  it('concept: 3 conceptos, ganchos distintos, idea de 40 a 60 palabras, sin tiempos ni planos', () => {
-    const ok = { conceptos: [1, 2, 3].map((i) => ({ id: `c${i}`, topico: `T${i}`, tipoGancho: `G${i}`, idea: idea(50) })) };
-    expect(validarResultado('concept', ok, {})).toEqual([]);
-    const mal = { conceptos: [{ id: 'c1', topico: 'T', tipoGancho: 'G', idea: idea(120) + ' plano cenital de 2s' }, { id: 'c2', topico: '', tipoGancho: 'G', idea: idea(10) }] };
-    const e = validarResultado('concept', mal, {});
-    expect(e.some((x: string) => x.includes('3 conceptos'))).toBe(true);
-    expect(e.some((x: string) => x.includes('distintos'))).toBe(true);
-    expect(e.some((x: string) => x.includes('palabras (va de 40 a 60)'))).toBe(true);
-    expect(e.some((x: string) => x.includes('tiempos o planos'))).toBe(true);
-    expect(e.some((x: string) => x.includes('falta el tópico'))).toBe(true);
+  // concept/3.0 (curación 2026-10-10): el validador vino con la curación. Exactamente 3, ids c1..c3, los 7 campos con
+  // largos en palabras, tipoGancho en mayúsculas (ahora es el recurso narrativo) y sin segundos ni planos en la idea.
+  it('concept 3.0: exactamente 3, campos con largos, tipoGancho en mayúsculas, sin tiempos ni planos en la idea', () => {
+    const c = (i: number, extra: Record<string, string> = {}) => ({ id: `c${i}`, topico: `Tópico número ${i}`, tipoGancho: 'SITUACIÓN COTIDIANA', idea: idea(50), tono: 'calmo y concreto', estetica: 'luz natural de mañana', referencia: 'spot de servicio público', porQueFunciona: 'muestra el circuito completo', ...extra });
+    expect(validarResultado('concept', { conceptos: [c(1), c(2), c(3)] }, {})).toEqual([]);
+    expect(validarResultado('concept', { conceptos: [c(1), c(2)] }, {}).some((x: string) => x.includes('tres conceptos'))).toBe(true);
+    const e = validarResultado('concept', { conceptos: [c(1, { idea: idea(120) + ' plano cenital de 2s' }), c(2, { topico: '' }), c(3, { tipoGancho: 'humor suave' })] }, {});
+    expect(e.some((x: string) => x.includes('idea: 124 palabras'))).toBe(true);
+    expect(e.some((x: string) => x.includes('instrucciones de storyboard'))).toBe(true);
+    expect(e.some((x: string) => x.includes('topico: 0 palabras'))).toBe(true);
+    expect(e.some((x: string) => x.includes('mayúsculas'))).toBe(true);
   });
   it('script: roles, orden, palabras por segundo y suma de duraciones', () => {
     const body = { options: { duracion: 20 }, context: { piece: {} } };
