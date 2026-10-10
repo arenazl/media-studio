@@ -58,7 +58,7 @@ const TRACK_META: Record<TrackId, string> = {
 };
 
 const ROLE_COLOR: Record<string, string> = {
-  hook: '#FFB800', desarrollo: '#7C5CFF', gag: '#FF5C8A', cta: '#00B37E', animado: '#7C5CFF',
+  hook: '#FFB800', desarrollo: '#7C5CFF', giro: '#FF5C8A', gag: '#FF5C8A', cta: '#00B37E', animado: '#7C5CFF',
 };
 export const roleColor = (rol?: string): string => (rol && ROLE_COLOR[rol]) || '#4AA3FF';
 

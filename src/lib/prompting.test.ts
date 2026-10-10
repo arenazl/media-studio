@@ -69,7 +69,7 @@ describe('validación por molde (P0.7)', () => {
     const mal = { blocks: [{ role: 'hook', narration: idea(20), durSec: 3 }, { role: 'cta', narration: idea(5), durSec: 4 }, { role: 'gag', narration: idea(5), durSec: 4 }] };
     const e = validarResultado('script', mal, body);
     expect(e.some((x: string) => x.includes('falta el bloque "desarrollo"'))).toBe(true);
-    expect(e.some((x: string) => x.includes('gag tiene que ir antes'))).toBe(true);
+    expect(e.some((x: string) => x.includes('giro tiene que ir antes'))).toBe(true);   // 'gag' viejo se lee como giro
     expect(e.some((x: string) => x.includes('20 palabras en 3s'))).toBe(true);
     expect(e.some((x: string) => x.includes('suman 11s'))).toBe(true);
   });

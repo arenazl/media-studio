@@ -30,7 +30,8 @@ export const VEO_REGLAS_EN = {
 const ENTREGA_POR_ROL = {
   hook: 'Energetic, hooking delivery that grabs attention from the first word.',
   desarrollo: 'Warm and assured delivery, explaining with confidence.',
-  gag: 'Playful, sharp delivery that lands the punchline.',
+  giro: 'Clear, assured delivery: this is the moment the benefit becomes visible.',
+  gag: 'Playful, sharp delivery that lands the punchline.',   // piezas viejas o tratamiento humor
   cta: 'Euphoric, inviting closing delivery.',
 };
 

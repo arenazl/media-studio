@@ -9,6 +9,10 @@ Una línea por pendiente, con el dato que lo justifica y dónde está el detalle
 - Fase opcional de evaluación sólo de las propuestas con humor (devolver alternativas sin tocar el resto). Mismo LEEME.
 - "Mecanismo de humor" como opción avanzada plegada; hoy es un chip más, visible sólo con humor activo (`PasoConcepto.tsx`).
 - `cierreMarca` ("Munify, para vos") todavía no se carga desde la interfaz: sale vacío salvo que la pieza lo traiga.
+- El compilador de prompts de Veo (`server/flowCompiler.mjs`) le da al bloque "giro" una entrega neutra; con tratamiento
+  humor debería pedir el remate. Falta pasarle el tratamiento al compilador (hoy no lo recibe).
+- Los comerciales viejos siguen con el rol "gag" (se leen como giro y conservan el silencio de 0,8 s del montaje);
+  una migración los renombraría, pero no hace falta mientras se regeneren.
 
 ## Puente Flow (extensión de Chrome, 2026-10-10)
 

@@ -406,8 +406,8 @@ ${factsText(x.facts)}` };
         const cur = (regenerate.blocks || [])[regenerate.index] || {};
         return { mode: 'item', prompt: `Actuás como promo-director. Rehacé SOLO ESTE bloque del guion (tono ${tono}), con una propuesta DISTINTA y mejor. Mantené su rol.
 Devolvé SOLO el JSON del bloque: { "role": "${cur.role || 'hook'}", "narration": "lo que se DICE (voz - SÚPER CORTO, máximo 1-2 oraciones)", "visual": "lo que se VE (breve, 1 línea)", "durSec": <segundos estimados a ~2.7 palabras/seg> }
-NEGOCIO: ${x.name} · BLOQUE ACTUAL (hacelo distinto): ${JSON.stringify(cur)}
-Rioplatense, sin emojis, no inventes datos. Sé estricto con la brevedad.` };
+${bloqueEnfoque(piece, 'guion')}NEGOCIO: ${x.name} · BLOQUE ACTUAL (hacelo distinto): ${JSON.stringify(cur)}
+Rioplatense, sin emojis, no inventes datos. Sé estricto con la brevedad. Si el rol es "giro" o "gag": es el momento en que se ve el beneficio; remate gracioso sólo con tratamiento humor.` };
       }
       // WO-K4: con media kit, las capturas/momentos REALES entran como insumo del prompt.
       // Sin kit el bloque queda vacío → prompt byte-idéntico al anterior.
@@ -429,10 +429,10 @@ ${regenPrompt}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo r
 ${focoPieza}OBJETIVO NARRATIVO:
 - Mantené UNA idea central de principio a fin.
 ${objetivoScope.replace('${x.name}', x.name)}
-- El gag/remate tiene que nacer de la misma situación del concepto y va antes del CTA.
+- El GIRO es el momento en que el beneficio se ve; nace de la misma situación del concepto y va antes del CTA. Es un remate gracioso SÓLO si el tratamiento elegido es humor: sin humor pedido, nada de chistes, ironía ni parodia.
 
 ESTRUCTURA EXACTA:
-hook -> desarrollo -> gag -> cta
+hook -> desarrollo -> giro -> cta
 
 PRESUPUESTO HABLADO (contá palabras):
 ${presupuestoLista(dur)}
@@ -449,7 +449,7 @@ NO ASUMIR:
 - un CTA distinto del disponible en el BRIEF.
 
 Devolvé SOLO JSON:
-{ "blocks": [{ "role": "hook|desarrollo|gag|cta", "narration": "", "visual": "", "durSec": <segundos> }], "music": { "mood": "2-3 palabras" } }
+{ "blocks": [{ "role": "hook|desarrollo|giro|cta", "narration": "", "visual": "", "durSec": <segundos> }], "music": { "mood": "2-3 palabras" } }
 
 NEGOCIO: ${x.name}
 BRIEF (única fuente de hechos):
@@ -717,7 +717,7 @@ Una escena = un momento visual claro. Usá sólo las escenas necesarias para con
 
 POR ESCENA:
 - n: consecutivo desde 1.
-- rol: hook|desarrollo|gag|cta.
+- rol: hook|desarrollo|giro|cta (giro = el momento en que se ve el beneficio; remate gracioso sólo con tratamiento humor).
 - durSec: 3 a 5s.
 - screen: nombre EXACTO de una pantalla de PANTALLAS DEL KB. Si ninguna pantalla real corresponde, usá "[demo]" en vez de inventar un nombre.
 - accion: título visible de máximo 8 palabras que vende ese momento.
@@ -752,7 +752,7 @@ Cada escena tiene una función visual concreta. No agregues escenas por variedad
 
 POR ESCENA:
 - n: consecutivo desde 1.
-- rol: hook|desarrollo|gag|cta.
+- rol: hook|desarrollo|giro|cta (giro = el momento en que se ve el beneficio; remate gracioso sólo con tratamiento humor).
 - durSec: talking head mínimo 8s; b-roll entre 4 y 8s. Un b-roll CON voz en off dura lo que dura su texto a 2,7 palabras por segundo (10 palabras = 4s), nunca más; sin voz, 4 a 6s.
 - plano: para talking head, medium shot waist-up; evitá sujetos lejanos.
 - angulo: breve.
@@ -765,7 +765,7 @@ DURACIÓN Y TALKING HEADS (regla dura, medible):
 - Un talking head dura 8s y necesita ${maxNarrationWords(8) - 4} a ${maxNarrationWords(8)} palabras de diálogo: JUNTÁ bloques consecutivos del guion en un mismo talking head (por ejemplo hook + desarrollo) en vez de hacer un talking head por bloque. Un talking head con menos de ${Math.round((maxNarrationWords(8) - 4) * 0.7)} palabras es aire y no sirve.
 - Pieza de hasta 24s: como máximo ${durationSec <= 24 ? 'DOS' : 'TRES'} talking heads. Lo demás va como b-roll de 4 a 8s con la voz en off (dialogo con el texto del guion y personajes []).
 - Con UN solo talking head la pieza queda en ${durationSec}s (máximo ${Math.round(durationSec * 1.25)}s); con dos, pasa a 24 a 30s: no comprimas, extendé.
-El gag/remate ocurre antes del CTA.
+El giro (el momento en que se ve el beneficio; remate gracioso sólo con tratamiento humor) ocurre antes del CTA.
 
 CONTINUIDAD:
 Usá siempre los mismos ids para el mismo personaje. No cambies ropa, edad, lugar o luz sin que el GUION lo justifique.
@@ -789,7 +789,7 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
     parse(text, body) {
       const o = extractJson(text);
       if (!Array.isArray(o.escenas) || !o.escenas.length) throw new Error('el molde storyboard no trajo escenas');
-      const ROLES = new Set(['hook', 'desarrollo', 'gag', 'cta']);
+      const ROLES = new Set(['hook', 'desarrollo', 'giro', 'gag', 'cta']);   // 'gag' sólo por compatibilidad con piezas viejas
       const piece = (body && body.context && body.context.piece) || {};
       let escenas = o.escenas.map((e) => {
         if (!ROLES.has(e.rol)) throw new Error(`rol de escena inválido: ${e.rol}`);
@@ -958,7 +958,7 @@ La descripción del dueño manda: el orden, qué se muestra y qué se destaca sa
 
 POR ESCENA:
 - n: consecutivo desde 1.
-- rol: hook (la primera), desarrollo, gag (opcional, el remate), cta (la última, siempre).
+- rol: hook (la primera), desarrollo, giro (opcional, el momento en que se ve el beneficio), cta (la última, siempre).
 - screen: si la escena muestra una pantalla o función que está en CAPTURAS REALES, el nombre EXACTO de esa captura. Si es una apertura, un cierre o una idea sin pantalla, "".
 - durSec: entre 3 y 5 (número).
 - accion: el título visible, de 2 a 6 palabras, en español rioplatense (voseo), sin markdown.
@@ -992,7 +992,7 @@ ${descripcion}` };
 // reparte una captura "por turno" a las escenas sin pantalla: sin coincidencia, la escena es de título.
 export function escenasMockupDesdeTexto(escenas, pantallas = []) {
   if (!Array.isArray(escenas) || escenas.length < 1) throw new Error('la descripción no alcanzó para armar escenas');
-  const ROLES = new Set(['hook', 'desarrollo', 'gag', 'cta']);
+  const ROLES = new Set(['hook', 'desarrollo', 'giro', 'gag', 'cta']);   // 'gag' sólo por compatibilidad con piezas viejas
   const limpiar = (s) => String(s || '').replace(/[*_`#]+/g, '').replace(/\s+/g, ' ').trim();
   const out = escenas.slice(0, 8).map((e, i) => {
     const accion = limpiar(e.accion);

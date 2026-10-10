@@ -13,7 +13,9 @@ import { scriptNarrations } from './scriptToText.mjs';
 import { esTalkingHead } from './prompting.mjs';
 
 export const LINT_VERSION = 'lint/1.0';
-const ROLES = ['hook', 'desarrollo', 'gag', 'cta'];
+const ROLES = ['hook', 'desarrollo', 'giro', 'cta'];
+const OPCIONALES = new Set(['giro']);                       // el giro (antes "gag") no es obligatorio: no se fuerza un remate
+const rolCanonico = (r) => (r === 'gag' ? 'giro' : r);       // piezas viejas
 const WPS_MAX = 3.2;     // palabras por segundo que un TTS dice sin atropellar (~2.7 es cómodo)
 const WPS_MIN = 1.2;     // menos que esto es un bloque con aire de más
 const TALKING_HEAD_MIN = 8;
@@ -36,16 +38,16 @@ export function lintCommercial(piece = {}, { facts } = {}) {
 
   // ── GUION ──
   if (blocks.length) {
-    const roles = blocks.map((b) => S(b.role));
-    for (const r of ROLES) if (!roles.includes(r)) add('alta', 'guion.rol-faltante', `Al guion le falta el bloque "${r}".`);
-    const iGag = roles.indexOf('gag'), iCta = roles.indexOf('cta');
-    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'guion.gag-despues-del-cta', 'El remate (gag) tiene que ir ANTES del llamado a la acción.');
+    const roles = blocks.map((b) => rolCanonico(S(b.role)));
+    for (const r of ROLES) if (!OPCIONALES.has(r) && !roles.includes(r)) add('alta', 'guion.rol-faltante', `Al guion le falta el bloque "${r}".`);
+    const iGag = roles.indexOf('giro'), iCta = roles.indexOf('cta');
+    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'guion.gag-despues-del-cta', 'El giro (el momento en que se ve el beneficio) tiene que ir ANTES del llamado a la acción.');
     if (roles[0] && roles[0] !== 'hook') add('media', 'guion.no-arranca-con-hook', `El guion arranca con "${roles[0]}" en vez del hook.`);
     const suma = blocks.reduce((a, b) => a + (Number(b.durSec) || 0), 0);
     if (dur && suma && Math.abs(suma - dur) > dur * 0.25) add('media', 'guion.duracion', `Los bloques suman ${suma}s y la pieza es de ${dur}s (más del 25% de diferencia).`);
     for (const b of blocks) {
       const w = palabras(b.narration), d = Number(b.durSec) || 0;
-      if (!w && b.role !== 'gag') add('media', 'guion.bloque-vacio', `El bloque "${b.role}" no tiene narración.`);
+      if (!w && !OPCIONALES.has(rolCanonico(b.role))) add('media', 'guion.bloque-vacio', `El bloque "${b.role}" no tiene narración.`);
       if (w && d && w / d > WPS_MAX) add('alta', 'guion.muy-rapido', `El bloque "${b.role}" tiene ${w} palabras en ${d}s (${(w / d).toFixed(1)} por segundo): no se puede decir.`);
       if (w && d >= 4 && w / d < WPS_MIN) add('baja', 'guion.muy-lento', `El bloque "${b.role}" tiene ${w} palabras en ${d}s: queda mucho aire.`);
     }
@@ -74,8 +76,8 @@ export function lintCommercial(piece = {}, { facts } = {}) {
     for (const e of ths) if (tipo === 'filmado' && (Number(e.durSec) || 0) >= 8 && palabras(e.dialogo) < 12) add('media', 'storyboard.talking-head-vacio', `La escena ${e.n} es un talking head de ${e.durSec}s con ${palabras(e.dialogo)} palabras: queda aire.`);
     for (const e of escenas) { const w = palabras(e.dialogo), d = Number(e.durSec) || 0; if (tipo === 'filmado' && w && !(e.personajes || []).length && d > Math.max(4, Math.ceil(w / 2.7) + 1)) add('media', 'storyboard.broll-largo', `La escena ${e.n} es b-roll con ${w} palabras de voz en off y dura ${d}s: le sobran ${d - Math.max(4, Math.ceil(w / 2.7))}s.`); }
     const rolesE = escenas.map((e) => S(e.rol));
-    const iGag = rolesE.lastIndexOf('gag'), iCta = rolesE.indexOf('cta');
-    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'storyboard.gag-despues-del-cta', 'En el storyboard el remate va después del CTA.');
+    const iGag = Math.max(rolesE.lastIndexOf('gag'), rolesE.lastIndexOf('giro')), iCta = rolesE.indexOf('cta');
+    if (iGag >= 0 && iCta >= 0 && iGag > iCta) add('alta', 'storyboard.gag-despues-del-cta', 'En el storyboard el giro va después del CTA.');
     const pantallas = new Set([
       ...(Array.isArray(piece.mediaKit?.pantallas) ? piece.mediaKit.pantallas.map((p) => norm(p.nombre)) : []),
       ...(Array.isArray(piece.screens) ? piece.screens.map((s) => norm(typeof s === 'string' ? s : s.label)) : []),

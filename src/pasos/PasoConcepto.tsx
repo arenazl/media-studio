@@ -72,11 +72,22 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
     setOpciones([]);   // las propuestas eran para la otra técnica: se vuelven a pedir
   };
 
-  // cambiar enfoque o tratamiento invalida las propuestas (eran para otra forma de contar): se vuelven a pedir
+  // cambiar enfoque o tratamiento invalida las propuestas (eran para otra forma de contar) y también el concepto ya
+  // elegido y lo que se construyó encima: el guion, el cast, el storyboard y el pack quedan "pendiente" (los textos no
+  // se borran, pero el pipeline exige regenerarlos). Revisión externa 2026-10-10: si no, se producía un comercial con el
+  // enfoque anterior.
+  const [aviso, setAviso] = useState('');
   const elegirOpcion = (k: Eleccion, v: string) => {
     if ((comercial?.[k] || ELECCIONES.find((e) => e.id === k)?.def) === v) return;
-    setComercial((c) => ({ ...c, [k]: v }));
+    const habiaConcepto = !!comercial?.concepto;
+    setComercial((c) => {
+      const estados = { ...c.estados };
+      if (habiaConcepto) for (const p of ['concepto', 'guion', 'cast', 'storyboard', 'pack'] as const) if (p in estados) estados[p] = 'pendiente';
+      return { ...c, [k]: v, ...(habiaConcepto ? { concepto: undefined, estados } : {}) };
+    });
     setOpciones([]);
+    setPreviewCptId(null);
+    if (habiaConcepto) setAviso('Cambiaste cómo se cuenta la pieza: el concepto elegido y lo que seguía (guion, cast, storyboard, pack) se hicieron con la elección anterior. Pedí propuestas nuevas y regeneralos.');
   };
   const conHumor = (comercial?.enfoque || 'caso') === 'humor' || (comercial?.tratamiento || 'natural') === 'humor';
   const opcionesConcept = getFunction('concept')?.options || [];
@@ -129,6 +140,8 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
           </div>
         );
       })}
+
+      {aviso && <div className="paso-empty" style={{ marginBottom: 8 }}>{aviso}</div>}
 
       {opciones.length > 0 ? (
         !previewCpt ? (

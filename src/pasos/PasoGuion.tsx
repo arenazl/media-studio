@@ -9,8 +9,8 @@ import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import { pasoHabilitado, type GuionEstructurado, type GuionBloque, type EstadoPaso } from '../lib/comercial';
 
-const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
-const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
+const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', giro: 'Giro', gag: 'Remate', cta: 'CTA' };
+const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 
 export default function PasoGuion({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
@@ -54,7 +54,8 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     if (!guion) return;
     setBusyIdx(i); setError('');
     try {
-      const res = await runMolde('script', project, { concepto: comercial?.concepto }, { tono: 'cercano' }, { index: i, blocks }, comercial);
+      // la regeneración de un bloque también viaja con el enfoque y el tratamiento (si no, un bloque sobrio volvía con otro registro)
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, enfoque: comercial?.enfoque, tratamiento: comercial?.tratamiento }, { tono: 'cercano' }, { index: i, blocks }, comercial);
       const item = res.item as GuionBloque | undefined;
       if (item) applyGuion({ ...guion, blocks: blocks.map((b, j) => (j === i ? item : b)) }, 'editado');
     } catch (e) { setError(errMsg(e)); } finally { setBusyIdx(null); }

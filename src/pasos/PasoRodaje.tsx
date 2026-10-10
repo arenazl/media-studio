@@ -9,8 +9,8 @@ import { estadoDelPaso } from '../lib/pasoEstado';
 import { API_BASE } from '../config';
 import type { Toma } from '../lib/comercial';
 
-const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
-const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
+const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', giro: 'Giro', gag: 'Remate', cta: 'CTA' };
+const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 const DUR_TOLERANCIA = 1.5;
 
 export default function PasoRodaje({ project, comercial, setComercial, goNext }: PasoProps) {

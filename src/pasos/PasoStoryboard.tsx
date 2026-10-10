@@ -9,8 +9,8 @@ import { getFormato } from '../lib/formato';
 import { mediaKitParaMolde, pantallaDeEscena, type PantallaKit } from '../lib/mediaKit';
 import { escenasAPrompts, pasoHabilitado, type Escena } from '../lib/comercial';
 
-const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', gag: 'Remate', cta: 'CTA' };
-const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
+const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', giro: 'Giro', gag: 'Remate', cta: 'CTA' };
+const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 
 export default function PasoStoryboard({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);

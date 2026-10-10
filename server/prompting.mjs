@@ -28,7 +28,10 @@ export const WPS_MAX = 3.2;                   // más que esto no se puede decir
 export const maxNarrationWords = (durationSec, wps = WPS) => Math.max(3, Math.floor((Number(durationSec) || 0) * wps));
 
 // Reparto por rol para un guion de `durationSec`: hook corto, desarrollo largo, gag y cta cortos.
-export const REPARTO_ROLES = { hook: 0.15, desarrollo: 0.45, gag: 0.2, cta: 0.2 };
+// 2026-10-10: el cuarto bloque deja de llamarse "gag". Es el GIRO (el momento en que se ve el beneficio); con
+// tratamiento humor funciona como remate, sin humor es la prueba visible. Las piezas viejas con rol 'gag' se leen igual.
+export const REPARTO_ROLES = { hook: 0.15, desarrollo: 0.45, giro: 0.2, cta: 0.2 };
+export const rolCanonico = (r) => (r === 'gag' ? 'giro' : r);
 export function presupuestoGuion(durationSec, wps = WPS) {
   const d = Number(durationSec) || 20;
   const out = {};
@@ -58,7 +61,8 @@ export const contarPalabras = palabras;
 // el normalizador de duraciones, el validador y el lint: antes cada capa tenía la suya.
 export const esTalkingHead = (e) => !!(String(e?.dialogo || '').trim() && Array.isArray(e?.personajes) && e.personajes.length > 0);
 // ── Validación por molde (después del parseo). Devuelve [] si está bien. ─────────────────
-const ROLES = ['hook', 'desarrollo', 'gag', 'cta'];
+const ROLES = ['hook', 'desarrollo', 'giro', 'cta'];
+const OPCIONALES = new Set(['giro']);   // un comercial sin giro es válido: no se fuerza un remate
 export const VALIDADORES = {
   concept(o) {
     // concept/3.0: el validador vino con la curación (estructura, ids, largos por campo, mayúsculas en tipoGancho,
@@ -70,13 +74,13 @@ export const VALIDADORES = {
     const E = [];
     if (o?.item) return E;   // regen de un bloque: se valida suelto abajo
     const blocks = Array.isArray(o?.blocks) ? o.blocks : [];
-    const roles = blocks.map((b) => b.role);
-    for (const r of ROLES) if (!roles.includes(r)) E.push(`falta el bloque "${r}"`);
-    if (roles.indexOf('gag') > roles.indexOf('cta') && roles.includes('cta')) E.push('el gag tiene que ir antes del cta');
+    const roles = blocks.map((b) => rolCanonico(b.role));
+    for (const r of ROLES) if (!OPCIONALES.has(r) && !roles.includes(r)) E.push(`falta el bloque "${r}"`);
+    if (roles.indexOf('giro') > roles.indexOf('cta') && roles.includes('cta')) E.push('el giro tiene que ir antes del cta');
     const dur = Number(body?.options?.duracion) || Number(body?.context?.piece?.durationSec) || 0;
     for (const b of blocks) {
       const w = palabras(b.narration), d = Number(b.durSec) || 0;
-      if (!w && b.role !== 'gag') E.push(`el bloque "${b.role}" no tiene narración`);
+      if (!w && !OPCIONALES.has(rolCanonico(b.role))) E.push(`el bloque "${b.role}" no tiene narración`);
       if (w && d && w / d > WPS_MAX) E.push(`el bloque "${b.role}" tiene ${w} palabras en ${d}s: como máximo ${maxNarrationWords(d)} palabras`);
     }
     const suma = blocks.reduce((a, b) => a + (Number(b.durSec) || 0), 0);

@@ -163,7 +163,7 @@ function recortar(s: MontajeScene, words: PalabraTiempo[], esUltima: boolean): M
 }
 
 function escalas(i: number, s: MontajeScene, scenes: MontajeScene[]): Pick<MontajeScene, 'punchFrom' | 'punchTo'> {
-  const esRemate = s.rol === 'gag' || (i < scenes.length - 1 && scenes[i + 1].rol === 'cta' && scenes.length > 2 && s.rol !== 'hook');
+  const esRemate = s.rol === 'gag' || s.rol === 'giro' || (i < scenes.length - 1 && scenes[i + 1].rol === 'cta' && scenes.length > 2 && s.rol !== 'hook');
   if (esRemate) return { punchFrom: 1.0, punchTo: 1.12 };
   if (s.rol === 'cta') return { punchFrom: 1.04, punchTo: 1.04 };
   if (i === 0) return { punchFrom: 1.0, punchTo: 1.03 };
@@ -179,7 +179,7 @@ export function ubicarInsertos(scenes: MontajeScene[], palabras: Record<string, 
   return scenes.map((s, i) => {
     const words = palabras[s.src] || [];
     const esUltima = i === scenes.length - 1;
-    if (i === 0 || esUltima || s.rol === 'cta' || s.rol === 'gag' || !words.length || !pantallas.length) return [];
+    if (i === 0 || esUltima || s.rol === 'cta' || s.rol === 'gag' || s.rol === 'giro' || !words.length || !pantallas.length) return [];
     const candidatas = pantallas
       .filter((p) => !usadas.has(p.archivo))
       .map((p) => ({ p, ...coincidencia(words, tokensDePantalla(p)), asignada: !!s.archivoCaptura && s.archivoCaptura === p.archivo }))

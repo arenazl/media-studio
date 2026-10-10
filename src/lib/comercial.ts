@@ -15,7 +15,8 @@ export type PasoId =
 
 export type EstadoPaso = 'pendiente' | 'generado' | 'editado' | 'aprobado';
 export type TipoComercial = 'filmado' | 'animado';
-export type RolBloque = 'hook' | 'desarrollo' | 'gag' | 'cta';
+// 2026-10-10: el cuarto bloque es el GIRO (el momento en que se ve el beneficio); 'gag' queda sólo para piezas viejas.
+export type RolBloque = 'hook' | 'desarrollo' | 'giro' | 'gag' | 'cta';
 
 // ── Artefactos por paso ───────────────────────────────────────────────────────
 export interface Concepto {

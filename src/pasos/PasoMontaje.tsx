@@ -16,7 +16,7 @@ const PlayerMontaje = lazy(() => import('../remotion/PlayerMontaje'));
 import type { QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
 
-const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : r === 'gag' ? 'gag' : 'mid');
+const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
 
 export default function PasoMontaje({ project, reelId, comercial, setComercial, onGoEditor }: PasoProps & { onGoEditor?: () => void }) {
