@@ -1,3 +1,5 @@
+import creativeDirections from '../data/creativeDirections.json';
+
 // CATÁLOGO de funciones del proceso guiado. Es la FUENTE de los botones/opciones de la UI:
 // el front lee este catálogo y dibuja las acciones solo (no hay botones hardcodeados). Agregar
 // una función = sumar una entrada acá. Cada función se ejecuta con UNA llamada de IA on-demand
@@ -139,13 +141,15 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     label: 'Concepto',
     icon: 'Lightbulb',
     level: 'piece',
-    description: 'Propone 2-3 conceptos de comercial para el ángulo de esta pieza (idea, tono, estética).',
+    description: 'Propone tres spots de marca desde un enfoque y un tratamiento elegibles.'
     taskClass: 'creativo',
     options: [
       {
         id: 'perfil', label: 'Perfil', type: 'choice', default: 'campaña',
         choices: [c('campaña', 'Campaña completa'), c('awareness', 'Awareness'), c('demo', 'Demo de producto'), c('conversion', 'Conversión')],
       },
+      { id: 'enfoque', label: 'Enfoque narrativo', type: 'choice', default: 'caso', choices: creativeDirections.enfoques.map((x) => c(x.id, x.label)) },
+      { id: 'tratamiento', label: 'Tratamiento', type: 'choice', default: 'sobrio', choices: creativeDirections.tratamientos.map((x) => c(x.id, x.label)) },
     ],
   },
   {
