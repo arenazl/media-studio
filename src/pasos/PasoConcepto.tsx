@@ -5,14 +5,35 @@ import { KitTira } from '../components/KitCapturas';
 import { mediaKitParaMolde } from '../lib/mediaKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
-import { pasoHabilitado, type Concepto, type TipoComercial } from '../lib/comercial';
+import { pasoHabilitado, type Comercial, type Concepto, type TipoComercial } from '../lib/comercial';
+import creativeDirections from '../data/creativeDirections.json';
 
-export default function PasoConcepto({ project, comercial, setComercial, goNext }: PasoProps) {
+// Al elegir otro rumbo, no deben sobrevivir un guion ni renders creados con la idea anterior.
+function reiniciarDesdeConcepto(c: Comercial): Comercial {
+  return {
+    ...c,
+    concepto: undefined, guion: undefined, cast: undefined, storyboard: undefined,
+    packFlow: undefined, renderRef: undefined, renderDurSec: undefined,
+    rodaje: undefined, montaje: undefined, qa: undefined, publicacion: undefined,
+    estados: {
+      ...c.estados,
+      concepto: 'pendiente', guion: 'pendiente', cast: 'pendiente', storyboard: 'pendiente',
+      pack: 'pendiente', render: 'pendiente', rodaje: 'pendiente',
+      montaje: 'pendiente', publicar: 'pendiente',
+    },
+  };
+}
+
+export default function PasoConcepto({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   // las 2-3 opciones son transitorias (la ELEGIDA persiste en comercial.concepto).
   const [opciones, setOpciones] = useState<Concepto[]>(comercial?.concepto ? [comercial.concepto] : []);
   const tipo: TipoComercial = comercial?.tipo ?? 'filmado';
+  const enfoque = comercial?.enfoque || 'caso';
+  const tratamiento = enfoque === 'humor' ? 'humor' : comercial?.tratamiento || 'sobrio';
+  const durationSec = project.reels.find((x) => x.id === reelId)?.durationSec
+    ?? getFormato(comercial?.formatoId)?.duracion.default ?? 20;
   // La técnica la fija el FORMATO elegido en el wizard (WO-1/D2: tecnicaProduccion → tipo). Si la
   // pieza nació con formato, acá NO se re-elige (volvería a desincronizar formato↔pipeline): se
   // muestra informativa. Sin formatoId (piezas viejas) el selector sigue siendo la única fuente.
@@ -41,24 +62,49 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const confirmarReinicio = () => {
+    const hayProduccion = !!(comercial?.guion || comercial?.cast || comercial?.storyboard ||
+      comercial?.packFlow || comercial?.renderRef || comercial?.rodaje?.length || comercial?.montaje);
+    return !hayProduccion || window.confirm('Cambiar el concepto descarta el guion y las etapas posteriores de esta pieza. ¿Continuar?');
+  };
+
+  const cambiarDireccion = (campo: 'enfoque' | 'tratamiento', valor: string) => {
+    if (busy || (campo === 'enfoque' ? enfoque : tratamiento) === valor) return;
+    if (!confirmarReinicio()) return;
+    setComercial((c) => ({
+      ...reiniciarDesdeConcepto(c),
+      enfoque: campo === 'enfoque' ? valor : enfoque,
+      tratamiento: campo === 'enfoque' && valor === 'humor' ? 'humor' : campo === 'tratamiento' ? valor : tratamiento,
+    }));
+    setOpciones([]);
+    setError('');
+  };
+
   const generar = async (provider?: 'claude' | 'gemini') => {
+    if (!confirmarReinicio()) return;
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, durationSec: 20, tipo, ...(mediaKit ? { mediaKit } : {}) };
-      const res = await runMolde('concept', project, piece, { perfil: 'campaña' }, undefined, comercial, provider);
+      const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, enfoque, tratamiento, durationSec, tipo, ...(mediaKit ? { mediaKit } : {}) };
+      const res = await runMolde('concept', project, piece, { perfil: 'campaña', enfoque, tratamiento }, undefined, comercial, provider);
       setOpciones((res.conceptos as Concepto[]) || []);
-      setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
+      setComercial((c) => { const limpio = reiniciarDesdeConcepto(c); return { ...limpio, estados: { ...limpio.estados, concepto: 'generado' } }; });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
 
-  const elegir = (cpt: Concepto) =>
-    setComercial((c) => ({ ...c, concepto: cpt, estados: { ...c.estados, concepto: 'editado' } }));
+  const elegir = (cpt: Concepto) => {
+    if (elegido?.id === cpt.id && elegido.idea === cpt.idea) return;
+    if (!confirmarReinicio()) return;
+    setComercial((c) => {
+      const limpio = reiniciarDesdeConcepto(c);
+      return { ...limpio, enfoque, tratamiento, concepto: cpt, estados: { ...limpio.estados, concepto: 'editado' } };
+    });
+  };
 
   const setTipo = (t: TipoComercial) => {
-    if (t === tipo) return;
-    setComercial((c) => ({ ...c, tipo: t }));
-    setOpciones([]);   // las propuestas eran para la otra técnica: se vuelven a pedir
+    if (t === tipo || !confirmarReinicio()) return;
+    setComercial((c) => ({ ...reiniciarDesdeConcepto(c), tipo: t }));
+    setOpciones([]);
   };
 
   const previewCpt = opciones.find(c => c.id === previewCptId);
@@ -66,7 +112,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   return (
     <PasoShell
       titulo="Concepto"
-      sub="La idea del comercial: 2-3 propuestas con tono y estética. Elegí una para seguir."
+      sub="Elegí cómo contar el spot y su tratamiento. La IA propone tres historias distintas para la marca."
       hasContent={opciones.length > 0}
       busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
@@ -93,6 +139,34 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
             </button>
           </div>
         )}
+      </div>
+
+      {/* El enfoque decide QUÉ historia; el tratamiento, CÓMO se cuenta. */}
+      <div className="paso-tipo">
+        <span className="paso-tipo-lbl">Enfoque narrativo</span>
+        <div className="paso-chips" style={{ flexWrap: 'wrap' }}>
+          {creativeDirections.enfoques.map((x) => (
+            <button key={x.id} type="button" disabled={busy}
+              className={enfoque === x.id ? 'paso-chip paso-chip--on' : 'paso-chip'}
+              onClick={() => cambiarDireccion('enfoque', x.id)}>{x.label}</button>
+          ))}
+        </div>
+        <p className="paso-sub" style={{ marginTop: 8 }}>
+          {creativeDirections.enfoques.find((x) => x.id === enfoque)?.ficha.ideaCentral}
+        </p>
+      </div>
+      <div className="paso-tipo">
+        <span className="paso-tipo-lbl">Tratamiento publicitario</span>
+        <div className="paso-chips" style={{ flexWrap: 'wrap' }}>
+          {creativeDirections.tratamientos.map((x) => (
+            <button key={x.id} type="button" disabled={busy || (enfoque === 'humor' && x.id !== 'humor')}
+              className={tratamiento === x.id ? 'paso-chip paso-chip--on' : 'paso-chip'}
+              onClick={() => cambiarDireccion('tratamiento', x.id)}>{x.label}</button>
+          ))}
+        </div>
+        <p className="paso-sub" style={{ marginTop: 8 }}>
+          {creativeDirections.tratamientos.find((x) => x.id === tratamiento)?.descripcion}
+        </p>
       </div>
 
       {opciones.length > 0 ? (
@@ -165,7 +239,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
         !busy && (
           <div className="paso-empty paso-empty--full">
             <Lightbulb size={34} strokeWidth={1.5} className="paso-empty-ico" />
-            <span>Elegí la técnica arriba y pedí las propuestas: tres ideas distintas pensadas para un comercial {tipo === 'animado' ? 'animado sobre las pantallas reales' : 'filmado con personas'}.</span>
+            <span>Elegí el enfoque, el tratamiento y la técnica. Vas a recibir tres spots de marca diferentes, para un comercial {tipo === 'animado' ? 'animado sobre las pantallas reales' : 'filmado con personas'}.</span>
             <button className="paso-gen paso-empty-cta" onClick={() => generar()}>
               <Wand2 size={15} /> Generar 3 propuestas · {tipo === 'animado' ? 'Animado' : 'Filmado'}
             </button>
