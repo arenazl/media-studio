@@ -9,6 +9,7 @@ import { scriptToText, scriptNarrations } from './scriptToText.mjs';
 import { buildProjectFacts, factsText } from './projectFacts.mjs';
 import { compileFlowPack, promptTraduccion, parseTraduccion } from './flowCompiler.mjs';
 import { lintCommercial } from './lintCommercial.mjs';
+import { creativeDirectionPrompt } from './creativeDirections.mjs';
 import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
 
 // extrae el primer objeto JSON de un texto (la IA a veces mete markdown o texto/explicación alrededor).
@@ -379,6 +380,9 @@ ${factsText(x.facts)}` };
       // con actores, planos y locaciones que el pipeline animado no puede producir. Sin `tipo` —o con
       // 'filmado'— el bloque queda vacío y el prompt es byte-idéntico al anterior.
       const tipo = piece.tipo || 'filmado';
+      const bloqueDireccion = (piece.enfoque || piece.tratamiento)
+        ? creativeDirectionPrompt({ enfoque: piece.enfoque, tratamiento: piece.tratamiento, tipo }) + '\n'
+        : '';
       const bloqueTecnica = tipo === 'animado'
         ? `TÉCNICA — VIDEO ANIMADO (regla DURA): no hay actores, ni personas a cámara, ni locaciones. Lo que se VE son las PANTALLAS/UI REALES del producto EN MOVIMIENTO (recorrido entre pantallas, elementos que entran, datos que se completan, zoom/paneo sobre la interfaz, texto en pantalla) y la narración va en OFF. El campo "visual" de cada bloque describe la PANTALLA y su movimiento — JAMÁS una persona, un plano de cámara ni una locación.
 `
@@ -406,14 +410,14 @@ Rioplatense, sin emojis, no inventes datos. Sé estricto con la brevedad.` };
       return { mode: 'set', prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: escribí el GUION. No adelantes casting, planos ni decisiones técnicas del storyboard. Usá únicamente los hechos provistos; si un dato no está, no lo inventes.
 
 Actuás como promo-director. Convertí el CONCEPTO ELEGIDO en un comercial de ${dur}s para ${piezaDesc}, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
-${regenPrompt}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo reemplaces por otra idea): ${concepto}\n` : ''}${bloqueTecnica}${bloqueKit}
+${regenPrompt}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo reemplaces por otra idea): ${concepto}\n` : ''}${bloqueDireccion}${bloqueTecnica}${bloqueKit}
 ${focoPieza}OBJETIVO NARRATIVO:
 - Mantené UNA idea central de principio a fin.
 ${objetivoScope.replace('${x.name}', x.name)}
-- El gag/remate tiene que nacer de la misma situación del concepto y va antes del CTA.
+- El bloque técnico de rol gag significa PUNTO DE INFLEXIÓN, DEMOSTRACIÓN O PRUEBA del beneficio; NO es un chiste obligatorio. Sólo escribí comedia si el concepto y tratamiento la piden.
 
 ESTRUCTURA EXACTA:
-hook -> desarrollo -> gag -> cta
+hook -> desarrollo -> gag (giro o prueba, humor opcional) -> cta
 
 PRESUPUESTO HABLADO (contá palabras):
 ${presupuestoLista(dur)}
@@ -528,6 +532,9 @@ ${material}` };
       // para una pieza ANIMADA. Retrocompat DURA: sin `tipo` —o con 'filmado'— el bloque queda vacío
       // y el prompt es byte-idéntico al anterior; el texto extra SOLO aparece en animado.
       const tipo = piece.tipo || 'filmado';
+      const enfoque = options.enfoque || piece.enfoque || 'caso';
+      const tratamiento = options.tratamiento || piece.tratamiento || 'sobrio';
+      const bloqueDireccion = creativeDirectionPrompt({ enfoque, tratamiento, tipo });
       const bloqueTecnica = tipo === 'animado'
         ? `TÉCNICA — VIDEO ANIMADO (regla DURA, no la rompas): la pieza se produce como motion graphics sobre las PANTALLAS/UI REALES del producto. NO hay actores, ni personas a cámara, ni locaciones, ni nada filmado: JAMÁS propongas una escena grabada con gente (nada de "una mujer en su cocina"). Cada IDEA tiene que funcionar mostrando la interfaz EN MOVIMIENTO (recorrido entre pantallas, elementos que entran, datos que se completan, zoom/paneo sobre la UI, texto en pantalla, voz en off). La ESTÉTICA describe la DIRECCIÓN DE MOTION/UI (ritmo, tipo de transiciones, tipografía, paleta, cómo se encuadran las pantallas), NO fotografía, luz de set ni casting. La REFERENCIA es a un video de producto/app animado, no a un comercial filmado.
 PANTALLAS DEL PRODUCTO: ${screensText(project) || '(sin pantallas en el KB: proponé pantallas recreadas y marcalas [demo])'}
@@ -556,31 +563,33 @@ NEGOCIO: ${name}
 OBJETIVO DEL VIDEO (perfil "${perfil}"): ${perfilTxt}
 BRIEF:
 ${brief || '(sin brief: proponé sobre el nombre y marcá cada supuesto con [supuesto])'}
-${bloquePieza ? bloquePieza + '\n' : ''}${bloqueTecnica}${bloqueKit}
+${bloquePieza ? bloquePieza + '\n' : ''}${bloqueDireccion}\n${bloqueTecnica}${bloqueKit}
 NO ASUMIR
 - Funciones, cifras, clientes, premios o resultados que no estén en el brief.
 - Que el negocio ya es conocido: el espectador lo ve por primera vez.
 - Que el problema es dramático: el brief dice cuánto duele, no vos.
+- Que una dramatización representa un cliente, reseña, municipio o caso real: presentala como ficción publicitaria salvo respaldo explícito.
 
 QUÉ TIENE QUE TENER CADA CONCEPTO
 - UNA sola idea, vista desde una situación concreta de la persona que sufre el problema o usa el producto.
 - ${piece.messageScope === 'brand-global' ? `Esta pieza es brand-global: acá sí se cuenta el sistema integral de ${name}, ordenado alrededor de una idea.` : `Una sola idea bien desarrollada: queda claro qué es ${name} y qué resuelve en esta pieza, sin enumerar toda la plataforma (varias funciones sólo si demuestran la misma idea).`}
-- Un remate antes del llamado a la acción: humor, ironía o un contraste fuerte entre el antes y el después.
-- Los tres conceptos tienen que ser DISTINTOS en tipo de gancho; tres variantes de la misma idea no sirven.
+- Un desarrollo con causa y efecto: el producto debe tener un papel verificable y aportar valor al público que compra, no sólo a quien lo usa.
+- Un cierre de marca pertinente, sin chiste ni giro forzado; sólo con humor cuando el enfoque o tratamiento lo habilita.
+- Las tres historias deben ser DIFERENTES en su premisa, situación, protagonista o demostración del beneficio; no alcanza cambiar títulos.
 
 LO QUE NO VA
-- Presentador sonriendo a cámara, locución institucional, "somos líderes", "la solución integral", "transformá tu negocio".
+- Clichés publicitarios, claims inventados y presentadores decorativos. Presentadora a cámara, locución o placa final SÍ están permitidas si cumplen una función de marca.
 - Escenas con segundos, planos o montajes: eso es del storyboard.
-- Chistes que humillan al cliente o a su gente: la gracia está en el problema, no en la persona.
+- Chistes no solicitados, sobre todo cuando el enfoque elegido es serio. Si el tratamiento es humor, la gracia debe nacer de una verdad cotidiana y beneficiar a la marca.
 
 LARGOS (se cumplen en palabras, contá)
 - topico: 2 a 4 palabras. Título pegadizo que resume la idea.
-- tipoGancho: 2 a 4 palabras en mayúsculas. Ejemplos de tipos: HUMOR, POV, ANTES Y DESPUÉS, PARODIA, PROBLEMA EXTREMO, CÁMARA OCULTA.
-- idea: 40 a 60 palabras. Tres partes seguidas: qué se ve en los primeros 2 segundos, el giro, el remate. Sin tiempos ni planos.
+- tipoGancho: 2 a 4 palabras en mayúsculas. Es un RECURSO NARRATIVO (ej.: PERSPECTIVA DUAL, PRUEBA VISUAL, HISTORIA COTIDIANA), no una orden de hacer chistes.
+- idea: 40 a 60 palabras. Contá la premisa, cómo interviene el producto y qué beneficio o cierre deja. Sin segundos, planos ni montaje.
 - tono: hasta 12 palabras. Cómo actúan y cómo hablan.
 - estetica: hasta 25 palabras. ${tipo === 'animado' ? 'Ritmo, transiciones, tipografía, paleta y cómo se encuadran las pantallas.' : 'Encuadre, luz, paleta y ritmo.'}
-- referencia: hasta 12 palabras. Un FORMATO conocido al que se parece (tipo de sketch, formato viral de redes). Nada de premios ni comerciales que no sepas con certeza que existen.
-- porQueFunciona: una oración, hasta 20 palabras: por qué esta idea hace que el espectador quiera probarlo.
+- referencia: hasta 12 palabras. Describí el lenguaje publicitario (spot testimonial, demostración, cine cotidiano, institucional), sin inventar campañas reales.
+- porQueFunciona: una oración, hasta 20 palabras: por qué convencería al comprador o decisor indicado en la ficha.
 
 Español rioplatense natural, sin clichés publicitarios.
 Devolvé SOLO este JSON, sin texto antes ni después, sin markdown:
@@ -733,7 +742,7 @@ DURACIÓN Y TALKING HEADS (regla dura, medible):
 - Un talking head dura 8s y necesita ${maxNarrationWords(8) - 4} a ${maxNarrationWords(8)} palabras de diálogo: JUNTÁ bloques consecutivos del guion en un mismo talking head (por ejemplo hook + desarrollo) en vez de hacer un talking head por bloque. Un talking head con menos de ${Math.round((maxNarrationWords(8) - 4) * 0.7)} palabras es aire y no sirve.
 - Pieza de hasta 24s: como máximo ${durationSec <= 24 ? 'DOS' : 'TRES'} talking heads. Lo demás va como b-roll de 4 a 8s con la voz en off (dialogo con el texto del guion y personajes []).
 - Con UN solo talking head la pieza queda en ${durationSec}s (máximo ${Math.round(durationSec * 1.25)}s); con dos, pasa a 24 a 30s: no comprimas, extendé.
-El gag/remate ocurre antes del CTA.
+El bloque técnico gag (giro o prueba; no necesariamente chiste) ocurre antes del CTA.
 
 CONTINUIDAD:
 Usá siempre los mismos ids para el mismo personaje. No cambies ropa, edad, lugar o luz sin que el GUION lo justifique.
