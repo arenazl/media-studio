@@ -214,8 +214,8 @@ export function PasoShell({
 // típico y se arrastra hasta 96% si tarda más (nunca miente con un 100% que no es). Las etapas son
 // narrativas, no reales: el CLI no reporta progreso. Si se pasa 1.6x del tiempo típico, lo dice.
 const PROGRESO: Record<string, { seg: number; etapas: string[] }> = {
-  concept:    { seg: 25, etapas: ['Leyendo el brief del negocio', 'Buscando el ángulo de esta pieza', 'Escribiendo tres ideas distintas', 'Puliendo los remates'] },
-  script:     { seg: 50, etapas: ['Releyendo el concepto elegido', 'Armando el gancho de los primeros 2 segundos', 'Escribiendo el desarrollo y el remate', 'Calibrando la narración para la voz'] },
+  concept:    { seg: 25, etapas: ['Leyendo el brief del negocio', 'Buscando el ángulo de esta pieza', 'Escribiendo tres ideas distintas', 'Cuidando el beneficio y el cierre de marca'] },
+  script:     { seg: 50, etapas: ['Releyendo el concepto elegido', 'Armando el gancho de los primeros 2 segundos', 'Escribiendo el giro o la prueba del beneficio', 'Calibrando la narración para la voz'] },
   cast:       { seg: 45, etapas: ['Leyendo el guion', 'Eligiendo a los personajes', 'Describiéndolos para la cámara', 'Buscando la locación del rubro'] },
   storyboard: { seg: 70, etapas: ['Leyendo el guion y el cast', 'Cortando el guion en escenas', 'Definiendo planos y duraciones', 'Escribiendo los diálogos', 'Revisando la continuidad'] },
   flowpack:   { seg: 90, etapas: ['Leyendo el storyboard', 'Fijando el estilo global', 'Armando los retratos de los personajes', 'Escribiendo el prompt de cada escena', 'Traduciendo y ajustando a Flow'] },
