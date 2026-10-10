@@ -98,7 +98,7 @@ const Titulo: React.FC<{ f: number; chip?: string; titulo: string; resaltar?: st
 };
 
 // ── 1. semáforo del reclamo: se enciende paso a paso ──
-const Semaforo: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+export const Semaforo: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
   const pasos = [
     { t: 'Recibido', d: 'Hoy 09:14 · bache en Belgrano 450', c: '#ef4444' },
     { t: 'En curso', d: 'Hoy 09:52 · cuadrilla asignada, en camino', c: ORO },
@@ -128,7 +128,7 @@ const Semaforo: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
 };
 
 // ── 2. trámite online: el asistente avanza de paso y valida con RENAPER ──
-const Tramite: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+export const Tramite: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
   const tercio = Math.max(24, (dur - 50) / 3);
   const etapa = f < 16 + tercio ? 0 : f < 16 + tercio * 2 ? 1 : 2;
   const prog = lin(f, 16, 16 + tercio * 3);
@@ -175,7 +175,7 @@ const Tramite: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
 
 // ── 3. mapa de calor: los puntos aparecen de a uno ──
 const PUNTOS = [{ x: 22, y: 30, c: '#ef4444' }, { x: 62, y: 24, c: ORO }, { x: 48, y: 52, c: '#ef4444' }, { x: 80, y: 60, c: VERDE }, { x: 18, y: 72, c: ORO }, { x: 66, y: 80, c: '#ef4444' }, { x: 40, y: 86, c: VERDE }];
-const Mapa: React.FC<{ f: number }> = ({ f }) => (
+export const Mapa: React.FC<{ f: number }> = ({ f }) => (
   <Tarjeta f={f} titulo="Mapa de calor" sub="Concentración de reclamos por zona" icono="◎">
     <div style={{ position: 'relative', height: 440, borderRadius: 20, background: '#0A0F1B', border: '1px solid rgba(255,255,255,0.07)', backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '74px 74px', overflow: 'hidden' }}>
       {PUNTOS.map((p, i) => {
@@ -188,7 +188,7 @@ const Mapa: React.FC<{ f: number }> = ({ f }) => (
 );
 
 // ── 4. tablero: los números cuentan ──
-const Dashboard: React.FC<{ f: number }> = ({ f }) => {
+export const Dashboard: React.FC<{ f: number }> = ({ f }) => {
   const kpis = [{ l: 'Total reclamos', v: 245, s: '+12%' }, { l: 'Nuevos hoy', v: 8, s: '+5' }, { l: 'Esta semana', v: 34, s: '+8%' }, { l: 'Tiempo prom.', v: 3.2, s: '-0.5d', d: 'd' }];
   const p = ease(f, 14, 54);
   return (

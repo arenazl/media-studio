@@ -8,6 +8,7 @@ import { loadFont as loadSans } from '@remotion/google-fonts/PlusJakartaSans';
 import { loadFont as loadSerif } from '@remotion/google-fonts/InstrumentSerif';
 import type { MontajePlan } from '../lib/montajePlan';
 import { derivarRender, volumenMusica, type InsertoRender, type PaginaSubtitulo, type PlanRender, type SegmentoRender } from './derivar';
+import { Semaforo, Tramite, Mapa, Dashboard } from './munify/Tarjetas';
 
 const { fontFamily: sans } = loadSans('normal', { weights: ['600', '700', '800'], subsets: ['latin', 'latin-ext'] });
 const { fontFamily: serif } = loadSerif('normal', { weights: ['400'], subsets: ['latin', 'latin-ext'] });
@@ -34,6 +35,22 @@ const Segmento: React.FC<{ seg: SegmentoRender }> = ({ seg }) => {
 };
 
 // Pantalla real del producto en un marco de navegador, sobre el fondo claro de la marca, con un zoom lento.
+// Inserto con TARJETA diseñada (la del sistema de Munify): fondo de noche y la tarjeta actuando, nada de capturas.
+const InsertoTarjeta: React.FC<{ ins: InsertoRender; width: number; height: number }> = ({ ins, width, height }) => {
+  const frame = useCurrentFrame();
+  const a = Math.min(
+    interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' }),
+    interpolate(frame, [ins.dur - 8, ins.dur], [1, 0], { extrapolateLeft: 'clamp' }),
+  );
+  const sx = width / 1080, sy = height / 1920;
+  const T = ins.tarjeta === 'tramite' ? <Tramite f={frame} dur={ins.dur} /> : ins.tarjeta === 'mapa' ? <Mapa f={frame} /> : ins.tarjeta === 'dashboard' ? <Dashboard f={frame} /> : <Semaforo f={frame} dur={ins.dur} />;
+  return (
+    <AbsoluteFill style={{ opacity: a, background: 'radial-gradient(70% 45% at 50% 18%, #1B3A6B 0%, rgba(27,58,107,0) 70%), linear-gradient(180deg, #0E2140 0%, #0A1428 45%, #060B16 100%)' }}>
+      <div style={{ position: 'absolute', left: 0, top: -260 * sy, width: 1080, height: 1920, transform: `scale(${sx}, ${sy})`, transformOrigin: '0 0' }}>{T}</div>
+    </AbsoluteFill>
+  );
+};
+
 const Inserto: React.FC<{ ins: InsertoRender; estilo: PlanRender['estilo']; width: number; height: number }> = ({ ins, estilo, width, height }) => {
   const frame = useCurrentFrame();
   const a = Math.min(
@@ -147,7 +164,7 @@ export const Comercial: React.FC<ComercialProps> = ({ plan, base = '' }) => {
       ))}
       {r.inserts.map((ins, i) => (
         <Sequence key={`ins-${i}`} from={ins.from} durationInFrames={ins.dur} name={`inserto ${i + 1}`}>
-          <Inserto ins={ins} estilo={r.estilo} width={r.width} height={r.height} />
+          {ins.tarjeta ? <InsertoTarjeta ins={ins} width={r.width} height={r.height} /> : <Inserto ins={ins} estilo={r.estilo} width={r.width} height={r.height} />}
         </Sequence>
       ))}
       {r.logo ? (

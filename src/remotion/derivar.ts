@@ -7,7 +7,7 @@ import { frasesDe, partirFrase } from '../lib/montajista';
 export interface PalabraMs { text: string; startMs: number; endMs: number }
 export interface PaginaSubtitulo { startMs: number; endMs: number; words: PalabraMs[] }
 export interface SegmentoRender { nombre: string; src: string; from: number; dur: number; startFrom: number; scaleFrom: number; scaleTo: number; audio: 'keep' | 'mute'; gain: number }
-export interface InsertoRender { from: number; dur: number; src: string; nombre?: string }
+export interface InsertoRender { from: number; dur: number; src: string; nombre?: string; tarjeta?: string }
 export interface PlanRender {
   fps: number; width: number; height: number; totalFrames: number;
   segments: SegmentoRender[];
@@ -85,7 +85,7 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
     }
     for (const p of paginarSubtitulos(words)) captions.push({ ...p, endMs: Math.min(p.endMs, finSegMs) });
     for (const ins of s.inserts || []) {
-      inserts.push({ from: from + F(ins.atSec - s.in), dur: F(ins.durSec), src: resolverSrc(base, ins.src), nombre: ins.nombre });
+      inserts.push({ from: from + F(ins.atSec - s.in), dur: F(ins.durSec), src: resolverSrc(base, ins.src), nombre: ins.nombre, tarjeta: ins.tarjeta });
     }
   });
   const finClips = F(total);

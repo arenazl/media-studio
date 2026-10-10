@@ -10,7 +10,8 @@ export type Transicion = 'cut' | 'fade' | 'crossfade' | 'wipe' | 'zoom';
 
 // ── Montaje v2 (montajista + motor Remotion) — todo OPCIONAL: un plan sin estos campos renderiza como antes ──
 export interface PalabraTiempo { text: string; start: number; end: number }   // segundos, relativos al CLIP CRUDO
-export interface InsertoPantalla { atSec: number; durSec: number; src: string; nombre?: string }   // atSec relativo al clip crudo
+export type TarjetaInserto = 'semaforo' | 'tramite' | 'mapa' | 'dashboard';
+export interface InsertoPantalla { atSec: number; durSec: number; src: string; nombre?: string; tarjeta?: TarjetaInserto }   // atSec relativo al clip crudo; con `tarjeta`, se dibuja la tarjeta diseñada en vez de una captura
 export interface PlacaFinal { linea1: string; linea2?: string; durSec: number; logoSrc?: string }
 export interface EstiloMarca { primario: string; acento: string; fondo: string; texto: string; fuenteTitulos?: string; fuenteTexto?: string }
 
