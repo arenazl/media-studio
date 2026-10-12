@@ -48,7 +48,7 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
-import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion } from './salesbotMedios.mjs';
+import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, pedidoLibreLocal } from './salesbotMedios.mjs';
 import { promptEscena, promptImagen, estiloPara } from './flowCompiler.mjs';
 import { generarMockupsApp, catalogoDeApp } from './mockupsApp.mjs';
 import { escribirTarjetasPlantilla, progresoDe } from './tarjetasPlantilla.mjs';
@@ -531,6 +531,71 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   }
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo);
   return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
+}
+
+// Un pedido LIBRE de Lucas por WhatsApp (2026-10-12): Claude lo convierte en un pedido de Flow y Flow lo genera.
+const PEDIDO_LIBRE = (texto, kind, contextoPersona = '') => `Sos director de fotografía y prompt-writer de Google Flow (Veo 3). Lucas, el dueño, pidió este medio:
+"${texto}"
+Tipo pedido: ${kind || 'video'}.
+${contextoPersona}
+
+Convertilo en UN pedido para el generador de video. Respondé SOLO un JSON:
+{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "descripcion": "<en castellano, una frase: qué se ve en el medio>", "etiquetas": ["<3 a 6 palabras sueltas en castellano: sujetos, lugar, momento>"], "rechazo": "" }
+
+El prompt:
+- Primero qué se ve y qué pasa (los sujetos, la acción, el lugar, el momento del día), después cómo se filma (plano, cámara, luz). Fotorrealista y cinematográfico salvo que pida otro estilo.
+- Si pide una imagen o una foto, igual escribí un plano de video casi quieto, que de ahí se saca el cuadro.
+- Formato vertical 9:16 salvo que pida horizontal.
+- Si alguien habla, la frase va entre comillas, en castellano rioplatense, y empieza en el primer segundo. Si no, sin diálogo, con el sonido del lugar.
+- Nunca texto, logos, carteles ni subtítulos dentro de la imagen (la marca, si hace falta, la pone el montaje).
+
+"rechazo": si el pedido es sobre una persona real o famosa, o tiene contenido sexual, escribí el motivo en una frase y dejá el resto vacío. Si no, "".`;
+async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
+  // parado sobre una personalidad: si es un personaje ficticio de la lista, puede aparecer (con su descripción); si no,
+  // el medio no muestra a esa persona (puede ser alguien real)
+  const contextoPersona = !pedido.personalidad ? ''
+    : personaje ? `Lo pidió sobre el personaje ficticio "${personaje.nombre}". Si el pedido lo muestra, es así: ${personaje.retratoEn}, con ${personaje.vestuarioEn}.
+`
+      : `Lo pidió sobre la personalidad "${pedido.personalidad}", que puede ser una persona real: si el pedido pide mostrar a esa persona, rechazalo; si es otra cosa (un lugar, un objeto, animales, gente cualquiera), hacelo sin ella.
+`;
+  const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona), model: 'sonnet', functionId: 'flowpack' });
+  const plan = extractJson(text);
+  if (plan.rechazo) return { error: `No lo hago: ${plan.rechazo}` };
+  const kind = plan.kind === 'imagen' || pedido.kind === 'imagen' ? 'imagen' : 'video';
+  const durSec = Math.max(2, Math.min(8, Number(plan.durSec) || 6));
+  const aspecto = plan.aspecto === '16:9' ? '16:9' : '9:16';
+  const prompt = `${estiloPara(aspecto)} ${String(plan.prompt || '').trim()} Leave some empty headroom at the top of the frame; nothing drawn or written there. No on-screen text. No subtitles, no captions.`;
+  log(`pedido libre ${pedido.id}: "${String(pedido.contexto).slice(0, 80)}" → ${kind} de ${durSec} s, ${aspecto}`);
+  const pack = { estilo: estiloPara(aspecto), personajes: [], escenas: [{ escenaN: 1, rol: 'desarrollo', prompt }] };
+  const dir = path.join(STORAGE_DIR, 'salesbot');
+  fs.mkdirSync(dir, { recursive: true });
+  const toma = await new Promise((resolve, reject) => {
+    let t = null;
+    const job = puente.iniciarJob({
+      projectId: 'salesbot-medios', reelId: `libre-${pedido.id}`, pack, escenasStoryboard: [{ n: 1, personajes: [] }], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
+      guardarClip: async (buffer, nombre) => { const f = path.join(dir, nombre); fs.writeFileSync(f, buffer); return { fileRef: f, durSec: 8 }; },
+      agregarToma: async (_n, tm) => { t = tm; },
+      guardarFlowUrl: async (u) => guardarEstadoSb({ flowProjectUrl: u }),
+    });
+    const reloj = setInterval(() => {
+      const j = puente.verJob(job.id);
+      if (j && (j.estado === 'listo' || j.estado === 'error')) { clearInterval(reloj); t ? resolve(t) : reject(new Error(j.error || (j.fallas || []).join(' · ') || 'Flow no dio el clip')); }
+    }, 3000);
+  });
+  let archivo = toma.fileRef.replace(/\.mp4$/i, `-${durSec}s.mp4`), tipo = 'video/mp4';
+  if (kind === 'imagen') {
+    archivo = toma.fileRef.replace(/\.mp4$/i, '.jpg');
+    await runFfmpeg(['-y', '-ss', String(Math.min(4, durSec / 2)), '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', archivo]);
+    tipo = 'image/jpeg';
+  } else {
+    // la duración que pidió (Flow hace 8 s): H.264/AAC para WhatsApp
+    await runFfmpeg(['-y', '-i', toma.fileRef, '-t', String(durSec), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', archivo]);
+  }
+  const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo);
+  // para que el bot identifique el medio y sepa cuándo usarlo (Lucas, 2026-10-12): qué se ve y sus etiquetas
+  const descripcion = String(plan.descripcion || '').trim() || String(pedido.contexto).slice(0, 200);
+  const etiquetas = Array.isArray(plan.etiquetas) ? plan.etiquetas.map((e) => String(e).trim().toLowerCase()).filter(Boolean).slice(0, 8) : [];
+  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion, etiquetas, nota: `${descripcion}${etiquetas.length ? ` · ${etiquetas.join(', ')}` : ''} · pedido: ${String(pedido.contexto).slice(0, 160)}` };
 }
 
 // Duración real de un video/audio con ffprobe (segundos, o null si falla). La usa el upload de tomas
@@ -1711,6 +1776,13 @@ ${src}`;
     if (p === '/api/flow/jobs' && req.method === 'GET') return json(res, 200, { jobs: puente.listarJobs(), extension: puente.extensionViva() });
     // integración con SalesBot (2026-10-12): estado de la consulta de pedidos
     if (p === '/api/salesbot/estado' && req.method === 'GET') return json(res, 200, estadoSalesbot());
+    // un pedido libre desde la app, igual que si llegara por WhatsApp: genera en Flow, sube a SalesBot y devuelve la url
+    if (p === '/api/salesbot/libre' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!String(body.contexto || '').trim()) return json(res, 400, { error: 'falta el pedido (contexto)' });
+      try { return json(res, 200, await pedidoLibreLocal(String(body.contexto), body.kind)); }
+      catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo' }); }
+    }
     if (p.startsWith('/api/flow/jobs/') && req.method === 'GET') {
       const job = puente.verJob(decodeURIComponent(p.slice('/api/flow/jobs/'.length)));
       return job ? json(res, 200, { job }) : json(res, 404, { error: 'job no existe' });
@@ -1785,7 +1857,7 @@ ${src}`;
 server.listen(PORT, () => {
   console.log(`[media-studio] backend en http://localhost:${PORT} (${IS_PROD ? 'PROD/Gemini' : 'LOCAL/Claude'})`);
   // SalesBot: Media Studio consulta sus pedidos y fabrica los de sus personajes ficticios con Flow
-  if (!IS_PROD) iniciarSalesbotMedios({ fabricar: fabricarParaSalesbot, ocupado: () => puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando') });
+  if (!IS_PROD) iniciarSalesbotMedios({ fabricar: fabricarParaSalesbot, fabricarLibre: fabricarLibreParaSalesbot, ocupado: () => puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando') });
   if (!IS_PROD) console.log(`[media-studio] videos dir: ${VIDEOS_DIR}`);
   if (CLD_CLOUD) console.log(`[media-studio] cloudinary: ${CLD_CLOUD}/${CLD_FOLDER}`);
   console.log(`[media-studio] sqlite: ${DB_PATH}`);

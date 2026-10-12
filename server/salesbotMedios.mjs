@@ -26,6 +26,10 @@ export const ACCION_POR_SITUACION = {
 };
 export const accionDeSituacion = (situacion, nombre) => `${nombre} ${ACCION_POR_SITUACION[situacion] || 'looks into the camera with a warm, natural smile'}.`;
 
+// un pedido libre hecho desde la app (sin pasar por WhatsApp): lo arma iniciarSalesbotMedios cuando arranca
+let libreLocal = null;
+export const pedidoLibreLocal = (contexto, kind) => (libreLocal ? libreLocal(contexto, kind) : Promise.reject(new Error('la integración con SalesBot no está activa')));
+
 const estado = { activo: false, conectado: false, ultimaConsulta: null, ultimoError: '', atendidos: 0, rechazados: 0, enCurso: null };
 export const estadoSalesbot = () => ({ ...estado, permitidos: Object.keys(leerPermitidos().personajes || {}) });
 
@@ -43,7 +47,7 @@ function leerClave() {
   });
 }
 
-export function iniciarSalesbotMedios({ fabricar, ocupado = () => false, log = (m) => console.log('[media-studio] salesbot:', m) } = {}) {
+export function iniciarSalesbotMedios({ fabricar, fabricarLibre, ocupado = () => false, log = (m) => console.log('[media-studio] salesbot:', m) } = {}) {
   if (process.env.SALESBOT_MEDIOS === '0') { log('integración apagada (SALESBOT_MEDIOS=0)'); return; }
   let clave = '';
   const api = async (ruta, opciones = {}) => {
@@ -62,6 +66,33 @@ export function iniciarSalesbotMedios({ fabricar, ocupado = () => false, log = (
     return d;
   };
   const atender = async (pedido) => {
+    // pedido libre (2026-10-12, Lucas usa el bot como intermediario): sin personalidad y con el texto del pedido
+    // también parado sobre una personalidad desde el panel de SalesBot: el texto manda; si la personalidad no es un
+    // personaje ficticio de la lista, el medio no la muestra (eso lo resuelve el pedido a Flow)
+    if (String(pedido.contexto || '').trim() && (pedido.personalidad || pedido.proyecto === 'libre' || pedido.proyecto === 'munify')) {
+      if (pedido.origen && !/lucas/i.test(String(pedido.origen))) {
+        await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
+        await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: 'Los pedidos libres son sólo de Lucas.' }) });
+        estado.rechazados += 1;
+        return;
+      }
+      if (!fabricarLibre) return;
+      if (ocupado()) { log(`pedido ${pedido.id}: Flow está ocupado; lo tomo en la próxima vuelta`); return; }
+      await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
+      estado.enCurso = pedido.id;
+      try {
+        const ficticio = pedido.personalidad ? leerPermitidos().personajes?.[pedido.personalidad] || null : null;
+        const archivo = await fabricarLibre({ pedido, personaje: ficticio, log, subir });
+        await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify(archivo.error ? { error: archivo.error } : { archivo }) });
+        if (archivo.error) estado.rechazados += 1; else estado.atendidos += 1;
+        log(`pedido libre ${pedido.id}: ${archivo.error ? `no se hace (${archivo.error})` : `entregado (${archivo.url})`}`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: `Media Studio no pudo fabricarlo: ${msg}` }) }).catch(() => {});
+        log(`pedido libre ${pedido.id}: no salió (${msg})`);
+      } finally { estado.enCurso = null; }
+      return;
+    }
     const permitidos = leerPermitidos();
     const personaje = pedido.personalidad ? permitidos.personajes?.[pedido.personalidad] : null;
     const proyecto = !pedido.personalidad && pedido.proyecto ? permitidos.proyectos?.[pedido.proyecto] : null;
@@ -105,6 +136,7 @@ export function iniciarSalesbotMedios({ fabricar, ocupado = () => false, log = (
     }
   };
   estado.activo = true;
+  libreLocal = async (contexto, kind) => { if (!clave) clave = await leerClave(); return fabricarLibre({ pedido: { id: `local-${Date.now().toString(36)}`, contexto, kind: kind || 'video', proyecto: 'libre' }, log, subir }); };
   log(`integración activa: consulta los pedidos de SalesBot cada ${CADA_MS / 1000} s`);
   setTimeout(vuelta, 3000);
 }
