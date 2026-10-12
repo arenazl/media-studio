@@ -1615,7 +1615,16 @@ ${src}`;
       const escenasConCrudo = ((reelAhora?.comercial?.rodaje) || []).filter((t) => t.origen !== 'mockup' && t.fileRef).map((t) => t.escenaN);
       // 2026-10-12: al terminar, la rutina deja también los mockups de la pieza (reutiliza los del proyecto si ya están)
       const generarMockups = async (log) => (await mockupsParaPieza(projectId, reelId, { log })).mockups;
-      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, escenasConCrudo, guardarClip, agregarToma, guardarFlowUrl, generarMockups });
+      // cada clip bajado se transcribe y se compara con la frase de su escena (qué parte de las palabras de la frase dice)
+      const verificarClip = async (fileRef, dialogo) => {
+        const tr = await transcribirArchivo(path.join(STORAGE_DIR, fileRef), { apiKey: process.env.ELEVENLABS_API_KEY });
+        const pal = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9ñ ]+/g, ' ').split(/\s+/).filter((w) => w.length > 1);
+        const dice = (tr.words || []).map((w) => w.text).join(' ').trim();
+        const esperadas = pal(dialogo), oidas = new Set(pal(dice));
+        const parecido = esperadas.length ? esperadas.filter((w) => oidas.has(w)).length / esperadas.length : 1;
+        return { parecido, dice };
+      };
+      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, escenasConCrudo, guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip });
       return json(res, 200, { job });
     }
     // ── Mockups de la app (paso de la orquestación, 2026-10-10): renderiza las tarjetas del catálogo de la app como

@@ -70,7 +70,7 @@ async function pedirConReintentos(job, accion, args, timeoutMs, intentos = 3, pa
 }
 const slug = (s) => (String(s || '').trim().split(/\s+/)[0] || 'Personaje').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '').slice(0, 24) || 'Personaje';
 
-export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups }) {
+export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip }) {
   const id = `flow-${Date.now()}`;
   // soloDescargar: el clip ya está generado en Flow (una corrida anterior se cortó después de generar); se baja sin volver a gastar créditos
   const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], fallas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, inicio: Date.now(), fin: null };
@@ -227,7 +227,13 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         if (e.conError) throw new Error('Flow devolvió error también al volver a generarlo');
       }
       if (!e.terminado) { log(`escena ${esc.escenaN}: sigue terminándose en Flow; la bajo al final si ya está`); return; }
-      // el video de ESTA escena es el más nuevo de la grilla ahora: se guarda para bajarlo al final sin depender de posiciones
+      // el video de ESTA escena es el más nuevo de la grilla ahora: se guarda para bajarlo al final sin depender de posiciones.
+      // Primero la pestaña tiene que estar en la grilla del proyecto (después de recargar quedó en otra y se tomó un ejemplo)
+      const est = await pedir(job, 'estado', {}, 30000).catch(() => null);
+      if (!est || !String(est.url || '').startsWith(job.flowProjectUrl)) {
+        await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch(() => {});
+        await pedirConReintentos(job, 'irAContenido', {}, 120000, 3, 4000, log).catch(() => {});
+      }
       const u = await pedir(job, 'urlDelMasNuevo', {}, 60000).catch(() => ({ url: '' }));
       const yaUsada = job.escenas.some((x) => x !== reg && x.url && x.url === u.url);
       if (u.url && !yaUsada) reg.url = u.url;
@@ -298,6 +304,20 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       log(`escena ${esc.escenaN}: bajada a ${info.filename}`);
       const buffer = fs.readFileSync(info.filename);
       const toma = await guardarClip(buffer, `esc${esc.escenaN}-${path.basename(info.filename, path.extname(info.filename))}.mp4`);
+      // la red (2026-10-12): el clip tiene que decir la frase de su escena. Si no la dice, no entra a la pieza (un clip ajeno
+      // o una frase inventada por Flow) y queda para volver a generar.
+      const dialogo = String(sb[esc.escenaN]?.dialogo || '').trim();
+      if (verificarClip && dialogo) {
+        const v = await verificarClip(toma.fileRef, dialogo).catch((e) => ({ error: e instanceof Error ? e.message : String(e) }));
+        if (v.error) log(`escena ${esc.escenaN}: no pude verificar la frase (${v.error}); entra igual, revisala`);
+        else if (v.parecido < 0.4) {
+          reg.estado = 'falló'; reg.motivo = `el clip no dice la frase de la escena (dice: "${v.dice || '(nada)'}")`;
+          job.fallas.push(`escena ${esc.escenaN}: ${reg.motivo}`);
+          log(`escena ${esc.escenaN}: ${reg.motivo}; no entra a la pieza`);
+          continue;
+        } else if (v.parecido < 0.75) { reg.aviso = `dice "${v.dice}"`; log(`escena ${esc.escenaN}: la frase sale parecida pero no igual (dice: "${v.dice}"); revisala`); }
+        else log(`escena ${esc.escenaN}: verificada, dice su frase`);
+      }
       await agregarToma(esc.escenaN, toma);
       reg.estado = 'importada'; reg.fileRef = toma.fileRef;
       log(`escena ${esc.escenaN}: en Pack Flow, Los crudos de Flow (${toma.fileRef})`);

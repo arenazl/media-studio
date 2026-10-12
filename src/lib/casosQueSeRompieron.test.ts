@@ -18,18 +18,22 @@ interface Grilla { tiles: string[] }   // del más viejo al más nuevo: una URL 
 
 // Corre una rutina de Flow entera contra una extensión simulada. `generar(n, intento)` decide qué pasa con cada pedido de
 // la escena n: 'error-antes' (no llegó a enviar), 'error-flow' (Flow deja un tile con error) o 'ok'.
-async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok') {
+async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number } = {}) {
   const clip = path.join(os.tmpdir(), 'clip-prueba-media-studio.mp4');
   fs.writeFileSync(clip, 'clip');
   const grilla: Grilla = { tiles: [''] };   // la imagen del personaje
   const intentos: Record<number, number> = {};
   let ultima = 0, ultimoResultado: string = 'ok';
   const bajadas: [number, string][] = [];
+  let ultimaBajada = '';   // la verificación corre justo después de cada bajada
+  const importadas: number[] = [];
   const pack = { personajes: [{ id: 'p1', nombre: 'Ana', promptImagen: 'x' }], escenas: escenas.map((n) => ({ escenaN: n, rol: 'desarrollo', prompt: `escena ${n} con Ana` })) };
   const job = puente.iniciarJob({
-    projectId: 'prueba', reelId: 'r', pack, escenasStoryboard: escenas.map((n) => ({ n, personajes: ['p1'] })), flowProjectUrl: 'https://flow.google.com/project/prueba', escenasConCrudo: [],
+    projectId: 'prueba', reelId: 'r', pack, escenasStoryboard: escenas.map((n) => ({ n, personajes: ['p1'], dialogo: `la frase de la escena ${n}` })), flowProjectUrl: 'https://flow.google.com/project/prueba', escenasConCrudo: [],
     guardarClip: async (_b: Buffer, nombre: string) => ({ fileRef: nombre, durSec: 8 }),
-    agregarToma: async () => {}, guardarFlowUrl: async () => {},
+    agregarToma: async (n: number) => { importadas.push(n); }, guardarFlowUrl: async () => {},
+    // la red: el clip dice su frase si es el de su escena; uno ajeno (un ejemplo de Flow) no
+    verificarClip: async () => (/ajeno/.test(ultimaBajada) ? { parecido: 0, dice: 'Johnny, te estoy esperando' } : { parecido: 1, dice: 'la frase' }),
   });
   const responder = (p: Paso) => {
     switch (p.accion) {
@@ -50,12 +54,12 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
       case 'esperarGeneracion': return ultimoResultado === 'error-flow' ? { seg: 30, terminado: false, conError: true } : ultimoResultado === 'cargando' ? { seg: 6, terminado: false, cargando: true } : { seg: 60, terminado: true };
       // Flow saca de la grilla el clip con error al recargar la pestaña (prueba real del 12/10)
       case 'recargar': grilla.tiles = grilla.tiles.filter((t) => t !== 'ERR'); return { ok: true };
-      case 'urlDelMasNuevo': { const v = [...grilla.tiles].reverse().find((t) => t.startsWith('https://')); return { url: v || '' }; }
+      case 'urlDelMasNuevo': { if (opciones.videoAjenoEn === ultima) return { url: 'https://ejemplo-de-flow/ajeno' }; const v = [...grilla.tiles].reverse().find((t) => t.startsWith('https://')); return { url: v || '' }; }
       case 'urlsDeClips': {
         const todos = [...grilla.tiles].reverse().map((t) => (t.startsWith('https://') ? t : ''));
         return { total: todos.filter(Boolean).length, urls: todos.filter(Boolean), todos, totalTiles: todos.length };
       }
-      case 'descargarUrl': bajadas.push([Number(/esc(\d+)-/.exec(String(p.args.nombre))![1]), String(p.args.url)]); return { filename: clip };
+      case 'descargarUrl': bajadas.push([Number(/esc(\d+)-/.exec(String(p.args.nombre))![1]), String(p.args.url)]); ultimaBajada = String(p.args.url); return { filename: clip };
       default: return { ok: true };
     }
   };
@@ -65,7 +69,7 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
     const paso = puente.proximoComando({ pestanas: 1, origen: 'background', version: 'prueba' }) as Paso | null;
     if (paso) { try { puente.resultado({ pasoId: paso.id, ok: true, data: responder(paso) }); } catch (e) { puente.resultado({ pasoId: paso.id, ok: false, error: (e as Error).message }); } }
     const j = puente.verJob(job.id);
-    if (j.estado === 'listo' || j.estado === 'error') return { job: j, bajadas, intentos };
+    if (j.estado === 'listo' || j.estado === 'error') return { job: j, bajadas, intentos, importadas };
     await new Promise((r) => setTimeout(r, 5));
   }
   throw new Error('la rutina no terminó');
@@ -98,6 +102,12 @@ describe('rutina de Flow: los incidentes del 12/10', () => {
     const { job, bajadas } = await correrRutina([1, 2, 3], (n, intento) => (n === 2 && intento === 1 ? 'error-flow' : 'ok'));
     expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'importada', 'importada']);
     expect(bajadas).toEqual([[1, 'https://clip/esc1'], [2, 'https://clip/esc2'], [3, 'https://clip/esc3']]);
+  }, 30000);
+  it('un video ajeno (un ejemplo de Flow) no entra a la pieza: el clip tiene que decir la frase de su escena (prueba real del 12/10)', async () => {
+    const { job, importadas } = await correrRutina([1, 2], () => 'ok', { videoAjenoEn: 2 });
+    expect(importadas).toEqual([1]);
+    expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'falló']);
+    expect(job.fallas.join(' ')).toMatch(/no dice la frase/);
   }, 30000);
 });
 

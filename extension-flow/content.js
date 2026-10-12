@@ -292,9 +292,12 @@
       const esVideo = (t) => /play_circle/.test(textoDe(t)) || !!t.querySelector('video');
       const urlDe = (t) => { const v = t.querySelector('video'); if (!v) return ''; const src = v.currentSrc || v.src || (v.querySelector('source') || {}).src || ''; return /^https?:/.test(src) ? src : ''; };
       const pasar = (t, tipos) => { for (const el of [t, ...t.querySelectorAll('*')].slice(0, 15)) for (const tipo of tipos) el.dispatchEvent(new MouseEvent(tipo, { bubbles: /over|out/.test(tipo), cancelable: true, view: window })); };
-      for (let i = 0; i < 10 && !q(SEL.tile).some(esVideo); i++) await espera(500);
-      const t = q(SEL.tile).find(esVideo);
-      if (!t) return { url: '' };
+      // sólo en la grilla del proyecto y sólo el PRIMER tile (el más nuevo): si no es un video, no se toma ninguno
+      // (2026-10-12: tomar "el primer video" agarró uno de los ejemplos de Flow después de recargar)
+      if (!/\/project\//.test(location.pathname)) return { url: '', motivo: 'la pestaña no está en el proyecto' };
+      for (let i = 0; i < 10 && !(q(SEL.tile)[0] && esVideo(q(SEL.tile)[0])); i++) await espera(500);
+      const t = q(SEL.tile)[0];
+      if (!t || !esVideo(t)) return { url: '', motivo: 'el primer tile no es un video' };
       let u = urlDe(t);
       if (!u) {
         pasar(t, ['pointerover', 'pointerenter', 'mouseover', 'mouseenter']);

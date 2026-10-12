@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Media Studio · Puente Flow",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Deja que Media Studio (localhost:5301) genere las escenas en Google Flow dentro de tu propia sesion de Chrome.",
   "permissions": [
     "downloads",
