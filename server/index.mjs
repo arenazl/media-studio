@@ -48,7 +48,8 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
-import { iniciarSalesbotMedios, estadoSalesbot } from './salesbotMedios.mjs';
+import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion } from './salesbotMedios.mjs';
+import { promptEscena, promptImagen, estiloPara } from './flowCompiler.mjs';
 import { generarMockupsApp, catalogoDeApp } from './mockupsApp.mjs';
 import { escribirTarjetasPlantilla, progresoDe } from './tarjetasPlantilla.mjs';
 import { capasDe } from './orquestador.mjs';
@@ -495,6 +496,43 @@ function runFfmpeg(args) {
     proc.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exit ${code}: ${err.slice(-500)}`))));
   });
 }
+// ── SalesBot (2026-10-12): una pieza suelta en Flow para un pedido de un personaje ficticio acordado ──
+// Un clip de 8 s del personaje en la situación pedida, con el mismo armado de pedidos que usa la app (promptEscena) y su
+// retrato como referencia; si el pedido es una imagen, un cuadro del clip. El proyecto de Flow de SalesBot se reutiliza.
+const SALESBOT_ESTADO = path.resolve('server/storage/salesbot-medios.json');
+const leerEstadoSb = () => { try { return JSON.parse(fs.readFileSync(SALESBOT_ESTADO, 'utf8')); } catch { return {}; } };
+const guardarEstadoSb = (cambios) => { fs.mkdirSync(path.dirname(SALESBOT_ESTADO), { recursive: true }); fs.writeFileSync(SALESBOT_ESTADO, JSON.stringify({ ...leerEstadoSb(), ...cambios }, null, 1)); };
+async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
+  const p1 = { id: 'p1', nombre: personaje.nombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn };
+  const cast = { personajes: [p1], lugar: { descripcionEn: personaje.lugarEn } };
+  const escena = { n: 1, rol: 'desarrollo', personajes: ['p1'], dialogo: '', accionEn: `${accionDeSituacion(pedido.situacion, personaje.nombre)} The setting: ${personaje.lugarEn}.`, plano: pedido.situacion === 'selfie' ? 'medium close-up' : 'medium shot' };
+  const pack = { estilo: estiloPara('9:16'), personajes: [{ id: 'p1', nombre: personaje.nombre, promptImagen: promptImagen(p1, cast.lugar) }], escenas: [{ escenaN: 1, rol: 'desarrollo', prompt: promptEscena(escena, { cast, lugar: cast.lugar, aspecto: '9:16' }) }] };
+  const dir = path.join(STORAGE_DIR, 'salesbot');
+  fs.mkdirSync(dir, { recursive: true });
+  const toma = await new Promise((resolve, reject) => {
+    let t = null;
+    const job = puente.iniciarJob({
+      projectId: 'salesbot-medios', reelId: pedido.personalidad, pack, escenasStoryboard: [escena], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
+      guardarClip: async (buffer, nombre) => { const f = path.join(dir, nombre); fs.writeFileSync(f, buffer); return { fileRef: f, durSec: 8 }; },
+      agregarToma: async (_n, tm) => { t = tm; },
+      guardarFlowUrl: async (u) => guardarEstadoSb({ flowProjectUrl: u }),
+    });
+    log(`pedido ${pedido.id}: Flow arranca (${personaje.nombre} · ${pedido.situacion})`);
+    const reloj = setInterval(() => {
+      const j = puente.verJob(job.id);
+      if (j && (j.estado === 'listo' || j.estado === 'error')) { clearInterval(reloj); t ? resolve(t) : reject(new Error(j.error || (j.fallas || []).join(' · ') || 'Flow no dio el clip')); }
+    }, 3000);
+  });
+  let archivo = toma.fileRef, tipo = 'video/mp4';
+  if (pedido.kind === 'imagen') {
+    archivo = toma.fileRef.replace(/\.mp4$/i, '.jpg');
+    await runFfmpeg(['-y', '-ss', '4', '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', archivo]);
+    tipo = 'image/jpeg';
+  }
+  const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo);
+  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
+}
+
 // Duración real de un video/audio con ffprobe (segundos, o null si falla). La usa el upload de tomas
 // del RODAJE — sin esto el editor cae a 3s default y el montaje por escenas queda descalibrado.
 function probeDuration(filePath) {
@@ -1746,8 +1784,8 @@ ${src}`;
 
 server.listen(PORT, () => {
   console.log(`[media-studio] backend en http://localhost:${PORT} (${IS_PROD ? 'PROD/Gemini' : 'LOCAL/Claude'})`);
-  // SalesBot: Media Studio consulta sus pedidos de medios (sin `fabricar` todavía: falta cómo subir el archivo)
-  if (!IS_PROD) iniciarSalesbotMedios();
+  // SalesBot: Media Studio consulta sus pedidos y fabrica los de sus personajes ficticios con Flow
+  if (!IS_PROD) iniciarSalesbotMedios({ fabricar: fabricarParaSalesbot, ocupado: () => puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando') });
   if (!IS_PROD) console.log(`[media-studio] videos dir: ${VIDEOS_DIR}`);
   if (CLD_CLOUD) console.log(`[media-studio] cloudinary: ${CLD_CLOUD}/${CLD_FOLDER}`);
   console.log(`[media-studio] sqlite: ${DB_PATH}`);
