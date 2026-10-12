@@ -273,6 +273,28 @@ function propagarNarracion(escenas, guion) {
 //   inserto de pantalla → 2 a 3s y sin frase (la frase la dice la persona en su escena; muda más tiempo parece tildada);
 //   b-roll con voz en off (diálogo sin personajes, sólo con locutor) → lo que dura su texto, de 4 a 8s;
 //   b-roll mudo → 4s (o lo que dijo el modelo si está entre 3 y 6).
+// El storyboard dura lo que dura el GUION (estudio curado, 2026-10-12: "la duración final del storyboard debe coincidir con
+// el guion aprobado"). El modelo le pone 8 s a cada toma filmada (confunde los 8 s que genera Flow con los segundos de
+// edición): en la campaña del 12/10 las piezas de 26 s salían de 34 a 49 s. Si el storyboard se pasa más de un 5%, cada
+// escena se achica en proporción, sin bajar de lo que tarda su frase (2,7 palabras por segundo + medio segundo) ni de
+// 1,5 s una escena sin frase. Los segundos van de a medio.
+export function ajustarAlGuion(escenas, guion) {
+  const total = (Array.isArray(guion?.blocks) ? guion.blocks : []).reduce((a, b) => a + (Number(b?.durSec) || 0), 0);
+  const suma = (escenas || []).reduce((a, e) => a + (Number(e.durSec) || 0), 0);
+  if (!total || !suma || suma <= total * 1.05) return escenas;
+  const palabras = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
+  const pisos = escenas.map((e) => { const w = palabras(e.dialogo); return w ? Math.ceil((w / WPS) * 2) / 2 + 0.5 : 1.5; });
+  let ds = escenas.map((e, i) => Math.max(pisos[i], Number(e.durSec) || 0));
+  for (let k = 0; k < 6 && ds.reduce((a, b) => a + b, 0) > total * 1.05; k++) {
+    const fijas = ds.reduce((a, d, i) => a + (d <= pisos[i] ? d : 0), 0);
+    const libres = ds.reduce((a, d, i) => a + (d > pisos[i] ? d : 0), 0);
+    if (!libres) break;
+    const f = Math.max(0, (total - fijas) / libres);
+    ds = ds.map((d, i) => (d > pisos[i] ? Math.max(pisos[i], Math.round(d * f * 2) / 2) : d));
+  }
+  return escenas.map((e, i) => (ds[i] === Number(e.durSec) ? e : { ...e, durSec: ds[i], durSecModelo: e.durSecModelo ?? e.durSec }));
+}
+
 export function normalizarDuraciones(escenas) {
   const palabras = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
   const MAX_VO = Math.floor(8 * WPS);   // 21 palabras: lo que entra en un b-roll de 8s con voz en off
@@ -470,6 +492,7 @@ ${factsText(x.facts)}` };
       const x = ctx(context);
       const piece = (context && context.piece) || {};
       const concepto = piece.concepto ? JSON.stringify(piece.concepto) : '';
+      // 2026-10-12: el front manda siempre "cercano"; con tratamiento elegido manda el tratamiento (un sobrio salía cercano)
       const tono = options.tono || 'cercano';
       const dur = options.duracion || x.durationSec;
       // WO-2/D4: con formato interpolamos aspecto+plataforma; SIN formato dejamos "un reel 9:16"
@@ -487,7 +510,7 @@ ${factsText(x.facts)}` };
         : '';
       if (regenerate && regenerate.index != null) {
         const cur = (regenerate.blocks || [])[regenerate.index] || {};
-        return { mode: 'item', prompt: `Actuás como promo-director. Rehacé SOLO ESTE bloque del guion (tono ${tono}), con una propuesta DISTINTA y mejor. Mantené su rol.
+        return { mode: 'item', prompt: `Actuás como promo-director. Rehacé SOLO ESTE bloque del guion (${piece.tratamiento ? 'con el tono del TRATAMIENTO elegido' : `tono ${tono}`}), con una propuesta DISTINTA y mejor. Mantené su rol.
 Devolvé SOLO el JSON del bloque: { "role": "${cur.role || 'hook'}", "narration": "lo que se DICE (voz - SÚPER CORTO, máximo 1-2 oraciones)", "visual": "lo que se VE (breve, 1 línea)", "durSec": <segundos estimados a ~2.7 palabras/seg> }
 ${bloqueEnfoque(piece, 'guion')}NEGOCIO: ${x.name} · BLOQUE ACTUAL (hacelo distinto): ${JSON.stringify(cur)}
 Rioplatense, sin emojis, no inventes datos. Sé estricto con la brevedad. Si el rol es "giro" o "gag": es el momento en que se ve el beneficio; remate gracioso sólo con tratamiento humor.` };
@@ -547,7 +570,7 @@ Evaluá internamente al menos dos formulaciones distintas de las intervenciones 
       const bloqueVisualFilmado = filmado ? `- quien: la persona que lo dice en cámara ("" si el bloque no tiene voz; "placa" en el cierre).` : '';
       return { mode: 'set', prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: escribí el GUION. No adelantes casting, planos ni decisiones técnicas del storyboard. Usá únicamente los hechos provistos; si un dato no está, no lo inventes.
 
-Actuás como promo-director. Convertí el CONCEPTO ELEGIDO en un comercial de ${dur}s para ${piezaDesc}, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
+Actuás como promo-director. Convertí el CONCEPTO ELEGIDO en un comercial de ${dur}s para ${piezaDesc}, ${piece.tratamiento ? 'con el tono del TRATAMIENTO elegido' : `tono ${tono}`}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
 ${regenPrompt}${tipo !== 'animado' ? deDondeSale('script') : ''}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo reemplaces por otra idea): ${concepto}\n` : ''}${bloqueEnfoque(piece, 'guion')}${bloqueTecnica}${bloqueKit}
 ${focoPieza}OBJETIVO NARRATIVO:
 - Mantené UNA idea central de principio a fin.
@@ -983,6 +1006,8 @@ LO QUE EL GENERADOR DE VIDEO NO PUEDE HACER (técnico)
 - Nada de acciones finas de manos en plano cercano mientras alguien habla (tipear, enchufar, atornillar): el video
   generado deforma los dedos.
 - La persona empieza a hablar en el primer segundo de la toma.
+- Una toma de video dura como máximo ocho segundos: una frase que tarda más (a 2,7 palabras por segundo) se reparte en dos
+  escenas seguidas de la misma persona.
 - Si alguien le muestra el teléfono a otro, la pantalla mira al otro y nunca a cámara: lo que muestra lo cuenta el inserto
   con la captura real.
 
@@ -1049,7 +1074,7 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       // la narración se reparte entre escenas mudas SÓLO en el animado (voz en off). En una pieza filmada cada frase la dice
       // un personaje en su escena: repartir el sobrante le daba frases a los insertos de pantalla que nadie iba a decir.
       if ((piece.tipo || 'filmado') === 'animado') escenas = propagarNarracion(escenas, piece.guion);
-      if ((piece.tipo || 'filmado') === 'filmado') escenas = normalizarDuraciones(escenas);
+      if ((piece.tipo || 'filmado') === 'filmado') escenas = ajustarAlGuion(normalizarDuraciones(escenas), piece.guion);
       // La firma es (escenas, context, piece): pasar `piece` como context dejaba el kit afuera y
       // ninguna escena recibía su captura (test 'matchea el screen...' en rojo desde el WIP).
       o.escenas = asignarCapturas(escenas, (body && body.context) || {}, piece);
