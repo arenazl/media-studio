@@ -68,6 +68,8 @@ async function pedirConReintentos(job, accion, args, timeoutMs, intentos = 3, pa
   }
   throw ultimo;
 }
+// se suma al retrato rehecho cuando Flow lo tomó por una persona famosa (2026-10-12)
+const CARA_COMUN = 'An ordinary, everyday face that does not resemble any celebrity, actor or public figure: natural asymmetry, plain features, real-life imperfections.';
 const slug = (s) => (String(s || '').trim().split(/\s+/)[0] || 'Personaje').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '').slice(0, 24) || 'Personaje';
 
 export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip }) {
@@ -115,7 +117,28 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
     }
     await pedir(job, 'cerrarAgente').catch(() => {});
 
+    // crea UN personaje en Flow: editor con el prompt → click real en la flecha → esperar → volver y ponerle el nombre
+    const crearEnFlow = async (nombre, promptImagen, tPer = Date.now()) => {
+      const prep = await pedirConReintentos(job, 'prepararPersonaje', { prompt: promptImagen }, 60000, 3, 5000, log);
+      // prueba real 12/10: el primer clic no disparaba en ningún personaje (el editor todavía estaba tomando el texto)
+      await new Promise((r) => setTimeout(r, 2500));
+      await pedir(job, 'clickReal', { x: prep.x, y: prep.y }, 30000);
+      let esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
+      if (!esp.arranco) {
+        log(`personaje ${nombre}: el click no disparó la generación, pruebo una vez más`);
+        const prep2 = await pedirConReintentos(job, 'prepararPersonaje', { prompt: promptImagen }, 60000, 3, 5000, log);
+        await pedir(job, 'clickReal', { x: prep2.x, y: prep2.y }, 30000);
+        esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
+        if (!esp.arranco) throw new Error('la flecha no respondió al click real');
+      }
+      log(`personaje ${nombre}: imagen generada en ${esp.seg} s`);
+      await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch((e) => log(`ir: ${e.message}`));
+      const ren = await pedirConReintentos(job, 'renombrarUltimoPersonaje', { nombre }, 60000, 3, 4000, log);
+      if (!ren.ok) log(`personaje ${nombre}: generado pero sin nombre (en la grilla: ${(ren.tiles || []).join(' | ')}); ponéselo a mano en Flow`);
+      log(`personaje ${nombre}: ${ren.ok ? 'creado y nombrado' : 'creado'} en ${Math.round((Date.now() - tPer) / 1000)} s`);
+    };
     const nombres = {};
+    const recreados = new Set();   // personajes cuyo retrato se rehizo porque Flow lo tomó por una persona famosa
     for (const p of pack.personajes || []) {
       const nombre = slug(p.nombre || p.id);
       nombres[p.id] = nombre;
@@ -127,23 +150,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       // 4) volver a la grilla y ponerle el nombre desde "Cambiar nombre" (el título del editor no acepta tipeo programado)
       // 2026-10-12: un personaje que no se pudo crear no corta la rutina; sus escenas salen sin @ (el prompt lo describe)
       try {
-        const prep = await pedirConReintentos(job, 'prepararPersonaje', { prompt: p.promptImagen }, 60000, 3, 5000, log);
-        // prueba real 12/10: el primer clic no disparaba en ningún personaje (el editor todavía estaba tomando el texto)
-        await new Promise((r) => setTimeout(r, 2500));
-        await pedir(job, 'clickReal', { x: prep.x, y: prep.y }, 30000);
-        let esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
-        if (!esp.arranco) {
-          log(`personaje ${nombre}: el click no disparó la generación, pruebo una vez más`);
-          const prep2 = await pedirConReintentos(job, 'prepararPersonaje', { prompt: p.promptImagen }, 60000, 3, 5000, log);
-          await pedir(job, 'clickReal', { x: prep2.x, y: prep2.y }, 30000);
-          esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
-          if (!esp.arranco) throw new Error('la flecha no respondió al click real');
-        }
-        log(`personaje ${nombre}: imagen generada en ${esp.seg} s`);
-        await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch((e) => log(`ir: ${e.message}`));
-        const ren = await pedirConReintentos(job, 'renombrarUltimoPersonaje', { nombre }, 60000, 3, 4000, log);
-        if (!ren.ok) log(`personaje ${nombre}: generado pero sin nombre (en la grilla: ${(ren.tiles || []).join(' | ')}); ponéselo a mano en Flow`);
-        log(`personaje ${nombre}: ${ren.ok ? 'creado y nombrado' : 'creado'} en ${Math.round((Date.now() - tPer) / 1000)} s`);
+        await crearEnFlow(nombre, p.promptImagen, tPer);
       } catch (e) {
         if (/no respondió/.test(e.message)) throw e;   // la pestaña de Flow no contesta: no tiene sentido seguir
         delete nombres[p.id];
@@ -216,22 +223,50 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         e = await pedir(job, 'esperarGeneracion', { maxSeg: 240 }, 260000);
       }
       // se vuelve a generar SÓLO si Flow muestra error (gasta un clip más). Si sigue cargando, se deja: se baja al final si terminó.
-      // Flow rechazó el clip: se vuelve a pedir una vez igual y, si lo rechaza de nuevo, una última sin las referencias @
-      // (prueba real del 12/10: Flow rechazaba siempre la escena de un personaje; el prompt igual describe a la persona)
-      for (const [k, conRefs] of [[1, true], [2, false]]) {
-        if (!e.conError) break;
-        if (!conRefs && !quienes.length) break;
-        log(`escena ${esc.escenaN}: Flow rechazó el clip${e.texto ? ` ("${e.texto}")` : ''} · ${conRefs ? 'la vuelvo a pedir una vez' : 'pruebo una última vez sin las referencias @ de personaje'}`);
+      // Flow rechazó el clip (los rechazos son reembolsados). Según lo que dice (prueba real del 12/10):
+      // - "personas famosas": el retrato de referencia del protagonista se parece a alguien conocido → se rehace ese
+      //   retrato con otra cara (nombre nuevo) y se usa en esta escena y en las que siguen;
+      // - "no se pudo generar el audio": se reintenta tal cual;
+      // - otro motivo: una vez igual y la última sin las referencias @ (el prompt describe a la persona).
+      let refs = [...quienes];
+      for (let intento = 1; intento <= 3 && e.conError; intento++) {
+        const texto = String(e.texto || '');
+        let que = 'la vuelvo a pedir';
+        if (/famos|famous|celebrit/i.test(texto) && refs.length) {
+          const protagonista = refs[0];
+          const pid = Object.keys(nombres).find((k) => nombres[k] === protagonista);
+          const p = (pack.personajes || []).find((x) => x.id === pid);
+          if (p && !recreados.has(pid)) {
+            recreados.add(pid);
+            const nuevo = `${protagonista}${recreados.size + 1}`;
+            log(`escena ${esc.escenaN}: Flow dice que el retrato de ${protagonista} se parece a una persona famosa · lo rehago con otra cara como ${nuevo}`);
+            try {
+              const { existe } = await pedirConReintentos(job, 'personajeExiste', { nombre: nuevo }, 60000, 4, 5000, log);
+              if (!existe) await crearEnFlow(nuevo, `${p.promptImagen} ${CARA_COMUN}`);
+              nombres[pid] = nuevo;
+              refs = refs.map((n) => (n === protagonista ? nuevo : n));
+              que = `con el retrato nuevo de ${nuevo}`;
+            } catch (err) {
+              log(`escena ${esc.escenaN}: no pude rehacer el retrato (${err instanceof Error ? err.message : err}); va sin referencias`);
+              refs = []; que = 'sin las referencias @';
+            }
+            await pedir(job, 'devolverPestana', {}, 20000).catch(() => {});
+            await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch(() => {});
+            await pedirConReintentos(job, 'irAContenido', {}, 120000, 3, 4000, log).catch(() => {});
+            await pedir(job, 'apagarAgente').catch(() => {});
+          } else { refs = []; que = 'sin las referencias @'; }
+        } else if (/audio/i.test(texto)) que = 'otra vez (Flow no pudo generar el audio)';
+        else if (intento >= 2 && refs.length) { refs = []; que = 'sin las referencias @'; }
+        log(`escena ${esc.escenaN}: Flow rechazó el clip${texto ? ` ("${texto.slice(0, 140)}")` : ''} · ${que}`);
         await pedir(job, 'limpiar', {}, 30000).catch(() => {});
-        const g2 = await pedir(job, 'generar', { prompt: esc.prompt, personajes: conRefs ? quienes : [] }, 120000)
+        const g2 = await pedir(job, 'generar', { prompt: esc.prompt, personajes: refs }, 120000)
           .catch(() => pedir(job, 'generar', { prompt: esc.prompt, personajes: [] }, 120000));
         if (Number.isFinite(g2.antes)) reg.pos = g2.antes;
         if (Number.isFinite(g2.antes) && g2.tiles > g2.antes) reg.salidas = g2.tiles - g2.antes;
         e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
-        if (!e.conError && !conRefs) { reg.aviso = 'salió sin las referencias de personaje: revisá que se parezca'; log(`escena ${esc.escenaN}: salió sin las referencias @; revisá que la persona se parezca`); }
-        void k;
+        if (!e.conError && refs.length < quienes.length) { reg.aviso = 'salió sin todas las referencias de personaje: revisá que se parezca'; log(`escena ${esc.escenaN}: salió sin todas las referencias @; revisá que la persona se parezca`); }
       }
-      if (e.conError) throw new Error(`Flow rechazó el clip también sin las referencias de personaje${e.texto ? ` (Flow dice: "${e.texto}")` : ''}`);
+      if (e.conError) throw new Error(`Flow rechazó el clip después de los reintentos${e.texto ? ` (Flow dice: "${String(e.texto).slice(0, 160)}")` : ''}`);
       if (!e.terminado) { log(`escena ${esc.escenaN}: sigue terminándose en Flow; la bajo al final si ya está`); return; }
       // el video de ESTA escena es el más nuevo de la grilla ahora: se guarda para bajarlo al final sin depender de posiciones.
       // Primero la pestaña tiene que estar en la grilla del proyecto (después de recargar quedó en otra y se tomó un ejemplo)

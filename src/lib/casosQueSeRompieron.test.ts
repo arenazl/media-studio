@@ -18,12 +18,14 @@ interface Grilla { tiles: string[] }   // del más viejo al más nuevo: una URL 
 
 // Corre una rutina de Flow entera contra una extensión simulada. `generar(n, intento)` decide qué pasa con cada pedido de
 // la escena n: 'error-antes' (no llegó a enviar), 'error-flow' (Flow deja un tile con error) o 'ok'.
-async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number; rechazaConReferenciasEn?: number } = {}) {
+async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number; rechazaConReferenciasEn?: number; famoso?: string } = {}) {
   const clip = path.join(os.tmpdir(), 'clip-prueba-media-studio.mp4');
   fs.writeFileSync(clip, 'clip');
   const grilla: Grilla = { tiles: [''] };   // la imagen del personaje
   const intentos: Record<number, number> = {};
-  let ultima = 0, ultimoResultado: string = 'ok';
+  let ultima = 0, ultimoResultado: string = 'ok', ultimoTexto = '';
+  const creados = new Set<string>();
+  const pedidosPorEscena: Record<number, string[][]> = {};
   const bajadas: [number, string][] = [];
   let ultimaBajada = '';   // la verificación corre justo después de cada bajada
   const importadas: number[] = [];
@@ -38,13 +40,19 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
   const responder = (p: Paso) => {
     switch (p.accion) {
       case 'estado': return { url: 'https://flow.google.com/project/prueba' };
-      case 'personajeExiste': return { existe: true };
+      case 'personajeExiste': return { existe: p.args.nombre === 'Ana' || creados.has(String(p.args.nombre)) };
+      case 'esperarPersonaje': return { arranco: true, seg: 30 };
+      case 'renombrarUltimoPersonaje': creados.add(String(p.args.nombre)); return { ok: true };
       case 'ajustes': return { pastilla: 'Vídeo · 720p · 8 s · x1' };
       case 'generar': {
         const n = Number(/escena (\d+)/.exec(String(p.args.prompt))![1]); ultima = n;
         intentos[n] = (intentos[n] || 0) + 1;
-        const conRefs = Array.isArray(p.args.personajes) && (p.args.personajes as unknown[]).length > 0;
-        const r = opciones.rechazaConReferenciasEn === n && conRefs ? 'error-flow' : generar(n, intentos[n]);
+        const refs = (Array.isArray(p.args.personajes) ? p.args.personajes : []) as string[];
+        (pedidosPorEscena[n] ||= []).push(refs);
+        const conRefs = refs.length > 0;
+        const esFamoso = !!opciones.famoso && refs.includes(opciones.famoso);
+        ultimoTexto = esFamoso ? 'Error Esta petición podría infringir nuestras políticas sobre personas famosas' : '';
+        const r = esFamoso || (opciones.rechazaConReferenciasEn === n && conRefs) ? 'error-flow' : generar(n, intentos[n]);
         if (r === 'error-antes') throw new Error('[antes de enviar] no pude mencionar a @Ana: no apareció "Añadir a petición" en 15 s');
         const antes = grilla.tiles.length;
         grilla.tiles.push(r === 'error-flow' ? 'ERR' : `https://clip/esc${n}`);
@@ -52,7 +60,7 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
         return { disparado: true, antes, tiles: grilla.tiles.length };
       }
       // 'cargando': la rutina lo ve sin terminar, pero en Flow termina igual (el clip queda como video): el caso de la escena 1
-      case 'esperarGeneracion': return ultimoResultado === 'error-flow' ? { seg: 30, terminado: false, conError: true } : ultimoResultado === 'cargando' ? { seg: 6, terminado: false, cargando: true } : { seg: 60, terminado: true };
+      case 'esperarGeneracion': return ultimoResultado === 'error-flow' ? { seg: 30, terminado: false, conError: true, texto: ultimoTexto } : ultimoResultado === 'cargando' ? { seg: 6, terminado: false, cargando: true } : { seg: 60, terminado: true };
       // Flow saca de la grilla el clip con error al recargar la pestaña (prueba real del 12/10)
       case 'recargar': grilla.tiles = grilla.tiles.filter((t) => t !== 'ERR'); return { ok: true };
       case 'urlDelMasNuevo': { if (opciones.videoAjenoEn === ultima) return { url: 'https://ejemplo-de-flow/ajeno' }; const v = [...grilla.tiles].reverse().find((t) => t.startsWith('https://')); return { url: v || '' }; }
@@ -70,7 +78,7 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
     const paso = puente.proximoComando({ pestanas: 1, origen: 'background', version: 'prueba' }) as Paso | null;
     if (paso) { try { puente.resultado({ pasoId: paso.id, ok: true, data: responder(paso) }); } catch (e) { puente.resultado({ pasoId: paso.id, ok: false, error: (e as Error).message }); } }
     const j = puente.verJob(job.id);
-    if (j.estado === 'listo' || j.estado === 'error') return { job: j, bajadas, intentos, importadas };
+    if (j.estado === 'listo' || j.estado === 'error') return { job: j, bajadas, intentos, importadas, pedidosPorEscena, creados };
     await new Promise((r) => setTimeout(r, 5));
   }
   throw new Error('la rutina no terminó');
@@ -115,7 +123,15 @@ describe('rutina de Flow: los incidentes del 12/10', () => {
     const { job, bajadas } = await correrRutina([1, 2], () => 'ok', { rechazaConReferenciasEn: 2 });
     expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'importada']);
     expect(bajadas.map((b) => b[0])).toEqual([1, 2]);
-    expect(job.escenas[1].aviso).toMatch(/sin las referencias/);
+    expect(job.escenas[1].aviso).toMatch(/sin (todas )?las referencias/);
+  }, 30000);
+
+  it('si Flow toma el retrato de un personaje por una persona famosa, se rehace con otra cara y se usa en esa escena y en las siguientes (prueba real del 12/10)', async () => {
+    const { job, pedidosPorEscena, creados } = await correrRutina([1, 2], () => 'ok', { famoso: 'Ana' });
+    expect([...creados]).toEqual(['Ana2']);
+    expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'importada']);
+    expect(pedidosPorEscena[1]).toEqual([['Ana'], ['Ana2']]);
+    expect(pedidosPorEscena[2]).toEqual([['Ana2']]);
   }, 30000);
 });
 
