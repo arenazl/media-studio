@@ -12,7 +12,10 @@ export type Transicion = 'cut' | 'fade' | 'crossfade' | 'wipe' | 'zoom';
 export interface PalabraTiempo { text: string; start: number; end: number }   // segundos, relativos al CLIP CRUDO
 export type TarjetaInserto = 'semaforo' | 'tramite' | 'mapa' | 'dashboard';
 export interface InsertoPantalla { atSec: number; durSec: number; src: string; nombre?: string; tarjeta?: TarjetaInserto; video?: boolean; fadeIn?: number; fadeOut?: number }   // video: el inserto es el mockup animado de la app (clip), no una captura   // atSec relativo al clip crudo; con `tarjeta`, se dibuja la tarjeta diseñada en vez de una captura
-export interface PlacaFinal { linea1: string; linea2?: string; durSec: number; logoSrc?: string }
+// tipo de cierre (2026-10-12): 'logo' = placa grande · 'pantalla' = mockup de la pantalla clave + logo · 'presentadora' =
+// clip de una persona diciendo el cierre + logo. `videoSrc` es el mockup o el clip; sin él, cae en la placa grande.
+export type TipoCierre = 'logo' | 'pantalla' | 'presentadora';
+export interface PlacaFinal { linea1: string; linea2?: string; durSec: number; logoSrc?: string; tipo?: TipoCierre; videoSrc?: string }
 export interface EstiloMarca { primario: string; acento: string; fondo: string; texto: string; fuenteTitulos?: string; fuenteTexto?: string }
 
 // ── Mockups (línea animada, motor Remotion): el storyboard animado como escenas de "PowerPoint avanzado" ──

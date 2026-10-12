@@ -16,7 +16,7 @@ export interface PlanRender {
   segments: SegmentoRender[];
   inserts: InsertoRender[];
   captions: PaginaSubtitulo[];
-  endCard?: { from: number; dur: number; linea1: string; linea2?: string; logoSrc?: string };
+  endCard?: { from: number; dur: number; linea1: string; linea2?: string; logoSrc?: string; tipo?: 'logo' | 'pantalla' | 'presentadora'; videoSrc?: string };
   music?: { src: string; gain: number; duck: boolean; duckFrames: [number, number][]; fadeIn: number; fadeOut: number };
   voice?: { src: string; from: number; volume: number; fadeIn: number; fadeOut: number };
   logo?: { src: string };
@@ -110,7 +110,7 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
   });
   const finClips = F(total);
   const endCard = plan.endCard
-    ? { from: Math.max(0, finClips - PLACA_SOLAPE), dur: PLACA_SOLAPE + F(plan.endCard.durSec), linea1: plan.endCard.linea1, linea2: plan.endCard.linea2, logoSrc: plan.endCard.logoSrc ? resolverSrc(base, plan.endCard.logoSrc) : undefined }
+    ? { from: Math.max(0, finClips - PLACA_SOLAPE), dur: PLACA_SOLAPE + F(plan.endCard.durSec), linea1: plan.endCard.linea1, linea2: plan.endCard.linea2, logoSrc: plan.endCard.logoSrc ? resolverSrc(base, plan.endCard.logoSrc) : undefined, tipo: plan.endCard.tipo, videoSrc: plan.endCard.videoSrc ? resolverSrc(base, plan.endCard.videoSrc) : undefined }
     : undefined;
   const totalFrames = Math.max(1, endCard ? endCard.from + endCard.dur : finClips);
   return {

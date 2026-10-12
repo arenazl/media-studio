@@ -171,6 +171,7 @@ export interface Comercial {
   descripcionReel?: string;          // paso 6b (solo animado): el reel descrito con las palabras del dueño (molde mockupsTexto)
   rodaje?: Toma[];                   // paso 7 (solo filmado; refs a server/storage)
   mockups?: MockupApp[];             // mockups de la app renderizados por el motor, disponibles como tomas (híbrido)
+  cierre?: { tipo: 'logo' | 'pantalla' | 'presentadora'; mockup?: string; video?: string };   // el cierre elegido (2026-10-12); sin elección, placa grande
   montaje?: unknown;                 // paso 8 — MontajePlan lo define la Fase 4 (tipado laxo hasta entonces)
   qa?: QaResult;                     // paso 8 — QA holístico persistido (C9: antes vivía en useState y se perdía)
   publicacion?: PublishPack;         // paso 9

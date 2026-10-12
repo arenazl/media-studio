@@ -169,6 +169,62 @@ const PlacaFinal: React.FC<{ card: NonNullable<PlanRender['endCard']>; estilo: P
   );
 };
 
+// ── Los tres cierres (2026-10-12), con los colores y el logo de CADA marca ──
+const rgba = (hex: string, a: number) => { const h = /^#?([0-9a-f]{6})$/i.exec(hex || '')?.[1] || '7c3aed'; return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)},${a})`; };
+// la web como botón con el color de la marca
+const PildoraWeb: React.FC<{ texto: string; color: string; u: number; opacity: number }> = ({ texto, color, u, opacity }) => (
+  <div style={{ padding: `${20 * u}px ${46 * u}px`, borderRadius: 999, background: color, color: '#fff', fontFamily: sans, fontWeight: 800, fontSize: 36 * u, letterSpacing: 0.5, boxShadow: `0 22px 60px ${rgba(color, 0.45)}`, opacity }}>{texto}</div>
+);
+// 1) placa grande: fondo oscuro con el brillo del color de la marca, el logo grande, la frase y la web
+const CierreLogo: React.FC<{ card: NonNullable<PlanRender['endCard']>; estilo: PlanRender['estilo']; width: number; nombre?: string }> = ({ card, estilo, width, nombre }) => {
+  const frame = useCurrentFrame();
+  const u = width / 1080;
+  const a = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: 'clamp' });
+  const esc = interpolate(frame, [0, 22], [0.86, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.back(1.4)) });
+  const b = interpolate(frame, [14, 28], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const c = interpolate(frame, [22, 36], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  return (
+    <AbsoluteFill style={{ background: `radial-gradient(65% 42% at 50% 40%, ${rgba(estilo.primario, 0.42)} 0%, rgba(0,0,0,0) 72%), linear-gradient(180deg, #121014 0%, #0B0A0D 100%)`, justifyContent: 'center', alignItems: 'center', opacity: a, padding: `0 ${90 * u}px` }}>
+      <div style={{ transform: `scale(${esc})`, display: 'flex', justifyContent: 'center' }}>
+        {card.logoSrc ? <Img src={card.logoSrc} style={{ width: 760 * u, maxHeight: 420 * u, objectFit: 'contain' }} /> : <span style={{ fontFamily: sans, fontWeight: 800, fontSize: 150 * u, color: '#fff' }}>{nombre}</span>}
+      </div>
+      <div style={{ marginTop: 80 * u, fontFamily: sans, fontWeight: 700, fontSize: (card.linea1.length > 34 ? 52 : 62) * u, color: '#fff', textAlign: 'center', lineHeight: 1.18, opacity: b }}>{card.linea1}</div>
+      {card.linea2 ? <div style={{ marginTop: 56 * u }}><PildoraWeb texto={card.linea2} color={estilo.primario} u={u} opacity={c} /></div> : null}
+    </AbsoluteFill>
+  );
+};
+// 2) y 3) un video de cierre (el mockup de la pantalla clave o la presentadora) y la marca encima
+const CierreVideo: React.FC<{ card: NonNullable<PlanRender['endCard']>; estilo: PlanRender['estilo']; width: number }> = ({ card, estilo, width }) => {
+  const frame = useCurrentFrame();
+  const u = width / 1080;
+  const a = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
+  const fin = card.dur;
+  const esPantalla = card.tipo === 'pantalla';
+  // pantalla: el logo entra en el último tramo, sobre un velo; presentadora: logo arriba desde el principio y la web abajo
+  const velo = esPantalla ? interpolate(frame, [fin * 0.55, fin * 0.7], [0, 0.9], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 0;
+  const desenfoque = esPantalla ? interpolate(frame, [fin * 0.55, fin * 0.7], [0, 16], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 0;
+  const marca = esPantalla ? interpolate(frame, [fin * 0.6, fin * 0.75], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : interpolate(frame, [4, 16], [0, 1], { extrapolateRight: 'clamp' });
+  return (
+    <AbsoluteFill style={{ background: '#000', opacity: a }}>
+      {card.videoSrc ? <OffthreadVideo src={card.videoSrc} muted={esPantalla} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: desenfoque ? `blur(${desenfoque}px)` : undefined }} /> : null}
+      <AbsoluteFill style={{ background: `rgba(10,9,12,${velo})` }} />
+      {esPantalla ? (
+        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', opacity: marca, padding: `0 ${90 * u}px` }}>
+          {card.logoSrc ? <Img src={card.logoSrc} style={{ width: 680 * u, maxHeight: 380 * u, objectFit: 'contain' }} /> : null}
+          <div style={{ marginTop: 60 * u, fontFamily: sans, fontWeight: 700, fontSize: 56 * u, color: '#fff', textAlign: 'center', lineHeight: 1.18 }}>{card.linea1}</div>
+          {card.linea2 ? <div style={{ marginTop: 48 * u }}><PildoraWeb texto={card.linea2} color={estilo.primario} u={u} opacity={1} /></div> : null}
+        </AbsoluteFill>
+      ) : (
+        <>
+          <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 72%, rgba(0,0,0,0.6) 100%)' }} />
+          {card.logoSrc ? <Img src={card.logoSrc} style={{ position: 'absolute', top: 110 * u, left: '50%', transform: 'translateX(-50%)', width: 460 * u, maxHeight: 200 * u, objectFit: 'contain', opacity: marca }} /> : null}
+          {card.linea2 ? <div style={{ position: 'absolute', bottom: 170 * u, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}><PildoraWeb texto={card.linea2} color={estilo.primario} u={u} opacity={marca} /></div> : null}
+        </>
+      )}
+    </AbsoluteFill>
+  );
+};
+
 export const Comercial: React.FC<ComercialProps> = ({ plan, base = '' }) => {
   const r = useMemo(() => derivarRender(plan, base), [plan, base]);
   return (
@@ -191,7 +247,10 @@ export const Comercial: React.FC<ComercialProps> = ({ plan, base = '' }) => {
       <Subtitulos pages={r.captions} acento="#FBBF24" width={r.width} height={r.height} />
       {r.endCard ? (
         <Sequence from={r.endCard.from} durationInFrames={r.endCard.dur} name="placa final">
-          <PlacaFinal card={r.endCard} estilo={r.estilo} width={r.width} nombre={plan.marcaNombre} />
+          {r.endCard.tipo && r.endCard.tipo !== 'logo' && r.endCard.videoSrc
+            ? <CierreVideo card={r.endCard} estilo={r.estilo} width={r.width} />
+            : r.endCard.tipo ? <CierreLogo card={r.endCard} estilo={r.estilo} width={r.width} nombre={plan.marcaNombre} />
+              : <PlacaFinal card={r.endCard} estilo={r.estilo} width={r.width} nombre={plan.marcaNombre} />}
         </Sequence>
       ) : null}
       {r.voice ? (

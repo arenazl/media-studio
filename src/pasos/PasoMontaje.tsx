@@ -71,11 +71,11 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const esAnimado = comercial?.tipo === 'animado';
 
   // Arma el plan desde el storyboard con el montajista (lib/armarMontaje.ts, el mismo que usa el Auto-armar del editor).
-  const armar = async () => {
-    if (!comercial) return;
+  const armar = async (c0 = comercial) => {
+    if (!c0) return;
     setArmando(true); setError('');
     try {
-      const planFinal = await armarMontaje(project, comercial);
+      const planFinal = await armarMontaje(project, c0);
       setComercial((c) => ({
         ...c,
         montaje: { plan: planFinal, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
@@ -191,6 +191,21 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           <p className="paso-sub">Se arma solo desde el storyboard y el montajista lo afina: recorta el aire de cada clip, corta en frase, mete pantallas reales cuando la voz las nombra, subtitula palabra por palabra y cierra con la placa de la marca.</p>
         </div>
         <div className="paso-head-actions">
+          {/* el cierre (2026-10-12): placa grande, la pantalla clave de la app o la presentadora (su clip sale de "Generar pieza") */}
+          <div className="veo-chips" title="Cómo termina el comercial">
+            {([['logo', 'Placa grande'], ['pantalla', 'Pantalla de la app'], ['presentadora', 'Presentadora']] as const).map(([tipo, label]) => {
+              const actual = comercial?.cierre?.tipo || 'logo';
+              const sinVideo = tipo === 'presentadora' && !comercial?.cierre?.video;
+              const sinMockups = tipo === 'pantalla' && !(comercial?.mockups || []).length;
+              return (
+                <button key={tipo} type="button" className={actual === tipo ? 'veo-chip veo-chip--on' : 'veo-chip'} disabled={armando || rendering || sinVideo || sinMockups}
+                  title={sinVideo ? 'La presentadora se genera desde "Generar pieza" en el multipista' : sinMockups ? 'Esta pieza todavía no tiene mockups' : `Cerrar con ${label.toLowerCase()}`}
+                  onClick={() => { if (!comercial) return; const c1 = { ...comercial, cierre: { ...(comercial.cierre || {}), tipo } }; setComercial((c) => ({ ...c, cierre: { ...(c.cierre || {}), tipo } })); void armar(c1); }}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           <button className={plan ? 'paso-regen' : 'paso-gen'} onClick={() => void armar()} disabled={rendering || armando}>
             {armando ? <Loader2 size={15} className="paso-spin" /> : <Clapperboard size={15} />} {armando ? 'Armando…' : plan ? 'Rearmar' : 'Armar el montaje'}
           </button>

@@ -31,6 +31,8 @@ export interface InsumosMontajista {
   logoUrl?: string;
   estilo?: MontajePlan['estilo'];
   marca?: { exacto?: string; fonetica?: string };                 // para escribir la marca como corresponde en los subtítulos
+  cierre?: { tipo: 'logo' | 'pantalla' | 'presentadora'; videoRef?: string; videoDurSec?: number };   // el cierre elegido
+  logoPlaca?: string;                                              // el logo para fondo oscuro (la placa va sobre oscuro)
 }
 
 // La transcripción escribe la marca como la oye ("Sin Vuelta Ya", "SinVueltas"). Si una ventana de palabras
@@ -322,7 +324,7 @@ export function cubrirConMockups(scenes: MontajeScene[], mockups: MockupInserto[
 }
 
 export function afinarMontaje(plan: MontajePlan, insumos: InsumosMontajista): MontajePlan {
-  const { palabrasPorToma, pantallas = [], mockups = [], cta, logoUrl, estilo, marca, hibrido } = insumos;
+  const { palabrasPorToma, pantallas = [], mockups = [], cta, logoUrl, estilo, marca, hibrido, cierre, logoPlaca } = insumos;
   // la escena cta sin clip ES la placa final, que la dibuja el motor: no se monta como escena. Antes quedaba en la
   // secuencia como un hueco negro de su duración y la placa venía después (el cierre salía dos veces).
   const sinPlaca = plan.scenes.filter((s) => !(!s.src && (s.placa || s.rol === 'cta')));
@@ -363,11 +365,16 @@ export function afinarMontaje(plan: MontajePlan, insumos: InsumosMontajista): Mo
   const linea1 = principal || ctaGuion || (nombreMarca ? `Conocé ${nombreMarca}` : host ? `Conocé ${host}` : 'Conocé más');
   const escenaCta = plan.scenes.find((s) => s.rol === 'cta');
   const durCta = escenaCta ? escenaCta.out - escenaCta.in : 0;
+  // el tipo de cierre: pantalla y presentadora necesitan su video; sin él, placa grande
+  const tipo: 'logo' | 'pantalla' | 'presentadora' = cierre?.tipo && cierre.tipo !== 'logo' && cierre.videoRef ? cierre.tipo : 'logo';
+  const durBase = durCta > 0 ? Math.max(2, Math.min(6, durCta)) : PLACA_DUR;
   const endCard = {
     linea1,
     linea2: host && !normalizar(linea1).includes(normalizar(host)) ? host : undefined,
-    durSec: durCta > 0 ? Math.max(2, Math.min(6, durCta)) : PLACA_DUR,
-    logoSrc: logoUrl,
+    durSec: tipo === 'logo' ? durBase : Math.max(3.5, Math.min(6, cierre?.videoDurSec || 5)),
+    logoSrc: logoPlaca || logoUrl,
+    tipo,
+    ...(tipo !== 'logo' ? { videoSrc: cierre!.videoRef } : {}),
   };
   return {
     ...plan,

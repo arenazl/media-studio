@@ -40,6 +40,17 @@ export async function armarMontaje(project: Project, comercial: Comercial): Prom
   const colores = project.marcaKit?.colores;
   // la placa de cierre siempre se arma (el montajista la garantiza): CTA del proyecto, si no el bloque cta del guion, si no la marca
   const ctaGuion = (comercial.guion?.blocks || []).find((b) => b.role === 'cta')?.narration?.trim();
+  // el cierre: 'pantalla' usa el mockup elegido o, si no hay, el de la última pantalla del storyboard; 'presentadora' su clip
+  const elegido = comercial.cierre;
+  const ultimaPantalla = [...(comercial.storyboard || [])].reverse().find((e) => e.pantalla)?.pantalla;
+  const mkCierre = elegido?.tipo === 'pantalla'
+    ? (mockups.find((m) => m.fileRef === elegido.mockup) || mockups.find((m) => ultimaPantalla && m.nombre === ultimaPantalla) || mockups[mockups.length - 1])
+    : undefined;
+  const cierre = elegido ? { tipo: elegido.tipo, videoRef: elegido.tipo === 'pantalla' ? mkCierre?.fileRef : elegido.video, videoDurSec: mkCierre?.durSec } : undefined;
+  // la placa va sobre fondo oscuro: el logo para fondo oscuro del kit (en PNG, que trae la tipografía real)
+  const kitId = (project as { mediaKitId?: string }).mediaKitId;
+  const raster = (project.marcaKit as { logo?: { paraFondoOscuroRaster?: string } } | undefined)?.logo?.paraFondoOscuroRaster;
+  const logoPlaca = kitId && raster ? `${API_BASE}/api/media-kit/${encodeURIComponent(kitId)}/file/${raster}` : project.marcaKit?.logoOscuroUrl;
   return afinarMontaje(base, {
     palabrasPorToma: Object.fromEntries(pares),
     pantallas: project.pantallasKit,
@@ -48,6 +59,8 @@ export async function armarMontaje(project: Project, comercial: Comercial): Prom
     cta: project.cta,
     ctaGuion,
     logoUrl: project.marcaKit?.logoUrl || project.brandKit?.logoUrl,
+    logoPlaca,
+    cierre,
     marca,
     estilo: colores?.primario
       ? { primario: colores.primario, acento: colores.acento || '#F59E0B', fondo: colores.fondo || '#FAF7FF', texto: colores.texto || '#1E1B2E' }
