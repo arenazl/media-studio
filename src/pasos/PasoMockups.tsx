@@ -3,7 +3,7 @@
 // en el mismo paso se convierten en video); cada mockup entra solo en la escena de pantalla que marcó el storyboard.
 // Los crudos de Flow viven en Pack Flow (CrudosFlow). Lucas: "primero los crudos de los videos en un paso, los crudos
 // de los mockups animados en otro, y después el montaje". El id interno del paso sigue siendo 'rodaje' (estados guardados).
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, Check, ArrowRight, LayoutTemplate } from 'lucide-react';
 import { errMsg, PasoEmpty } from './pasoKit';
 import type { PasoProps } from './pasoKit';
@@ -142,6 +142,15 @@ export default function PasoMockups({ project, reelId, comercial, setComercial, 
     try { const n = await pasarAVideo(escritos); setMsg(`Listos ${n} mockups en ${reloj((Date.now() - t0) / 1000)}.`); }
     catch (e) { setError(errMsg(e)); } finally { setFase(''); }
   };
+  // 2026-10-12: si la app ya tiene sus mockups escritos y esta pieza no los tiene, se pasan a video solos al entrar (antes
+  // había que tocar el botón y las piezas llegaban al montaje sin mockups)
+  const autoMockups = useRef(false);
+  useEffect(() => {
+    if (autoMockups.current || fase || escritos <= 0 || mockups.length) return;
+    autoMockups.current = true;
+    void soloVideo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [escritos]);
   const usarEn = (m: MockupApp, escenaN: number) => setComercial((c) => ({
     ...c,
     rodaje: [...(c.rodaje || []), { id: `toma-${escenaN}-mk-${Date.now().toString(36)}`, escenaN, fileRef: m.fileRef, durSec: m.durSec, origen: 'mockup' as const, promptUsado: `mockup de la app: ${m.nombre}` }],

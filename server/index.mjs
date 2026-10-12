@@ -665,6 +665,53 @@ async function uploadToCloudinary(buffer, filename, folder = CLD_FOLDER) {
 const STORAGE_DIR = process.env.STORAGE_DIR || path.resolve('server/storage');
 const MIME_MORE = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4' };
 
+// Los mockups de UNA pieza (2026-10-12): las tarjetas de una app son las mismas para todas sus piezas, así que si otra
+// pieza del proyecto ya las tiene en video se reutilizan (antes se renderizaban de nuevo por pieza; `rehacer` fuerza el
+// render). Después cada mockup se engancha a su escena de pantalla del storyboard y se guarda la pieza. La usan el paso
+// Mockups y la rutina de Flow al terminar (antes dependían de un botón y las piezas llegaban al montaje sin mockups).
+async function mockupsParaPieza(projectId, reelId, { rehacer = false, soloIds, log = (m) => console.log('[media-studio] mockups-app:', m) } = {}) {
+  const proj = getProject(projectId);
+  if (!proj) throw new Error('proyecto no existe');
+  const data = proj.data || {};
+  const reel = (data.reels || []).find((r) => r.id === reelId) || (data.reels || [])[0];
+  if (!reel?.comercial) throw new Error('la pieza no tiene comercial');
+  const folder = `${CLD_FOLDER}/${projectId}`;
+  const guardar = async (buffer, nombre) => {
+    const saved = await saveAsset(buffer, nombre, folder, 'video/mp4');
+    let durSec = 0;
+    try { durSec = (await probeDuration(path.join(STORAGE_DIR, saved.public_id))) || 0; } catch { /* queda la del render */ }
+    return { fileRef: saved.public_id, durSec };
+  };
+  const marca = { logoUrl: data.marcaKit?.logoUrl || data.brandKit?.logoUrl };
+  const cat = catalogoDeApp({ ...data, id: proj.id, name: proj.name }, { port: PORT });
+  const ids = (cat?.tarjetas || []).map((t) => t.id).filter((id) => !Array.isArray(soloIds) || soloIds.includes(id));
+  const yaHechos = rehacer ? [] : (data.reels || []).flatMap((r) => r.comercial?.mockups || []);
+  const reuso = ids.map((id) => yaHechos.find((m) => m.tarjeta === id && m.fileRef)).filter(Boolean);
+  let mockups;
+  if (ids.length && reuso.length === ids.length) {
+    mockups = reuso.map((m) => ({ ...m }));
+    log(`${mockups.length} mockup(s) reutilizados de otra pieza del proyecto (sin volver a renderizar)`);
+  } else {
+    mockups = await generarMockupsApp({ project: { ...data, id: proj.id, name: proj.name }, marca, port: PORT, guardar, soloIds, log });
+  }
+  // el proyecto se vuelve a leer: el render tarda y otra pieza pudo guardarse mientras tanto
+  const fresco = getProject(projectId);
+  const dataF = fresco?.data || data;
+  const reelF = (dataF.reels || []).find((r) => r.id === reel.id) || reel;
+  const c = reelF.comercial;
+  const previos = (c.mockups || []).filter((m) => !mockups.some((n) => n.tarjeta === m.tarjeta));
+  c.mockups = [...previos, ...mockups];
+  const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const nuevas = (c.storyboard || []).filter((e) => e.pantalla && !(c.rodaje || []).some((t) => t.escenaN === e.n)).flatMap((e) => {
+    const m = c.mockups.find((x) => norm(x.nombre) === norm(e.pantalla)) || c.mockups.find((x) => norm(e.pantalla).startsWith(norm(x.nombre)) || norm(x.nombre).startsWith(norm(e.pantalla)));
+    return m ? [{ id: `toma-${e.n}-mk-${Date.now().toString(36)}`, escenaN: e.n, fileRef: m.fileRef, durSec: m.durSec, origen: 'mockup', promptUsado: `mockup de la app: ${m.nombre}` }] : [];
+  });
+  if (nuevas.length) { c.rodaje = [...(c.rodaje || []), ...nuevas]; c.estados = { ...(c.estados || {}), rodaje: c.estados?.rodaje === 'aprobado' ? 'aprobado' : 'generado' }; }
+  dataF.updated_at = Date.now();
+  saveProject({ id: projectId, name: (fresco || proj).name, data: dataF });
+  return { mockups: c.mockups, enganchados: nuevas.length };
+}
+
 async function saveAsset(buffer, filename, folder = CLD_FOLDER, contentType = '') {
   if (IS_PROD) return uploadToCloudinary(buffer, filename, folder);   // online → Cloudinary
   const dir = path.join(STORAGE_DIR, folder);                          // local → disco
@@ -1359,6 +1406,18 @@ ${src}`;
     if (p === '/api/run-function' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
       if (!body.functionId) return json(res, 400, { error: 'falta functionId' });
+      // 2026-10-12: una app sin kit de capturas (Munify) igual tiene sus mockups en el motor: el recorrido de pantallas que
+      // reciben concepto, guion y storyboard son esas tarjetas, así el storyboard las nombra tal cual y se enganchan solas
+      if (['concept', 'script', 'storyboard'].includes(body.functionId) && body.context?.piece && !body.context.piece.mediaKit && body.projectId) {
+        try {
+          const pr = getProject(String(body.projectId));
+          const d = pr?.data;
+          if (d && !(d.pantallasKit || []).length) {
+            const cat = catalogoDeApp({ ...d, id: pr.id, name: pr.name }, { port: PORT });
+            if (cat?.tarjetas?.length) body.context.piece.mediaKit = { pantallas: cat.tarjetas.map((t) => ({ nombre: t.nombre, queDemuestra: [t.titulo, t.sub].filter(Boolean).join(': ') })) };
+          }
+        } catch { /* sin catálogo: el pedido va como venía */ }
+      }
       try {
         const { prompt, mode, compilado, promptVersion } = buildFunctionPrompt(body);
         const model = MODEL_WHITELIST.includes(body.model) ? body.model : undefined;
@@ -1551,11 +1610,12 @@ ${src}`;
         data.updated_at = Date.now();
         saveProject({ id: projectId, name: proj.name, data });
       };
-      // los mockups ya no los hace la rutina de Flow: tienen su paso propio (Mockups, 2026-10-11)
       // retomar por escena (2026-10-12): las escenas que ya tienen su crudo de Flow en la pieza no se vuelven a generar
       const reelAhora = ((getProject(projectId)?.data?.reels) || []).find((r) => r.id === reelId);
       const escenasConCrudo = ((reelAhora?.comercial?.rodaje) || []).filter((t) => t.origen !== 'mockup' && t.fileRef).map((t) => t.escenaN);
-      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, escenasConCrudo, guardarClip, agregarToma, guardarFlowUrl });
+      // 2026-10-12: al terminar, la rutina deja también los mockups de la pieza (reutiliza los del proyecto si ya están)
+      const generarMockups = async (log) => (await mockupsParaPieza(projectId, reelId, { log })).mockups;
+      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, escenasConCrudo, guardarClip, agregarToma, guardarFlowUrl, generarMockups });
       return json(res, 200, { job });
     }
     // ── Mockups de la app (paso de la orquestación, 2026-10-10): renderiza las tarjetas del catálogo de la app como
@@ -1594,27 +1654,10 @@ ${src}`;
       const projectId = String(body.projectId || ''), reelId = String(body.reelId || '');
       // cada pedido queda en el registro apenas llega, y su error si falla (2026-10-11: un pedido que no dejó rastro)
       console.log(`[media-studio] mockups-app: pedido de generar · proyecto ${projectId || '(sin id)'} · pieza ${reelId || '(primera)'}`);
-      const proj = getProject(projectId);
-      if (!proj) { console.log('[media-studio] mockups-app: ERROR proyecto no existe'); return json(res, 404, { error: 'proyecto no existe' }); }
-      const data = proj.data || {};
-      const reel = (data.reels || []).find((r) => r.id === reelId) || (data.reels || [])[0];
-      if (!reel?.comercial) return json(res, 400, { error: 'la pieza no tiene comercial' });
-      const folder = `${CLD_FOLDER}/${projectId}`;
-      const guardar = async (buffer, nombre) => {
-        const saved = await saveAsset(buffer, nombre, folder, 'video/mp4');
-        let durSec = 0;
-        try { durSec = (await probeDuration(path.join(STORAGE_DIR, saved.public_id))) || 0; } catch { /* queda la del render */ }
-        return { fileRef: saved.public_id, durSec };
-      };
+      if (!getProject(projectId)) { console.log('[media-studio] mockups-app: ERROR proyecto no existe'); return json(res, 404, { error: 'proyecto no existe' }); }
       try {
-        const marca = { logoUrl: data.marcaKit?.logoUrl || data.brandKit?.logoUrl };
-        const mockups = await generarMockupsApp({ project: { ...data, id: proj.id, name: proj.name }, marca, port: PORT, guardar, soloIds: Array.isArray(body.soloIds) ? body.soloIds : undefined, log: (m) => console.log('[media-studio] mockups-app:', m) });
-        // se reemplazan los de la misma tarjeta; los demás se conservan
-        const previos = (reel.comercial.mockups || []).filter((m) => !mockups.some((n) => n.tarjeta === m.tarjeta));
-        reel.comercial.mockups = [...previos, ...mockups];
-        data.updated_at = Date.now();
-        saveProject({ id: projectId, name: proj.name, data });
-        return json(res, 200, { mockups: reel.comercial.mockups });
+        const r = await mockupsParaPieza(projectId, reelId, { rehacer: !!body.rehacer, soloIds: Array.isArray(body.soloIds) ? body.soloIds : undefined });
+        return json(res, 200, r);
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudieron generar los mockups' }); }
     }
     if (p === '/api/flow/jobs' && req.method === 'GET') return json(res, 200, { jobs: puente.listarJobs(), extension: puente.extensionViva() });
