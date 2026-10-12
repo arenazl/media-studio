@@ -48,7 +48,7 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
-import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, pedidoLibreLocal } from './salesbotMedios.mjs';
+import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, descripcionDeSituacion, pedidoLibreLocal } from './salesbotMedios.mjs';
 import { promptEscena, promptImagen, estiloPara } from './flowCompiler.mjs';
 import { generarMockupsApp, catalogoDeApp } from './mockupsApp.mjs';
 import { escribirTarjetasPlantilla, progresoDe } from './tarjetasPlantilla.mjs';
@@ -529,11 +529,12 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
     await runFfmpeg(['-y', '-ss', '4', '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', archivo]);
     tipo = 'image/jpeg';
   }
-  const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo);
-  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
+  const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'personalidades', producto: pedido.personalidad, nombre: pedido.situacion });
+  const { descripcion, etiquetas } = descripcionDeSituacion(pedido.situacion, personaje.nombre);
+  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion, etiquetas, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
 }
 
-// Un pedido LIBRE de Lucas por WhatsApp (2026-10-12): Claude lo convierte en un pedido de Flow y Flow lo genera.
+// Un pedido LIBRE de Lucas desde el panel de SalesBot (2026-10-12): Claude lo convierte en un pedido de Flow y Flow lo genera.
 const PEDIDO_LIBRE = (texto, kind, contextoPersona = '') => `Sos director de fotografía y prompt-writer de Google Flow (Veo 3). Lucas, el dueño, pidió este medio:
 "${texto}"
 Tipo pedido: ${kind || 'video'}.
@@ -591,10 +592,10 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
     // la duración que pidió (Flow hace 8 s): H.264/AAC para WhatsApp
     await runFfmpeg(['-y', '-i', toma.fileRef, '-t', String(durSec), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', archivo]);
   }
-  const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo);
   // para que el bot identifique el medio y sepa cuándo usarlo (Lucas, 2026-10-12): qué se ve y sus etiquetas
   const descripcion = String(plan.descripcion || '').trim() || String(pedido.contexto).slice(0, 200);
   const etiquetas = Array.isArray(plan.etiquetas) ? plan.etiquetas.map((e) => String(e).trim().toLowerCase()).filter(Boolean).slice(0, 8) : [];
+  const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'libre', producto: pedido.producto || pedido.personalidad || '', nombre: etiquetas.slice(0, 3).join(' ') || descripcion });
   return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion, etiquetas, nota: `${descripcion}${etiquetas.length ? ` · ${etiquetas.join(', ')}` : ''} · pedido: ${String(pedido.contexto).slice(0, 160)}` };
 }
 

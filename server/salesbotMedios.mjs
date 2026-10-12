@@ -24,6 +24,20 @@ export const ACCION_POR_SITUACION = {
   cena: 'sits at a dinner table under warm lamp light and raises a glass slightly toward the camera',
   despedida: 'smiles at the camera and waves goodbye',
 };
+// lo mismo en castellano, para la descripción que guarda SalesBot (el bot elige el medio por lo que se ve)
+const SITUACION_ES = {
+  saludo: 'saluda a cámara con una sonrisa y levanta la mano',
+  buenos_dias: 'da los buenos días con un mate, con luz de mañana',
+  selfie: 'se saca una selfie con el celular, relajado y sonriendo',
+  trabajando: 'está trabajando y mira a cámara con una sonrisa',
+  obra: 'muestra con orgullo una obra pública en marcha',
+  cena: 'en una cena, levanta un poco la copa hacia la cámara',
+  despedida: 'sonríe a cámara y saluda despidiéndose',
+};
+export const descripcionDeSituacion = (situacion, nombre) => ({
+  descripcion: `${nombre} ${SITUACION_ES[situacion] || 'mira a cámara con una sonrisa'}.`,
+  etiquetas: [String(situacion || '').replace(/_/g, ' '), String(nombre || '').toLowerCase()].filter(Boolean),
+});
 export const accionDeSituacion = (situacion, nombre) => `${nombre} ${ACCION_POR_SITUACION[situacion] || 'looks into the camera with a warm, natural smile'}.`;
 
 // un pedido libre hecho desde la app (sin pasar por WhatsApp): lo arma iniciarSalesbotMedios cuando arranca
@@ -32,6 +46,9 @@ export const pedidoLibreLocal = (contexto, kind) => (libreLocal ? libreLocal(con
 
 const estado = { activo: false, conectado: false, ultimaConsulta: null, ultimoError: '', atendidos: 0, rechazados: 0, enCurso: null };
 export const estadoSalesbot = () => ({ ...estado, permitidos: Object.keys(leerPermitidos().personajes || {}) });
+
+// nombre de carpeta para Cloudinary: minúsculas, sin acentos, guiones
+const slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
 
 function leerPermitidos() {
   try { return JSON.parse(fs.readFileSync(PERSONAJES, 'utf8')); } catch { return { personajes: {}, proyectos: {} }; }
@@ -56,26 +73,29 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, ocupado = () =>
     if (!r.ok) throw new Error(`${ruta}: ${r.status} ${d.error || ''}`.trim());
     return d;
   };
-  // sube un archivo a SalesBot (multipart a su Cloudinary) y devuelve {url, kind, formato, ancho, alto, duracion_s}
-  const subir = async (buffer, nombre, tipo) => {
+  // sube un archivo a SalesBot (multipart a su Cloudinary) y devuelve {url, kind, formato, ancho, alto, duracion_s}.
+  // `carpeta` ({proyecto, producto, nombre}) ordena el archivo en salesbot/<proyecto>/<producto>/<nombre>-<sufijo>
+  const subir = async (buffer, nombre, tipo, carpeta = {}) => {
     const fd = new FormData();
     fd.append('file', new Blob([buffer], { type: tipo }), nombre);
+    for (const campo of ['proyecto', 'producto', 'nombre']) { const v = slug(carpeta[campo]); if (v) fd.append(campo, v); }
     const r = await fetch(`${BASE}/subir`, { method: 'POST', headers: { 'X-Media-Key': clave }, body: fd });
     const d = await r.json().catch(() => ({}));
     if (!r.ok || !d.url) throw new Error(`no se pudo subir el archivo a SalesBot: ${r.status} ${d.error || ''}`.trim());
     return d;
   };
   const atender = async (pedido) => {
-    // pedido libre (2026-10-12, Lucas usa el bot como intermediario): sin personalidad y con el texto del pedido
-    // también parado sobre una personalidad desde el panel de SalesBot: el texto manda; si la personalidad no es un
-    // personaje ficticio de la lista, el medio no la muestra (eso lo resuelve el pedido a Flow)
-    if (String(pedido.contexto || '').trim() && (pedido.personalidad || pedido.proyecto === 'libre' || pedido.proyecto === 'munify')) {
-      if (pedido.origen && !/lucas/i.test(String(pedido.origen))) {
-        await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
-        await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: 'Los pedidos libres son sólo de Lucas.' }) });
-        estado.rechazados += 1;
-        return;
-      }
+    // pedido libre (2026-10-12, Lucas usa el bot como intermediario): lo escribe Lucas en el panel de SalesBot (origen
+    // "panel"), con o sin personalidad; el texto manda. Si la personalidad es un personaje ficticio de la lista, puede
+    // aparecer con su cara y su ropa. Los pedidos del bot (personalidad + situación) siguen por el camino de abajo.
+    const libre = String(pedido.contexto || '').trim() && (pedido.personalidad || pedido.proyecto === 'libre' || pedido.proyecto === 'munify');
+    if (libre && !pedido.personalidad && !/^(panel|lucas)/i.test(String(pedido.origen || ''))) {
+      await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
+      await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: 'Los pedidos libres son sólo de Lucas, desde el panel.' }) });
+      estado.rechazados += 1;
+      return;
+    }
+    if (libre && /^(panel|lucas)/i.test(String(pedido.origen || ''))) {
       if (!fabricarLibre) return;
       if (ocupado()) { log(`pedido ${pedido.id}: Flow está ocupado; lo tomo en la próxima vuelta`); return; }
       await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
