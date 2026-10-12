@@ -72,10 +72,10 @@ async function pedirConReintentos(job, accion, args, timeoutMs, intentos = 3, pa
 const CARA_COMUN = 'An ordinary, everyday face that does not resemble any celebrity, actor or public figure: natural asymmetry, plain features, real-life imperfections.';
 const slug = (s) => (String(s || '').trim().split(/\s+/)[0] || 'Personaje').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '').slice(0, 24) || 'Personaje';
 
-export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip }) {
+export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, retomar = true, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip }) {
   const id = `flow-${Date.now()}`;
   // soloDescargar: el clip ya está generado en Flow (una corrida anterior se cortó después de generar); se baja sin volver a gastar créditos
-  const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], fallas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, inicio: Date.now(), fin: null };
+  const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], fallas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, retomar: retomar !== false, inicio: Date.now(), fin: null };
   jobs.set(id, job);
   const log = (m) => { job.log.push(`${new Date().toTimeString().slice(0, 8)} ${m}`); console.log('[media-studio] puente-flow:', m); };
   const setPaso = (p) => { job.paso = p; log(p); };
@@ -181,7 +181,9 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
     if (!escenas.length) { job.estado = 'listo'; job.fin = Date.now(); setPaso('todas las escenas ya tenían su crudo de Flow'); return; }
     // retomar sin crudos: si el proyecto de Flow ya tiene clips (una corrida anterior se cortó después de generar), esas
     // primeras escenas ya están generadas y no se vuelven a pagar (los personajes son imágenes: no cuentan como clip)
-    const previos = conCrudo.size ? 0 : ((await pedir(job, 'urlsDeClips', {}, 60000).catch(() => ({ total: 0 }))).total || 0);
+    // retomar=false: el proyecto de Flow es compartido entre pedidos (SalesBot) y sus clips son de otros pedidos; contarlos
+    // como hechos entregó los perros de un pedido anterior como la taza del siguiente (2026-10-12)
+    const previos = conCrudo.size || !job.retomar ? 0 : ((await pedir(job, 'urlsDeClips', {}, 60000).catch(() => ({ total: 0 }))).total || 0);
     const yaHechas = job.soloDescargar ? escenas.length : Math.min(Math.floor(previos / (salidasPastilla || 1)), escenas.length);
     if (yaHechas) log(`retomo: Flow ya tiene ${previos} clip(s); ${yaHechas} escena(s) no se vuelven a generar`);
     // UNA escena con sus reintentos (2026-10-12, Lucas: "la automatización tiene que manejar errores y reintentos").

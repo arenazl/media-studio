@@ -512,7 +512,7 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   const toma = await new Promise((resolve, reject) => {
     let t = null;
     const job = puente.iniciarJob({
-      projectId: 'salesbot-medios', reelId: pedido.personalidad, pack, escenasStoryboard: [escena], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
+      projectId: 'salesbot-medios', reelId: pedido.personalidad, retomar: false, pack, escenasStoryboard: [escena], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
       guardarClip: async (buffer, nombre) => { const f = path.join(dir, nombre); fs.writeFileSync(f, buffer); return { fileRef: f, durSec: 8 }; },
       agregarToma: async (_n, tm) => { t = tm; },
       guardarFlowUrl: async (u) => guardarEstadoSb({ flowProjectUrl: u }),
@@ -524,14 +524,24 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
     }, 3000);
   });
   let archivo = toma.fileRef, tipo = 'video/mp4';
-  if (pedido.kind === 'imagen') {
-    archivo = toma.fileRef.replace(/\.mp4$/i, '.jpg');
-    await runFfmpeg(['-y', '-ss', '4', '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', archivo]);
-    tipo = 'image/jpeg';
-  }
+  const cuadro = toma.fileRef.replace(/\.mp4$/i, '.jpg');
+  await runFfmpeg(['-y', '-ss', '4', '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', cuadro]);
+  if (pedido.kind === 'imagen') { archivo = cuadro; tipo = 'image/jpeg'; }
+  const visto = await mirarMedio(cuadro, descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion);
+  if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
+  const etiquetas = [...new Set([...visto.etiquetas, personaje.nombre.toLowerCase(), String(pedido.situacion || '').replace(/_/g, ' ')].filter(Boolean))];
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'personalidades', producto: pedido.personalidad, nombre: pedido.situacion });
-  const { descripcion, etiquetas } = descripcionDeSituacion(pedido.situacion, personaje.nombre);
-  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion, etiquetas, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
+  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion: `${personaje.nombre}: ${visto.descripcion}`, etiquetas, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
+}
+
+// Antes de entregar a SalesBot se mira el cuadro real (2026-10-12: la prueba de la taza entregó el video de los perros de
+// un pedido anterior). Si lo que se ve no es lo pedido, no se entrega; la descripción y las etiquetas salen de lo que se ve.
+async function mirarMedio(cuadro, loPedido) {
+  const { text } = await runAI({ model: 'sonnet', imageBuffer: fs.readFileSync(cuadro), prompt: `Es un cuadro de un medio que se pidió así: "${loPedido}". Respondé SOLO un JSON: { "coincide": true | false, "descripcion": "<en castellano, una frase: qué se ve>", "etiquetas": ["<3 a 6 palabras sueltas en castellano: sujetos, lugar, momento>"] }. "coincide" es false si lo que se ve es otra cosa que lo pedido.` });
+  const r = extractJson(text);
+  const descripcion = String(r.descripcion || '').trim();
+  if (!descripcion) throw new Error('no pude mirar el cuadro para describirlo');
+  return { coincide: r.coincide === true, descripcion, etiquetas: Array.isArray(r.etiquetas) ? r.etiquetas.map((e) => String(e).trim().toLowerCase()).filter(Boolean).slice(0, 8) : [] };
 }
 
 // Un pedido LIBRE de Lucas desde el panel de SalesBot (2026-10-12): Claude lo convierte en un pedido de Flow y Flow lo genera.
@@ -541,7 +551,7 @@ Tipo pedido: ${kind || 'video'}.
 ${contextoPersona}
 
 Convertilo en UN pedido para el generador de video. Respondé SOLO un JSON:
-{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "descripcion": "<en castellano, una frase: qué se ve en el medio>", "etiquetas": ["<3 a 6 palabras sueltas en castellano: sujetos, lugar, momento>"], "rechazo": "" }
+{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "rechazo": "" }
 
 El prompt:
 - Primero qué se ve y qué pasa (los sujetos, la acción, el lugar, el momento del día), después cómo se filma (plano, cámara, luz). Fotorrealista y cinematográfico salvo que pida otro estilo.
@@ -573,7 +583,7 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   const toma = await new Promise((resolve, reject) => {
     let t = null;
     const job = puente.iniciarJob({
-      projectId: 'salesbot-medios', reelId: `libre-${pedido.id}`, pack, escenasStoryboard: [{ n: 1, personajes: [] }], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
+      projectId: 'salesbot-medios', reelId: `libre-${pedido.id}`, retomar: false, pack, escenasStoryboard: [{ n: 1, personajes: [] }], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
       guardarClip: async (buffer, nombre) => { const f = path.join(dir, nombre); fs.writeFileSync(f, buffer); return { fileRef: f, durSec: 8 }; },
       agregarToma: async (_n, tm) => { t = tm; },
       guardarFlowUrl: async (u) => guardarEstadoSb({ flowProjectUrl: u }),
@@ -584,17 +594,19 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
     }, 3000);
   });
   let archivo = toma.fileRef.replace(/\.mp4$/i, `-${durSec}s.mp4`), tipo = 'video/mp4';
+  const cuadro = toma.fileRef.replace(/\.mp4$/i, '.jpg');
+  await runFfmpeg(['-y', '-ss', String(Math.min(4, durSec / 2)), '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', cuadro]);
   if (kind === 'imagen') {
-    archivo = toma.fileRef.replace(/\.mp4$/i, '.jpg');
-    await runFfmpeg(['-y', '-ss', String(Math.min(4, durSec / 2)), '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', archivo]);
+    archivo = cuadro;
     tipo = 'image/jpeg';
   } else {
     // la duración que pidió (Flow hace 8 s): H.264/AAC para WhatsApp
     await runFfmpeg(['-y', '-i', toma.fileRef, '-t', String(durSec), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', archivo]);
   }
-  // para que el bot identifique el medio y sepa cuándo usarlo (Lucas, 2026-10-12): qué se ve y sus etiquetas
-  const descripcion = String(plan.descripcion || '').trim() || String(pedido.contexto).slice(0, 200);
-  const etiquetas = Array.isArray(plan.etiquetas) ? plan.etiquetas.map((e) => String(e).trim().toLowerCase()).filter(Boolean).slice(0, 8) : [];
+  // para que el bot identifique el medio y sepa cuándo usarlo (Lucas, 2026-10-12): qué se ve, mirando el cuadro real
+  const visto = await mirarMedio(cuadro, String(pedido.contexto || ''));
+  if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
+  const { descripcion, etiquetas } = visto;
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'libre', producto: pedido.producto || pedido.personalidad || '', nombre: etiquetas.slice(0, 3).join(' ') || descripcion });
   return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion, etiquetas, nota: `${descripcion}${etiquetas.length ? ` · ${etiquetas.join(', ')}` : ''} · pedido: ${String(pedido.contexto).slice(0, 160)}` };
 }

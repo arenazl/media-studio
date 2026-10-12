@@ -18,10 +18,11 @@ interface Grilla { tiles: string[] }   // del más viejo al más nuevo: una URL 
 
 // Corre una rutina de Flow entera contra una extensión simulada. `generar(n, intento)` decide qué pasa con cada pedido de
 // la escena n: 'error-antes' (no llegó a enviar), 'error-flow' (Flow deja un tile con error) o 'ok'.
-async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number; rechazaConReferenciasEn?: number; famoso?: string } = {}) {
+async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number; rechazaConReferenciasEn?: number; famoso?: string; clipDeOtroPedido?: boolean; retomar?: boolean } = {}) {
   const clip = path.join(os.tmpdir(), 'clip-prueba-media-studio.mp4');
   fs.writeFileSync(clip, 'clip');
-  const grilla: Grilla = { tiles: [''] };   // la imagen del personaje
+  // la imagen del personaje; con clipDeOtroPedido, además un video que dejó un pedido anterior en el mismo proyecto de Flow
+  const grilla: Grilla = { tiles: opciones.clipDeOtroPedido ? ['', 'https://clip/perros'] : [''] };
   const intentos: Record<number, number> = {};
   let ultima = 0, ultimoResultado: string = 'ok', ultimoTexto = '', rechazoBorrado = false;
   const creados = new Set<string>();
@@ -31,7 +32,7 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
   const importadas: number[] = [];
   const pack = { personajes: [{ id: 'p1', nombre: 'Ana', promptImagen: 'x' }], escenas: escenas.map((n) => ({ escenaN: n, rol: 'desarrollo', prompt: `escena ${n} con Ana` })) };
   const job = puente.iniciarJob({
-    projectId: 'prueba', reelId: 'r', pack, escenasStoryboard: escenas.map((n) => ({ n, personajes: ['p1'], dialogo: `la frase de la escena ${n}` })), flowProjectUrl: 'https://flow.google.com/project/prueba', escenasConCrudo: [],
+    projectId: 'prueba', reelId: 'r', pack, escenasStoryboard: escenas.map((n) => ({ n, personajes: ['p1'], dialogo: `la frase de la escena ${n}` })), flowProjectUrl: 'https://flow.google.com/project/prueba', escenasConCrudo: [], retomar: opciones.retomar,
     guardarClip: async (_b: Buffer, nombre: string) => ({ fileRef: nombre, durSec: 8 }),
     agregarToma: async (n: number) => { importadas.push(n); }, guardarFlowUrl: async () => {},
     // la red: el clip dice su frase si es el de su escena; uno ajeno (un ejemplo de Flow) no
@@ -133,6 +134,13 @@ describe('rutina de Flow: los incidentes del 12/10', () => {
     expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'importada']);
     expect(pedidosPorEscena[1]).toEqual([['Ana'], ['Ana2']]);
     expect(pedidosPorEscena[2]).toEqual([['Ana2']]);
+  }, 30000);
+
+  it('en un proyecto de Flow compartido entre pedidos (SalesBot), el clip de un pedido anterior no se entrega como el nuevo (la taza salió con los perros, 12/10)', async () => {
+    const { job, bajadas, intentos } = await correrRutina([1], () => 'ok', { clipDeOtroPedido: true, retomar: false });
+    expect(intentos[1]).toBe(1);
+    expect(bajadas).toEqual([[1, 'https://clip/esc1']]);
+    expect(job.escenas[0].estado).toBe('importada');
   }, 30000);
 });
 
