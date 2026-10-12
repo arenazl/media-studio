@@ -30,7 +30,7 @@ describe('presupuesto de palabras (Regla 5)', () => {
     expect(prompt).toContain('PRESUPUESTO HABLADO (contá palabras):\n- hook: 3s, máximo 8 palabras');
     expect(prompt).toContain('Total: 20s, máximo 52 palabras');
     expect(prompt).not.toContain('SÉ MUY CONCISO');
-    expect(promptVersion).toBe('script/3.8');
+    expect(promptVersion).toBe('script/3.9');
   });
   it('el storyboard filmado acota el diálogo por segundo y el total', () => {
     const { prompt } = buildFunctionPrompt({ functionId: 'storyboard', context: { project: { name: 'X' }, piece: { tipo: 'filmado', durationSec: 20, guion: { blocks: [] } } }, options: {} });
@@ -48,7 +48,7 @@ describe('versionado (Regla 2)', () => {
     for (const id of ['strategy', 'concept', 'script', 'cast', 'storyboard', 'flowpack', 'publish', 'qa', 'videoprompt', 'briefToKb']) {
       expect(PROMPT_VERSIONS[id], id).toMatch(/^[a-zA-Z]+\/\d/);
     }
-    expect(buildFunctionPrompt({ functionId: 'concept', context: { project: { name: 'X', brief: 'b' }, piece: {} }, options: {} }).promptVersion).toBe('concept/3.2');
+    expect(buildFunctionPrompt({ functionId: 'concept', context: { project: { name: 'X', brief: 'b' }, piece: {} }, options: {} }).promptVersion).toBe('concept/3.3');
   });
 });
 

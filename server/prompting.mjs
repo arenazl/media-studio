@@ -11,10 +11,12 @@ import { validateConceptResponseV3 } from './media-studio-concept-v3.mjs';
 export const PROMPT_VERSIONS = {
   strategy: 'strategy/2.1',       // 2.1: curación 02 (2026-10-11): jerarquía de la pieza, "hasta N" no es "N"
   // strategy/2.0:       // 2.0: curado 2026-10-07 (la campaña cubre la propuesta; cada pieza UNA cosa)
-  concept: 'concept/3.2',         // 3.2: (2026-10-12) dice de dónde sale la idea; el kit entra como recorrido de pantallas, sin el caso de la demo
+  concept: 'concept/3.3',         // 3.3: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo: no se replican
+  // concept/3.2:         // 3.2: (2026-10-12) dice de dónde sale la idea; el kit entra como recorrido de pantallas, sin el caso de la demo
   // concept/3.1:         // 3.1: curación 02 (2026-10-11): fidelidad al ángulo; ficha curada del enfoque caso
   // concept/3.0:         // 3.0: curación externa 2026-10-10 (ENFOQUE + TRATAMIENTO elegidos por el dueño; humor sólo a pedido; spots de marca, no sketches)
-  script: 'script/3.8',           // 3.8: (2026-10-12) dice de dónde sale la historia; el kit entra como recorrido de pantallas
+  script: 'script/3.9',           // 3.9: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo
+  // script/3.8:           // 3.8: (2026-10-12) dice de dónde sale la historia; el kit entra como recorrido de pantallas
   // script/3.7:           // 3.7: (2026-10-12) se van las reglas narrativas del 11/10; entra el estudio curado (calidad dramática, el concepto manda el orden, folleto no, beneficio sí)
   // script/3.6:           // 3.6: (2026-10-11) ninguna frase explica la publicidad
   // script/3.5:           // 3.5: (2026-10-11, vuelta 6) frases en presente, dichas en el momento; la placa con la marca escrita
@@ -25,12 +27,14 @@ export const PROMPT_VERSIONS = {
   // script/3.0:           // 3.0: (2026-10-11) filmado sin locutor: cada bloque dice "quien" lo dice en cámara; hook concreto; una toma por bloque
   // script/2.1:           // 2.1: curación 02 (2026-10-11): escribir para ser escuchado; durSec de referencia
   // script/2.0:           // 2.0: curado 2026-10-07 (el concepto manda; presupuesto en lista; NO ASUMIR)
-  cast: 'cast/2.4',               // 2.4: (2026-10-12) dice de dónde salen las personas y el lugar
+  cast: 'cast/2.5',               // 2.5: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo
+  // cast/2.4:               // 2.4: (2026-10-12) dice de dónde salen las personas y el lugar
   // cast/2.3:               // 2.3: (2026-10-12) lugar compartido si el concepto lo pide; sin biografías ni decorados inventados
   // cast/2.2:               // 2.2: (2026-10-11, vuelta 4) vestuarioEn, un detalle propio, el país en los objetos
   // cast/2.1:               // 2.1: (2026-10-11) cada personaje con SU lugar (lugarEn) y el nombre con que lo nombra el guion
   // cast/2.0:               // 2.0: curado 2026-10-07 (sin ejemplos copiables; largos en números; 2º personaje sólo con función)
-  storyboard: 'storyboard/3.9',   // 3.9: (2026-10-12) dice de dónde sale cada cosa; el kit entra como recorrido de pantallas
+  storyboard: 'storyboard/3.10',  // 3.10: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo
+  // storyboard/3.9:   // 3.9: (2026-10-12) dice de dónde sale cada cosa; el kit entra como recorrido de pantallas
   // storyboard/3.8:   // 3.8: (2026-10-12) se van las reglas narrativas del 11/10; entra el estudio curado (dirección narrativa y actoral); la duración es la del guion
   // storyboard/3.7:   // 3.7: (2026-10-11) el profesional haciendo su oficio, no mirando un teléfono
   // storyboard/3.6:   // 3.6: (2026-10-11, vuelta 7) física de la escena, emoción simple, la frase después de lo que la provoca

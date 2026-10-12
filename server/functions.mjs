@@ -184,17 +184,21 @@ function deDondeSale(etapa) {
     concept: `DE DÓNDE SALE CADA COSA
 - La idea sale del mensaje y la dirección de esta pieza (los fijó la estrategia), del enfoque y el tratamiento elegidos, y de lo que la FICHA DEL NEGOCIO dice que resuelve, para quién y con qué dolores.
 - La situación, las personas y el lugar de la historia los creás vos a partir de eso: tienen que ser de la vida del público de la ficha.
-- El recorrido de pantallas de la app es la referencia de lo que el producto puede mostrar y del flujo que sigue la persona.`,
+- El recorrido de pantallas de la app es la referencia de lo que el producto puede mostrar y del flujo que sigue la persona.
+- Los barrios y las características de los productos que figuran en la ficha y en las referencias del kit de la app son a modo de ejemplo y no deben replicarse en la historia, los personajes ni las escenas.`,
     script: `DE DÓNDE SALE CADA COSA
 - La historia (la situación, quiénes son, qué les pasa, dónde y en qué orden se cuenta) sale del CONCEPTO ELEGIDO, con el enfoque y el tratamiento.
 - Lo que el negocio hace y promete sale de la FICHA DEL NEGOCIO (el BRIEF de abajo).
-- El recorrido de pantallas de la app dice qué pantalla puede probar cada momento del flujo.`,
+- El recorrido de pantallas de la app dice qué pantalla puede probar cada momento del flujo.
+- Los barrios y las características de los productos que figuran en la ficha y en las referencias del kit de la app son a modo de ejemplo y no deben replicarse en la historia, los personajes ni las escenas.`,
     cast: `DE DÓNDE SALE CADA COSA
 - Las personas, su edad, su ropa y el lugar salen del CONCEPTO y del GUION: son las de esa historia.
-- El rubro y el público de la ficha sirven para que sean creíbles.`,
+- El rubro y el público de la ficha sirven para que sean creíbles.
+- Los barrios y las características de los productos que figuran en la ficha y en las referencias del kit de la app son a modo de ejemplo y no deben replicarse en la historia, los personajes ni las escenas.`,
     storyboard: `DE DÓNDE SALE CADA COSA
 - Las escenas, lo que pasa en cada una y quién habla salen del GUION; las personas y sus lugares, del CAST.
-- Las pantallas salen del recorrido de pantallas de la app: se nombran tal cual y entran como insertos.`,
+- Las pantallas salen del recorrido de pantallas de la app: se nombran tal cual y entran como insertos.
+- Los barrios y las características de los productos que figuran en la ficha y en las referencias del kit de la app son a modo de ejemplo y no deben replicarse en la historia, los personajes ni las escenas.`,
   }[etapa];
   return t ? `${t}\n` : '';
 }

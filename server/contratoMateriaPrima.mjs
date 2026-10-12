@@ -31,6 +31,7 @@ export const REGLAS_DE_OFICIO = {
     'La historia (la situación, quiénes son, qué les pasa, dónde y en qué orden se cuenta) sale de la pieza: su mensaje, su ángulo, su enfoque y su tratamiento.',
     'Lo que el negocio hace y promete sale de "marca.ficha".',
     'Las pantallas de la app son la referencia del recorrido del producto: qué pantallas existen y qué hace la persona en cada una. Entran como insertos del montaje.',
+    'Los barrios y las características de los productos que figuran en la ficha y en las referencias del kit de la app son a modo de ejemplo y no deben replicarse en la historia, los personajes ni las escenas.',
   ],
   guion: [
     'El orden en que se cuenta lo decide la idea de la pieza: si empieza por la consecuencia o vuelve atrás, se respeta, siempre que respete los hechos del producto y se entienda la historia.',
