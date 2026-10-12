@@ -142,32 +142,35 @@ describe('copilotoDinamico — pack (Pack Flow)', () => {
   });
 });
 
-describe('copilotoDinamico — rodaje', () => {
-  const conStoryboardYTomas = (nEscenas: number, escenasImportadas: number[]): Comercial => {
+describe('copilotoDinamico — mockups (id interno rodaje)', () => {
+  // storyboard con `pantallas` escenas de pantalla; `enEscenas` = escenas de pantalla que ya tienen su mockup
+  const pieza = (pantallas: number, enEscenas: number[], conMockups = true): Comercial => {
     const base = nuevoComercial('x', 'filmado');
     return {
       ...base,
-      storyboard: Array.from({ length: nEscenas }, (_, i) => ({
-        n: i + 1, rol: 'hook' as const, durSec: 8, plano: '', angulo: '', personajes: [], accion: '', dialogo: '', continuidad: '',
+      storyboard: Array.from({ length: pantallas + 1 }, (_, i) => ({
+        n: i + 1, rol: 'hook' as const, durSec: 6, plano: '', angulo: '', personajes: [], accion: '', dialogo: '', continuidad: '',
+        ...(i < pantallas ? { pantalla: `Pantalla ${i + 1}` } : {}),
       })),
-      rodaje: escenasImportadas.map((n) => ({ id: `t${n}`, escenaN: n, fileRef: 'r', durSec: 8 })),
+      mockups: conMockups ? [{ id: 'm1', tarjeta: 'a', nombre: 'Pantalla 1', fileRef: 'mk/a.mp4', durSec: 6 }] : [],
+      rodaje: enEscenas.map((n) => ({ id: `t${n}`, escenaN: n, fileRef: 'mk/a.mp4', durSec: 6, origen: 'mockup' as const })),
     };
   };
 
-  it('cuenta escenas con clip sobre el total', () => {
-    const d = copilotoDinamico('rodaje', conStoryboardYTomas(4, [1, 2]));
-    expect(d.progreso).toEqual({ label: 'escenas con clip', done: 2, total: 4 });
+  it('cuenta escenas de pantalla con mockup', () => {
+    const d = copilotoDinamico('rodaje', pieza(3, [1]));
+    expect(d.progreso).toEqual({ label: 'escenas de pantalla con mockup', done: 1, total: 3 });
     expect(d.avance).toBe(1);
   });
 
-  it('sin ningún clip: avance 0', () => {
-    expect(copilotoDinamico('rodaje', conStoryboardYTomas(4, [])).avance).toBe(0);
+  it('sin mockups hechos: avance 0', () => {
+    expect(copilotoDinamico('rodaje', pieza(3, [], false)).avance).toBe(0);
   });
 
-  it('todas las escenas con clip: avance 2', () => {
-    const d = copilotoDinamico('rodaje', conStoryboardYTomas(3, [1, 2, 3]));
+  it('todas las escenas de pantalla con su mockup: avance 2', () => {
+    const d = copilotoDinamico('rodaje', pieza(2, [1, 2]));
     expect(d.avance).toBe(2);
-    expect(d.progreso).toEqual({ label: 'escenas con clip', done: 3, total: 3 });
+    expect(d.progreso).toEqual({ label: 'escenas de pantalla con mockup', done: 2, total: 2 });
   });
 });
 

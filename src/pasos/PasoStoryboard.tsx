@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link2, Clapperboard } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
+import CuracionGuion, { conGuionCurado } from './CuracionGuion';
 import { KitThumb, KitLightbox } from '../components/KitCapturas';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
@@ -13,6 +14,7 @@ const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarroll
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 
 export default function PasoStoryboard({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
+  const [avisoCur, setAvisoCur] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const storyboard = comercial?.storyboard;
@@ -76,6 +78,12 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
           Escenas que referencian personajes fuera del cast: {refCheck.faltantes.map((f) => `#${f.escenaN}→${f.personajeId}`).join(', ')}
         </div>
       )}
+      {/* curación con ChatGPT (2026-10-10): desde acá el paquete lleva el camino entero, personajes y storyboard incluidos */}
+      {escenas.length > 0 && comercial && (
+        <CuracionGuion project={project} comercial={comercial} durationSec={durationSec} formatoNombre={getFormato(comercial.formatoId)?.nombre || ''}
+          onAplicar={(g, info) => { setComercial((c) => conGuionCurado(c, g, info.archivo)); setAvisoCur(`Guion curado con ChatGPT aplicado. Personajes y storyboard se habían armado con el guion anterior: andá a Personajes y regeneralos, y después este paso.${info.conPrompts ? ' La curación de los prompts quedó guardada, pendiente de tu dale.' : ''}`); }} />
+      )}
+      {avisoCur && <div className="paso-empty" style={{ marginBottom: 8 }}>{avisoCur}</div>}
       {escenas.length > 0 ? (
         <div className="sb-grid">
           {escenas.map((e) => (

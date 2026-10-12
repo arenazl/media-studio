@@ -1,0 +1,61 @@
+```tsx
+// RepareHoy · 04 Pagar la seña. Datos de los estados (04-a a 04-d): Nicolás Romero le paga la seña a
+// Carpintería Marcelo por la biblioteca a medida. Total $620.000 · Seña $124.000 · Saldo $496.000.
+// Lo que se mueve: el dedo aprieta "Pagar $124.000" → llega "¡Pago recibido!" → la seña queda protegida
+// y el botón del trabajo pasa a "Marcar evento como finalizado" → terminado, "Dejar reseña al proveedor".
+import React from 'react';
+import { Aviso, Boton, Fila, Pastilla, Tarjeta, Toque, cuenta, ease, entra, momento, pesos, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) el detalle del pago: total, seña, saldo
+  const t1 = momento(dur, 0.1), t2 = momento(dur, 0.18), t3 = momento(dur, 0.26);
+  // 2) el botón de pago y el dedo que lo aprieta
+  const bot = momento(dur, 0.34);
+  const toca = momento(dur, 0.46);
+  const apriete = ease(f, toca, toca + 6) * (1 - ease(f, toca + 8, toca + 16));
+  const pagado = ease(f, toca + 12, toca + 22);
+  // 3) vuelve de MercadoPago: el aviso reemplaza al botón de pago
+  const avisoIn = momento(dur, 0.54);
+  // 4) la seña queda protegida y el botón del trabajo cambia dos veces
+  const final = momento(dur, 0.76);
+  const finalizado = ease(f, final, final + 12);
+  const senia = cuenta(f, t2, momento(dur, 0.44), 0, 124000);
+
+  return (
+    <Tarjeta f={f} m={m} icono="tarjeta" titulo="Confirmá tu pago" bajada="Proveedor: Carpintería Marcelo">
+      <Fila m={m} etiqueta="Total del trabajo" valor={pesos(620000)} style={entra(f, t1)} />
+      <Fila
+        m={m} etiqueta="Seña (a pagar ahora)" valor={pesos(senia)} destacada color={m.acento}
+        pastilla={pagado > 0.5 ? <Pastilla m={m} texto="Pagada" color={m.exito} style={{ transform: `scale(${0.8 + 0.2 * pagado})` }} /> : undefined}
+        style={entra(f, t2)}
+      />
+      {pagado < 0.5 ? <Fila m={m} etiqueta="Saldo al terminar el trabajo" valor={pesos(496000)} style={entra(f, t3)} /> : null}
+
+      {f < avisoIn ? (
+        <Boton m={m} texto={`Pagar ${pesos(124000)}`} icono="escudo" apretado={apriete} style={entra(f, bot)} />
+      ) : (
+        <Aviso m={m} titulo="¡Pago recibido!" texto="Estamos confirmando tu reserva." color={m.exito} style={entra(f, avisoIn)} />
+      )}
+
+      {f >= avisoIn ? (
+        finalizado < 0.5 ? (
+          <Aviso
+            m={m} icono="escudo" color={m.acento}
+            titulo="Seña protegida"
+            texto="Se le libera al proveedor recién cuando el trabajo está terminado y aprobado"
+            style={{ ...entra(f, avisoIn + 14), opacity: 0.85 + 0.15 * pulso(f, 30) }}
+          />
+        ) : (
+          <Boton m={m} texto="Marcar evento como finalizado" color={m.exito} icono="check" style={entra(f, final)} />
+        )
+      ) : null}
+
+      {f >= bot && f < avisoIn ? <Toque x={540} y={880} apreta={apriete} visible={ease(f, toca - 10, toca)} /> : null}
+    </Tarjeta>
+  );
+};
+```
+
+```json
+{"chip": "Seña", "titulo": "Pagás la seña y queda protegida", "resaltar": "queda protegida", "sub": "Se le libera al proveedor recién cuando el trabajo está terminado y aprobado.", "durSec": 6}
+```

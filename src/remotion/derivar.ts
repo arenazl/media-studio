@@ -1,27 +1,39 @@
 // Del plan SEMÁNTICO (segundos, por escena) al plan de RENDER (cuadros, absoluto). Es la ÚNICA derivación:
 // la usan la vista previa (Player en el navegador) y el render (Remotion en el servidor), así no hay dos
 // relojes que se desincronicen. Pura, sin DOM.
-import { duckRanges, sceneStarts, totalDuration, type MontajePlan, type PalabraTiempo } from '../lib/montajePlan';
+import { duckRanges, gananciaDePista, sceneStarts, totalDuration, transitionDur, type MontajePlan, type PalabraTiempo } from '../lib/montajePlan';
 import { frasesDe, partirFrase } from '../lib/montajista';
 
 export interface PalabraMs { text: string; startMs: number; endMs: number }
 export interface PaginaSubtitulo { startMs: number; endMs: number; words: PalabraMs[] }
-export interface SegmentoRender { nombre: string; src: string; from: number; dur: number; startFrom: number; scaleFrom: number; scaleTo: number; audio: 'keep' | 'mute'; gain: number }
-export interface InsertoRender { from: number; dur: number; src: string; nombre?: string; tarjeta?: string }
+// cómo ENTRA el segmento sobre el anterior (la transición que la escena previa marcó hacia ésta). Los cuadros son el
+// solape que ya calcula sceneStarts: el segmento nuevo arranca antes de que termine el viejo y se funde encima.
+export interface EntradaRender { tipo: 'fundido' | 'deslizar' | 'zoom'; frames: number }
+export interface SegmentoRender { nombre: string; src: string; from: number; dur: number; startFrom: number; scaleFrom: number; scaleTo: number; audio: 'keep' | 'mute'; gain: number; entrada?: EntradaRender; fadeIn?: number; fadeOut?: number }   // fades en cuadros (menú del clip)
+export interface InsertoRender { from: number; dur: number; src: string; nombre?: string; tarjeta?: string; video?: boolean; fadeIn: number; fadeOut: number }
 export interface PlanRender {
   fps: number; width: number; height: number; totalFrames: number;
   segments: SegmentoRender[];
   inserts: InsertoRender[];
   captions: PaginaSubtitulo[];
   endCard?: { from: number; dur: number; linea1: string; linea2?: string; logoSrc?: string };
-  music?: { src: string; gain: number; duck: boolean; duckFrames: [number, number][] };
-  voice?: { src: string; from: number };
+  music?: { src: string; gain: number; duck: boolean; duckFrames: [number, number][]; fadeIn: number; fadeOut: number };
+  voice?: { src: string; from: number; volume: number; fadeIn: number; fadeOut: number };
   logo?: { src: string };
   estilo: { primario: string; acento: string; fondo: string; texto: string };
 }
 
 export const ESTILO_DEFAULT = { primario: '#7C3AED', acento: '#F59E0B', fondo: '#FAF7FF', texto: '#1E1B2E' };
 const PLACA_SOLAPE = 6;        // cuadros en que la placa funde sobre el último clip
+const FADE_INSERTO = 8;        // cuadros del fundido de un inserto si el clip no pidió otro
+const FADE_MUSICA = 20;        // cuadros del fundido de la música si el clip no pidió otro
+
+// multiplicador 0..1 de un fade de entrada/salida en el cuadro `f` de algo que dura `dur` cuadros
+export function rampaFades(f: number, dur: number, fadeIn = 0, fadeOut = 0): number {
+  const a = fadeIn > 0 ? Math.max(0, Math.min(1, f / fadeIn)) : 1;
+  const b = fadeOut > 0 ? Math.max(0, Math.min(1, (dur - f) / fadeOut)) : 1;
+  return Math.min(a, b);
+}
 
 // Resuelve un fileRef o ruta de API a una URL que el navegador (vista previa) o Chrome (render) puedan pedir.
 export function resolverSrc(base: string, src: string): string {
@@ -52,8 +64,8 @@ export function volumenMusica(f: number, r: PlanRender): number {
   if (!r.music) return 0;
   const enDuck = r.music.duck && r.music.duckFrames.some(([a, b]) => f >= a && f < b);
   const bed = r.music.gain * (enDuck ? 0.35 : 1);
-  const fadeIn = rampa(f, 0, 20);
-  const fadeOut = 1 - rampa(f, r.totalFrames - 20, r.totalFrames - 1);
+  const fadeIn = rampa(f, 0, Math.max(1, r.music.fadeIn));
+  const fadeOut = 1 - rampa(f, r.totalFrames - Math.max(1, r.music.fadeOut), r.totalFrames - 1);
   return Math.max(0, Math.min(1, bed * fadeIn * fadeOut));
 }
 
@@ -65,16 +77,24 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
   const segments: SegmentoRender[] = [];
   const inserts: InsertoRender[] = [];
   const captions: PaginaSubtitulo[] = [];
+  const gVideo = gananciaDePista(plan, 'video');
   plan.scenes.forEach((s, i) => {
     const dur = Math.max(0, s.out - s.in);
     if (!s.src || dur <= 0) return;
     const from = F(starts[i]);
     const finSegMs = Math.round((starts[i] + dur) * 1000);
+    const previa = i > 0 ? plan.scenes[i - 1].transition : undefined;
+    const entrada: EntradaRender | undefined = previa && previa !== 'cut' && plan.scenes[i - 1].src
+      ? { tipo: previa === 'wipe' ? 'deslizar' : previa === 'zoom' ? 'zoom' : 'fundido', frames: Math.max(1, F(transitionDur(previa))) }
+      : undefined;
     segments.push({
       nombre: s.rol ? `${i + 1} ${s.rol}` : `escena ${s.escenaN}`,
       src: resolverSrc(base, s.src), from, dur: F(dur), startFrom: F(s.in),
       scaleFrom: s.punchFrom ?? 1, scaleTo: s.punchTo ?? s.punchFrom ?? 1,
-      audio: s.audio, gain: s.audioGain ?? 1,
+      audio: s.audio, gain: (s.audioGain ?? 1) * gVideo,
+      ...(entrada ? { entrada } : {}),
+      ...(s.fadeIn ? { fadeIn: F(s.fadeIn) } : {}),
+      ...(s.fadeOut ? { fadeOut: F(s.fadeOut) } : {}),
     });
     // subtítulos POR ESCENA: una página nunca cruza un corte, y su fin queda acotado al fin del clip
     const words: PalabraMs[] = [];
@@ -85,7 +105,7 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
     }
     for (const p of paginarSubtitulos(words)) captions.push({ ...p, endMs: Math.min(p.endMs, finSegMs) });
     for (const ins of s.inserts || []) {
-      inserts.push({ from: from + F(ins.atSec - s.in), dur: F(ins.durSec), src: resolverSrc(base, ins.src), nombre: ins.nombre, tarjeta: ins.tarjeta });
+      inserts.push({ from: from + F(ins.atSec - s.in), dur: F(ins.durSec), src: resolverSrc(base, ins.src), nombre: ins.nombre, tarjeta: ins.tarjeta, video: ins.video || /\.(mp4|webm|mov)$/i.test(ins.src), fadeIn: ins.fadeIn != null ? F(ins.fadeIn) : FADE_INSERTO, fadeOut: ins.fadeOut != null ? F(ins.fadeOut) : FADE_INSERTO });
     }
   });
   const finClips = F(total);
@@ -96,8 +116,8 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
   return {
     fps, width: plan.width, height: plan.height, totalFrames,
     segments, inserts, captions, endCard,
-    music: plan.music ? { src: resolverSrc(base, plan.music.src), gain: plan.music.gain, duck: plan.music.duck, duckFrames: duckRanges(plan).map(([a, b]) => [F(a), F(b)] as [number, number]) } : undefined,
-    voice: plan.voice ? { src: resolverSrc(base, plan.voice.src), from: F(plan.voice.at) } : undefined,
+    music: plan.music ? { src: resolverSrc(base, plan.music.src), gain: plan.music.gain * gananciaDePista(plan, 'musica'), duck: plan.music.duck, duckFrames: duckRanges(plan).map(([a, b]) => [F(a), F(b)] as [number, number]), fadeIn: plan.music.fadeIn != null ? F(plan.music.fadeIn) : FADE_MUSICA, fadeOut: plan.music.fadeOut != null ? F(plan.music.fadeOut) : FADE_MUSICA } : undefined,
+    voice: plan.voice ? { src: resolverSrc(base, plan.voice.src), from: F(plan.voice.at), volume: gananciaDePista(plan, 'voz'), fadeIn: F(plan.voice.fadeIn || 0), fadeOut: F(plan.voice.fadeOut || 0) } : undefined,
     logo: plan.logo?.src ? { src: resolverSrc(base, plan.logo.src) } : undefined,
     estilo: { ...ESTILO_DEFAULT, ...(plan.estilo || {}) },
   };

@@ -87,15 +87,42 @@ db.exec(`
 `);
 
 // ── GENERATION RUNS (Fase 9) ────────────────────────────────────────────────
+// 2026-10-10 (traza de orquestación, pedido de Lucas): cada corrida guarda también las DECISIONES con las que se pidió
+// (perfil, enfoque, tratamiento, humor, ángulo, tipo, duración, tono, caché, regeneración). Con eso se arma el JSON de
+// traza de una pieza y se comparan dos orquestaciones del mismo brief sin mirar los videos. Columna nueva, se agrega
+// sola en bases viejas.
+try {
+  const cols = db.prepare('PRAGMA table_info(generation_runs)').all().map((c) => c.name);
+  if (!cols.includes('decisiones_json')) db.exec(`ALTER TABLE generation_runs ADD COLUMN decisiones_json TEXT NOT NULL DEFAULT '{}'`);
+  // el prompt exacto de cada corrida (2026-10-10, radiografía: de qué se alimentó cada paso)
+  if (!cols.includes('prompt_text')) db.exec(`ALTER TABLE generation_runs ADD COLUMN prompt_text TEXT NOT NULL DEFAULT ''`);
+} catch (e) { console.warn('[media-studio] generation_runs.decisiones_json:', e instanceof Error ? e.message : e); }
+
 export function saveGenerationRun(r) {
   const id = randomUUID();
   db.prepare(`INSERT INTO generation_runs (id, project_id, piece_id, function_id, prompt_version, provider, model, model_real, generation_key,
-    started_at, finished_at, duration_ms, api_ms, input_chars, output_chars, input_tokens, output_tokens, thinking_tokens, cost_usd, retry_count, status, error_type, validation_json, result_json)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    started_at, finished_at, duration_ms, api_ms, input_chars, output_chars, input_tokens, output_tokens, thinking_tokens, cost_usd, retry_count, status, error_type, validation_json, result_json, decisiones_json, prompt_text)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
     id, r.project_id || '', r.piece_id || '', r.function_id, r.prompt_version || '', r.provider || 'claude', r.model || '', r.model_real || '', r.generation_key || '',
     r.started_at, r.finished_at, r.duration_ms || 0, r.api_ms || 0, r.input_chars || 0, r.output_chars || 0, r.input_tokens || 0, r.output_tokens || 0, r.thinking_tokens || 0,
-    r.cost_usd || 0, r.retry_count || 0, r.status || 'ok', r.error_type || '', JSON.stringify(r.validation || []), r.result_json || '');
+    r.cost_usd || 0, r.retry_count || 0, r.status || 'ok', r.error_type || '', JSON.stringify(r.validation || []), r.result_json || '', JSON.stringify(r.decisiones || {}), r.prompt_text || '');
   return id;
+}
+// Las corridas de UNA pieza, de la más vieja a la más nueva (la traza se lee en orden)
+export function listRunsDePieza(projectId, pieceId) {
+  const cols = 'id, function_id, prompt_version, provider, model, model_real, generation_key, started_at, finished_at, duration_ms, api_ms, input_tokens, output_tokens, thinking_tokens, cost_usd, retry_count, status, error_type, validation_json, decisiones_json';
+  return pieceId
+    ? db.prepare(`SELECT ${cols} FROM generation_runs WHERE project_id = ? AND piece_id = ? ORDER BY finished_at ASC`).all(projectId, pieceId)
+    : db.prepare(`SELECT ${cols} FROM generation_runs WHERE project_id = ? ORDER BY finished_at ASC`).all(projectId);
+}
+// Las corridas de una pieza con su prompt y su resultado (la radiografía las cruza con lo que quedó en la pieza)
+export function runsCompletosDePieza(projectId, pieceId) {
+  return db.prepare(`SELECT function_id, prompt_version, model, model_real, started_at, finished_at, duration_ms, cost_usd, status, validation_json, result_json, decisiones_json, prompt_text FROM generation_runs WHERE project_id = ? AND (piece_id = ? OR (function_id = 'strategy' AND piece_id = '')) AND status IN ('ok', 'cache', 'compilado') ORDER BY finished_at ASC`).all(projectId, pieceId);
+}
+// La estrategia corrida desde el asistente antes de que mandara el proyecto: la más cercana a la creación del proyecto.
+export function estrategiaHuerfana(creadoEn) {
+  const row = db.prepare(`SELECT function_id, prompt_version, model, model_real, started_at, finished_at, duration_ms, cost_usd, status, validation_json, result_json, decisiones_json, prompt_text FROM generation_runs WHERE function_id = 'strategy' AND project_id = '' AND status IN ('ok', 'cache') AND finished_at BETWEEN ? AND ? ORDER BY ABS(finished_at - ?) ASC LIMIT 1`).get(creadoEn - 15 * 60000, creadoEn + 15 * 60000, creadoEn);
+  return row && row.function_id ? { ...row, huerfana: true } : null;
 }
 export function listGenerationRuns({ limit = 50, functionId } = {}) {
   const cols = 'id, project_id, piece_id, function_id, prompt_version, provider, model, model_real, generation_key, started_at, finished_at, duration_ms, api_ms, input_chars, output_chars, input_tokens, output_tokens, thinking_tokens, cost_usd, retry_count, status, error_type, validation_json';

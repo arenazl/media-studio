@@ -16,11 +16,18 @@ export const INSERTO_MIN = 1.4;          // por debajo de esto el inserto no se 
 export const INSERTO_SEPARACION = 1.2;   // segundos de cara entre dos insertos de la misma escena
 export const MAX_INSERTOS = 3;           // por pieza
 export const PLACA_DUR = 3.2;
+// Híbrido (Lucas, 2026-10-11: "un montaje coherente que incluya todo lo disponible"): los mockups que la voz no nombra
+// entran igual, más cortos y con menos cara entre uno y otro, sin tope por pieza.
+export const INSERTO_DUR_HIBRIDO = 2.2;
+export const INSERTO_SEPARACION_HIBRIDO = 0.8;
 
 export interface InsumosMontajista {
   palabrasPorToma: Record<string, PalabraTiempo[] | undefined>;   // fileRef → palabras del clip crudo
   pantallas?: PantallaKit[];
+  mockups?: MockupInserto[];                                      // los mockups animados de la pieza (paso Mockups): reemplazan a la captura
+  hibrido?: boolean;                                              // formato híbrido: se usan todos los mockups (escenas sin clip + insertos)
   cta?: { principal?: string; url?: string };
+  ctaGuion?: string;                                               // lo que dice el bloque cta del guion (respaldo de la placa)
   logoUrl?: string;
   estilo?: MontajePlan['estilo'];
   marca?: { exacto?: string; fonetica?: string };                 // para escribir la marca como corresponde en los subtítulos
@@ -173,25 +180,50 @@ function escalas(i: number, s: MontajeScene, scenes: MontajeScene[]): Pick<Monta
 // Insertos de pantalla real: en escenas con voz, anclados al principio de la frase que nombra lo que la
 // pantalla muestra. Nunca en el gancho (la cara vende), en el remate (el chiste cae en la cara) ni en el
 // cierre. Prioridad: la captura que el storyboard ya asignó a la escena.
-export function ubicarInsertos(scenes: MontajeScene[], palabras: Record<string, PalabraTiempo[] | undefined>, pantallas: PantallaKit[]): InsertoPantalla[][] {
+// el mockup animado de una pantalla, si la pieza lo tiene (mismo nombre que la pantalla del kit)
+export interface MockupInserto { nombre: string; fileRef: string; durSec: number }
+const normNombre = (t: string) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+function mockupDe(p: PantallaKit, mockups: MockupInserto[]): MockupInserto | undefined {
+  const n = normNombre(p.nombre);
+  return mockups.find((m) => normNombre(m.nombre) === n) || mockups.find((m) => n.startsWith(normNombre(m.nombre)) || normNombre(m.nombre).startsWith(n));
+}
+
+// opciones: `excluir` = fileRefs de mockups que ya son la toma de alguna escena (no se repiten como inserto);
+// `hibrido` = sin tope por pieza, más cortos, y los mockups que la voz no nombra rellenan los huecos de cara.
+export interface OpcionesInsertos { excluir?: Set<string>; hibrido?: boolean }
+
+export function ubicarInsertos(scenes: MontajeScene[], palabras: Record<string, PalabraTiempo[] | undefined>, pantallas: PantallaKit[], mockups: MockupInserto[] = [], opts: OpcionesInsertos = {}): InsertoPantalla[][] {
+  const excluir = opts.excluir || new Set<string>();
+  const hibrido = !!opts.hibrido;
+  const tope = hibrido ? Infinity : MAX_INSERTOS;
+  const separacion = hibrido ? INSERTO_SEPARACION_HIBRIDO : INSERTO_SEPARACION;
   const usadas = new Set<string>();
+  const usadosMk = new Set<string>(excluir);
   let total = 0;
-  return scenes.map((s, i) => {
+  // un mockup que ya es la toma de una escena no vuelve como inserto (antes "Bandeja de solicitudes" salía dos veces)
+  const libre = (p: PantallaKit) => !usadas.has(p.archivo) && !usadosMk.has(mockupDe(p, mockups)?.fileRef || '');
+  const elegible = (s: MontajeScene, i: number) => {
     const words = palabras[s.src] || [];
-    const esUltima = i === scenes.length - 1;
-    if (i === 0 || esUltima || s.rol === 'cta' || s.rol === 'gag' || s.rol === 'giro' || !words.length || !pantallas.length) return [];
+    return !(i === 0 || i === scenes.length - 1 || s.rol === 'cta' || s.rol === 'gag' || s.rol === 'giro' || !words.length || excluir.has(s.src));
+  };
+  const porEscena = scenes.map((s, i) => {
+    const words = palabras[s.src] || [];
+    if (!elegible(s, i) || !pantallas.length) return [] as InsertoPantalla[];
     const candidatas = pantallas
-      .filter((p) => !usadas.has(p.archivo))
+      .filter(libre)
       .map((p) => ({ p, ...coincidencia(words, tokensDePantalla(p)), asignada: !!s.archivoCaptura && s.archivoCaptura === p.archivo }))
       .filter((c) => c.asignada || c.puntos > 0)
       .sort((a, b) => Number(b.asignada) - Number(a.asignada) || b.puntos - a.puntos || (a.ancla?.start ?? 0) - (b.ancla?.start ?? 0));
     const out: InsertoPantalla[] = [];
     const habla = { desde: words[0].start, hasta: words[words.length - 1].end };
     for (const c of candidatas) {
-      if (total >= MAX_INSERTOS || out.length >= 2) break;
+      if (total >= tope || out.length >= 2) break;
       const anclaSec = c.ancla ? c.ancla.start - 0.1 : habla.desde + (habla.hasta - habla.desde) * 0.45;
       const atSec = Math.max(s.in + 0.6, anclaSec);
-      let durSec = Math.min(INSERTO_DUR, s.out - 0.25 - atSec);
+      // con mockup animado, el inserto dura lo que necesita para contar su acción (hasta 60% del mockup), si la escena da
+      const mk = mockupDe(c.p, mockups);
+      const objetivo = hibrido ? INSERTO_DUR_HIBRIDO : mk ? Math.max(INSERTO_DUR, mk.durSec * 0.6) : INSERTO_DUR;
+      let durSec = Math.min(objetivo, s.out - 0.25 - atSec);
       if (durSec < INSERTO_MIN) continue;
       // convivencia con el inserto ya puesto: tiene que quedar cara entre los dos; si no entra, el que
       // está primero se acorta hasta donde se pueda, y si ni así alcanza, este no se pone.
@@ -199,38 +231,144 @@ export function ubicarInsertos(scenes: MontajeScene[], palabras: Record<string, 
       if (previo) {
         const [primero, segundo] = previo.atSec <= atSec ? [previo, { atSec, durSec }] : [{ atSec, durSec }, previo];
         const hueco = segundo.atSec - (primero.atSec + primero.durSec);
-        if (hueco < INSERTO_SEPARACION) {
-          const recortado = segundo.atSec - INSERTO_SEPARACION - primero.atSec;
+        if (hueco < separacion) {
+          const recortado = segundo.atSec - separacion - primero.atSec;
           if (recortado < INSERTO_MIN) continue;
           if (primero === previo) previo.durSec = recortado; else durSec = recortado;
         }
       }
-      out.push({ atSec, durSec, src: c.p.url || c.p.archivo, nombre: c.p.nombre });
-      usadas.add(c.p.archivo); total += 1;
+      out.push(mk ? { atSec, durSec, src: mk.fileRef, nombre: c.p.nombre, video: true } : { atSec, durSec, src: c.p.url || c.p.archivo, nombre: c.p.nombre });
+      usadas.add(c.p.archivo); if (mk) usadosMk.add(mk.fileRef); total += 1;
     }
     return out.sort((a, b) => a.atSec - b.atSec);
+  });
+  if (!hibrido) return porEscena;
+
+  // RELLENO (híbrido): los mockups que la voz no nombró entran en el orden del kit (que es el recorrido de la app), en
+  // los huecos de cara de las escenas filmadas, al principio de una frase. Lo que no entra queda en la biblioteca.
+  const restantes = mockups.filter((m) => !usadosMk.has(m.fileRef));
+  scenes.forEach((s, i) => {
+    if (!restantes.length || !elegible(s, i)) return;
+    const words = palabras[s.src] || [];
+    const frases = frasesDe(words).map((f) => f[0].start - 0.1);
+    const lista = porEscena[i];
+    const fin = s.out - 0.25;
+    let cursor = s.in + 0.6;
+    while (restantes.length) {
+      // entra al principio de una frase si hay una cerca; si la próxima queda lejos, no se desperdicia el hueco
+      const frase = frases.find((t) => t >= cursor);
+      const at = frase != null && frase - cursor <= 1.2 ? frase : cursor;
+      const choca = lista.find((x) => at < x.atSec + x.durSec + separacion && at + INSERTO_MIN > x.atSec - separacion);
+      if (choca) { cursor = choca.atSec + choca.durSec + separacion; continue; }
+      const siguiente = lista.filter((x) => x.atSec > at).sort((a, b) => a.atSec - b.atSec)[0];
+      const durSec = Math.min(INSERTO_DUR_HIBRIDO, (siguiente ? siguiente.atSec - separacion : fin) - at);
+      if (durSec < INSERTO_MIN) { if (!siguiente) break; cursor = siguiente.atSec + siguiente.durSec + separacion; continue; }
+      const mk = restantes.shift()!;
+      lista.push({ atSec: at, durSec, src: mk.fileRef, nombre: mk.nombre, video: true });
+      usadosMk.add(mk.fileRef);
+      cursor = at + durSec + separacion;
+    }
+    lista.sort((a, b) => a.atSec - b.atSec);
+  });
+  return porEscena;
+}
+
+// La misma frase no se dice dos veces (RepareHoy, 2026-10-11: dos clips de Flow decían "y el pedido me llega a la
+// bandeja", cada uno en su escena). Si dos tomas filmadas dicen casi lo mismo, se queda la que coincide con el diálogo de
+// SU escena en el storyboard (a igual coincidencia, la primera) y la otra sale del armado con un aviso.
+const raicesDe = (texto: string) => new Set(normalizar(texto).split(/\s+/).map(raiz).filter((r): r is string => !!r));
+function parecido(a: Set<string>, b: Set<string>): number {
+  if (!a.size || !b.size) return 0;
+  let comun = 0; for (const x of a) if (b.has(x)) comun += 1;
+  return comun / (a.size + b.size - comun);
+}
+export const UMBRAL_REPETIDA = 0.7;
+export function quitarFrasesRepetidas(scenes: MontajeScene[]): { scenes: MontajeScene[]; avisos: string[] } {
+  const dicho = scenes.map((s) => raicesDe((s.words || []).map((w) => w.text).join(' ')));
+  const fuera = new Set<number>();
+  const avisos: string[] = [];
+  for (let i = 0; i < scenes.length; i++) for (let j = i + 1; j < scenes.length; j++) {
+    if (fuera.has(i) || fuera.has(j) || dicho[i].size < 4 || dicho[j].size < 4) continue;
+    if (parecido(dicho[i], dicho[j]) < UMBRAL_REPETIDA) continue;
+    const ajuste = (k: number) => parecido(dicho[k], raicesDe(scenes[k].dialogo || ''));
+    const sale = ajuste(j) > ajuste(i) ? i : j;
+    const queda = sale === i ? j : i;
+    fuera.add(sale);
+    const frase = (scenes[sale].words || []).map((w) => w.text).join(' ');
+    avisos.push(`La escena ${scenes[sale].escenaN} quedó afuera: su clip dice lo mismo que la escena ${scenes[queda].escenaN} ("${frase.slice(0, 70)}"). Conviene regenerarla en Flow.`);
+  }
+  return { scenes: scenes.filter((_, k) => !fuera.has(k)), avisos };
+}
+
+// Escenas sin clip en un híbrido: las cubre un mockup que todavía no se usó. Primero el que pide el storyboard (la
+// captura asignada), después el que nombra el diálogo, y si ninguno pega, el siguiente en el orden del kit.
+export function cubrirConMockups(scenes: MontajeScene[], mockups: MockupInserto[], pantallas: PantallaKit[] = []): MontajeScene[] {
+  const usados = new Set(scenes.map((s) => s.src).filter(Boolean));
+  return scenes.map((s) => {
+    if (s.src || s.placa) return s;
+    const libres = mockups.filter((m) => !usados.has(m.fileRef));
+    if (!libres.length) return s;
+    const pantallaDe = (m: MockupInserto) => pantallas.find((p) => normNombre(p.nombre) === normNombre(m.nombre));
+    const pedido = s.archivoCaptura ? libres.find((m) => pantallaDe(m)?.archivo === s.archivoCaptura) : undefined;
+    const texto = [s.dialogo, s.screen].filter(Boolean).join(' ');
+    const words = normalizar(texto).split(/\s+/).map((w, k) => ({ text: w, start: k, end: k + 0.5 }));
+    const tokens = (m: MockupInserto) => { const p = pantallaDe(m); return p ? tokensDePantalla(p) : tokensDePantalla({ archivo: m.fileRef, url: '', nombre: m.nombre }); };
+    const porTexto = libres.map((m) => ({ m, puntos: coincidencia(words, tokens(m)).puntos })).filter((x) => x.puntos > 0).sort((a, b) => b.puntos - a.puntos)[0]?.m;
+    const mk = pedido || porTexto || libres[0];
+    usados.add(mk.fileRef);
+    const dur = s.out - s.in > 0 ? Math.min(mk.durSec, s.out - s.in) : mk.durSec;
+    return { ...s, src: mk.fileRef, in: 0, out: dur, audio: 'mute' as const, screen: mk.nombre };
   });
 }
 
 export function afinarMontaje(plan: MontajePlan, insumos: InsumosMontajista): MontajePlan {
-  const { palabrasPorToma, pantallas = [], cta, logoUrl, estilo, marca } = insumos;
-  const conWords = plan.scenes.map((s) => {
+  const { palabrasPorToma, pantallas = [], mockups = [], cta, logoUrl, estilo, marca, hibrido } = insumos;
+  // la escena cta sin clip ES la placa final, que la dibuja el motor: no se monta como escena. Antes quedaba en la
+  // secuencia como un hueco negro de su duración y la placa venía después (el cierre salía dos veces).
+  const sinPlaca = plan.scenes.filter((s) => !(!s.src && (s.placa || s.rol === 'cta')));
+  const cubiertas = hibrido ? cubrirConMockups(sinPlaca, mockups, pantallas) : sinPlaca;
+  const refsMockup = new Set(mockups.map((m) => m.fileRef));
+  const esMockup = (s: MontajeScene) => refsMockup.has(s.src);
+  const conWords = cubiertas.map((s) => {
+    // un mockup no tiene voz: sin palabras y en silencio (si quedaba en 'keep' por el diálogo del storyboard, la
+    // música se agachaba sobre una pantalla muda)
+    if (esMockup(s)) return { ...s, words: undefined, audio: 'mute' as const };
     const words = palabrasPorToma[s.src] || s.words;
     return { ...s, words: words ? corregirMarca(words, marca) : undefined };
   });
-  const recortadas = conWords.map((s, i) => recortar(s, s.words || [], i === conWords.length - 1));
-  const insertos = ubicarInsertos(recortadas, Object.fromEntries(recortadas.map((s) => [s.src, s.words])), pantallas);
+  const { scenes: sinRepetir, avisos } = quitarFrasesRepetidas(conWords);
+  const recortadas = sinRepetir.map((s, i) => recortar(s, s.words || [], i === sinRepetir.length - 1));
+  const usadosComoEscena = new Set(recortadas.filter(esMockup).map((s) => s.src));
+  const insertos = ubicarInsertos(recortadas, Object.fromEntries(recortadas.map((s) => [s.src, s.words])), pantallas, mockups, { excluir: usadosComoEscena, hibrido });
+  if (hibrido) {
+    const usados = new Set([...usadosComoEscena, ...insertos.flat().map((x) => x.src)]);
+    const afuera = mockups.filter((m) => !usados.has(m.fileRef)).map((m) => m.nombre);
+    if (afuera.length) avisos.push(`${afuera.length} mockups no entraron sin tapar la cara de la persona: ${afuera.join(', ')}. Están en la biblioteca del editor para sumarlos a mano.`);
+  }
+  // transiciones: corte seco entre tomas filmadas (es un relato a cámara); disolvencia cuando cambia el material
+  // (de la persona a la pantalla de la app y de vuelta). La placa entra con su propio fundido.
   const scenes: MontajeScene[] = recortadas.map((s, i) => ({
     ...s,
-    transition: 'cut',
-    ...escalas(i, s, recortadas),
+    transition: i < recortadas.length - 1 && esMockup(s) !== esMockup(recortadas[i + 1]) ? 'crossfade' : 'cut',
+    ...(esMockup(s) ? { punchFrom: 1, punchTo: 1 } : escalas(i, s, recortadas)),
     inserts: insertos[i].length ? insertos[i] : undefined,
   }));
+  // La placa de cierre SIEMPRE existe: es la escena cta de la pieza, y la dibuja el motor (Veo no escribe texto ni logos).
+  // Fuentes, en orden: el CTA del proyecto → el bloque cta del guion → la marca. Dura lo que el storyboard le dio a la cta.
+  // (Lucas, 2026-10-10: "no es 'si querés hago el final de la película'": sin placa no hay comercial.)
   const host = hostnameDe(cta?.url);
   const principal = (cta?.principal || '').trim();
-  const endCard = principal || host
-    ? { linea1: principal || `Conocé ${host}`, linea2: host && !normalizar(principal).includes(normalizar(host)) ? host : undefined, durSec: PLACA_DUR, logoSrc: logoUrl }
-    : undefined;
+  const ctaGuion = (insumos.ctaGuion || '').trim();
+  const nombreMarca = (marca?.exacto || '').trim();
+  const linea1 = principal || ctaGuion || (nombreMarca ? `Conocé ${nombreMarca}` : host ? `Conocé ${host}` : 'Conocé más');
+  const escenaCta = plan.scenes.find((s) => s.rol === 'cta');
+  const durCta = escenaCta ? escenaCta.out - escenaCta.in : 0;
+  const endCard = {
+    linea1,
+    linea2: host && !normalizar(linea1).includes(normalizar(host)) ? host : undefined,
+    durSec: durCta > 0 ? Math.max(2, Math.min(6, durCta)) : PLACA_DUR,
+    logoSrc: logoUrl,
+  };
   return {
     ...plan,
     scenes,
@@ -238,5 +376,6 @@ export function afinarMontaje(plan: MontajePlan, insumos: InsumosMontajista): Mo
     endCard,
     logo: logoUrl ? { src: logoUrl } : plan.logo,
     estilo: estilo || plan.estilo,
+    avisos: avisos.length ? avisos : undefined,
   };
 }

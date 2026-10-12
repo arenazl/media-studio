@@ -34,8 +34,9 @@ describe('scriptToText — helper canónico del guion (P0.2)', () => {
   it('bloque sin narration: se saltea en las frases; con roles conserva el visual', () => {
     expect(scriptNarrations(guionBlocks)).toHaveLength(3);
     const t = scriptToText(guionBlocks, { roles: true });
-    expect(t).toContain('[gag]  (visual: el nene con la torta)');
-    expect(t).toContain('[hook] El bache cumple tres años. (visual: bache con velita)');
+    // 2026-10-12: con la duración de cada bloque (el storyboard dura lo que dura el guion)
+    expect(t).toContain('[gag · 3s]  (visual: el nene con la torta)');
+    expect(t).toContain('[hook · 3s] El bache cumple tres años. (visual: bache con velita)');
   });
   it('caracteres especiales: tildes, comillas y ñ pasan intactos', () => {
     const g = { blocks: [{ role: 'hook', narration: '¿Y el bache? "Ñandú" · fin' }] };
@@ -85,7 +86,9 @@ describe('flowpack: una sola política de identidad, sin la contradicción vieja
   it('la regeneración de una escena (IA) tampoco pide repetir la descripción física exacta', () => {
     const { prompt } = buildFunctionPrompt({ functionId: 'flowpack', context: { project, piece: { storyboard, cast } }, options: {}, regenerate: { escenaN: 1 } });
     expect(prompt).not.toMatch(/misma descripcion fisica EXACTA/i);
-    expect(prompt).toContain('NUNCA se repite la descripcion fisica larga');
+    // 2026-10-12: la regeneración pide sólo otra acción (accionEn) y el pedido se compila como el pack (nombre + descripción corta)
+    expect(prompt).toContain('"accionEn"');
+    expect(prompt).not.toMatch(/conventionally beautiful/i);
   });
   it('videoprompt (que comparte las reglas) tampoco', () => {
     const { prompt } = buildFunctionPrompt({ functionId: 'videoprompt', context: {}, options: { brief: 'una mujer en una oficina', modo: 'talking-head' } });

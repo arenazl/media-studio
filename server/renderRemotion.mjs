@@ -8,7 +8,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import net from 'node:net';
 import { bundle } from '@remotion/bundler';
-import { ensureBrowser, renderMedia, selectComposition } from '@remotion/renderer';
+import { ensureBrowser, renderMedia, renderStill, selectComposition } from '@remotion/renderer';
 
 let bundlePromise = null;
 let bundleStamp = 0;
@@ -72,7 +72,7 @@ function puertoLibre() {
 async function renderComposicion({ id, inputProps, root = process.cwd(), log = () => {}, normalizar = true }) {
   const [serveUrl] = await Promise.all([obtenerBundle(root, log), ensureBrowser()]);
   const port = await puertoLibre();
-  const composition = await selectComposition({ serveUrl, id, inputProps, port });
+  const composition = await selectComposition({ serveUrl, id, inputProps, port, timeoutInMilliseconds: 120000 });
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ms-remotion-'));
   const raw = path.join(tmp, 'raw.mp4');
   const out = path.join(tmp, 'out.mp4');
@@ -80,7 +80,7 @@ async function renderComposicion({ id, inputProps, root = process.cwd(), log = (
   await renderMedia({
     composition, serveUrl, inputProps,
     codec: 'h264', crf: 18, audioCodec: 'aac', imageFormat: 'jpeg', jpegQuality: 90,
-    outputLocation: raw, port,
+    outputLocation: raw, port, timeoutInMilliseconds: 120000,
   });
   log(`${id}: ${composition.durationInFrames} cuadros en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   if (normalizar) await normalizarVolumen(raw, out);
@@ -101,3 +101,28 @@ export async function renderRemotion(plan, { port, root, log } = {}) {
 export async function renderMockups(plan, { port, root, log } = {}) {
   return renderComposicion({ id: 'Mockups', inputProps: { plan, base: `http://localhost:${port}` }, root, log, normalizar: false });
 }
+
+// Tarjetas de la app (paso "Mockups de la app"): una o varias tarjetas del catálogo como clip sin audio.
+export async function renderTarjetas(plan, { root, log } = {}) {
+  return renderComposicion({ id: 'MunifyTarjetas', inputProps: { plan }, root, log, normalizar: false });
+}
+
+// Tarjetas de cualquier app (las escribe el agente de mockups): misma salida que las de Munify, otra composición.
+export async function renderTarjetasApp(plan, { root, log } = {}) {
+  return renderComposicion({ id: 'AppTarjetas', inputProps: { plan }, root, log, normalizar: false });
+}
+
+// Un cuadro suelto de una composición, a PNG: para que el dueño juzgue las tarjetas sin renderizar el video entero,
+// y para que el agente vea si su código rompe al dibujar.
+export async function renderCuadro({ id, inputProps, frame, root = process.cwd(), log = () => {} }) {
+  const [serveUrl] = await Promise.all([obtenerBundle(root, log), ensureBrowser()]);
+  const port = await puertoLibre();
+  const composition = await selectComposition({ serveUrl, id, inputProps, port, timeoutInMilliseconds: 120000 });
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ms-cuadro-'));
+  const out = path.join(tmp, 'cuadro.png');
+  await renderStill({ composition, serveUrl, inputProps, frame: Math.min(Math.max(0, frame), composition.durationInFrames - 1), output: out, imageFormat: 'png', port, timeoutInMilliseconds: 120000 });
+  const buffer = fs.readFileSync(out);
+  fs.rmSync(tmp, { recursive: true, force: true });
+  return buffer;
+}
+

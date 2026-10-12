@@ -140,7 +140,10 @@ describe('placa final', () => {
     expect(a.endCard).toMatchObject({ linea1: 'Entrá a sinvueltasya.com.ar y armá tu evento', linea2: undefined, logoSrc: '/api/media-kit/k/file/logo.svg' });
     const b = afinarMontaje(planBase(), { palabrasPorToma: {}, cta: { principal: 'Pedí una demo', url: 'https://www.munify.com.ar/demo' } });
     expect(b.endCard).toMatchObject({ linea1: 'Pedí una demo', linea2: 'munify.com.ar' });
-    expect(afinarMontaje(planBase(), { palabrasPorToma: {} }).endCard).toBeUndefined();
+    // la placa SIEMPRE existe (es la escena cta): sin CTA ni guion ni marca, cae en un cierre genérico
+    expect(afinarMontaje(planBase(), { palabrasPorToma: {} }).endCard).toMatchObject({ linea1: 'Conocé más' });
+    expect(afinarMontaje(planBase(), { palabrasPorToma: {}, ctaGuion: 'Probalo tres meses gratis', marca: { exacto: 'Munify' } }).endCard).toMatchObject({ linea1: 'Probalo tres meses gratis' });
+    expect(afinarMontaje(planBase(), { palabrasPorToma: {}, marca: { exacto: 'Munify' } }).endCard).toMatchObject({ linea1: 'Conocé Munify' });
     expect(hostnameDe('sinvueltasya.com.ar/x')).toBe('sinvueltasya.com.ar');
   });
 });

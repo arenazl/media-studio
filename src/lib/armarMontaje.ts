@@ -1,0 +1,56 @@
+// El ARMADO del montaje, en un solo lugar: lo usan el paso Montaje (armado automático y "Rearmar") y el "Auto-armar"
+// del editor multipista. Antes el editor tenía su propia regla (sólo el storyboard, sin mockups ni montajista) y
+// el mismo botón daba dos comerciales distintos según dónde se tocara.
+// FILMADO/HÍBRIDO: el montajista lo afina con las palabras transcriptas de cada clip (recorta el aire, corta en frase,
+// mete pantallas reales cuando la voz las nombra, placa final). En HÍBRIDO usa todos los mockups disponibles: cubre las
+// escenas sin clip y el resto entra como insertos. ANIMADO: el reel ya viene renderizado; sólo voz y música.
+import { API_BASE } from '../config';
+import type { Comercial } from './comercial';
+import type { Project } from './projects';
+import { getFormato, mediosDeFormato } from './formato';
+import { storyboardToMontaje, type MontajePlan, type PalabraTiempo } from './montajePlan';
+import { afinarMontaje } from './montajista';
+
+export function esHibrido(comercial: Comercial): boolean {
+  const medios = mediosDeFormato(getFormato(comercial.formatoId));
+  return medios.includes('filmada') && medios.includes('mockup');
+}
+
+async function transcribir(ref: string): Promise<readonly [string, PalabraTiempo[] | undefined]> {
+  try {
+    const r = await fetch(`${API_BASE}/api/transcribir`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileRef: ref }) });
+    const d = await r.json();
+    return [ref, r.ok ? (d.words as PalabraTiempo[]) : undefined] as const;
+  } catch { return [ref, undefined] as const; }
+}
+
+export async function armarMontaje(project: Project, comercial: Comercial): Promise<MontajePlan> {
+  const base = storyboardToMontaje(comercial);
+  const marca = { exacto: project.marcaKit?.nombreExacto || project.brandKit?.name, fonetica: project.marcaKit?.fonetica || project.brandKit?.phonetic };
+  if (comercial.tipo === 'animado') {
+    // el video de mockups ya trae logo y placa final: acá sólo se le suman voz y música, sin acercamientos
+    const afinado = afinarMontaje(base, { palabrasPorToma: {}, marca });
+    return { ...afinado, scenes: afinado.scenes.map((s) => ({ ...s, punchFrom: 1, punchTo: 1 })) };
+  }
+  const mockups = (comercial.mockups || []).map((m) => ({ nombre: m.nombre, fileRef: m.fileRef, durSec: m.durSec }));
+  const refsMockup = new Set(mockups.map((m) => m.fileRef));
+  // sólo se transcriben las tomas filmadas: los mockups no tienen voz
+  const refs = [...new Set(base.scenes.map((s) => s.src).filter((r) => r && !refsMockup.has(r)))];
+  const pares = await Promise.all(refs.map(transcribir));
+  const colores = project.marcaKit?.colores;
+  // la placa de cierre siempre se arma (el montajista la garantiza): CTA del proyecto, si no el bloque cta del guion, si no la marca
+  const ctaGuion = (comercial.guion?.blocks || []).find((b) => b.role === 'cta')?.narration?.trim();
+  return afinarMontaje(base, {
+    palabrasPorToma: Object.fromEntries(pares),
+    pantallas: project.pantallasKit,
+    mockups,
+    hibrido: esHibrido(comercial),
+    cta: project.cta,
+    ctaGuion,
+    logoUrl: project.marcaKit?.logoUrl || project.brandKit?.logoUrl,
+    marca,
+    estilo: colores?.primario
+      ? { primario: colores.primario, acento: colores.acento || '#F59E0B', fondo: colores.fondo || '#FAF7FF', texto: colores.texto || '#1E1B2E' }
+      : undefined,
+  });
+}

@@ -1,0 +1,227 @@
+{
+  "contrato": "media-studio/materia-prima/1.1",
+  "para": "ChatGPT",
+  "tu_rol": "Sos director creativo y guionista de publicidad con veinte años haciendo comerciales cortos para redes en Argentina. Escribís en español rioplatense, con voseo.",
+  "tu_tarea": "Escribí la MATERIA PRIMA de las 3 piezas de la campaña de RepareHoy que están en \"campana.piezas\": para cada una, la idea, los personajes, el guion y el storyboard. Con esto Media Studio arma los pedidos a Google Flow, las pantallas animadas y el montaje: lo que no esté acá no existe. Cada pieza es UNA idea y cuenta su ángulo; las piezas no se repiten entre sí (ni el gancho, ni los personajes, ni la situación). Usá sólo los hechos de \"marca\"; si un dato no está, no lo inventes. Antes de responder, revisá cada pieza contra \"reglas_de_oficio\" como lo haría un director exigente, y corregí lo que no pase.",
+  "como_responder": "Respondé SOLO con un bloque JSON con la forma de \"salida_esperada\" (un objeto por pieza dentro de \"piezas\", en el mismo orden). Sin texto antes ni después. Los textos de \"salida_esperada\" describen qué va en cada campo: reemplazalos por el contenido.",
+  "marca": {
+    "nombre": "RepareHoy",
+    "como_se_dice": "reparé hoy",
+    "web": "https://reparehoy.com.ar",
+    "llamado_a_la_accion_verificado": "Entrá a reparehoy.com.ar y contá qué hay que arreglar",
+    "ficha": "NEGOCIO: RepareHoy — Contá el problema. Elegí entre 3 presupuestos de profesionales verificados.\nRUBRO: AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Barrio de ejemplo para los textos: Villa Urquiza.\nPÚBLICO: quien tiene algo que arreglar o hacer en su casa, dueño o inquilino, en Ciudad de Buenos Aires y Gran Buenos Aires · profesionales de oficio y pequeñas empresas de servicios que quieren recibir pedidos de su zona sin salir a buscarlos\nQUÉ ES: Marketplace de oficios para el hogar en el AMBA. El cliente cuenta el problema en sus palabras, recibe hasta tres presupuestos de profesionales verificados de su zona, habla con el que elige por un chat dentro de la app y paga la seña desde ahí. - Qué vende: Intermediación entre quien necesita arreglar o hacer algo en su casa y profesionales de once oficios: plomería, electricidad, cerrajería, gas, aire acondicionado, pintura, carpintería, albañilería, herrería, techos y humedad, y materiales. La plataforma cobra una comisión del 10% sobre el monto del trabajo; la paga el proveedor. - Zona: AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Barrio de ejemplo para los textos: Villa Urquiza. - Audiencia prioritaria: Primero el cliente que tiene algo que arreglar en su casa; después el proveedor. En ese orden, y con una historia para cada uno. - La seña queda retenida por la plataforma y se le libera al proveedor recién cuando el trabajo está terminado: sin disputa abierta, a los 7 días de finalizado. - El plan de pagos lo acuerdan las partes, no la plataforma: el proveedor propone (todo al final, mitad y mitad, o contra avance por etapas), el cliente acepta o contrapropone, y queda sellado cuando los dos firman. - La plataforma pone un solo límite: cuánto se puede pedir por adelantado, y sale del historial del proveedor. Hasta 20% del total sin trabajos previos, 40% con cinco finalizados, 60% con veinte. - Cada propuesta de pago queda dentro del hilo de la conversación, en el momento en que ocurrió. La negociación completa es el registro si después hay una disputa. - Las reseñas salen únicamente de trabajos finalizados dentro de la app. No se pueden cargar a mano, ni desde el panel de administración. - El cliente no persigue a nadie: publica el problema, le llegan los presupuestos, y su pantalla de inicio le muestra qué trabajos esperan algo suyo, ordenados por urgencia. - Los pagos hechos por fuera de la app se pueden declarar y la otra parte los confirma. Queda registro aunque la plata no haya pasado por el sistema, y al proveedor le suma historial. - Hay un fondo de reparo opcional: un porcentaje que queda retenido unos días después de terminado el trabajo. - Pedís presupuesto por WhatsApp y la mayoría no contesta. El que contesta pide una seña por transferencia a un alias, sin ningún respaldo. - No hay forma de saber si el que viene es de confianza, ni qué dijeron otros clientes de él. - Adelantar plata sin garantía: si el trabajo queda mal o nunca empieza, no hay a quién reclamarle. - El 'te lo cotizo cuando lo vea' y la fecha que se corre: no hay referencia de precio ni compromiso escrito. - Cuando hay un problema a mitad de obra, lo hablado quedó en audios de WhatsApp que nadie vuelve a encontrar. - Entrá a reparehoy.com.ar y contá qué hay que arreglar - URL: https://reparehoy.com.ar - Secundario: Para proveedores: publicá tu oficio gratis en reparehoy.com.ar/registro - El momento en que llegan los presupuestos sin haber perseguido a nadie: la tira 'Te esperan tus proveedores' con el punto que late. - La negociación del plan de pagos ADENTRO del chat y el sello con las dos firmas. Es lo que ningún WhatsApp te da. - El tope de adelanto que sube con el historial (20, 40, 60%): para el proveedor es un incentivo y para el cliente una protección, en el mismo número. Mostrarlo como escalera, nunca como número suelto. - La seña retenida y liberada al terminar, dicha en una línea: 'La seña queda protegida hasta que el trabajo esté hecho'. - Para el proveedor: la bandeja donde el pedido aparece ya cotizable, con la zona y el oficio que él eligió.\nLA TESIS (lo que la app declara de sí misma; manda sobre los hechos de abajo):\n- El fuerte: RepareHoy hace de juez entre el que necesita arreglar algo en su casa y el que sabe hacerlo: la seña queda retenida hasta que el trabajo está hecho, el plan de pagos lo acuerdan los dos en el chat y queda como registro, y la reputación sale sólo de trabajos terminados adentro.\n- Se entiende como: Un Mercado Libre de oficios con pago protegido: publicás lo que te pasa y te llegan los presupuestos, no perseguís a nadie.\n- Contra qué: El WhatsApp y la confianza a ciegas: el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó, y lo hablado que quedó en audios.\n- El momento mágico: Para el cliente, cuando abre la app y la tira dice 'Te esperan tus proveedores' con presupuestos que llegaron solos. Para el proveedor, cuando arma el plan de pagos a su manera y la app le dice hasta dónde puede pedir de adelanto porque ya se lo ganó.\n- A quién le hablamos primero: Al cliente con algo roto en casa, porque es quien tiene el dolor hoy y quien trae la plata; sin pedidos no hay proveedor que se quede. El proveedor viene después, con su propia pieza: la bandeja, el plan, los números.\nNO DECIR:\n- precios concretos de servicios: son de demostración y cambian\n- cantidades de proveedores, trabajos o reseñas como si fueran tracción real\n- promesas absolutas: '100% seguro', 'garantizado', 'sin riesgo'\n- que el pago al proveedor es automático: hoy la liberación genera una orden y la transferencia la hace tesorería a mano\n- Mobbex, 'split de pagos' o 'sin triangulación fiscal': la pasarela activa es MercadoPago y no hay split; esos textos que aparecen en algún banner son heredados y están marcados para sacar\n- que la plataforma garantiza el trabajo: lo que garantiza es que la seña no se libera hasta que esté hecho\n- 'matriculados' para todos los oficios: la app verifica identidad y CUIT, no matrícula. La matrícula existe para gas y electricidad; en el resto, decir 'verificados'"
+  },
+  "campana": {
+    "piezas": [
+      {
+        "id": "v1",
+        "titulo": "Nadie te contesta",
+        "angulo": "Nadie te contesta",
+        "brief_creativo": "Esta pieza se queda en un solo dolor: la cadena de mensajes sin respuesta cuando tenés algo roto en casa, y el vuelco a la escena contraria, donde el pedido publicado una sola vez trae hasta tres presupuestos de profesionales verificados de la zona. El mensaje principal es que el que busca deja de buscar; la prueba es la pantalla con la tira 'Te esperan tus proveedores' ordenada por urgencia. No explica el pago ni la reputación: sólo deja claro que RepareHoy es donde contás el problema y te llegan los presupuestos, y cierra invitando a entrar a reparehoy.com.ar.",
+        "mensaje_principal": "Dejá de perseguir a alguien que te conteste: contá el problema una vez y los presupuestos llegan a tu pantalla.",
+        "hechos_que_la_sostienen": [
+          "Pedís presupuesto por WhatsApp y la mayoría no contesta",
+          "El cliente cuenta el problema en sus palabras y recibe hasta tres presupuestos de profesionales verificados de su zona",
+          "El cliente no persigue a nadie: publica el problema y le llegan los presupuestos",
+          "La tira 'Te esperan tus proveedores' en la pantalla de inicio, con los trabajos que esperan algo suyo ordenados por urgencia"
+        ],
+        "enfoque": "dos-lados",
+        "tratamiento": "aspiracional",
+        "formato": "reel híbrido 9:16 (personas filmadas + pantallas de la app)",
+        "duracion_seg": 26,
+        "idea_anterior_solo_referencia": "Una electricista de Villa Urquiza cuenta a cámara que antes dependía de que alguien la recomendara, mientras una vecina admite que mandaba mensajes a ciegas. En RepareHoy, el pedido de ella aparece en la bandeja de la profesional con zona y oficio, y en la pantalla de la vecina aparecen los presupuestos. Nadie persiguió a nadie. (es la idea que salió antes; mejorala o reemplazala si no cumple las reglas de oficio)"
+      },
+      {
+        "id": "v2",
+        "titulo": "La seña al alias",
+        "angulo": "La seña al alias",
+        "brief_creativo": "Pieza centrada en la objeción que frena todo: adelantar plata a alguien que no conocés. Cuenta que en RepareHoy la seña se paga dentro de la app y queda retenida hasta que el trabajo está terminado, y que el máximo que se puede pedir por adelantado no lo decide el proveedor sino su historial, mostrado como escalera de 20 a 40 a 60 por ciento. No promete que el trabajo salga bien ni habla de garantías: lo que prueba es que el dinero no cambia de manos antes de tiempo.",
+        "mensaje_principal": "La seña no se la mandás a un alias: queda retenida en la plataforma hasta que el trabajo esté hecho.",
+        "hechos_que_la_sostienen": [
+          "El que contesta pide una seña por transferencia a un alias, sin ningún respaldo",
+          "La seña queda retenida por la plataforma y se le libera al proveedor recién cuando el trabajo está terminado: sin disputa abierta, a los 7 días de finalizado",
+          "La plataforma pone un solo límite: cuánto se puede pedir por adelantado, y sale del historial del proveedor: hasta 20% del total sin trabajos previos, 40% con cinco finalizados, 60% con veinte"
+        ],
+        "enfoque": "dos-lados",
+        "tratamiento": "aspiracional",
+        "formato": "reel híbrido 9:16 (personas filmadas + pantallas de la app)",
+        "duracion_seg": 26
+      },
+      {
+        "id": "v3",
+        "titulo": "Juez entre las partes",
+        "angulo": "Juez entre las partes",
+        "brief_creativo": "Única pieza institucional de la tanda: presenta qué es RepareHoy de punta a punta, para alguien que nunca lo escuchó. Contrapone los audios de WhatsApp que nadie vuelve a encontrar con un sistema donde el pedido, los presupuestos de profesionales verificados, el chat, el plan de pagos firmado por las dos partes y las reseñas de trabajos terminados viven en el mismo lugar. El beneficio observable es que todo lo hablado queda escrito y fechado; el cierre lleva a reparehoy.com.ar a contar qué hay que arreglar.",
+        "mensaje_principal": "RepareHoy es el marketplace de oficios del AMBA que hace de juez entre quien necesita arreglar algo y quien sabe hacerlo.",
+        "hechos_que_la_sostienen": [
+          "Marketplace de oficios para el hogar en el AMBA, con once oficios: plomería, electricidad, cerrajería, gas, aire acondicionado, pintura, carpintería, albañilería, herrería, techos y humedad, y materiales",
+          "El cliente habla con el profesional que elige por un chat dentro de la app y paga la seña desde ahí; cada propuesta de pago queda dentro del hilo de la conversación, en el momento en que ocurrió",
+          "El plan de pagos lo acuerdan las partes: el proveedor propone, el cliente acepta o contrapropone, y queda sellado cuando los dos firman",
+          "Las reseñas salen únicamente de trabajos finalizados dentro de la app: no se pueden cargar a mano ni desde el panel de administración"
+        ],
+        "enfoque": "dos-lados",
+        "tratamiento": "aspiracional",
+        "formato": "reel híbrido 9:16 (personas filmadas + pantallas de la app)",
+        "duracion_seg": 26
+      }
+    ]
+  },
+  "material_disponible": {
+    "video_con_personas": "Google Flow (Veo 3): clips de 8 s, 9:16, con sonido directo y sincronía de labios. Los personajes se fijan con una imagen de referencia.",
+    "pantallas_de_la_app": [
+      {
+        "nombre": "Contar el problema",
+        "que_muestra": "pedir un arreglo es contar qué pasa, en tus palabras, en cuatro pasos cortos; sin saber qué oficio necesitás",
+        "animacion": "la barra de pasos avanza: se elige 'Humedad y filtraciones' (paso 1), se cargan superficie y presupuesto (paso 2), la zona y la descripción se tipean (paso 3) y el resumen '¿Todo bien?' junta todo antes de 'Crear solicitud', que pasa a 'Publicando…'. Al terminar aparece el aviso '¡Solicitud publicada! Los proveedores de tu zona la van a cotizar.'"
+      },
+      {
+        "nombre": "Te esperan tus proveedores",
+        "que_muestra": "los presupuestos llegan solos y la app te dice qué está esperando algo tuyo, ordenado por urgencia",
+        "animacion": "la home del cliente arranca sin la tira; llega el primer presupuesto y aparece 'TE ESPERAN TUS PROVEEDORES' con una tarjeta y el aviso rojo de la barra se enciende; llega el segundo y se suma al lado"
+      },
+      {
+        "nombre": "La conversación con el plan de pagos adentro",
+        "que_muestra": "se negocia cómo se paga en el mismo chat, y la propuesta queda en el hilo en el momento en que ocurrió",
+        "animacion": "los mensajes entran de a uno; en el hilo aparece la tarjeta 'Propuesta de pago 1' con los tres montos y arriba el acceso 'Plan de pagos enviado'; cuando el cliente firma, la tarjeta y el acceso pasan a 'Plan de pagos acordado' con el ícono verde"
+      },
+      {
+        "nombre": "Pagar la seña",
+        "que_muestra": "se paga sólo la seña por MercadoPago y queda retenida por la plataforma hasta que el trabajo está terminado",
+        "animacion": "en el checkout el botón dice 'Pagar $124.000' y la cajita 'Seña protegida' explica la retención; al volver de MercadoPago aparece el aviso '¡Pago recibido! Estamos confirmando tu reserva.'; con la seña confirmada, el botón del trabajo pasa a 'Marcar evento como finalizado'; terminado, a 'Dejar reseña al proveedor'"
+      },
+      {
+        "nombre": "Bandeja de solicitudes",
+        "que_muestra": "al proveedor los pedidos le llegan ya ordenados por estado, con el cliente, el servicio y el monto; no sale a buscarlos",
+        "animacion": "entra arriba el pedido nuevo de un cliente como pendiente ('1 pendientes de cotizar') y, cuando el proveedor cotiza, pasa a la pastilla COTIZADO con su monto"
+      },
+      {
+        "nombre": "Armar el plan de pagos",
+        "que_muestra": "el proveedor elige cómo cobrar (todo al final, mitades, o contra avance por etapas) y la plataforma sólo le marca hasta dónde puede pedir de adelanto según su historial",
+        "animacion": "el proveedor prueba 'Mitad y mitad' y aparece el aviso rojo 'El primer pago es el 50% del total y el máximo para vos es 40%'; pasa a 'Contra avance' con tres etapas y la línea se vuelve verde: 'Primer pago 20%. Podés pedir hasta 40%.'; aprieta 'Mandar propuesta'"
+      },
+      {
+        "nombre": "El panel del proveedor",
+        "que_muestra": "el proveedor ve su mes en números: solicitudes, confirmadas, ingresos comprometidos, conversión, rating y reseñas",
+        "animacion": "los números del mes cambian con el trabajo nuevo: Solicitudes 12 → 14, Confirmadas 9 → 10, Ingresos est. $9.496.000 → $10.116.000; la conversión baja de 75% a 71% porque entró un segundo pedido que todavía no se aceptó"
+      },
+      {
+        "nombre": "La reputación, hecha de trabajos reales",
+        "que_muestra": "la reputación del proveedor sale sólo de trabajos terminados en la app: cada reseña tiene nombre, contratación verificada y estrellas, y hay de cuatro además de cinco",
+        "animacion": "entra arriba la reseña nueva de un trabajo terminado, con cinco estrellas y la etiqueta 'Contratación Verificada'"
+      },
+      {
+        "nombre": "Mis solicitudes, con el progreso de cada trabajo",
+        "que_muestra": "cada trabajo muestra en qué paso está (Pedido, Presupuesto, Seña, Terminado) y qué le falta, sin tener que preguntarle a nadie",
+        "animacion": "la barra del trabajo avanza tramo por tramo (Pedido, Presupuesto, Seña, Terminado) y el rótulo nombra lo que falta: 'Esperando presupuesto', 'Esperando tu respuesta', 'Trabajo agendado', 'Terminado'"
+      }
+    ],
+    "placa_final": "La dibuja el montaje: logo, una línea de texto y la web.",
+    "no_hay": [
+      "locutor ni voz en off",
+      "pantallas de la app filmadas",
+      "texto en pantalla generado por la IA de video"
+    ]
+  },
+  "reglas_de_oficio": {
+    "produccion": [
+      "Las escenas con personas las genera Google Flow (Veo 3): clips de 8 segundos con sonido directo. La persona dice su frase con su propia voz (sincronía de labios). La identidad de cada personaje la fija una imagen de referencia.",
+      "NO HAY LOCUTOR NI VOZ EN OFF: cada palabra la dice en cámara un personaje de la historia. El único texto que no se dice es el de la placa final.",
+      "Las pantallas de la app NO se filman: son mockups animados reales que ya existen (lista en \"material_disponible.pantallas_de_la_app\"), sin sonido. Se usan por su nombre exacto. Ninguna otra pantalla de la app existe.",
+      "La placa final (logo, una línea de texto y la web) la dibuja el montaje. No se filma.",
+      "Flow no escribe texto legible: nada de carteles, subtítulos ni pantallas con texto generadas por IA."
+    ],
+    "guion": [
+      "El gancho (primeros 2 segundos): la situación concreta (un objeto, un momento) Y el dolor que resuelve la marca, dicho por quien lo vive. Empieza por el golpe (lo que el espectador ya vivió), en presente, con la bronca del momento.",
+      "Las frases se dicen EN EL MOMENTO en que pasa, en presente: una reacción, un comentario a quien está al lado, lo que se piensa en voz alta. Nunca un relato posterior en pasado: un relato convierte la escena en una cara contando.",
+      "Cada persona habla como en la vida real: nada de vocabulario de la app ni de la ficha comercial (nombres de pantallas, \"solicitud\", \"plataforma\"). Lo dice como se lo contaría a un vecino.",
+      "Ninguna frase explica la publicidad: una persona de verdad no dice el beneficio del producto en voz alta (\"ahora los presupuestos me esperan a mí\" es un eslogan, no una reacción). Reacciona a lo que le pasa, como reaccionaría cualquiera; el beneficio lo cuentan la imagen, la pantalla y la placa.",
+      "Menos gente explicando, más cosas pasando: como mucho 3 frases habladas en 26 segundos (4 si la pieza dura 30), de 4 a 11 palabras cada una, secas y orales. Frases largas salen con la boca de goma en el video generado.",
+      "El comercial le habla a UN público: el del cierre. Si la historia tiene dos lados, el otro lado aparece como la respuesta a ESE pedido (mismo problema, mismo barrio) y dice lo que hace pensando en quien pide; nunca cuenta su propio negocio.",
+      "El orden sigue la causa: primero lo que le pasa a quien necesita, después lo que hace, después quién lo recibe y responde, al final lo que gana.",
+      "No mostrar un resultado que la marca no produce (si la app consigue presupuestos, no se ve el arreglo terminado). \"Hasta N\" no es \"N\". Ortografía y tildes correctas: se leen en los subtítulos.",
+      "La marca se DICE con su pronunciación (\"como_se_dice\") y se ESCRIBE con su nombre en la placa."
+    ],
+    "personajes": [
+      "Creíbles, del país y de la ciudad del negocio: se reconocen por los materiales y los objetos, no por carteles. Cada uno con UN detalle propio que lo saque del estereotipo.",
+      "Cada personaje tiene SU lugar (nunca el de otro). Si el guion lo muestra con un problema, el problema se ve en el lugar.",
+      "El oficio de quien responde es exactamente el que pide quien necesita."
+    ],
+    "storyboard": [
+      "Cada escena filmada es una SITUACIÓN, no una cara: la persona hace algo en su lugar, con un objeto concreto, y algo cambia en esos segundos. Tiene que entenderse sin sonido.",
+      "La toma con frase es SIMPLE: la persona habla con un gesto (sostiene el mate, mira el teléfono, se apoya). Lo mecánico (algo que salta, se rompe, se enchufa) va en una toma aparte, corta y SIN frase. Una frase con sincronía de labios + una coreografía de manos en la misma toma sale deforme.",
+      "La frase arranca en el primer segundo: la escena empieza con la situación ya en curso (el teléfono ya en la mano). Lo que dice viene después de lo que lo provoca.",
+      "A cámara, como mucho dos escenas en toda la pieza. En las demás la persona habla con alguien fuera de cuadro, al teléfono, para sí misma, o reacciona.",
+      "Física de la escena: cada objeto en un solo lugar y haciendo una sola cosa; la emoción, simple (cansada, aliviada), sin gestos dictados músculo por músculo; nada de acciones finas de manos en plano cercano (tipear, enchufar). Un profesional se ve cuidadoso.",
+      "Planos variados: nunca el mismo plano en dos escenas filmadas seguidas. El plano por encima del hombro es para ver lo que la persona mira, no para una frase con emoción.",
+      "Lo que el gancho dice se tiene que ver (si dice que nadie le contesta, se ve el teléfono con mensajes enviados sin respuesta: un chat cualquiera, sin texto legible).",
+      "El profesional, si aparece, está haciendo su oficio (con las manos en un trabajo, en su lugar) cuando le llega el pedido: no es alguien mirando un teléfono.",
+      "Pantallas de la app: sólo las que prueban una frase, como máximo 3. Lo ideal es que entren ENCIMA de la frase que las nombra, mientras la voz sigue (\"sobreEscena\"): una pantalla muda sola más de 2 segundos parece que el video se tildó.",
+      "La duración total (suma de \"durSec\") queda dentro de ±15% de la pieza."
+    ]
+  },
+  "salida_esperada": {
+    "contrato": "media-studio/materia-prima/1.1",
+    "piezas": [
+      {
+        "id": "el id de la pieza tal cual viene en \"campana.piezas[].id\"",
+        "concepto": {
+          "idea": "la historia en 2 o 3 oraciones: quién, qué le pasa, qué cambia con la marca",
+          "porQueFunciona": "1 oración",
+          "tono": "máximo 10 palabras",
+          "estetica": "máximo 20 palabras"
+        },
+        "personajes": [
+          {
+            "id": "p1, p2…",
+            "nombre": "nombre de pila",
+            "quien": "cómo lo nombra el guion en \"quien\" (por ejemplo \"vecina\", \"electricista\")",
+            "rol": "su función en la historia",
+            "fisicoEs": "máximo 18 palabras, en español",
+            "fisicoEn": "25 a 45 palabras en INGLÉS: edad, pelo, piel, rasgos, presencia (sólo lo visible)",
+            "vestuario": "máximo 10 palabras, en español",
+            "vestuarioEn": "la misma ropa en INGLÉS, máximo 12 palabras",
+            "lugarEn": "20 a 40 palabras en INGLÉS: SU lugar, concreto, con 2 o 3 objetos que cuentan su situación, su detalle propio y la luz",
+            "personalidad": "1 a 3 palabras"
+          }
+        ],
+        "lugar": {
+          "nombre": "la locación general",
+          "descripcionEn": "25 a 50 palabras en INGLÉS",
+          "luz": "máximo 8 palabras"
+        },
+        "guion": {
+          "blocks": [
+            {
+              "role": "hook | desarrollo | giro | cta (en ese orden; desarrollo puede repetirse)",
+              "quien": "quién lo dice en cámara (el \"quien\" de un personaje); \"placa\" en el cta; \"\" si el bloque no tiene voz",
+              "narration": "lo que se DICE, tal cual (en el cta: el texto de la placa, máximo 8 palabras, sin la web)",
+              "visual": "una frase con lo que se VE",
+              "durSec": "número de segundos"
+            }
+          ],
+          "music": {
+            "mood": "2 o 3 palabras"
+          }
+        },
+        "storyboard": [
+          {
+            "n": "número consecutivo desde 1",
+            "rol": "hook | desarrollo | giro | cta",
+            "personajes": "[\"p1\"] si hay alguien en cuadro; [] en una pantalla o en la placa",
+            "dialogo": "la frase del guion que dice ESA persona en ESA escena, tal cual; \"\" si nadie habla",
+            "accion": "en español, máximo 25 palabras: qué hace, con qué objeto, qué cambia",
+            "accionEn": "en INGLÉS, 35 a 70 palabras, para el generador de video: quién (su nombre), dónde (su lugar), qué hace en los 8 segundos EN ORDEN, hacia dónde dice la frase, el gesto y el sonido del lugar. Sin la frase (va aparte), sin términos de cámara ni lentes, sin texto en pantalla. Pronombres con el género correcto.",
+            "plano": "close-up | medium close-up | medium shot | over-the-shoulder | low angle | high angle | handheld follow | wide shot",
+            "pantalla": "el nombre EXACTO de una pantalla de la app si la escena es una pantalla; \"\" si es filmada",
+            "sobreEscena": "en una pantalla: el n de la escena filmada sobre cuya frase entra (la voz sigue); omitilo si va sola",
+            "durSec": "número de segundos (filmada con frase: lo que tarda la frase + 1, de 3 a 7; filmada sin frase: 2 a 4; pantalla: 1,5 a 3; cta: 3)"
+          }
+        ],
+        "placa": {
+          "linea1": "la línea de la placa (igual al narration del cta)",
+          "linea2": "la web"
+        }
+      }
+    ]
+  }
+}

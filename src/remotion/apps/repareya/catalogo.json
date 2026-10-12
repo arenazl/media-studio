@@ -1,0 +1,115 @@
+{
+  "logo": "logo-blanco.png",
+  "dominio": "reparehoy.com.ar",
+  "metodo": "plantilla",
+  "tarjetas": [
+    {
+      "id": "contar-el-problema",
+      "pantalla": "screens/01-cliente-contar-el-problema.png",
+      "nombre": "Contar el problema",
+      "patron": "formulario que se completa",
+      "microAnimacion": "la barra de pasos avanza: se elige 'Humedad y filtraciones' (paso 1), se cargan superficie y presupuesto (paso 2), la zona y la descripción se tipean (paso 3) y el resumen '¿Todo bien?' junta todo antes de 'Crear solicitud', que pasa a 'Publicando…'. Al terminar aparece el aviso '¡Solicitud publicada! Los proveedores de tu zona la van a cotizar.'",
+      "chip": "Solicitud",
+      "titulo": "Contalo en tus palabras",
+      "resaltar": "tus palabras",
+      "sub": "Cuatro pasos cortos y tu pedido queda publicado.",
+      "durSec": 6
+    },
+    {
+      "id": "te-esperan-tus-proveedores",
+      "pantalla": "screens/02-cliente-te-esperan-tus-proveedores.png",
+      "nombre": "Te esperan tus proveedores",
+      "patron": "aviso que llega / lista que se llena",
+      "microAnimacion": "la home del cliente arranca sin la tira; llega el primer presupuesto y aparece 'TE ESPERAN TUS PROVEEDORES' con una tarjeta y el aviso rojo de la barra se enciende; llega el segundo y se suma al lado",
+      "chip": "Presupuestos",
+      "titulo": "Los presupuestos te buscan a vos",
+      "resaltar": "te buscan a vos",
+      "sub": "La app te marca qué está esperando algo tuyo, ordenado por urgencia.",
+      "durSec": 7
+    },
+    {
+      "id": "la-conversacion-con-el-plan-de-pagos-ade",
+      "pantalla": "screens/03-cliente-conversacion-con-plan-de-pagos.png",
+      "nombre": "La conversación con el plan de pagos adentro",
+      "patron": "chat",
+      "microAnimacion": "los mensajes entran de a uno; en el hilo aparece la tarjeta 'Propuesta de pago 1' con los tres montos y arriba el acceso 'Plan de pagos enviado'; cuando el cliente firma, la tarjeta y el acceso pasan a 'Plan de pagos acordado' con el ícono verde",
+      "chip": "Pagos",
+      "titulo": "Acordás el pago en el chat",
+      "resaltar": "en el chat",
+      "sub": "El plan en tres pagos queda firmado en el hilo, en el momento.",
+      "durSec": 6
+    },
+    {
+      "id": "pagar-la-sena",
+      "pantalla": "screens/04-cliente-pagar-la-sena.png",
+      "nombre": "Pagar la seña",
+      "patron": "confirmación o pago",
+      "microAnimacion": "en el checkout el botón dice 'Pagar $124.000' y la cajita 'Seña protegida' explica la retención; al volver de MercadoPago aparece el aviso '¡Pago recibido! Estamos confirmando tu reserva.'; con la seña confirmada, el botón del trabajo pasa a 'Marcar evento como finalizado'; terminado, a 'Dejar reseña al proveedor'",
+      "chip": "Seña",
+      "titulo": "Pagás la seña y queda protegida",
+      "resaltar": "queda protegida",
+      "sub": "Se le libera al proveedor recién cuando el trabajo está terminado y aprobado.",
+      "durSec": 6
+    },
+    {
+      "id": "bandeja-de-solicitudes",
+      "pantalla": "screens/05-proveedor-bandeja-de-solicitudes.png",
+      "nombre": "Bandeja de solicitudes",
+      "patron": "aviso que llega / estado que cambia",
+      "microAnimacion": "entra arriba el pedido nuevo de un cliente como pendiente ('1 pendientes de cotizar') y, cuando el proveedor cotiza, pasa a la pastilla COTIZADO con su monto",
+      "chip": "Bandeja",
+      "titulo": "Los pedidos llegan ordenados",
+      "resaltar": "ordenados",
+      "sub": "Entra el pedido nuevo, lo cotizás y cambia de estado solo.",
+      "durSec": 6
+    },
+    {
+      "id": "armar-el-plan-de-pagos",
+      "pantalla": "screens/06-proveedor-armar-plan-de-pagos.png",
+      "nombre": "Armar el plan de pagos",
+      "patron": "trámite que avanza / estado que cambia",
+      "microAnimacion": "el proveedor prueba 'Mitad y mitad' y aparece el aviso rojo 'El primer pago es el 50% del total y el máximo para vos es 40%'; pasa a 'Contra avance' con tres etapas y la línea se vuelve verde: 'Primer pago 20%. Podés pedir hasta 40%.'; aprieta 'Mandar propuesta'",
+      "chip": "Pagos",
+      "titulo": "Cobrá por etapas, con tope claro",
+      "resaltar": "por etapas",
+      "sub": "La plataforma te marca cuánto podés pedir de adelanto.",
+      "durSec": 7
+    },
+    {
+      "id": "el-panel-del-proveedor",
+      "pantalla": "screens/07-proveedor-panel.png",
+      "nombre": "El panel del proveedor",
+      "patron": "números que suben",
+      "microAnimacion": "los números del mes cambian con el trabajo nuevo: Solicitudes 12 → 14, Confirmadas 9 → 10, Ingresos est. $9.496.000 → $10.116.000; la conversión baja de 75% a 71% porque entró un segundo pedido que todavía no se aceptó",
+      "chip": "Panel",
+      "titulo": "Tu mes en números",
+      "resaltar": "en números",
+      "sub": "Solicitudes, confirmadas e ingresos comprometidos, siempre al día.",
+      "durSec": 6
+    },
+    {
+      "id": "la-reputacion-hecha-de-trabajos-reales",
+      "pantalla": "screens/08-proveedor-reputacion-y-resenas.png",
+      "nombre": "La reputación, hecha de trabajos reales",
+      "patron": "números que suben / lista que se llena",
+      "microAnimacion": "entra arriba la reseña nueva de un trabajo terminado, con cinco estrellas y la etiqueta 'Contratación Verificada'",
+      "chip": "Reputación",
+      "titulo": "Estrellas de trabajos reales",
+      "resaltar": "trabajos reales",
+      "sub": "Cada reseña viene de una contratación verificada, con seña protegida.",
+      "durSec": 6
+    },
+    {
+      "id": "mis-solicitudes-con-el-progreso-de-cada-",
+      "pantalla": "screens/09-cliente-mis-solicitudes-linea-de-tiempo.png",
+      "nombre": "Mis solicitudes, con el progreso de cada trabajo",
+      "patron": "avanza por pasos / semáforo",
+      "microAnimacion": "la barra del trabajo avanza tramo por tramo (Pedido, Presupuesto, Seña, Terminado) y el rótulo nombra lo que falta: 'Esperando presupuesto', 'Esperando tu respuesta', 'Trabajo agendado', 'Terminado'",
+      "chip": "Seguimiento",
+      "titulo": "Sabés en qué paso está tu trabajo",
+      "resaltar": "en qué paso está",
+      "sub": "Pedido, presupuesto, seña y terminado: la barra te dice qué falta, sin preguntarle a nadie.",
+      "durSec": 6
+    }
+  ]
+}

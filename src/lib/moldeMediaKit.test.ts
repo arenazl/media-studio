@@ -24,12 +24,14 @@ const MEDIA_KIT = {
 };
 
 describe('concept — el kit entra como materia prima', () => {
-  it('CON kit nombra las capturas reales, los momentos y el CTA verificado', () => {
+  it('CON kit entra el recorrido de pantallas (sin el caso de la demo), cómo la usa cada lado y el CTA verificado', () => {
+    // 2026-10-12 (Lucas): las capturas son la referencia del flujo; la micro-animación traía el caso de la demo y no entra
     const p = build('concept', { project: PROJECT, piece: { mediaKit: MEDIA_KIT } }).prompt;
-    expect(p).toContain('CAPTURAS REALES DE LA APP');
+    expect(p).toContain('RECORRIDO DE PANTALLAS DE LA APP');
     expect(p).toContain('[DEMO] Home');
-    expect(p).toContain('[DEMO] el buscador se despliega');
-    expect(p).toContain('MOMENTOS');
+    expect(p).not.toContain('[DEMO] el buscador se despliega');
+    expect(p).toContain('CÓMO USA LA APP CADA LADO');
+    expect(p).toContain('DE DÓNDE SALE CADA COSA');
     expect(p).toContain('CTA VERIFICADO POR LA APP');
     expect(p).toContain('https://example.com/demo');
   });
@@ -44,7 +46,8 @@ describe('concept — el kit entra como materia prima', () => {
 describe('script — el kit entra como materia prima', () => {
   it('CON kit las capturas están disponibles para el "visual" de cada bloque', () => {
     const p = build('script', { project: PROJECT, piece: { mediaKit: MEDIA_KIT } }).prompt;
-    expect(p).toContain('CAPTURAS REALES DE LA APP');
+    expect(p).toContain('RECORRIDO DE PANTALLAS DE LA APP');
+    expect(p).not.toContain('[DEMO] el buscador se despliega');
     expect(p).toContain('[DEMO] Detalle');
   });
   it('SIN kit sigue byte-idéntico (1ª y 2ª línea exactas)', () => {
@@ -61,12 +64,13 @@ describe('script — el kit entra como materia prima', () => {
 describe('storyboard — el kit entra en las dos técnicas', () => {
   it('animado CON kit lista las capturas reales', () => {
     const p = build('storyboard', { project: PROJECT, piece: { tipo: 'animado', mediaKit: MEDIA_KIT } }).prompt;
-    expect(p).toContain('CAPTURAS REALES DE LA APP');
+    expect(p).toContain('RECORRIDO DE PANTALLAS DE LA APP');
     expect(p).toContain('[DEMO] Home');
   });
   it('filmado CON kit también las ve (b-roll de producto)', () => {
     const p = build('storyboard', { project: PROJECT, piece: { tipo: 'filmado', mediaKit: MEDIA_KIT } }).prompt;
-    expect(p).toContain('CAPTURAS REALES DE LA APP');
+    expect(p).toContain('RECORRIDO DE PANTALLAS DE LA APP');
+    expect(p).toContain('DE DÓNDE SALE CADA COSA');
   });
   it('SIN kit los dos prompts quedan byte-idénticos (2ª línea sin corrimiento)', () => {
     const animado = build('storyboard', { project: PROJECT, piece: { tipo: 'animado' } }).prompt;
@@ -76,7 +80,7 @@ describe('storyboard — el kit entra en las dos técnicas', () => {
     expect(animado.split('\n')[2]).toContain('Sos director de un reel ANIMADO');
     expect(filmado.split('\n')[2]).toContain('Sos director de un comercial FILMADO');
     expect(animado.split('\n')[3]).toBe('');   // sin kit, el bloque queda vacío y no corre las líneas
-    expect(filmado.split('\n')[3]).toBe('');
+    expect(filmado.split('\n')[3]).toBe('DE DÓNDE SALE CADA COSA');   // 2026-10-12: el filmado dice de dónde sale cada cosa
   });
 });
 

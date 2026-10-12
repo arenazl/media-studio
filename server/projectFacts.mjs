@@ -25,16 +25,30 @@ export function factsFromKb(kb) {
     keyMessages: arr(kb?.key_messages),
     offerings: (Array.isArray(kb?.offerings) ? kb.offerings : []).map((o) => ({ name: S(o?.name), description: S(o?.description), features: arr(o?.key_features) })).filter((o) => o.name || o.description),
     differentiators: arr(kb?.differentiators),
-    objections: (Array.isArray(kb?.objections) ? kb.objections : []).map((o) => ({ objection: S(o?.objection), response: S(o?.response) })).filter((o) => o.objection),
+    objections: (Array.isArray(kb?.objections) ? kb.objections : []).map((o) => ({ objection: S(o?.objection), response: S(o?.response) })).filter((o) => o.objection)
+      // los dolores del media kit (pains) son objeciones sin respuesta: antes no llegaban a ningún molde (2026-10-10)
+      .concat(arr(kb?.pains).map((p) => ({ objection: S(p), response: '' })).filter((o) => o.objection)),
+    painsByAudience: Object.fromEntries(Object.entries(kb?.pains_by_audience && typeof kb.pains_by_audience === 'object' ? kb.pains_by_audience : {}).map(([k, v]) => [k, arr(v)]).filter(([k, v]) => k !== 'cliente' && v.length)),
     pricing: { summary: S(kb?.pricing?.summary), promotions: arr(kb?.pricing?.promotions) },
     doNotSay: arr(kb?.do_not_say),
+    thesis: thesisOf(kb?.thesis),
     screens: Array.isArray(kb?.screens) ? kb.screens : [],
     source: 'kb',
   };
 }
 
+// La tesis del media kit (base-compartida/38): lo intangible que la app declara de sí misma (el fuerte, la comparación,
+// el enemigo, el momento mágico, a quién venderle primero). Antes sólo viajaba en el brief armado por el front, y cuando
+// el proyecto trae KB la ficha se arma de acá y el brief se ignora: no llegaba a ningún molde (2026-10-10).
+const thesisOf = (t) => {
+  const th = { strong: S(t?.strong), comparison: S(t?.comparison), enemy: S(t?.enemy), magicMoment: S(t?.magic_moment), sellFirst: S(t?.sell_first) };
+  return Object.values(th).some(Boolean) ? th : null;
+};
+const TESIS_CAMPOS = [['El fuerte', 'strong'], ['Se entiende como', 'comparison'], ['Contra qué', 'enemy'], ['El momento mágico', 'magicMoment'], ['A quién le hablamos primero', 'sellFirst']];
+
 // Parsea el markdown de kbToBrief (encabezados fijos). Lo que no reconoce queda en description.
 const H = {
+  tesis: /^## La tesis/i,
   negocio: /^## El negocio/i,
   propuesta: /^### La propuesta completa/i,
   mensajes: /^## Mensajes clave/i,
@@ -47,7 +61,7 @@ const H = {
 export function factsFromBrief(brief, name = '') {
   const f = {
     name: S(name) || 'el producto', tagline: '', description: '', valueStory: '', industry: '', targetAudience: '',
-    keyMessages: [], offerings: [], differentiators: [], objections: [], pricing: { summary: '', promotions: [] }, doNotSay: [], screens: [],
+    keyMessages: [], offerings: [], differentiators: [], objections: [], pricing: { summary: '', promotions: [] }, doNotSay: [], thesis: null, screens: [],
     source: 'brief',
   };
   const text = S(brief);
@@ -71,6 +85,12 @@ export function factsFromBrief(brief, name = '') {
     if ((sec === 'negocio' || sec === 'propuesta') && t.startsWith('- Rubro:')) { f.industry = t.slice(8).trim(); continue; }
     if ((sec === 'negocio' || sec === 'propuesta') && t.startsWith('- Público:')) { f.targetAudience = t.slice(10).trim(); continue; }
     switch (sec) {
+      case 'tesis': {
+        const mm = /^- (.+?):\s*(.*)$/.exec(t);
+        const campo = mm && TESIS_CAMPOS.find(([k]) => k === mm[1].trim());
+        if (campo) { if (!f.thesis) f.thesis = { strong: '', comparison: '', enemy: '', magicMoment: '', sellFirst: '' }; f.thesis[campo[1]] = S(mm[2]); }
+        break;
+      }
       case 'negocio': f.description = f.description ? `${f.description} ${t}` : t; break;
       case 'propuesta': f.valueStory = f.valueStory ? `${f.valueStory} ${t}` : t; break;
       case 'mensajes': if (t.startsWith('- ')) f.keyMessages.push(t.slice(2).trim()); break;
@@ -128,6 +148,7 @@ export function factsText(f, secciones = SECCIONES_TODAS) {
     if (f.targetAudience) L.push(`PÚBLICO: ${f.targetAudience}`);
     if (f.description) L.push(`QUÉ ES: ${f.description}`);
     if (f.valueStory) L.push(`LA PROPUESTA COMPLETA (cada video cuenta esto, no un módulo): ${f.valueStory}`);
+    if (f.thesis) L.push(`LA TESIS (lo que la app declara de sí misma; manda sobre los hechos de abajo):\n${TESIS_CAMPOS.filter(([, k]) => f.thesis[k]).map(([n, k]) => `- ${n}: ${f.thesis[k]}`).join('\n')}`);
   }
   if (want.has('mensajes') && f.keyMessages.length) L.push(`MENSAJES CLAVE (van en cada pieza):\n${f.keyMessages.map((m) => `- ${m}`).join('\n')}`);
   if (want.has('ofrece') && f.offerings.length) {
@@ -135,6 +156,7 @@ export function factsText(f, secciones = SECCIONES_TODAS) {
   }
   if (want.has('diferenciadores') && f.differentiators.length) L.push(`POR QUÉ ES DISTINTO:\n${f.differentiators.map((d) => `- ${d}`).join('\n')}`);
   if (want.has('objeciones') && f.objections.length) L.push(`DOLORES Y OBJECIONES (en palabras del cliente):\n${f.objections.map((o) => `- "${o.objection}"${o.response ? ` → ${o.response}` : ''}`).join('\n')}`);
+  if (want.has('objeciones')) for (const [aud, ds] of Object.entries(f.painsByAudience || {})) L.push(`DOLORES DEL ${aud.toUpperCase()} (en sus palabras):\n${ds.map((d) => `- "${d}"`).join('\n')}`);
   if (want.has('oferta') && (f.pricing.summary || f.pricing.promotions.length)) L.push(`OFERTA / CTA:\n${[f.pricing.summary, ...f.pricing.promotions].filter(Boolean).map((p) => `- ${p}`).join('\n')}`);
   if (want.has('evitar') && f.doNotSay.length) L.push(`NO DECIR:\n${f.doNotSay.map((d) => `- ${d}`).join('\n')}`);
   return L.join('\n');

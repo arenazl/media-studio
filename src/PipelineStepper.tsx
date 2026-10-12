@@ -3,7 +3,7 @@
 // ícono, label y estado en color. Click navega. Antes era un riel horizontal arriba del panel;
 // ahora es la columna fija de 220px a la izquierda (Pipeline.tsx arma el resto de la spine: crumb +
 // selector de comercial + este componente).
-import { Building2, Lightbulb, FileText, Users, Clapperboard, PackageOpen, Film, Video, Scissors, Megaphone, Check } from 'lucide-react';
+import { Building2, Lightbulb, FileText, Users, Clapperboard, PackageOpen, Film, LayoutTemplate, Scissors, Megaphone, Check } from 'lucide-react';
 import { pasosVisibles, pasoHabilitado, type PasoId, type EstadoPaso, type TipoComercial, type Comercial } from './lib/comercial';
 
 const META: Record<PasoId, { label: string; Icon: typeof Building2 }> = {
@@ -14,7 +14,7 @@ const META: Record<PasoId, { label: string; Icon: typeof Building2 }> = {
   storyboard: { label: 'Storyboard', Icon: Clapperboard },
   pack: { label: 'Pack Flow', Icon: PackageOpen },
   render: { label: 'Render', Icon: Film },
-  rodaje: { label: 'Rodaje', Icon: Video },
+  rodaje: { label: 'Mockups', Icon: LayoutTemplate },   // id interno 'rodaje' (estados guardados); desde 2026-10-11 es el paso de los mockups
   montaje: { label: 'Montaje', Icon: Scissors },
   publicar: { label: 'Publicar', Icon: Megaphone },
 };

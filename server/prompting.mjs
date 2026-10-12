@@ -9,12 +9,40 @@
 import { validateConceptResponseV3 } from './media-studio-concept-v3.mjs';
 
 export const PROMPT_VERSIONS = {
-  strategy: 'strategy/2.0',       // 2.0: curado 2026-10-07 (la campaña cubre la propuesta; cada pieza UNA cosa)
-  concept: 'concept/3.0',         // 3.0: curación externa 2026-10-10 (ENFOQUE + TRATAMIENTO elegidos por el dueño; humor sólo a pedido; spots de marca, no sketches)
-  script: 'script/2.0',           // 2.0: curado 2026-10-07 (el concepto manda; presupuesto en lista; NO ASUMIR)
-  cast: 'cast/2.0',               // 2.0: curado 2026-10-07 (sin ejemplos copiables; largos en números; 2º personaje sólo con función)
-  storyboard: 'storyboard/2.0',   // 2.0: curado 2026-10-07 (puesta en escena, no reescritura; animado por momento, [demo])
-  flowpack: 'flowpack/2.0-compilado',
+  strategy: 'strategy/2.1',       // 2.1: curación 02 (2026-10-11): jerarquía de la pieza, "hasta N" no es "N"
+  // strategy/2.0:       // 2.0: curado 2026-10-07 (la campaña cubre la propuesta; cada pieza UNA cosa)
+  concept: 'concept/3.2',         // 3.2: (2026-10-12) dice de dónde sale la idea; el kit entra como recorrido de pantallas, sin el caso de la demo
+  // concept/3.1:         // 3.1: curación 02 (2026-10-11): fidelidad al ángulo; ficha curada del enfoque caso
+  // concept/3.0:         // 3.0: curación externa 2026-10-10 (ENFOQUE + TRATAMIENTO elegidos por el dueño; humor sólo a pedido; spots de marca, no sketches)
+  script: 'script/3.8',           // 3.8: (2026-10-12) dice de dónde sale la historia; el kit entra como recorrido de pantallas
+  // script/3.7:           // 3.7: (2026-10-12) se van las reglas narrativas del 11/10; entra el estudio curado (calidad dramática, el concepto manda el orden, folleto no, beneficio sí)
+  // script/3.6:           // 3.6: (2026-10-11) ninguna frase explica la publicidad
+  // script/3.5:           // 3.5: (2026-10-11, vuelta 6) frases en presente, dichas en el momento; la placa con la marca escrita
+  // script/3.4:           // 3.4: (2026-10-11, vuelta 5) el otro lado habla de ESE pedido pensando en quien pide; 3 frases hasta 26 s
+  // script/3.3:           // 3.3: (2026-10-11, vuelta 4) un público; "hasta N" no es N; "vos" = a cámara; ortografía
+  // script/3.2:           // 3.2: (2026-10-11, vuelta 3) el gancho empieza por el golpe
+  // script/3.1:           // 3.1: (2026-10-11, vuelta 2) orden causal, gancho con el dolor, habla real, hasta 4 frases, cta en placa
+  // script/3.0:           // 3.0: (2026-10-11) filmado sin locutor: cada bloque dice "quien" lo dice en cámara; hook concreto; una toma por bloque
+  // script/2.1:           // 2.1: curación 02 (2026-10-11): escribir para ser escuchado; durSec de referencia
+  // script/2.0:           // 2.0: curado 2026-10-07 (el concepto manda; presupuesto en lista; NO ASUMIR)
+  cast: 'cast/2.4',               // 2.4: (2026-10-12) dice de dónde salen las personas y el lugar
+  // cast/2.3:               // 2.3: (2026-10-12) lugar compartido si el concepto lo pide; sin biografías ni decorados inventados
+  // cast/2.2:               // 2.2: (2026-10-11, vuelta 4) vestuarioEn, un detalle propio, el país en los objetos
+  // cast/2.1:               // 2.1: (2026-10-11) cada personaje con SU lugar (lugarEn) y el nombre con que lo nombra el guion
+  // cast/2.0:               // 2.0: curado 2026-10-07 (sin ejemplos copiables; largos en números; 2º personaje sólo con función)
+  storyboard: 'storyboard/3.9',   // 3.9: (2026-10-12) dice de dónde sale cada cosa; el kit entra como recorrido de pantallas
+  // storyboard/3.8:   // 3.8: (2026-10-12) se van las reglas narrativas del 11/10; entra el estudio curado (dirección narrativa y actoral); la duración es la del guion
+  // storyboard/3.7:   // 3.7: (2026-10-11) el profesional haciendo su oficio, no mirando un teléfono
+  // storyboard/3.6:   // 3.6: (2026-10-11, vuelta 7) física de la escena, emoción simple, la frase después de lo que la provoca
+  // storyboard/3.5:   // 3.5: (2026-10-11, vuelta 6) el giro es la reacción al resultado
+  // storyboard/3.4:   // 3.4: (2026-10-11, vuelta 5) cada escena muestra el momento en que pasa, no a alguien contándolo
+  // storyboard/3.3:   // 3.3: (2026-10-11, vuelta 4) el gancho se ve, sin manos finas, una pantalla por frase, "vos" a cámara
+  // storyboard/3.2:   // 3.2: (2026-10-11, vuelta 3) habla desde el primer segundo, a cámara como mucho 2, objeto reconocible
+  // storyboard/3.1:   // 3.1: (2026-10-11, vuelta 2) una acción por escena, orden causal, cta = placa, frase + 1s
+  // storyboard/3.0:   // 3.0: (2026-10-11) cada escena filmada es una situación (acción + objeto + cambio), sin locutor, planos variados, accionEn
+  // storyboard/2.1:   // 2.1: curación 02 (2026-10-11): nunca se filma una pantalla; insertos con la captura del kit
+  // storyboard/2.0:   // 2.0: curado 2026-10-07 (puesta en escena, no reescritura; animado por momento, [demo])
+  flowpack: 'flowpack/3.2-compilado',   // 3.2 (2026-10-12): sin "pantalla poco legible" (chocaba con "la pantalla nunca a cámara") ni el chat visible del gancho
   publish: 'publish/1.1',         // 1.1: lee el guion canónico
   qa: 'qa/1.1',                   // 1.1: lint técnico + juicio creativo
   videoprompt: 'videoprompt/1.0',
@@ -80,16 +108,28 @@ export const VALIDADORES = {
     const dur = Number(body?.options?.duracion) || Number(body?.context?.piece?.durationSec) || 0;
     for (const b of blocks) {
       const w = palabras(b.narration), d = Number(b.durSec) || 0;
-      if (!w && !OPCIONALES.has(rolCanonico(b.role))) E.push(`el bloque "${b.role}" no tiene narración`);
+      // en el filmado (script/3.x) un bloque puede no tener voz: la imagen y la pantalla lo cuentan. Sí hace falta voz en el hook.
+      // 2026-10-12: en el filmado cualquier bloque puede ser sólo imagen, también el gancho (estudio curado: el gancho es el estímulo más interesante, no siempre una frase)
+      const filmadoSinVoz = (body?.context?.piece?.tipo || 'filmado') !== 'animado';
+      if (!w && !OPCIONALES.has(rolCanonico(b.role)) && !filmadoSinVoz) E.push(`el bloque "${b.role}" no tiene narración`);
       if (w && d && w / d > WPS_MAX) E.push(`el bloque "${b.role}" tiene ${w} palabras en ${d}s: como máximo ${maxNarrationWords(d)} palabras`);
     }
     const suma = blocks.reduce((a, b) => a + (Number(b.durSec) || 0), 0);
     if (dur && suma && Math.abs(suma - dur) > dur * 0.25) E.push(`los bloques suman ${suma}s y la pieza es de ${dur}s`);
+    // script/3.0: en una pieza filmada no hay locutor: toda frase tiene quien la diga en cámara, y cada bloque es UNA toma
+    if ((body?.context?.piece?.tipo || 'filmado') !== 'animado') {
+      for (const b of blocks) {
+        const w = palabras(b.narration);
+        const quien = String(b.quien || '').trim().toLowerCase();
+        if (w && !quien) E.push(`el bloque "${b.role}" no dice quién lo dice en cámara ("quien")`);
+      }
+    }
     // la marca se DICE con la fonética (TTS); el nombre escrito dentro de la narración sale mal pronunciado
     const nombre = String(body?.context?.project?.name || '').trim(), fon = String(body?.context?.project?.phonetic || '').trim();
     if (nombre && fon && fon.toLowerCase() !== nombre.toLowerCase()) {
       const re = new RegExp(`\\b${nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      for (const b of blocks) if (re.test(String(b.narration || ''))) E.push(`el bloque "${b.role}" dice "${nombre}" escrito; en la narración la marca va con su fonética "${fon}"`);
+      // la placa del cierre es TEXTO en pantalla: ahí la marca va escrita, no con la fonética
+      for (const b of blocks) if (String(b.quien || '').trim().toLowerCase() !== 'placa' && re.test(String(b.narration || ''))) E.push(`el bloque "${b.role}" dice "${nombre}" escrito; en la narración la marca va con su fonética "${fon}"`);
     }
     return E;
   },
@@ -107,24 +147,21 @@ export const VALIDADORES = {
       if (tipo === 'filmado' && w && d && w / d > WPS_MAX) E.push(`escena ${e.n}: ${w} palabras en ${d}s, como máximo ${maxNarrationWords(d)}`);
     });
     const suma = es.reduce((a, e) => a + (Number(e.durSec) || 0), 0);
-    // Dueño, 2026-10-07: la duración la decide la cantidad de talking heads (8s cada uno). Tope = lo mayor
-    // entre el 125% de la pieza y 8s por talking head + 4s por b-roll (+ el 25%).
-    const ths = es.filter(esTalkingHead);
-    const th = ths.length;
-    const maxTh = dur && dur <= 24 ? 2 : 3;
-    if (tipo === 'filmado' && th > maxTh) E.push(`hay ${th} talking heads para una pieza de ${dur}s: como máximo ${maxTh}; convertí el resto en b-roll con voz en off (personajes [])`);
-    for (const e of ths) {
-      const d = Number(e.durSec) || 0, w = palabras(e.dialogo);
-      if (tipo === 'filmado' && d >= 8 && w < Math.round((maxNarrationWords(8) - 4) * 0.7)) E.push(`escena ${e.n}: un talking head de ${d}s con ${w} palabras es aire; juntá bloques del guion hasta ${maxNarrationWords(8) - 4} a ${maxNarrationWords(8)} palabras`);
+    if (tipo === 'filmado') {
+      // storyboard/3.0 (2026-10-11): sin locutor. Toda frase la dice en cámara la persona de su escena; los insertos de
+      // pantalla no hablan; dos escenas filmadas seguidas no repiten plano; cada escena filmada trae su acción en inglés.
+      // Reemplaza las reglas del 2026-10-07 ("talking head = 8s con 18-21 palabras, máximo 2, el resto voz en off"): esa
+      // voz en off nadie la grababa en el filmado/híbrido y las escenas llegaban mudas y sin la persona a Flow.
+      for (const e of es) {
+        const w = palabras(e.dialogo);
+        const filmada = !String(e.pantalla || '').trim();
+        if (w && !(e.personajes || []).length) E.push(`escena ${e.n}: tiene frase pero nadie en cuadro que la diga; poné en "personajes" a quien la dice`);
+        if (!filmada && w) E.push(`escena ${e.n}: un inserto de pantalla no tiene frase`);
+        if (filmada && (e.personajes || []).length && !String(e.accionEn || '').trim()) E.push(`escena ${e.n}: falta "accionEn" (la acción en inglés para el generador)`);
+      }
+      const tope = Math.round(dur * 1.25);
+      if (dur && suma && suma > tope) E.push(`las escenas suman ${suma}s para una pieza de ${dur}s: como máximo ${tope}s`);
     }
-    if (tipo === 'filmado') for (const e of es) {
-      const w = palabras(e.dialogo), d = Number(e.durSec) || 0;
-      const broll = !(e.personajes || []).length;
-      if (broll && w && d > Math.max(4, Math.ceil(w / WPS) + 1)) E.push(`escena ${e.n}: b-roll con voz en off de ${w} palabras dura ${d}s; a 2,7 palabras por segundo son ${Math.max(4, Math.ceil(w / WPS))}s`);
-    }
-    // tope real: 125% de la pieza, o 24-30s si hay dos talking heads (regla del dueño, 2026-10-07)
-    const tope = th >= 2 ? Math.max(Math.round(dur * 1.25), 30) : Math.round(dur * 1.25);
-    if (dur && suma && suma > tope) E.push(`las escenas suman ${suma}s para una pieza de ${dur}s con ${th} talking head(s): como máximo ${tope}s`);
     return E;
   },
   cast(o) {
@@ -135,6 +172,8 @@ export const VALIDADORES = {
       if (palabras(p.fisicoEs) > 25) E.push(`personaje ${p.id || p.nombre}: fisicoEs es largo (máximo 18 palabras)`);
     }
     if (o?.lugar && palabras(o.lugar.descripcionEn) > 80) E.push('la locación es larga (máximo 50 palabras)');
+    for (const p of o?.personajes || []) if (!String(p.lugarEn || '').trim()) E.push(`personaje ${p.id || p.nombre}: falta lugarEn (dónde lo vemos)`);
+    for (const p of o?.personajes || []) if (!String(p.vestuarioEn || '').trim()) E.push(`personaje ${p.id || p.nombre}: falta vestuarioEn (la ropa en inglés)`);
     return E;
   },
   publish(o) {

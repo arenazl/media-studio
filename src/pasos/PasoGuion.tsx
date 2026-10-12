@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { RefreshCw, Loader2, Camera, Music2, FileText } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { KitTira } from '../components/KitCapturas';
+import CuracionGuion, { conGuionCurado } from './CuracionGuion';
 import { mediaKitParaMolde } from '../lib/mediaKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
@@ -61,6 +62,13 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     } catch (e) { setError(errMsg(e)); } finally { setBusyIdx(null); }
   };
 
+  // curación externa aplicada: el guion nuevo reemplaza al anterior y lo que se construyó encima queda pendiente
+  const [aviso, setAviso] = useState('');
+  const aplicarCuracion = (g: GuionEstructurado, info: { archivo: string; conPrompts: boolean }) => {
+    setComercial((c) => conGuionCurado(c, g, info.archivo));
+    setAviso(`Guion curado con ChatGPT aplicado.${comercial?.cast || comercial?.storyboard ? ' Personajes y storyboard se habían armado con el guion anterior: regeneralos.' : ''}${info.conPrompts ? ` La curación de los prompts quedó guardada${info.archivo ? ` en ${info.archivo}` : ''}, pendiente de tu dale.` : ''}`);
+  };
+
   const editNarr = (i: number, v: string) => {
     if (!guion) return;
     applyGuion({ ...guion, blocks: blocks.map((b, j) => (j === i ? { ...b, narration: v } : b)) }, 'editado');
@@ -75,6 +83,12 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     >
       {/* WO-K3: con qué capturas reales se va a armar el video (solo lectura; sin kit no se monta). */}
       <KitTira pantallas={project.pantallasKit} />
+
+      {blocks.length > 0 && comercial && (
+        <CuracionGuion project={project} comercial={comercial} durationSec={durationSec} formatoNombre={getFormato(comercial.formatoId)?.nombre || ''} onAplicar={aplicarCuracion} />
+      )}
+      {aviso && <div className="paso-empty" style={{ marginBottom: 8 }}>{aviso}</div>}
+      {comercial?.guionCurado && <div className="cur-sello">Curado con {comercial.guionCurado.fuente} · {new Date(comercial.guionCurado.fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</div>}
 
       {blocks.length > 0 ? (
         <>

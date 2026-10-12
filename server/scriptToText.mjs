@@ -21,7 +21,9 @@ export function scriptToText(guion, { roles = false } = {}) {
   if (roles && !Array.isArray(guion) && Array.isArray(guion.blocks)) {
     return guion.blocks
       .filter((b) => b && (String(b.narration ?? '').trim() || String(b.visual ?? '').trim()))
-      .map((b) => `[${b.role || ''}] ${String(b.narration ?? '').trim()}${b.visual ? ` (visual: ${b.visual})` : ''}`)
+      // script/3.0: con `quien` (la persona que lo dice en cámara) el texto lo nombra: "[desarrollo · electricista] ..."
+      // 2026-10-12: con la duración del bloque, para que el storyboard dure lo que dura el guion (estudio curado)
+      .map((b) => `[${b.role || ''}${String(b.quien ?? '').trim() ? ` · dice: ${String(b.quien).trim()}` : ''}${Number(b.durSec) > 0 ? ` · ${Number(b.durSec)}s` : ''}] ${String(b.narration ?? '').trim()}${b.visual ? ` (visual: ${b.visual})` : ''}`)
       .join(' · ');
   }
   return scriptNarrations(guion).join(' · ');

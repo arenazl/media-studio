@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Traza de orquestación</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root { --bg: #1F1510; --panel: #2B1E17; --panel-2: #3A2A20; --line: #4A3628; --fg: #FBF6EF; --muted: #C9B8A8; --accent: #EE5A0E; --accent-ink: #fff; --ok: #34D399; --mal: #F87171; color-scheme: dark; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #FBF6EF; --panel: #fff; --panel-2: #F3EBDF; --line: #E2D6C6; --fg: #231A14; --muted: #5E5046; --accent: #C9450A; --ok: #0F9D63; --mal: #C2410C; color-scheme: light; } }
+  :root[data-theme="light"] { --bg: #FBF6EF; --panel: #fff; --panel-2: #F3EBDF; --line: #E2D6C6; --fg: #231A14; --muted: #5E5046; --accent: #C9450A; --ok: #0F9D63; --mal: #C2410C; color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 Inter, system-ui, sans-serif; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 22px 16px 56px; display: flex; flex-direction: column; gap: 14px; }
+  h1, h2 { font-family: Sora, system-ui, sans-serif; margin: 0; } h1 { font-size: clamp(22px, 5vw, 30px); } h2 { font-size: 16px; }
+  .eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  .cab { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .cab div { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+  .cab span { display: block; font-size: 11.5px; color: var(--muted); } .cab b { font-size: 14px; overflow-wrap: anywhere; }
+  .tabs { display: flex; gap: 8px; overflow-x: auto; position: sticky; top: 0; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--line); scrollbar-width: none; z-index: 2; }
+  .tabs button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 999px; padding: 8px 14px; font: 600 13.5px Sora, sans-serif; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; overflow-wrap: anywhere; }
+  .kv { display: grid; grid-template-columns: 170px 1fr; gap: 10px; padding: 5px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .kv:first-of-type { border-top: 0; } .kv > span { color: var(--muted); }
+  @media (max-width: 520px) { .kv { grid-template-columns: 1fr; gap: 0; } }
+  .sub { margin: 4px 0 0 0; padding-left: 10px; border-left: 2px solid var(--line); }
+  pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: 12.5px/1.5 ui-monospace, Menlo, monospace; color: var(--muted); }
+  .ok { color: var(--ok); font-weight: 600; } .mal { color: var(--mal); font-weight: 600; } .dim { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Traza de orquestación · la registra la aplicación</span>
+  <h1 id="titulo"></h1>
+  <div class="cab" id="cab"></div>
+  <nav class="tabs" id="tabs"></nav>
+  <main id="panel"></main>
+</div>
+<script>
+  var T = {"proyecto":{"id":"reparehoy-pz7m","nombre":"RepareHoy"},"pieza":{"id":"com-nadie-te-contesta-rqyk","titulo":"Nadie te contesta","tipo":"filmado","formatoId":"reel-hibrido-9-16"},"generadaEl":"2026-10-12T01:33:20.649Z","decisionesVigentes":{"enfoque":"dos-lados","tratamiento":"aspiracional","intensidadHumor":null,"recursoHumorId":null,"cierreMarca":null,"angulo":"Nadie te contesta","creativeBrief":"Esta pieza se queda en un solo dolor: la cadena de mensajes sin respuesta cuando tenés algo roto en casa, y el vuelco a la escena contraria, donde el pedido publicado una sola vez trae hasta tres presupuestos de profesionales verificados de la zona. El mensaje principal es que el que busca deja de buscar; la prueba es la pantalla con la tira 'Te esperan tus proveedores' ordenada por urgencia. No explica el pago ni la reputación: sólo deja claro que RepareHoy es donde contás el problema y te llegan los presupuestos, y cierra invitando a entrar a reparehoy.com.ar.","durationSec":26},"elecciones":{"conceptoElegido":{"id":"c3","topico":"El pedido que llega","tipoGancho":"DEMOSTRACIÓN DIRECTA"},"estados":{"negocio":"aprobado","concepto":"aprobado","guion":"aprobado","cast":"aprobado","storyboard":"aprobado","pack":"aprobado","render":"pendiente","rodaje":"aprobado","montaje":"generado","publicar":"pendiente"},"musica":{"mood":"cálida, confiada"},"personajes":["Vecina","Electricista"],"escenas":7,"promptsFlow":3},"totales":{"corridas":6,"costoUsd":0.5319,"durMs":106886,"reparaciones":3,"conErrores":1},"pasos":[{"paso":"concept","cuando":"2026-10-11T08:43:06.189Z","promptVersion":"concept/3.1","proveedor":"claude","modeloPedido":"opus","modeloReal":"claude-opus-5","estado":"ok","cache":false,"durMs":33130,"apiMs":20579,"tokens":{"entrada":10368,"salida":1120,"pensando":0},"costoUsd":0.195976,"reparado":true,"validacion":{"ok":true,"errores":[]},"decisiones":{"perfil":"campaña","enfoque":"dos-lados","tratamiento":"aspiracional","intensidadHumor":"sutil","recursoHumorId":"auto","cierreMarca":null,"angulo":"Nadie te contesta","tipo":"filmado","durationSec":20,"tono":null,"molde":null,"cache":true,"regenerate":false,"modeloPedido":"opus"}},{"paso":"concept","cuando":"2026-10-11T08:43:41.590Z","promptVersion":"concept/3.1","proveedor":"claude","modeloPedido":"opus","modeloReal":"claude-opus-5","estado":"cache","cache":true,"durMs":7,"apiMs":0,"tokens":{"entrada":0,"salida":0,"pensando":0},"costoUsd":0,"reparado":false,"validacion":{"ok":true,"errores":[]},"decisiones":{"perfil":"campaña","enfoque":"dos-lados","tratamiento":"aspiracional","intensidadHumor":"sutil","recursoHumorId":"auto","cierreMarca":null,"angulo":"Nadie te contesta","tipo":"filmado","durationSec":20,"tono":null,"molde":null,"cache":true,"regenerate":false,"modeloPedido":"opus"}},{"paso":"script","cuando":"2026-10-11T08:44:22.040Z","promptVersion":"script/2.1","proveedor":"claude","modeloPedido":"opus","modeloReal":"claude-opus-5","estado":"ok","cache":false,"durMs":28589,"apiMs":20716,"tokens":{"entrada":9499,"salida":1466,"pensando":1037},"costoUsd":0.174399,"reparado":true,"validacion":{"ok":true,"errores":[]},"decisiones":{"perfil":null,"enfoque":"dos-lados","tratamiento":"aspiracional","intensidadHumor":null,"recursoHumorId":null,"cierreMarca":null,"angulo":null,"tipo":"filmado","durationSec":26,"tono":"cercano","molde":null,"cache":true,"regenerate":false,"modeloPedido":"opus"}},{"paso":"cast","cuando":"2026-10-11T08:44:38.353Z","promptVersion":"cast/2.0","proveedor":"claude","modeloPedido":"sonnet","modeloReal":"claude-sonnet-5","estado":"ok","cache":false,"durMs":11407,"apiMs":10116,"tokens":{"entrada":4105,"salida":667,"pensando":0},"costoUsd":0.03688,"reparado":false,"validacion":{"ok":true,"errores":[]},"decisiones":{"perfil":null,"enfoque":"dos-lados","tratamiento":"aspiracional","intensidadHumor":null,"recursoHumorId":null,"cierreMarca":null,"angulo":null,"tipo":null,"durationSec":null,"tono":null,"molde":null,"cache":true,"regenerate":false,"modeloPedido":"sonnet"}},{"paso":"storyboard","cuando":"2026-10-11T08:45:09.277Z","promptVersion":"storyboard/2.1","proveedor":"claude","modeloPedido":"sonnet","modeloReal":"claude-sonnet-5","estado":"ok","cache":false,"durMs":27434,"apiMs":11764,"tokens":{"entrada":7269,"salida":1130,"pensando":0},"costoUsd":0.107899,"reparado":true,"validacion":{"ok":false,"errores":["las escenas suman 41s para una pieza de 26s con 2 talking head(s): como máximo 33s"]},"decisiones":{"perfil":null,"enfoque":"dos-lados","tratamiento":"aspiracional","intensidadHumor":null,"recursoHumorId":null,"cierreMarca":null,"angulo":null,"tipo":"filmado","durationSec":26,"tono":null,"molde":null,"cache":true,"regenerate":false,"modeloPedido":"sonnet"}},{"paso":"flowpack","cuando":"2026-10-11T08:46:21.983Z","promptVersion":"flowpack/2.0-compilado","proveedor":"claude","modeloPedido":"sonnet","modeloReal":"claude-sonnet-5","estado":"ok","cache":false,"durMs":6319,"apiMs":4332,"tokens":{"entrada":2211,"salida":173,"pensando":0},"costoUsd":0.016718,"reparado":false,"validacion":{"ok":true,"errores":[]},"decisiones":{"perfil":null,"enfoque":null,"tratamiento":null,"intensidadHumor":null,"recursoHumorId":null,"cierreMarca":null,"angulo":null,"tipo":null,"durationSec":null,"tono":null,"molde":null,"cache":true,"regenerate":false,"modeloPedido":"sonnet"}}]};
+  // nombres legibles de las claves conocidas; lo que no esté acá se muestra con su nombre
+  var ETI = { proyecto: 'Proyecto', pieza: 'Pieza', generadaEl: 'Generada', decisionesVigentes: 'Decisiones', elecciones: 'Elecciones', totales: 'Totales', pasos: 'Pasos',
+    enfoque: 'Enfoque', tratamiento: 'Tratamiento', intensidadHumor: 'Intensidad del humor', recursoHumorId: 'Recurso de humor', cierreMarca: 'Cierre de marca', angulo: 'Ángulo', creativeBrief: 'Brief creativo', durationSec: 'Duración (s)', perfil: 'Perfil', tipo: 'Tipo', tono: 'Tono', molde: 'Molde', cache: 'Desde caché', regenerate: 'Regenerado', modeloPedido: 'Modelo pedido',
+    conceptoElegido: 'Concepto elegido', estados: 'Estados de los pasos', musica: 'Música', personajes: 'Personajes', escenas: 'Escenas', promptsFlow: 'Pedidos a Flow',
+    corridas: 'Corridas', costoUsd: 'Costo (USD)', durMs: 'Duración', reparaciones: 'Reparaciones', conErrores: 'Con errores',
+    paso: 'Paso', cuando: 'Cuándo', promptVersion: 'Versión del molde', proveedor: 'Proveedor', modeloReal: 'Modelo real', estado: 'Estado', apiMs: 'Tiempo de la API', tokens: 'Tokens', entrada: 'entrada', salida: 'salida', pensando: 'pensando', reparado: 'Se reparó', validacion: 'Validación', ok: 'Válido', errores: 'Errores', decisiones: 'Aristas elegidas', id: 'Id', nombre: 'Nombre', titulo: 'Título', formatoId: 'Formato' };
+  var PASO = { strategy: 'Estrategia', concept: 'Concepto', script: 'Guion', cast: 'Personajes', storyboard: 'Storyboard', flowpack: 'Pedidos a Flow', qa: 'Control de calidad', publish: 'Publicación' };
+  function e(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function eti(k) { return ETI[k] || k; }
+  function hora(iso) { var d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + ' (hora argentina)'; }
+  function valor(k, v) {
+    if (v === null || v === undefined || v === '') return '<span class="dim">—</span>';
+    if (typeof v === 'boolean') return v ? '<span class="ok">sí</span>' : '<span class="dim">no</span>';
+    if (k === 'durMs' || k === 'apiMs') return (v / 1000).toFixed(1) + ' s';
+    if (k === 'costoUsd') return 'USD ' + Number(v).toFixed(3);
+    if (k === 'cuando' || k === 'generadaEl') return e(hora(v));
+    if (k === 'paso') return e(PASO[v] || v);
+    if (Array.isArray(v)) return v.length ? (typeof v[0] === 'object' ? v.map(function (x) { return '<div class="sub">' + filas(x) + '</div>'; }).join('') : e(v.join(' · '))) : '<span class="dim">ninguno</span>';
+    if (typeof v === 'object') return '<div class="sub">' + filas(v) + '</div>';
+    var s = String(v);
+    return s.length > 160 ? '<pre>' + e(s) + '</pre>' : e(s);
+  }
+  function filas(o) { return Object.keys(o).map(function (k) { return '<div class="kv"><span>' + e(eti(k)) + '</span><div>' + valor(k, o[k]) + '</div></div>'; }).join(''); }
+  document.getElementById('titulo').textContent = (T.pieza && T.pieza.titulo ? T.pieza.titulo : 'Traza') + (T.proyecto && T.proyecto.nombre ? ' · ' + T.proyecto.nombre : '');
+  document.getElementById('cab').innerHTML = [['Proyecto', T.proyecto && T.proyecto.nombre], ['Pieza', T.pieza && T.pieza.titulo], ['Tipo', T.pieza && T.pieza.tipo], ['Formato', T.pieza && T.pieza.formatoId], ['Generada', T.generadaEl ? hora(T.generadaEl) : '']]
+    .filter(function (x) { return x[1]; }).map(function (x) { return '<div><span>' + e(x[0]) + '</span><b>' + e(x[1]) + '</b></div>'; }).join('');
+  // una pestaña por cada parte del JSON (menos el encabezado)
+  var partes = Object.keys(T).filter(function (k) { return ['proyecto', 'pieza', 'generadaEl'].indexOf(k) < 0; });
+  var actual = partes.indexOf('pasos') >= 0 ? 'pasos' : partes[0];
+  function pintar() {
+    document.getElementById('tabs').innerHTML = partes.map(function (k) { return '<button type="button" data-k="' + k + '" aria-selected="' + (k === actual) + '">' + e(eti(k)) + (Array.isArray(T[k]) ? ' (' + T[k].length + ')' : '') + '</button>'; }).join('');
+    var v = T[actual], h;
+    if (Array.isArray(v)) h = v.map(function (x, i) { return '<div class="card"><h2>' + (x.paso ? e(PASO[x.paso] || x.paso) : 'Ítem ' + (i + 1)) + (x.cuando ? ' <span class="dim" style="font-size:13px;font-weight:500">' + e(hora(x.cuando)) + '</span>' : '') + (x.estado ? ' <span class="' + (x.estado === 'ok' ? 'ok' : x.estado === 'cache' ? 'dim' : 'mal') + '" style="font-size:13px">' + e(x.estado) + '</span>' : '') + '</h2>' + filas(x) + '</div>'; }).join('');
+    else if (v && typeof v === 'object') h = Object.keys(v).map(function (k) { return '<div class="card"><h2>' + e(eti(k)) + '</h2>' + valor(k, v[k]) + '</div>'; }).join('');
+    else h = '<div class="card">' + valor(actual, v) + '</div>';
+    document.getElementById('panel').innerHTML = h;
+  }
+  document.getElementById('tabs').addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (!b) return; actual = b.dataset.k; pintar(); window.scrollTo(0, 0); });
+  pintar();
+</script>
+</body>
+</html>

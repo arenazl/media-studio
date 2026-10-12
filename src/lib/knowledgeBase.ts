@@ -31,7 +31,11 @@ export interface KBBrand {
   avoid?: string[];
 }
 export interface KBOffering { id?: string; name: string; description: string; key_features?: string[]; status?: string }
+// La tesis de marketing de la app (38 §3 5bis): en palabras de su dueño, lo no tangible que decide la campaña.
+export interface KBThesis { strong?: string; comparison?: string; enemy?: string; magic_moment?: string; sell_first?: string }
+
 export interface KnowledgeBase {
+  thesis?: KBThesis;
   contract_version: string;
   last_updated?: string;
   business: { name: string; tagline?: string; description: string; value_story?: string; industry?: string; target_audience?: string; website?: string };
@@ -49,12 +53,27 @@ export interface KnowledgeBase {
 
 // El KB → el brief markdown (los "hechos") que consume social-marketing-strategist / promo-kit.
 // Solo material de la capa NEGOCIO; lo visual va por brandKit + screens.
+// Sección "La tesis" del brief (vacía si el KB no la trae). Misma forma para el KB del KSP y para el media kit.
+export function tesisEnBrief(t?: { strong?: string; comparison?: string; enemy?: string; magic_moment?: string; sell_first?: string }): string[] {
+  if (!t || !(t.strong || t.comparison || t.enemy || t.magic_moment || t.sell_first)) return [];
+  const L: string[] = ['## La tesis (lo que se vende, en palabras de la app)'];
+  if (t.strong) L.push(`- El fuerte: ${t.strong}`);
+  if (t.comparison) L.push(`- Se entiende como: ${t.comparison}`);
+  if (t.enemy) L.push(`- Contra qué: ${t.enemy}`);
+  if (t.magic_moment) L.push(`- El momento mágico: ${t.magic_moment}`);
+  if (t.sell_first) L.push(`- A quién le hablamos primero: ${t.sell_first}`);
+  L.push('');
+  return L;
+}
+
 export function kbToBrief(kb: KnowledgeBase): string {
   const b = kb.business;
   const L: string[] = [];
   L.push(`# ${b.name} — brief (desde el KB de la app)`);
   if (b.tagline) L.push(`> ${b.tagline}`);
   L.push('');
+  // la tesis va primero: es lo que se vende; los moldes la leen antes que la lista de funciones
+  L.push(...tesisEnBrief(kb.thesis));
   L.push('## El negocio');
   L.push(b.description);
   if (b.value_story) { L.push(''); L.push('### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)'); L.push(b.value_story); }

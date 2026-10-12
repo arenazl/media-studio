@@ -240,9 +240,11 @@ export const MunifyTarjetas: React.FC<TarjetasProps> = ({ plan }) => {
           <EscenaTarjeta e={e} />
         </Sequence>
       ))}
-      <Sequence from={finEscenas} durationInFrames={placaDur} name="placa">
-        <Placa plan={plan} dur={placaDur} />
-      </Sequence>
+      {placaDur > 0 && (
+        <Sequence from={finEscenas} durationInFrames={placaDur} name="placa">
+          <Placa plan={plan} dur={placaDur} />
+        </Sequence>
+      )}
       <div style={{ position: 'absolute', bottom: 120, left: 0, right: 0, textAlign: 'center', fontFamily: sans, fontSize: 24, color: 'rgba(255,255,255,0.45)', letterSpacing: 2 }}>munify.com.ar</div>
       {plan.voz ? <Sequence from={Math.round((plan.voz.desde || 0) * fps)}><Audio src={plan.voz.src} /></Sequence> : null}
       {plan.musica ? <Audio src={plan.musica.src} volume={plan.musica.gain} /> : null}

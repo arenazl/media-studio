@@ -1,0 +1,68 @@
+/* Consola de debug (2026-10-10): panel fijo abajo, plegable, abierta ocupa el 20% de la pantalla con scroll propio.
+   Herramienta de desarrollo con su propio ambiente oscuro, para que se distinga de la app. Colores de origen iguales a la
+   radiografía: kit verde, anterior celeste, creativo violeta, imaginado naranja, alerta rojo; capas: fijo gris, elegido
+   índigo, datos amarillo. */
+.dbg { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: #0B1220; color: #E2E8F0; border-top: 1px solid #1E293B; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 12.5px; box-shadow: 0 -6px 20px rgba(0, 0, 0, .35); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.dbg-espacio { height: 32px; flex: none; }
+.dbg-espacio--on { height: calc(20vh + 32px); }
+.dbg-bar { display: flex; align-items: center; gap: 10px; height: 32px; padding-inline: 10px; min-width: 0; }
+.dbg-tog { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-weight: 600; color: #F8FAFC; background: #1E293B; border: 1px solid #334155; border-radius: 6px; padding: 2px 8px; cursor: pointer; flex: none; }
+.dbg-tog:hover { border-color: #64748B; }
+.dbg-bar-paso { font-weight: 700; color: #F1F5F9; white-space: nowrap; flex: none; }
+.dbg-bar-run { color: #94A3B8; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11.5px; white-space: nowrap; flex: none; }
+.dbg-bar-info { color: #94A3B8; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+.dbg-bar-info--al { color: #FCA5A5; }
+.dbg-bar-btn { display: inline-flex; align-items: center; color: #CBD5E1; background: transparent; border: 1px solid #334155; border-radius: 6px; padding: 3px 5px; cursor: pointer; flex: none; }
+.dbg-bar-btn:disabled { opacity: .5; }
+.dbg-gira { animation: dbg-gira 1s linear infinite; }
+@keyframes dbg-gira { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dbg-gira { animation: none; } }
+.dbg-cuerpo { height: 20vh; min-height: 120px; overflow: auto; padding: 2px 12px 10px; border-top: 1px solid #1E293B; }
+.dbg-vacio { padding: 10px 2px; color: #94A3B8; }
+.dbg-error { color: #FCA5A5; }
+.dbg-aviso { color: #FDE68A; background: #1F1A0B; border: 1px solid #4D3B12; border-radius: 6px; padding: 4px 8px; margin: 6px 0; font-size: 12px; }
+.dbg-alertas { margin: 6px 0 2px; border: 1px solid #5B1F24; background: #1C0D10; border-radius: 6px; padding: 5px 8px; display: grid; gap: 3px; }
+.dbg-alertas b { color: #FCA5A5; font-weight: 600; }
+.dbg-alertas span { color: #CBD5E1; }
+.dbg-sec { border-bottom: 1px solid #1E293B; }
+.dbg-sec-cab { width: 100%; display: flex; align-items: center; gap: 6px; font: inherit; color: #E2E8F0; background: transparent; border: 0; padding: 6px 0; cursor: pointer; text-align: left; }
+.dbg-sec-cab:hover { color: #FFFFFF; }
+.dbg-sec-t { font-weight: 700; flex: none; }
+.dbg-sec-x { color: #64748B; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.dbg-sec-cuerpo { padding: 0 0 8px 19px; }
+.dbg-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.dbg-chip { border: 1px solid #334155; border-radius: 999px; padding: 1px 8px; color: #94A3B8; font-size: 11.5px; }
+.dbg-chip b { color: #F1F5F9; }
+.dbg-p { margin: 6px 0 0; color: #CBD5E1; max-width: 100ch; }
+.dbg-capas { display: grid; gap: 3px; }
+.dbg-capa { background: #0F172A; border: 1px solid #1E293B; border-left-width: 4px; border-radius: 5px; }
+.dbg-capa summary { display: flex; justify-content: space-between; gap: 10px; padding: 4px 8px; cursor: pointer; list-style: none; }
+.dbg-capa summary::-webkit-details-marker { display: none; }
+.dbg-capa-t { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.dbg-capa-n { color: #64748B; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; white-space: nowrap; }
+.dbg-capa pre { margin: 0; padding: 6px 8px 8px; white-space: pre-wrap; overflow-wrap: anywhere; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; line-height: 1.45; color: #CBD5E1; border-top: 1px solid #1E293B; max-height: 240px; overflow: auto; }
+.dbg-b-estatico { border-left-color: #64748B; } .dbg-b-preset { border-left-color: #818CF8; } .dbg-b-dinamico { border-left-color: #E2C044; }
+.dbg-frases { display: grid; gap: 2px; }
+.dbg-frase { display: grid; grid-template-columns: 118px 150px minmax(0, 1fr); gap: 8px; align-items: baseline; background: #0F172A; border-left: 3px solid #1E293B; border-radius: 3px; padding: 3px 8px; }
+@media (max-width: 760px) { .dbg-frase { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+.dbg-b-kit { border-left-color: #22C55E; } .dbg-b-anterior { border-left-color: #38BDF8; } .dbg-b-creativo { border-left-color: #A78BFA; } .dbg-b-imaginado { border-left-color: #FF8A3D; } .dbg-b-alerta { border-left-color: #F87171; }
+.dbg-frase > span:first-child { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; }
+.dbg-frase-campo { color: #64748B; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbg-t-kit { color: #4ADE80; } .dbg-t-anterior { color: #7DD3FC; } .dbg-t-creativo { color: #C4B5FD; } .dbg-t-imaginado { color: #FDBA74; }
+.dbg-frase-tx { color: #E2E8F0; overflow-wrap: anywhere; }
+.dbg-hechos { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 6px; }
+.dbg-hechos-t { color: #94A3B8; font-weight: 600; margin-right: 4px; min-width: 140px; }
+.dbg-h { border: 1px solid #334155; border-radius: 999px; padding: 0 7px; font-size: 11.5px; }
+.dbg-h--usado { border-color: #22C55E; color: #BBF7D0; }
+.dbg-h--ignorado { color: #64748B; text-decoration: line-through; }
+.dbg-h--no-llego { border-style: dashed; color: #FDBA74; }
+.dbg-tog:focus-visible, .dbg-sec-cab:focus-visible, .dbg-bar-btn:focus-visible, .dbg-capa summary:focus-visible { outline: 2px solid #60A5FA; outline-offset: 2px; }
+
+/* el registro: una entrada por paso que corrió, en orden; la del paso abierto, marcada */
+.dbg-ent { border-bottom: 1px solid #1E293B; }
+.dbg-ent--actual { background: #0E1729; }
+.dbg-ent-cab { width: 100%; display: flex; align-items: center; gap: 8px; font: inherit; color: #E2E8F0; background: transparent; border: 0; padding: 6px 0; cursor: pointer; text-align: left; min-width: 0; }
+.dbg-ent-t { font-weight: 700; color: #F8FAFC; flex: none; }
+.dbg-ent--actual .dbg-ent-t { color: #93C5FD; }
+.dbg-ent-cuerpo { padding: 0 0 8px 19px; }
+.dbg-ent-cuerpo .dbg-sec-cuerpo { padding-left: 19px; }

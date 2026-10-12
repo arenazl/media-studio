@@ -30,6 +30,52 @@ function formatoPayload(formatoId?: string): { aspecto: string; plataforma: stri
 // `piece` lleva los artefactos previos SIN aplanar (concepto/guion/cast/storyboard) — los moldes
 // del rework los leen directo de context.piece.<artefacto>. Si se pasa `comercial`, su formato se
 // inyecta en piece.formato (parametriza los moldes por aspecto/plataforma — WO-2).
+// Traza de orquestación (2026-10-10): la última pieza que corrió un molde, para el enlace al JSON de traza en PasoShell.
+let ultimaPieza: { projectId: string; pieceId: string } | null = null;
+// Radiografía (2026-10-10): la pieza abierta en el Pipeline (la marca Pipeline) y la página viva que sirve el backend.
+let piezaAbierta: { projectId: string; pieceId: string } | null = null;
+export const marcarPiezaAbierta = (projectId: string, pieceId?: string) => { piezaAbierta = pieceId ? { projectId, pieceId } : null; };
+export const radiografiaUrl = (paso?: string) => { const x = piezaAbierta || ultimaPieza; return x ? `${API_BASE}/radiografia/${encodeURIComponent(x.projectId)}/${encodeURIComponent(x.pieceId)}${paso ? `#${paso}` : ''}` : ''; };
+export const trazaUrl = () => (ultimaPieza ? `${API_BASE}/api/trazas/${encodeURIComponent(ultimaPieza.projectId)}/${encodeURIComponent(ultimaPieza.pieceId)}` : '');
+
+// El cuerpo que viaja a /api/run-function (y al Orquestador, que arma el mismo prompt sin correrlo): UNA sola
+// construcción para que lo que se ve en el Orquestador sea byte por byte lo que se manda al modelo.
+export function bodyMolde(
+  functionId: string,
+  project: Project,
+  piece: Record<string, unknown>,
+  options: Record<string, unknown> = {},
+  regenerate?: Record<string, unknown>,
+  comercial?: Comercial,
+  provider?: 'claude' | 'gemini',
+) {
+  const bk = project.brandKit as { phonetic?: string } | undefined;
+  const formato = formatoPayload(comercial?.formatoId);
+  return {
+    functionId,
+    context: {
+      project: {
+        name: project.name,
+        phonetic: bk?.phonetic || project.name,
+        brief: project.brief || '',
+        kb: project.kb,
+        type: project.type || '',
+        screens: project.screens || [],
+        brand: project.brandKit,
+        ...(formato ? { formato } : {}),
+      },
+      piece: { ...piece, ...(formato ? { formato } : {}) },
+    },
+    options,
+    model: effectiveModel(functionId),
+    cache: provider === undefined && !regenerate,
+    projectId: project.id,
+    pieceId: comercial?.id || '',
+    ...(provider ? { provider } : {}),
+    ...(regenerate ? { regenerate } : {}),
+  };
+}
+
 export async function runMolde(
   functionId: string,
   project: Project,
@@ -39,38 +85,15 @@ export async function runMolde(
   comercial?: Comercial,
   provider?: 'claude' | 'gemini',
 ): Promise<Record<string, unknown>> {
-  const bk = project.brandKit as { phonetic?: string } | undefined;
-  const formato = formatoPayload(comercial?.formatoId);
-  const body = {
-    functionId,
-    context: {
-      project: {
-        name: project.name,
-        phonetic: bk?.phonetic || project.name,
-        brief: project.brief || '',
-        kb: project.kb,              // Fase 2: el KB crudo → ProjectFacts en el back (sin esto, se parsea el brief)
-        type: project.type || '',   // rubro del KB (business.industry): lo usa cast para la locación (P0.3)
-        screens: project.screens || [],
-        brand: project.brandKit,
-        ...(formato ? { formato } : {}),
-      },
-      piece: { ...piece, ...(formato ? { formato } : {}) },
-    },
-    options,
-    model: effectiveModel(functionId),
-    // Fase 6: sin `provider` = auto-disparo o volver a la pantalla → puede leer caché. Con botón ('claude'|'gemini')
-    // el dueño quiere algo NUEVO: nunca caché. Los ids van para el registro de corridas (Fase 9).
-    cache: provider === undefined && !regenerate,
-    projectId: project.id,
-    pieceId: comercial?.id || '',
-    ...(provider ? { provider } : {}),
-    ...(regenerate ? { regenerate } : {}),
-  };
+  // Fase 6: sin `provider` = auto-disparo o volver a la pantalla → puede leer caché. Con botón ('claude'|'gemini')
+  // el dueño quiere algo NUEVO: nunca caché. Los ids van para el registro de corridas (Fase 9).
+  const body = bodyMolde(functionId, project, piece, options, regenerate, comercial, provider);
   const r = await fetch(`${API_BASE}/api/run-function`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
   const d = await r.json();
   if (!r.ok) throw new Error(d.error || 'no se pudo generar');
+  ultimaPieza = { projectId: project.id, pieceId: comercial?.id || '' };
   // Fase 9 (diagnóstico en la UI): la última corrida de cada molde queda a la vista bajo el botón.
   publicarCorrida(functionId, {
     promptVersion: String(d.promptVersion || ''),
@@ -182,6 +205,18 @@ export function PasoShell({
               {r.texto}
             </span>
           ); })()}
+          {/* Orquestador (2026-10-10): el prompt de este paso por capas, sin correrlo; Pipeline escucha el evento y abre el panel */}
+          {functionId && (
+            <button className="paso-corrida" type="button" onClick={() => window.dispatchEvent(new CustomEvent('ms:orquestador'))} title="Ver el prompt de este paso por capas (no llama al modelo)">Orquestador</button>
+          )}
+          {/* Traza de orquestación (2026-10-10): la metadata de todas las corridas de la pieza, para comparar orquestaciones */}
+          {!busy && trazaUrl() && (
+            <a className="paso-corrida" href={trazaUrl()} target="_blank" rel="noreferrer" title="Traza de orquestación de esta pieza: decisiones, moldes, modelos, tiempos, costos y validaciones (JSON)">Traza</a>
+          )}
+          {/* Radiografía (2026-10-10): qué prompt recibió este paso, qué salió, qué usó del kit y qué imaginó */}
+          {!busy && radiografiaUrl() && (
+            <a className="paso-corrida" href={radiografiaUrl(functionId)} target="_blank" rel="noreferrer" title="Radiografía de la pieza: el prompt que recibió cada paso, lo que salió, qué usó del kit y qué imaginó">Radiografía</a>
+          )}
         </div>
       </div>
       {error && <div className="paso-error">{error}</div>}

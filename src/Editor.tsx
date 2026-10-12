@@ -12,13 +12,14 @@ import { ArrowLeft, Clapperboard } from 'lucide-react';
 import type { Project, ProjectReel } from './lib/projects';
 import {
   buildEditorTimeline, resolvePlan, findClip, clipAt, clipsAt, aspectLabel,
-  type EditorTrack, type EditorClip, type TransitionKind,
+  type EditorTrack, type EditorClip, type TransitionKind, type TrackId,
 } from './lib/editorTracks';
 import { tracksToMontaje } from './lib/montajeFromTracks';
-import { autoArmarPlan } from './lib/autoArmar';
-import type { MontajePlan, MontajeState } from './lib/montajePlan';
+import { armarMontaje } from './lib/armarMontaje';
+import type { MezclaPista, MontajePlan, MontajeState } from './lib/montajePlan';
+import type { PlayerRef } from '@remotion/player';
 import {
-  deleteClip, duplicateClip, splitClip, dropLibItem, initHistory, pushHistory, undoHistory, redoHistory,
+  deleteClip, duplicateClip, splitClip, canSplit, dropLibItem, initHistory, pushHistory, undoHistory, redoHistory,
   type EditHistory, type DropItem,
 } from './lib/editorEdits';
 import {
@@ -31,6 +32,7 @@ import EditorLibrary from './EditorLibrary';
 import EditorPreview from './EditorPreview';
 import EditorInspector from './EditorInspector';
 import EditorTimeline from './EditorTimeline';
+import type { AccionClip } from './EditorClipMenu';
 import './Editor.css';
 
 export interface EditorProps {
@@ -39,12 +41,14 @@ export interface EditorProps {
   onPublish: () => void;
   // WO-4: App lo cablea a updateProject (dueño único). El editor le pasa el MontajePlan invertido del
   // draft; App escribe comercial.montaje.plan + avanza el estado 'montaje'→'editado'.
-  onSaveMontaje?: (plan: MontajePlan) => void;
+  // automatico: el armado que hace el editor al entrar — se guarda sin marcar el paso como editado a mano.
+  onSaveMontaje?: (plan: MontajePlan, opts?: { automatico?: boolean }) => void;
 }
 
 // alto de la timeline COLAPSADA (sólo la barra de herramientas visible) — igual al prototipo
 // (edTlH cae a 40px cuando !edTlOpen, en vez de seguir reservando el alto arrastrable completo).
 const TL_COLLAPSED_H = 40;
+const FADE_SEC = 0.5;   // largo del fade que pone el menú del clip (como mucho un tercio del clip)
 
 interface Selection { kind: 'clip' | 'transition' | null; clip?: EditorClip; track?: EditorTrack }
 
@@ -102,7 +106,7 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
   // plan base para invertir el draft (WO-4): el plan de origen del editor (persistido o derivado del
   // storyboard). Se fija al montar; aporta lo que el draft no modela (dims/logo/gain/duck). Fallback
   // con las dims que ya resolvió buildEditorTimeline (evita reinventar el default acá).
-  const [basePlan] = useState<MontajePlan>(() => {
+  const [basePlan, setBasePlan] = useState<MontajePlan>(() => {
     const t = buildEditorTimeline(comercial);
     return resolvePlan(comercial) ?? { width: t.width, height: t.height, fps: 30, scenes: [], silences: [], texts: [] };
   });
@@ -123,25 +127,13 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
   const [playing, setPlaying] = useState(false);
   const [playheadSec, setPlayheadSec] = useState(() => getPlayhead(project?.id));
 
-  // reproducción: avanza el playhead mientras `playing` (rAF, no depende de ningún <video> real —
-  // varios clips/pistas pueden solaparse, no hay un único elemento de media que "sea" el reloj).
-  useEffect(() => {
-    if (!playing || totalSec <= 0) return;
-    let raf = 0;
-    let last = performance.now();
-    const tick = (t: number) => {
-      const dt = (t - last) / 1000;
-      last = t;
-      setPlayheadSec((p) => {
-        const next = p + dt;
-        if (next >= totalSec) { setPlaying(false); return totalSec; }
-        return next;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [playing, totalSec]);
+  // el plan que sale del draft (lo mismo que se guardaría): la vista previa lo reproduce con el motor del render, y su
+  // Player es el reloj mientras suena (onTime mueve el cabezal). Sin escenas con clip no hay nada que reproducir.
+  const previewPlan = useMemo(() => tracksToMontaje(draftTracks, basePlan), [draftTracks, basePlan]);
+  // play/pausa: se le pide al Player con el evento del click (si el play sale de un efecto, Chrome puede no dejar sonar
+  // el audio); `playing` lo actualizan los eventos del Player. Sin Player montado (nada armado) no hay qué reproducir.
+  const playerApi = useRef<PlayerRef | null>(null);
+  const togglePlay = (e?: React.SyntheticEvent) => { playerApi.current?.toggle(e); };
 
   // persiste la posición del playhead por proyecto (debounce corto — mismo criterio que App.tsx).
   const playheadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -204,16 +196,49 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
     setContentDirty(false);
   }, [onSaveMontaje, history.present, basePlan]);
 
-  // WO-5: auto-armar la timeline (determinístico, sin IA/red). Reemplaza el draft por el resultado de
-  // autoArmarPlan (storyboard + voz + textos hook/CTA reales) vía el historial → deshacible con undo.
-  const onAutoArmar = () => {
-    if (!comercial) return;
-    const plan = autoArmarPlan(comercial, reel);
+  // auto-armar la timeline con el MISMO armado que el paso Montaje (lib/armarMontaje.ts: montajista, mockups, placa).
+  // Antes usaba autoArmarPlan (sólo el storyboard) y el mismo botón daba otro comercial. Entra al historial: deshacible.
+  const [autoArmando, setAutoArmando] = useState(false);
+  const pistasDe = (plan: MontajePlan) => {
     // reusa buildEditorTimeline pasándole un comercial con el plan armado como montaje persistido.
-    const comercialConPlan = { ...comercial, montaje: { plan, exports: (comercial.montaje as MontajeState | undefined)?.exports ?? [] } };
-    const tracks = buildEditorTimeline(comercialConPlan).tracks;
-    mutate(() => tracks);
+    const comercialConPlan = { ...comercial!, montaje: { plan, exports: (comercial!.montaje as MontajeState | undefined)?.exports ?? [] } };
+    return buildEditorTimeline(comercialConPlan).tracks;
   };
+  const onAutoArmar = async () => {
+    if (!comercial || !project || autoArmando) return;
+    setAutoArmando(true);
+    try {
+      const plan = await armarMontaje(project, comercial);
+      setBasePlan(plan);   // la placa, el estilo y los avisos del armado nuevo son la base de lo que se guarde
+      mutate(() => pistasDe(plan));
+      setPlayheadSec(0);
+    } finally { setAutoArmando(false); }
+  };
+
+  // AL ENTRAR (Lucas, 2026-10-11: "el auto-armar debería llamarse al entrar a la pantalla para tener algo para
+  // arrancar"): si el montaje todavía es el automático (no se guardó a mano ni se exportó), se rearma con el armado
+  // vigente y se guarda como automático. Lo que Lucas ya editó o aprobó no se toca: para eso está el botón.
+  const autoAlEntrar = useRef(false);
+  useEffect(() => {
+    if (autoAlEntrar.current || !comercial || !project || !onSaveMontaje || !comercial.storyboard?.length) return;
+    const estado = comercial.estados?.montaje;
+    if (estado === 'editado' || estado === 'aprobado') return;
+    const hayMaterial = comercial.tipo === 'animado' ? !!comercial.renderRef : !!(comercial.rodaje || []).length;
+    if (!hayMaterial) return;
+    autoAlEntrar.current = true;
+    setAutoArmando(true);
+    armarMontaje(project, comercial)
+      .then((plan) => {
+        setBasePlan(plan);
+        setHistory(initHistory(pistasDe(plan)));   // es el punto de partida, no un cambio para deshacer
+        setContentDirty(false);
+        setPlayheadSec(0);
+        onSaveMontaje(plan, { automatico: true });
+      })
+      .catch(() => { /* sin armado nuevo queda el plan que había */ })
+      .finally(() => setAutoArmando(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // WO-6a: soltar un item de la biblioteca en la timeline → dropLibItem (deshacible con undo).
   const onDropItem = (raw: string) => {
@@ -238,10 +263,9 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
       ? { ...t, clips: t.clips.map((c) => (c.id === clipId ? { ...c, label: value } : c)) }
       : t)));
   };
+  // la transición vive en el clip de escena, esté en Video o en Mockups (escena que es un mockup)
   const onTransitionTypeChange = (clipId: string, kind: TransitionKind) => {
-    mutate((tracks) => tracks.map((t) => (t.id === 'video'
-      ? { ...t, clips: t.clips.map((c) => (c.id === clipId ? { ...c, transitionAfter: kind } : c)) }
-      : t)));
+    mutate((tracks) => tracks.map((t) => ({ ...t, clips: t.clips.map((c) => (c.id === clipId ? { ...c, transitionAfter: kind } : c)) })));
   };
 
   // WO-4 (D5): cablea SOLO lo que el render EJECUTA — audioGain del clip (video) y gain/duck de la
@@ -264,7 +288,7 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
   const videoTrack = draftTracks.find((t) => t.id === 'video');
   const textoTrack = draftTracks.find((t) => t.id === 'texto');
   const fxTrack = draftTracks.find((t) => t.id === 'fx');
-  const currentVideoClip = clipAt(videoTrack, playheadSec);
+  const currentVideoClip = clipAt(videoTrack, playheadSec) || clipAt(draftTracks.find((t) => t.id === 'pantallas'), playheadSec);
   const activeTexts = clipsAt(textoTrack, playheadSec);
   const overlappingFx = useMemo(() => {
     if (selection.kind !== 'clip' || !selection.clip || !fxTrack) return [];
@@ -272,13 +296,45 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
     return fxTrack.clips.filter((f) => f.startSec < startSec + durSec && f.startSec + f.durSec > startSec);
   }, [selection.kind, selection.clip, fxTrack]);
 
+  // las escenas de la secuencia: lo filmado (Video) y las escenas-mockup (Mockups), en orden de tiempo
+  const escenaClips = useMemo(() => [
+    ...(videoTrack?.clips || []),
+    ...(draftTracks.find((t) => t.id === 'pantallas')?.clips.filter((c) => c.esEscena) || []),
+  ].sort((a, b) => a.startSec - b.startSec), [videoTrack, draftTracks]);
   const onStepScene = (dir: 1 | -1) => {
-    if (!videoTrack || videoTrack.clips.length === 0) return;
-    const idx = videoTrack.clips.findIndex((c) => playheadSec >= c.startSec && playheadSec < c.startSec + c.durSec);
-    const cur = idx === -1 ? (dir === 1 ? -1 : videoTrack.clips.length) : idx;
-    const nextIdx = Math.min(videoTrack.clips.length - 1, Math.max(0, cur + dir));
-    const target = videoTrack.clips[nextIdx];
+    if (escenaClips.length === 0) return;
+    const idx = escenaClips.findIndex((c) => playheadSec >= c.startSec && playheadSec < c.startSec + c.durSec);
+    const cur = idx === -1 ? (dir === 1 ? -1 : escenaClips.length) : idx;
+    const nextIdx = Math.min(escenaClips.length - 1, Math.max(0, cur + dir));
+    const target = escenaClips[nextIdx];
     if (target) setPlayheadSec(target.startSec);
+  };
+
+  // menú del clic derecho sobre un clip: fades, audio del clip, transición, partir, duplicar, eliminar (todo deshacible)
+  const onClipAction = (clipId: string, a: AccionClip) => {
+    if (a.tipo === 'partir') { mutate((t) => splitClip(t, clipId, playheadSec)); return; }
+    if (a.tipo === 'duplicar') { mutate((t) => duplicateClip(t, clipId)); return; }
+    if (a.tipo === 'eliminar') { mutate((t) => deleteClip(t, clipId)); setSelectedId(null); return; }
+    if (a.tipo === 'irInicio') { const f = findClip(draftTracks, clipId); if (f) setPlayheadSec(f.clip.startSec); return; }
+    mutate((tracks) => tracks.map((t) => ({
+      ...t,
+      clips: t.clips.map((c) => {
+        if (c.id !== clipId) return c;
+        const fade = Math.min(FADE_SEC, c.durSec / 3);
+        if (a.tipo === 'fadeIn') return { ...c, fadeIn: c.fadeIn ? undefined : fade };
+        if (a.tipo === 'fadeOut') return { ...c, fadeOut: c.fadeOut ? undefined : fade };
+        if (a.tipo === 'sinFades') return { ...c, fadeIn: undefined, fadeOut: undefined };
+        if (a.tipo === 'audio') return { ...c, audio: c.audio === 'mute' ? 'keep' : 'mute' };
+        if (a.tipo === 'transicion') return { ...c, transitionAfter: a.kind };
+        return c;
+      }),
+    })));
+  };
+
+  // mezcla de la cabecera de una pista (volumen/solo/mute): se oye al instante en la vista previa y se guarda con el
+  // plan (el render la respeta). Como el slider de volumen de un clip, no apila un deshacer por cada movimiento.
+  const onMixChange = (trackId: TrackId, mix: MezclaPista) => {
+    replacePresent((tracks) => tracks.map((t) => (t.id === trackId ? { ...t, mix } : t)));
   };
 
   const handleTrimLeft = (clipId: string, newStartSec: number, newDurSec: number) => {
@@ -354,14 +410,15 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         canPublish={puedeGuardar}
         guardable={puedeGuardar}
         saveHint={puedeGuardar ? undefined : 'Abrí una pieza para guardar'}
-        canAutoArmar={!!comercial?.storyboard?.length}
+        canAutoArmar={!!comercial?.storyboard?.length && !autoArmando}
+        autoArmando={autoArmando}
         onUndo={onUndo}
         onRedo={onRedo}
         onSplit={onSplit}
         onDuplicate={onDuplicate}
         onDelete={onDelete}
         onSave={onSave}
-        onAutoArmar={onAutoArmar}
+        onAutoArmar={() => void onAutoArmar()}
         previewFocus={previewFocus}
         onTogglePreviewFocus={() => setPreviewFocus((v) => !v)}
         onPublish={onPublishSaving}
@@ -381,14 +438,16 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         <EditorPreview
           aspect={aspect}
           playing={playing}
-          onTogglePlay={() => setPlaying((p) => !p)}
+          onTogglePlay={togglePlay}
           onStepScene={onStepScene}
           playheadSec={playheadSec}
           totalSec={totalSec}
           currentVideoClip={currentVideoClip}
           activeTexts={activeTexts}
-          cta={comercial?.publicacion?.cta}
-          brandKit={project.brandKit}
+          plan={previewPlan}
+          onTime={setPlayheadSec}
+          playerApi={playerApi}
+          onPlayingChange={setPlaying}
         />
         <EditorInspector
           open={panels.inspOpen && !previewFocus}
@@ -415,7 +474,7 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         playheadSec={playheadSec}
         onSeek={onSeek}
         playing={playing}
-        onTogglePlay={() => setPlaying((p) => !p)}
+        onTogglePlay={togglePlay}
         selectedId={selectedId}
         onSelect={setSelectedId}
         zoom={zoom}
@@ -424,6 +483,9 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         onTrimLeft={handleTrimLeft}
         onTrimRight={handleTrimRight}
         onMoveClip={handleMoveClip}
+        onMixChange={onMixChange}
+        onClipAction={onClipAction}
+        canSplitAt={(id) => canSplit(draftTracks, id, playheadSec)}
       />
     </div>
   );

@@ -21,7 +21,7 @@ interface KbAppRow { id: string; name: string; base_url: string; ready: boolean 
 
 const PASO_LABELS: Record<PasoId, string> = {
   negocio: 'Negocio', concepto: 'Concepto', guion: 'Guion', cast: 'Cast', storyboard: 'Storyboard',
-  pack: 'Pack Flow', render: 'Render', rodaje: 'Rodaje', montaje: 'Montaje', publicar: 'Publicar',
+  pack: 'Pack Flow', render: 'Render', rodaje: 'Mockups', montaje: 'Montaje', publicar: 'Publicar',
 };
 const CONTENT_LABELS: Record<string, string> = { reels: 'Reels', video: 'Video', audio: 'Audio', combinado: 'Combinado' };
 

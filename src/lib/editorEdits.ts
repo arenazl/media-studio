@@ -85,14 +85,22 @@ export function canSplit(tracks: EditorTrack[], clipId: string | null, atSec: nu
 // La "posición exacta del drop con ripple" se difiere: append es predecible y no depende de coordenadas
 // del DOM. Efectos/Marca NO son droppables (el render no ejecuta efectos por clip; el logo ya viene del
 // brandKit) — el DOM ni los marca draggable.
-export interface DropItem { id: string; label: string; color: string; fileRef?: string; durSec?: number; tab?: string; meta?: string }
+export interface DropItem { id: string; label: string; color: string; fileRef?: string; durSec?: number; tab?: string; meta?: string; pista?: string }
 
 const TEXT_DROP_DUR = 2.5;
+const MOCKUP_DROP_DUR = 3;   // un mockup soltado entra encima en el playhead, con un largo de inserto (se estira a mano)
 let dropCounter = 0;
 
 export function dropLibItem(tracks: EditorTrack[], item: DropItem, playheadSec: number): EditorTrack[] {
   dropCounter += 1;
   const uid = `drop-${dropCounter}`;
+  if (item.tab === 'clips' && item.fileRef && item.pista === 'pantallas') {
+    return mapTrack(tracks, 'pantallas', (clips) => [...clips, {
+      id: `pantalla-${uid}`, label: item.label, startSec: playheadSec,
+      durSec: Math.min(item.durSec && item.durSec > 0 ? item.durSec : MOCKUP_DROP_DUR, MOCKUP_DROP_DUR),
+      color: item.color, fileRef: item.fileRef,
+    }].sort((a, b) => a.startSec - b.startSec));
+  }
   if (item.tab === 'clips' && item.fileRef) {
     return mapTrack(tracks, 'video', (clips) => {
       const end = clips.reduce((m, c) => Math.max(m, c.startSec + c.durSec), 0);

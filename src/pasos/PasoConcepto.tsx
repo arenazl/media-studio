@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Check, Users, Monitor, Lightbulb, ArrowLeft, Wand2 } from 'lucide-react';
+import { Check, Users, Monitor, Lightbulb, ArrowLeft, Wand2, Pencil, X } from 'lucide-react';
 import { PasoShell, runMolde, errMsg, type PasoProps } from './pasoKit';
 import { KitTira } from '../components/KitCapturas';
 import { mediaKitParaMolde } from '../lib/mediaKit';
@@ -33,7 +33,8 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   const [previewCptId, setPreviewCptId] = useState<string | null>(elegido?.id || null);
 
   // Si cambian las opciones (ej. al regenerar), volver al Gateway
-  useEffect(() => { setPreviewCptId(null); }, [opciones]);
+  const idsOpciones = opciones.map((o) => o.id).join('|');
+  useEffect(() => { setPreviewCptId(null); }, [idsOpciones]);
 
   // AUTO-DISPARO sólo cuando la técnica YA está decidida (dueño, 2026-10-07): el molde concept
   // cambia el prompt y las propuestas según Filmado/Animado (bloque de técnica + pantallas). Si la
@@ -63,6 +64,19 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
 
+  // Edición a mano (2026-10-10): cambiar una palabra de una propuesta sin volver a generar. Si es la elegida, la pieza
+  // toma el texto nuevo; si ya había guion, se avisa que se armó con la versión anterior.
+  const [editando, setEditando] = useState<Concepto | null>(null);
+  const guardarEdicion = () => {
+    if (!editando) return;
+    const editado: Concepto = { ...editando, editadoAMano: true };
+    setOpciones((os) => os.map((o) => (o.id === editado.id ? editado : o)));
+    if (elegido?.id === editado.id) {
+      setComercial((c) => ({ ...c, concepto: editado, estados: { ...c.estados, concepto: 'editado' } }));
+      if (comercial?.guion) setAviso('Retocaste el concepto elegido: el guion y lo que sigue se armaron con la versión anterior. Si el cambio importa para la historia, regeneralos.');
+    }
+    setEditando(null);
+  };
   const elegir = (cpt: Concepto) =>
     setComercial((c) => ({ ...c, concepto: cpt, estados: { ...c.estados, concepto: 'editado' } }));
 
@@ -185,25 +199,53 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
                   {elegido?.id === previewCpt.id && <span className="paso-concept-badge"><Check size={12} /> Elegido</span>}
                 </div>
                 
-                {previewCpt.topico && (
-                  <h2 style={{ fontSize: '1.8rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.03em', color: '#A78BFA', marginTop: '10px', textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}>
-                    "{previewCpt.topico}"
-                  </h2>
-                )}
-                <h3 className="cinematic-idea" style={{ marginTop: '8px', fontSize: '1.05rem', lineHeight: 1.5, color: '#F1F5F9' }}>
-                  "{previewCpt.idea}"
-                </h3>
+                {editando?.id === previewCpt.id ? (
+                  <div className="concept-edit">
+                    <label className="concept-edit-k" htmlFor="cpt-topico">Título</label>
+                    <input id="cpt-topico" className="concept-edit-in" value={editando.topico || ''} onChange={(e) => setEditando({ ...editando, topico: e.target.value })} />
+                    <label className="concept-edit-k" htmlFor="cpt-idea">La idea</label>
+                    <textarea id="cpt-idea" className="concept-edit-in" rows={5} value={editando.idea} onChange={(e) => setEditando({ ...editando, idea: e.target.value })} />
+                    <label className="concept-edit-k" htmlFor="cpt-tono">Tono actoral</label>
+                    <input id="cpt-tono" className="concept-edit-in" value={editando.tono} onChange={(e) => setEditando({ ...editando, tono: e.target.value })} />
+                    <label className="concept-edit-k" htmlFor="cpt-estetica">Dirección visual</label>
+                    <textarea id="cpt-estetica" className="concept-edit-in" rows={2} value={editando.estetica} onChange={(e) => setEditando({ ...editando, estetica: e.target.value })} />
+                  </div>
+                ) : (
+                  <>
+                    {previewCpt.topico && (
+                      <h2 style={{ fontSize: '1.8rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.03em', color: '#A78BFA', marginTop: '10px', textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}>
+                        "{previewCpt.topico}"
+                      </h2>
+                    )}
+                    <h3 className="cinematic-idea" style={{ marginTop: '8px', fontSize: '1.05rem', lineHeight: 1.5, color: '#F1F5F9' }}>
+                      "{previewCpt.idea}"
+                    </h3>
+                    {previewCpt.editadoAMano && <span className="paso-concept-badge" style={{ marginTop: 8, display: 'inline-flex' }}><Pencil size={11} /> Retocado a mano</span>}
 
-                <div className="paso-concept-meta cinematic-meta" style={{ marginTop: '16px' }}>
-                  <div className="paso-concept-row"><span className="paso-concept-k">Tono Actoral</span><span className="paso-concept-v">{previewCpt.tono}</span></div>
-                  <div className="paso-concept-row"><span className="paso-concept-k">Dirección Visual</span><span className="paso-concept-v">{previewCpt.estetica}</span></div>
-                  <div className="paso-concept-row"><span className="paso-concept-k">Referencia Anuncio</span><span className="paso-concept-v">{previewCpt.referencia}</span></div>
-                </div>
+                    <div className="paso-concept-meta cinematic-meta" style={{ marginTop: '16px' }}>
+                      <div className="paso-concept-row"><span className="paso-concept-k">Tono Actoral</span><span className="paso-concept-v">{previewCpt.tono}</span></div>
+                      <div className="paso-concept-row"><span className="paso-concept-k">Dirección Visual</span><span className="paso-concept-v">{previewCpt.estetica}</span></div>
+                      <div className="paso-concept-row"><span className="paso-concept-k">Referencia Anuncio</span><span className="paso-concept-v">{previewCpt.referencia}</span></div>
+                    </div>
+                  </>
+                )}
                 <div className="cinematic-footer">
                   {previewCpt.porQueFunciona && <p className="paso-concept-why">💡 <strong>Por qué convierte:</strong> {previewCpt.porQueFunciona}</p>}
-                  <button className={elegido?.id === previewCpt.id ? 'paso-pick paso-pick--on' : 'paso-pick'} onClick={() => elegir(previewCpt)}>
-                    {elegido?.id === previewCpt.id ? <><Check size={13} /> Elegido</> : 'Elegir este concepto'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {editando?.id === previewCpt.id ? (
+                      <>
+                        <button className="paso-pick paso-pick--on" onClick={guardarEdicion}><Check size={13} /> Guardar el cambio</button>
+                        <button className="paso-pick" onClick={() => setEditando(null)}><X size={13} /> Cancelar</button>
+                      </>
+                    ) : (
+                      <>
+                        <button className="paso-pick" onClick={() => setEditando(previewCpt)} title="Cambiar el texto a mano, sin volver a generar"><Pencil size={13} /> Editar</button>
+                        <button className={elegido?.id === previewCpt.id ? 'paso-pick paso-pick--on' : 'paso-pick'} onClick={() => elegir(previewCpt)}>
+                          {elegido?.id === previewCpt.id ? <><Check size={13} /> Elegido</> : 'Elegir este concepto'}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </article>

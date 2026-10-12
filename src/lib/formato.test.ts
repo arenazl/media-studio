@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  FORMATOS_DEF, DIMS_POR_ASPECTO, FORMATO_DEFAULT_ID,
+  FORMATOS_DEF, DIMS_POR_ASPECTO, FORMATO_DEFAULT_ID, mediosDeFormato,
   getFormato, tipoDesdeFormato, type Formato, type TecnicaProduccion,
 } from './formato';
 import { nuevoComercial } from './comercial';
@@ -55,16 +55,26 @@ describe('getFormato', () => {
 });
 
 describe('catálogo FORMATOS_DEF', () => {
-  it('tiene los 6 formatos con ids únicos y fps 30', () => {
-    expect(FORMATOS_DEF).toHaveLength(6);
+  // 2026-10-10: 7 definidos, 3 visibles (Reel Flow, Reel animado, Reel híbrido); los otros 4 quedan ocultos hasta
+  // tener pipeline. El híbrido produce filmadas Y mockups.
+  it('tiene los 7 formatos con ids únicos y fps 30, y sólo 3 visibles', () => {
+    expect(FORMATOS_DEF).toHaveLength(7);
     const ids = FORMATOS_DEF.map((f) => f.id);
-    expect(new Set(ids).size).toBe(6);
+    expect(new Set(ids).size).toBe(7);
     for (const f of FORMATOS_DEF) expect(f.fps).toBe(30);
+    expect(FORMATOS_DEF.filter((f) => !f.oculto).map((f) => f.id)).toEqual(['reel-9-16', 'reel-animado-9-16', 'reel-hibrido-9-16']);
   });
-  it('el spot de TV tiene default 25 (rango 20–30); el resto default 20', () => {
+  it('el híbrido produce filmadas y mockups; el Flow sólo filmadas; el animado sólo mockups', () => {
+    expect(mediosDeFormato(getFormato('reel-hibrido-9-16'))).toEqual(['filmada', 'mockup']);
+    expect(mediosDeFormato(getFormato('reel-9-16'))).toEqual(['filmada']);
+    expect(mediosDeFormato(getFormato('reel-animado-9-16'))).toEqual(['mockup']);
+    expect(mediosDeFormato(undefined)).toEqual(['filmada']);
+  });
+  it('el spot de TV tiene default 25 (rango 20–30), el híbrido 26 (rango 20–30); el resto default 20', () => {
     const tv = getFormato('spot-tv-16-9')!;
     expect(tv.duracion).toEqual({ min: 20, max: 30, default: 25 });
-    for (const f of FORMATOS_DEF.filter((x) => x.id !== 'spot-tv-16-9')) {
+    expect(getFormato('reel-hibrido-9-16')!.duracion).toEqual({ min: 20, max: 30, default: 26 });
+    for (const f of FORMATOS_DEF.filter((x) => x.id !== 'spot-tv-16-9' && x.id !== 'reel-hibrido-9-16')) {
       expect(f.duracion.default).toBe(20);
       expect(f.duracion).toEqual({ min: 15, max: 30, default: 20 });
     }

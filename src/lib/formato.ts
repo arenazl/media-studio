@@ -21,6 +21,8 @@ export interface Formato {
   plataforma: string;                         // texto para prompts/UI ("Instagram / TikTok", "Meta Ads", "YouTube", "TV")
   tecnicaProduccion: TecnicaProduccion;
   duracion: { min: number; max: number; default: number };  // seg
+  oculto?: boolean;                           // 2026-10-10: formatos que el sistema no ejecuta bien todavía; no se ofrecen (Lucas: "limpiar los del pedo")
+  medios?: ('filmada' | 'mockup')[];          // qué produce la rutina: Flow (filmada), tarjetas del motor (mockup) o las dos (híbrido)
 }
 
 // Dimensiones canónicas por aspecto (el render las usa como plan.width/height — WO-3).
@@ -36,32 +38,44 @@ export const FORMATO_DEFAULT_ID = 'reel-9-16';
 // Los 6 formatos del catálogo actual (mismos ids/nombres/aspectos/plataformas/técnicas que la vieja
 // data estática de formatosCatalog.ts). Duración: default 20 en todos salvo el spot de TV (default 25,
 // rango 20–30); el resto rango 15–30.
+// 2026-10-10 (Lucas): tres formatos que el sistema ejecuta de verdad: Reel Flow (filmado), Reel animado (mockups) y
+// Reel híbrido (la rutina genera los crudos filmados Y los mockups de la app; el montaje decide). Los demás quedan
+// ocultos hasta que tengan su pipeline (no se borran: hay proyectos viejos que los nombran).
 export const FORMATOS_DEF: Formato[] = [
   {
-    id: 'reel-9-16', nombre: 'Reel vertical', aspecto: '9:16', dims: DIMS_POR_ASPECTO['9:16'], fps: 30,
-    plataforma: 'Instagram / TikTok', tecnicaProduccion: 'filmado', duracion: { min: 15, max: 30, default: 20 },
+    id: 'reel-9-16', nombre: 'Reel Flow (filmado)', aspecto: '9:16', dims: DIMS_POR_ASPECTO['9:16'], fps: 30,
+    plataforma: 'Instagram / TikTok', tecnicaProduccion: 'filmado', duracion: { min: 15, max: 30, default: 20 }, medios: ['filmada'],
   },
   {
     id: 'reel-animado-9-16', nombre: 'Reel animado', aspecto: '9:16', dims: DIMS_POR_ASPECTO['9:16'], fps: 30,
-    plataforma: 'Instagram / TikTok', tecnicaProduccion: 'animado', duracion: { min: 15, max: 30, default: 20 },
+    plataforma: 'Instagram / TikTok', tecnicaProduccion: 'animado', duracion: { min: 15, max: 30, default: 20 }, medios: ['mockup'],
+  },
+  {
+    id: 'reel-hibrido-9-16', nombre: 'Reel híbrido', aspecto: '9:16', dims: DIMS_POR_ASPECTO['9:16'], fps: 30,
+    plataforma: 'Instagram / TikTok', tecnicaProduccion: 'mixto', duracion: { min: 20, max: 30, default: 26 }, medios: ['filmada', 'mockup'],
   },
   {
     id: 'meta-feed-1-1', nombre: 'Meta Feed cuadrado', aspecto: '1:1', dims: DIMS_POR_ASPECTO['1:1'], fps: 30,
-    plataforma: 'Meta Ads', tecnicaProduccion: 'mixto', duracion: { min: 15, max: 30, default: 20 },
+    plataforma: 'Meta Ads', tecnicaProduccion: 'mixto', duracion: { min: 15, max: 30, default: 20 }, oculto: true,
   },
   {
     id: 'meta-feed-4-5', nombre: 'Meta Feed retrato', aspecto: '4:5', dims: DIMS_POR_ASPECTO['4:5'], fps: 30,
-    plataforma: 'Meta Ads', tecnicaProduccion: 'slideshow', duracion: { min: 15, max: 30, default: 20 },
+    plataforma: 'Meta Ads', tecnicaProduccion: 'slideshow', duracion: { min: 15, max: 30, default: 20 }, oculto: true,
   },
   {
     id: 'spot-yt-16-9', nombre: 'Spot YouTube', aspecto: '16:9', dims: DIMS_POR_ASPECTO['16:9'], fps: 30,
-    plataforma: 'YouTube', tecnicaProduccion: 'filmado', duracion: { min: 15, max: 30, default: 20 },
+    plataforma: 'YouTube', tecnicaProduccion: 'filmado', duracion: { min: 15, max: 30, default: 20 }, oculto: true,
   },
   {
     id: 'spot-tv-16-9', nombre: 'Spot TV', aspecto: '16:9', dims: DIMS_POR_ASPECTO['16:9'], fps: 30,
-    plataforma: 'TV', tecnicaProduccion: 'filmado', duracion: { min: 20, max: 30, default: 25 },
+    plataforma: 'TV', tecnicaProduccion: 'filmado', duracion: { min: 20, max: 30, default: 25 }, oculto: true,
   },
 ];
+
+// Qué produce la rutina para un formato: filmada (Flow), mockup (tarjetas del motor) o las dos. Sin formato = filmado.
+export function mediosDeFormato(f?: Formato): ('filmada' | 'mockup')[] {
+  return f?.medios || (f && TECNICA_A_TIPO[f.tecnicaProduccion] === 'animado' ? ['mockup'] : ['filmada']);
+}
 
 // Mapeo D2 (tecnicaProduccion → tipo del pipeline). Solo existen 2 pipelines (TipoComercial):
 //   filmado → 'filmado' · animado → 'animado' · mixto → 'filmado' (el 1:1 recorta el reel filmado)

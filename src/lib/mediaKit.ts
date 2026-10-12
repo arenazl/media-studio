@@ -10,6 +10,7 @@
 // las imágenes por `kitFileUrl` (nunca file://).
 import { API_BASE } from '../config';
 import type { BrandKit } from './brandKit';
+import { tesisEnBrief } from './knowledgeBase';
 
 // ── El contrato (media-kit.json) ──────────────────────────────────────────────
 export interface MediaKitNegocio {
@@ -54,6 +55,7 @@ export interface MediaKitMomento {
   remate?: string;
 }
 export interface MediaKit {
+  tesis?: { fuerte?: string; comparacion?: string; enemigo?: string; momentoMagico?: string; venderPrimero?: string };   // 38 §3 5bis
   id: string;
   app?: string;
   generado?: string;
@@ -133,6 +135,8 @@ export function mediaKitToBrief(kit: MediaKit): string {
   L.push(`# ${kitNombre(kit)} — brief (desde el media kit de la app)`);
   if (kit.marca?.claim) L.push(`> ${kit.marca.claim}`);
   L.push('');
+  const t = kit.tesis;
+  L.push(...tesisEnBrief(t ? { strong: t.fuerte, comparison: t.comparacion, enemy: t.enemigo, magic_moment: t.momentoMagico, sell_first: t.venderPrimero } : undefined));
   L.push('## El negocio');
   if (n.queEs) L.push(n.queEs);
   if (n.queVende) { L.push(''); L.push(`- Qué vende: ${n.queVende}`); }

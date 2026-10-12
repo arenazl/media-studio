@@ -7,20 +7,23 @@
 // mutador único de App — así ninguna otra pantalla puede pisar lo que se arma acá con una copia vieja.
 import { scriptNarrations } from '../server/scriptToText.mjs';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { ArrowLeft, PanelRightOpen, Settings, Check } from 'lucide-react';
+import { ArrowLeft, PanelRightOpen, Settings, Check, Sparkles } from 'lucide-react';
 import PipelineStepper, { pasoLabel } from './PipelineStepper';
 import Copiloto from './Copiloto';
+import Orquestador from './Orquestador';
+import ContratoChatGPT from './ContratoChatGPT';
+import DebugDock from './DebugDock';
 import ProjectInfo from './ProjectInfo';
 import PasoConcepto from './pasos/PasoConcepto';
 import PasoGuion from './pasos/PasoGuion';
 import PasoCast from './pasos/PasoCast';
 import PasoStoryboard from './pasos/PasoStoryboard';
 import PasoPack from './pasos/PasoPack';
-import PasoRodaje from './pasos/PasoRodaje';
+import PasoMockups from './pasos/PasoMockups';
 import PasoMontaje from './pasos/PasoMontaje';
 import PasoPublicar from './pasos/PasoPublicar';
 import PasoRender from './pasos/PasoRender';
-import { PasoGate, type PasoProps } from './pasos/pasoKit';
+import { PasoGate, marcarPiezaAbierta, type PasoProps } from './pasos/pasoKit';
 import type { Project } from './lib/projects';
 import { nuevoComercial, pasosVisibles, pasoHabilitado, pasoDeEntrada, type Comercial, type PasoId } from './lib/comercial';
 import { getFormato, tipoDesdeFormato } from './lib/formato';
@@ -46,9 +49,18 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
   // copiloto: panel de guia a la derecha. Su estado abierto/cerrado persiste (settings.ts). Solo UI.
   const [copilotOpen, setCopilotOpenState] = useState<boolean>(getCopilotOpen);
   const toggleCopilot = (open: boolean) => { setCopilotOpenState(open); setCopilotOpen(open); };
+  // Orquestador (2026-10-10): el botón "Orquestador" de cada paso dispara un evento; el panel se abre arriba del paso
+  const [orqOpen, setOrqOpen] = useState(false);
+  useEffect(() => {
+    const abrir = () => setOrqOpen((v) => !v);
+    window.addEventListener('ms:orquestador', abrir);
+    return () => window.removeEventListener('ms:orquestador', abrir);
+  }, []);
   // ajuste "Modelo de IA" (antes vivía en la Topbar, retirada en este rediseño) — mismo popover, ahora
   // colgado de un engranaje chico en la cabecera de la spine.
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // contrato de materia prima con ChatGPT (2026-10-11): copiar el pedido, pegar la respuesta, cargar las piezas
+  const [contratoOpen, setContratoOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   // el ajuste vive en localStorage (settings.ts) y lo tocan DOS engranajes (éste y el del rail):
   // con useState local, cambiarlo en uno dejaba al otro mostrando el valor viejo hasta un F5. El
@@ -63,6 +75,7 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
 
   const reel = project.reels.find((r) => r.id === reelId) || project.reels[0];
   const comercial = reel?.comercial;
+  marcarPiezaAbierta(project.id, comercial?.id);   // la radiografía de cada paso abre ESTA pieza
   const tipo = comercial?.tipo ?? 'filmado';
 
   // Aplica un cambio al comercial del reel activo (creándolo si el reel no tenía) y sincroniza el guion
@@ -125,7 +138,7 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
       case 'cast': return <PasoCast {...pasoProps} />;
       case 'storyboard': return <PasoStoryboard {...pasoProps} />;
       case 'pack': return <PasoPack {...pasoProps} />;
-      case 'rodaje': return <PasoRodaje {...pasoProps} />;
+      case 'rodaje': return <PasoMockups {...pasoProps} />;
       case 'render': return <PasoRender {...pasoProps} />;
       case 'montaje': return <PasoMontaje {...pasoProps} onGoEditor={onGoEditor} />;
       case 'publicar': return <PasoPublicar {...pasoProps} />;
@@ -170,13 +183,21 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
           </div>
         )}
 
+        <button className="pw-contrato" onClick={() => setContratoOpen(true)} title="ChatGPT escribe la idea, los personajes, el guion y el storyboard; Media Studio los importa">
+          <Sparkles size={13} /> Importar de ChatGPT
+        </button>
+
         <PipelineStepper tipo={tipo} comercial={comercial} activePaso={activePaso} onPick={pickPaso} />
       </aside>
+      {contratoOpen && <ContratoChatGPT project={project} onChange={onChange} onClose={() => setContratoOpen(false)} />}
 
       <div className="pw-center">
+        {orqOpen && <Orquestador project={project} comercial={comercial} paso={activePaso} onClose={() => setOrqOpen(false)} />}
         <PasoGate motivo={bloqueoMotivo}>
           {reel ? renderPaso() : <div className="paso"><div className="paso-empty">Este proyecto no tiene comerciales todavía.</div></div>}
         </PasoGate>
+        {/* consola de debug (2026-10-10): lo que pasa detrás de cada paso; herramienta de desarrollo, plegable */}
+        <DebugDock project={project} comercial={comercial} paso={activePaso} />
       </div>
 
       <div className={`pw-copilot-dock${copilotOpen ? '' : ' pw-copilot-dock--closed'}`}>

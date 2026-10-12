@@ -89,6 +89,80 @@ async function esperarDescargaChrome({ desde, maxSeg } = {}) {
   return { ok: false, error: ultimo ? `la descarga quedó en estado ${ultimo.state} (${ultimo.filename})` : 'Chrome no empezó ninguna descarga' };
 }
 
+// baja el archivo de un clip directo por su URL (usa la sesión de Chrome; no necesita la pestaña a la vista) y espera
+// a que termine; queda en Descargas/media-studio-flow/
+async function descargarUrl({ url, nombre } = {}) {
+  if (!/^https:\/\//.test(String(url || ''))) return { ok: false, error: 'falta la URL del clip' };
+  const limpio = String(nombre || `clip-${Date.now()}.mp4`).replace(/[^a-zA-Z0-9._-]/g, '-');
+  const id = await chrome.downloads.download({ url, filename: `media-studio-flow/${limpio}`, conflictAction: 'uniquify', saveAs: false });
+  const limite = Date.now() + 180000;
+  while (Date.now() < limite) {
+    const [it] = await chrome.downloads.search({ id });
+    if (it && it.state === 'complete') return { ok: true, data: { filename: it.filename, bytes: it.fileSize } };
+    if (it && it.state === 'interrupted') return { ok: false, error: `Chrome interrumpió la descarga (${it.error || 'sin detalle'})` };
+    await dormir(1000);
+  }
+  return { ok: false, error: 'la descarga no terminó en 3 minutos' };
+}
+
+// La pestaña que estaba activa en cada ventana antes de traer a Flow al frente, para devolverla después.
+const pestanaAnterior = new Map();
+async function traerAlFrente(tabId) {
+  const tab = await chrome.tabs.get(tabId);
+  if (!tab.active) {
+    const [activa] = await chrome.tabs.query({ active: true, windowId: tab.windowId });
+    if (activa && activa.id !== tabId && !pestanaAnterior.has(tab.windowId)) pestanaAnterior.set(tab.windowId, activa.id);
+  }
+  const win = await chrome.windows.get(tab.windowId);
+  if (win.state === 'minimized') await chrome.windows.update(tab.windowId, { state: 'normal' });
+  await chrome.windows.update(tab.windowId, { focused: true });
+  await chrome.tabs.update(tabId, { active: true });
+  await dormir(800);
+  return { ok: true, data: { traida: !tab.active } };
+}
+async function devolverPestana(tabId) {
+  const tab = await chrome.tabs.get(tabId).catch(() => null);
+  const prev = tab ? pestanaAnterior.get(tab.windowId) : null;
+  if (tab) pestanaAnterior.delete(tab.windowId);
+  if (prev != null && prev !== tabId) { try { await chrome.tabs.update(prev, { active: true }); } catch { /* la cerró */ } }
+  return { ok: true, data: { devuelta: prev != null } };
+}
+
+async function clickReal(tabId, x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return { ok: false, error: 'clickReal sin coordenadas' };
+  // verificado el 2026-10-10: con la pestaña en segundo plano ni el click real dispara la generación del personaje
+  // (Flow ignora la acción si la pestaña no está a la vista). Se trae al frente; el servidor la devuelve al terminar.
+  try { await traerAlFrente(tabId); } catch (e) { return { ok: false, error: `no pude traer la pestaña al frente: ${String((e && e.message) || e)}` }; }
+  const target = { tabId };
+  try { await chrome.debugger.attach(target, '1.3'); }
+  catch (e) { return { ok: false, error: `no pude adjuntar el depurador a la pestaña: ${String((e && e.message) || e)}` }; }
+  try {
+    // al adjuntar el depurador Chrome muestra una barra arriba y la página se reacomoda: las coordenadas calculadas
+    // antes quedan corridas (el botón está anclado abajo). Se vuelven a pedir con el depurador ya adjunto.
+    await dormir(600);
+    try {
+      const r = await chrome.tabs.sendMessage(tabId, { tipo: 'paso', paso: { accion: 'coordsEnviar', args: {} } });
+      if (r && r.ok && r.data && Number.isFinite(r.data.x)) { x = r.data.x; y = r.data.y; }
+    } catch { /* se usan las coordenadas recibidas */ }
+    // el depurador recibe coordenadas en píxeles de pantalla lógicos: con zoom de página distinto de 100% (Lucas usa
+    // 75% en Flow) hay que escalar las coordenadas CSS por el zoom, si no el click cae en otro control
+    let zoom = 1;
+    try { zoom = (await chrome.tabs.getZoom(tabId)) || 1; } catch { /* sin acceso al zoom: se asume 100% */ }
+    x = Math.round(x * zoom); y = Math.round(y * zoom);
+    const base = { x, y, button: 'left', clickCount: 1 };
+    await chrome.debugger.sendCommand(target, 'Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+    await chrome.debugger.sendCommand(target, 'Input.dispatchMouseEvent', { ...base, type: 'mousePressed' });
+    await dormir(60);
+    await chrome.debugger.sendCommand(target, 'Input.dispatchMouseEvent', { ...base, type: 'mouseReleased' });
+    await dormir(400);   // que el click llegue a la página antes de soltar el depurador (la barra se va y todo se reacomoda)
+    return { ok: true, data: { x, y, zoom } };
+  } catch (e) {
+    return { ok: false, error: `el click real falló: ${String((e && e.message) || e)}` };
+  } finally {
+    try { await chrome.debugger.detach(target); } catch { /* ya suelto */ }
+  }
+}
+
 async function ejecutar(paso) {
   // el service worker no se duerme mientras dura el paso (hay pasos de minutos: esperar la generación), y Media Studio
   // sigue viendo el latido aunque el bucle esté ocupado con este paso
@@ -106,7 +180,21 @@ async function ejecutar(paso) {
       if ((tab.url || '') !== paso.args.url) { await chrome.tabs.update(tabId, { url: paso.args.url }); await esperarCarga(tabId); await dormir(1500); }
       const t2 = await chrome.tabs.get(tabId);
       out = { ok: true, data: { url: t2.url } };
+    } else if (paso.accion === 'clickReal') {
+      // click "de verdad" (evento confiable) por el depurador de Chrome: la flecha del editor de personaje de Flow no
+      // responde a clicks programados. Se adjunta, se clickea en coordenadas CSS de la ventana y se suelta enseguida.
+      out = await clickReal(tabId, Number(paso.args.x), Number(paso.args.y));
+    } else if (paso.accion === 'traerAlFrente') out = await traerAlFrente(tabId).catch((e) => ({ ok: false, error: String((e && e.message) || e) }));
+    else if (paso.accion === 'devolverPestana') out = await devolverPestana(tabId);
+    else if (paso.accion === 'recargar') {
+      // un clip que quedó "cargando" con error en Flow aparece bien después de refrescar (Lucas, 2026-10-10)
+      await chrome.tabs.reload(tabId);
+      await esperarCarga(tabId);
+      await dormir(3000);
+      const t3 = await chrome.tabs.get(tabId);
+      out = { ok: true, data: { url: t3.url, recargada: true } };
     } else if (paso.accion === 'esperarDescarga') out = await esperarDescargaChrome(paso.args || {});
+    else if (paso.accion === 'descargarUrl') out = await descargarUrl(paso.args || {});
     else out = await enviarAPestana(tabId, paso);
   } catch (e) {
     out = { ok: false, error: String((e && e.message) || e) };

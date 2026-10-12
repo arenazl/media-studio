@@ -11,7 +11,7 @@ export type Transicion = 'cut' | 'fade' | 'crossfade' | 'wipe' | 'zoom';
 // ── Montaje v2 (montajista + motor Remotion) — todo OPCIONAL: un plan sin estos campos renderiza como antes ──
 export interface PalabraTiempo { text: string; start: number; end: number }   // segundos, relativos al CLIP CRUDO
 export type TarjetaInserto = 'semaforo' | 'tramite' | 'mapa' | 'dashboard';
-export interface InsertoPantalla { atSec: number; durSec: number; src: string; nombre?: string; tarjeta?: TarjetaInserto }   // atSec relativo al clip crudo; con `tarjeta`, se dibuja la tarjeta diseñada en vez de una captura
+export interface InsertoPantalla { atSec: number; durSec: number; src: string; nombre?: string; tarjeta?: TarjetaInserto; video?: boolean; fadeIn?: number; fadeOut?: number }   // video: el inserto es el mockup animado de la app (clip), no una captura   // atSec relativo al clip crudo; con `tarjeta`, se dibuja la tarjeta diseñada en vez de una captura
 export interface PlacaFinal { linea1: string; linea2?: string; durSec: number; logoSrc?: string }
 export interface EstiloMarca { primario: string; acento: string; fondo: string; texto: string; fuenteTitulos?: string; fuenteTexto?: string }
 
@@ -45,6 +45,7 @@ export interface MontajeScene {
   transition?: Transicion;     // hacia la escena SIGUIENTE
   effect?: string;
   rol?: string;                // para la UI (badge)
+  placa?: boolean;             // escena cta sin clip: es la placa de cierre, la dibuja el motor (no se filma ni se importa)
   dialogo?: string;            // para la UI + derivación de ducking
   archivoCaptura?: string;     // WO-K4/K5: captura real del kit
   screen?: string;             // nombre/label de pantalla
@@ -54,13 +55,15 @@ export interface MontajeScene {
   punchFrom?: number;
   punchTo?: number;
   inserts?: InsertoPantalla[];
+  fadeIn?: number;             // segundos: entra desde negro (imagen y sonido) — menú del clip en el editor
+  fadeOut?: number;            // segundos: sale a negro
 }
 
 export interface MontajePlan {
   width: number; height: number; fps: number;
   scenes: MontajeScene[];
-  voice?: { src: string; at: number };
-  music?: { src: string; gain: number; duck: boolean };
+  voice?: { src: string; at: number; fadeIn?: number; fadeOut?: number };
+  music?: { src: string; gain: number; duck: boolean; fadeIn?: number; fadeOut?: number };
   silences: { antesDeEscena: number; durSec: number }[];   // anclados a escena; from/to se derivan
   texts: { text: string; preset: string; at: number; dur: number; nx?: number; ny?: number }[];
   logo?: { src: string };
@@ -72,6 +75,23 @@ export interface MontajePlan {
   endCard?: PlacaFinal;
   estilo?: EstiloMarca;
   marcaNombre?: string;       // se escribe al lado del logo cuando el logo es sólo isotipo
+  avisos?: string[];          // lo que el montajista decidió dejar afuera y por qué (se muestra en el paso Montaje)
+  mezcla?: Partial<Record<PistaAudio, MezclaPista>>;   // volumen, mute y solo por pista (cabecera de la timeline)
+}
+
+// ── Mezcla por pista (2026-10-11, Lucas: "los canales deberían tener sus knobs de volumen, solo y mute") ──
+// Vale para la vista previa y para el render: es la misma derivación. Solo: si alguna pista está en solo, suenan sólo
+// las que están en solo. Mute gana sobre solo.
+export type PistaAudio = 'video' | 'voz' | 'musica' | 'sfx';
+export interface MezclaPista { gain: number; mute?: boolean; solo?: boolean }
+export const GAIN_PISTA_MAX = 1;   // el volumen de un <audio>/<video> del navegador no pasa de 1: la perilla baja, no amplifica
+export function gananciaDePista(plan: Pick<MontajePlan, 'mezcla'>, pista: PistaAudio): number {
+  const m = plan.mezcla || {};
+  const haySolo = Object.values(m).some((x) => x?.solo);
+  const p = m[pista];
+  if (p?.mute) return 0;
+  if (haySolo && !p?.solo) return 0;
+  return Math.max(0, Math.min(GAIN_PISTA_MAX, p?.gain ?? 1));
 }
 
 export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[] }
@@ -101,7 +121,10 @@ export function pickMusic(mood: string | undefined): string | undefined {
       : /tranqui|calm|suave|relaj|c[aá]lid|amable|chill/.test(m) ? 'Tranquila'
         : /inspir|emot|motiv|esperanz|superac/.test(m) ? 'Inspiradora'
           : /[eé]pic|cine|dram[aá]|intens|solemn|grave|tensi[oó]n/.test(m) ? 'Cinematográfica'
-            : undefined;
+            // moods institucionales del guion 3.0 ("institucional sobria ascendente", "calma institucional"): antes no
+            // caían en ninguna categoría y el montaje salía sin música (Lucas, 2026-10-10)
+            : /institucional|sobri|corporat|profesional|serio|confia|ascend|formal|municipal/.test(m) ? 'Inspiradora'
+              : undefined;
   if (!cat) return undefined;
   return MUSIC_TRACKS.find((t) => t.cat === cat)?.url;
 }
@@ -157,6 +180,7 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
       audioGain: 1,
       transition: proxEsCta ? 'fade' : 'cut',
       rol: e.rol,
+      ...(e.rol === 'cta' && !toma?.fileRef ? { placa: true } : {}),
       dialogo: e.dialogo,
       archivoCaptura: e.archivoCaptura,
       screen: e.screen,

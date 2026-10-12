@@ -1,7 +1,7 @@
 // Barra superior del editor multipista (prototipo.dc.html líneas 840-857). Navegación (back/publicar)
 // + herramientas de edición del clip seleccionado (split/duplicar/eliminar) + deshacer/rehacer sobre
 // el historial local (lib/editorEdits.ts) + chips de estado.
-import { ArrowLeft, Undo2, Redo2, Scissors, CopyPlus, Trash2, Sparkles, Check, Pencil, Eye, Save } from 'lucide-react';
+import { ArrowLeft, Undo2, Redo2, Scissors, CopyPlus, Trash2, Sparkles, Check, Pencil, Eye, Save, Loader2 } from 'lucide-react';
 import './EditorToolbar.css';
 
 export interface EditorToolbarProps {
@@ -18,6 +18,7 @@ export interface EditorToolbarProps {
   guardable: boolean;     // hay una PIEZA donde guardar (sin eso, el chip de estado no significa nada)
   saveHint?: string;      // motivo cuando Guardar/Publicar están cerrados (ej. sin pieza abierta)
   canAutoArmar: boolean;
+  autoArmando?: boolean;  // el armado automático está corriendo (al entrar al editor o por el botón)
   onUndo: () => void;
   onRedo: () => void;
   onSplit: () => void;
@@ -31,7 +32,7 @@ export interface EditorToolbarProps {
 }
 
 export default function EditorToolbar({
-  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canPublish, guardable, saveHint, canAutoArmar,
+  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canPublish, guardable, saveHint, canAutoArmar, autoArmando,
   onUndo, onRedo, onSplit, onDuplicate, onDelete, onSave, onAutoArmar, previewFocus, onTogglePreviewFocus, onPublish,
 }: EditorToolbarProps) {
   return (
@@ -41,8 +42,8 @@ export default function EditorToolbar({
         <span className="ed-sep" />
         <span className="ed-title">Editor</span>
         <span className="ed-chip" title={pieceName}>{aspect} · {durationLabel}</span>
-        <button className="ed-chip ed-chip--gold ed-chip--btn" disabled={!canAutoArmar} onClick={onAutoArmar} title="Armar la timeline sola con lo ya generado (clips, voz, música y textos)">
-          <Sparkles size={11} /> Auto-armar
+        <button className="ed-chip ed-chip--gold ed-chip--btn" disabled={!canAutoArmar} onClick={onAutoArmar} title="Armar la timeline sola con lo ya generado: clips de Flow, mockups, música, transiciones y placa (el mismo armado del paso Montaje)">
+          {autoArmando ? <><Loader2 size={11} className="paso-spin" /> Armando…</> : <><Sparkles size={11} /> Auto-armar</>}
         </button>
         {/* el chip de estado sólo tiene sentido si HAY dónde guardar: sin pieza abierta pintaba un
             "Guardado" verde que mentía (no se persistió nada — ver `puedeGuardar` en Editor.tsx). */}

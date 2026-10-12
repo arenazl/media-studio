@@ -2,13 +2,17 @@
 // marcadores de transición clickeables entre clips de video (prototipo líneas 1022-1077). Colapsable
 // + alto arrastrable (lib/editorUi.ts TL_H_MIN/MAX). Clips posicionados por %, proporcional a
 // startSec/durSec REALES (editorTracks.ts) — cero coordenadas inventadas.
-import { useRef } from 'react';
-import { ChevronDown, ChevronRight, Play, Pause, Magnet, Minus, Plus, Film, Type, Mic, Music2, Volume2, Sparkles, Diamond, SeparatorVertical, Clapperboard } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
+import { ChevronDown, ChevronRight, Play, Pause, Magnet, Minus, Plus, Film, Type, Mic, Music2, Volume2, Sparkles, Smartphone, Diamond, SeparatorVertical, Clapperboard } from 'lucide-react';
 import type { EditorTrack, TrackId } from './lib/editorTracks';
+import { PISTAS_CON_AUDIO } from './lib/editorTracks';
+import type { MezclaPista } from './lib/montajePlan';
+import EditorKnob from './EditorKnob';
+import EditorClipMenu, { type AccionClip, type MenuClipState } from './EditorClipMenu';
 import './EditorTimeline.css';
 
-const TRACK_ICON: Record<TrackId, typeof Film> = { video: Film, texto: Type, voz: Mic, musica: Music2, sfx: Volume2, fx: Sparkles };
-const LABEL_COL = 96;
+const TRACK_ICON: Record<TrackId, typeof Film> = { video: Film, pantallas: Smartphone, texto: Type, voz: Mic, musica: Music2, sfx: Volume2, fx: Sparkles };
+const LABEL_COL = 168;   // nombre de la pista + perilla de volumen + solo + mute
 
 const fmt = (s: number): string => {
   const m = Math.floor(s / 60);
@@ -26,7 +30,7 @@ export interface EditorTimelineProps {
   playheadSec: number;
   onSeek: (sec: number) => void;
   playing: boolean;
-  onTogglePlay: () => void;
+  onTogglePlay: (e?: React.SyntheticEvent) => void;   // con el evento del click: el Player lo necesita para el audio
   selectedId: string | null;
   onSelect: (id: string) => void;
   zoom: number;
@@ -35,13 +39,34 @@ export interface EditorTimelineProps {
   onTrimLeft?: (clipId: string, newStartSec: number, newDurSec: number) => void;
   onTrimRight?: (clipId: string, newDurSec: number) => void;
   onMoveClip?: (clipId: string, newStartSec: number) => void;
+  onMixChange?: (trackId: TrackId, mix: MezclaPista) => void;
+  onClipAction?: (clipId: string, accion: AccionClip) => void;   // clic derecho → menú del clip
+  canSplitAt?: (clipId: string) => boolean;
+}
+
+// cabecera de una pista con sonido: perilla de volumen, S (solo) y M (mute). Una pista que no suena por el solo de otra
+// se ve apagada.
+function MezclaCabecera({ track, haySolo, onMixChange }: { track: EditorTrack; haySolo: boolean; onMixChange: (trackId: TrackId, mix: MezclaPista) => void }) {
+  const mix: MezclaPista = track.mix || { gain: 1 };
+  const set = (patch: Partial<MezclaPista>) => onMixChange(track.id, { ...mix, ...patch });
+  const callada = mix.mute || (haySolo && !mix.solo);
+  return (
+    <span className={callada ? 'ed-tl-mix ed-tl-mix--callada' : 'ed-tl-mix'} onClick={(e) => e.stopPropagation()}>
+      <EditorKnob value={mix.gain} onChange={(gain) => set({ gain })} label={`Volumen de ${track.name}`} />
+      <button className={mix.solo ? 'ed-tl-sm ed-tl-sm--solo' : 'ed-tl-sm'} title={mix.solo ? 'Quitar solo' : 'Solo: escuchar sólo esta pista'} onClick={() => set({ solo: !mix.solo })}>S</button>
+      <button className={mix.mute ? 'ed-tl-sm ed-tl-sm--mute' : 'ed-tl-sm'} title={mix.mute ? 'Activar el sonido' : 'Mute: silenciar esta pista'} onClick={() => set({ mute: !mix.mute })}>M</button>
+    </span>
+  );
 }
 
 export default function EditorTimeline({
   open, height, onToggle, onResizeStart, tracks, totalSec, playheadSec, onSeek, playing, onTogglePlay,
-  selectedId, onSelect, zoom, onZoomChange, onDropItem, onTrimLeft, onTrimRight, onMoveClip,
+  selectedId, onSelect, zoom, onZoomChange, onDropItem, onTrimLeft, onTrimRight, onMoveClip, onMixChange, onClipAction, canSplitAt,
 }: EditorTimelineProps) {
   const lanesRef = useRef<HTMLDivElement>(null);
+  const [menu, setMenu] = useState<MenuClipState | null>(null);
+  const cerrarMenu = useCallback(() => setMenu(null), []);
+  const haySolo = tracks.some((t) => t.mix?.solo);
 
   const secAt = (clientX: number): number => {
     const el = lanesRef.current;
@@ -173,7 +198,7 @@ export default function EditorTimeline({
       {open && (totalSec <= 0 ? (
         <div className="ed-tl-empty">
           <Clapperboard size={26} strokeWidth={1.5} />
-          <span>Todavía no hay nada armado. Generá el storyboard y armá el Montaje (o importá clips en Rodaje) para ver la timeline.</span>
+          <span>Todavía no hay nada armado. Generá el storyboard y armá el Montaje (con los videos de Pack Flow y los mockups) para ver la timeline.</span>
         </div>
       ) : (
         <>
@@ -189,7 +214,10 @@ export default function EditorTimeline({
                 const Icon = TRACK_ICON[track.id];
                 return (
                   <div key={track.id} className="ed-tl-row">
-                    <div className="ed-tl-row-label"><Icon size={12} /> {track.name}</div>
+                    <div className="ed-tl-row-label">
+                      <Icon size={12} /> <span className="ed-tl-row-name">{track.name}</span>
+                      {onMixChange && PISTAS_CON_AUDIO.includes(track.id) && <MezclaCabecera track={track} haySolo={haySolo} onMixChange={onMixChange} />}
+                    </div>
                     <div className="ed-tl-row-clips">
                       {track.clips.map((c) => {
                         const leftPct = (c.startSec / totalSec) * 100;
@@ -223,12 +251,15 @@ export default function EditorTimeline({
                                 cursor: 'grab', userSelect: 'none', width: '100%', height: '100%', display: 'flex', alignItems: 'center', padding: '0 14px',
                               }}
                               onClick={(e) => { e.stopPropagation(); onSelect(c.id); }}
-                              onMouseDown={(e) => beginClipDrag(e, c)}
+                              onMouseDown={(e) => { if (e.button === 0) beginClipDrag(e, c); }}
+                              onContextMenu={onClipAction ? (e) => { e.preventDefault(); e.stopPropagation(); onSelect(c.id); setMenu({ x: e.clientX, y: e.clientY, clip: c, track }); } : undefined}
                               title={`${c.dialogo || c.label} — click para seleccionar, arrastrá para mover`}
                             >
                               <span className="ed-tl-clip-bar" style={{ background: c.color }} />
+                              {c.fadeIn ? <span className="ed-tl-fade ed-tl-fade--in" style={{ width: `${Math.min(50, (c.fadeIn / c.durSec) * 100)}%` }} /> : null}
+                              {c.fadeOut ? <span className="ed-tl-fade ed-tl-fade--out" style={{ width: `${Math.min(50, (c.fadeOut / c.durSec) * 100)}%` }} /> : null}
                               {wavy && <span className="ed-tl-clip-wave" style={{ backgroundColor: `${c.color}99` }} />}
-                              <span className="ed-tl-clip-label">{c.label}{isVideo && !c.fileRef ? ' · sin clip' : ''}</span>
+                              <span className="ed-tl-clip-label">{c.label}{isVideo && !c.fileRef && c.meta !== 'placa' ? ' · sin clip' : ''}</span>
                             </div>
 
                             {/* Handle de Trim Derecho */}
@@ -246,7 +277,7 @@ export default function EditorTimeline({
                               <div style={{ width: '2px', height: '14px', background: '#FFF', borderRadius: '1px' }} />
                             </div>
 
-                            {isVideo && c.transitionAfter && (
+                            {c.transitionAfter && (
                               <button
                                 className={selectedId === `tr-${c.id}` ? 'ed-tl-trans ed-tl-trans--sel' : 'ed-tl-trans'}
                                 title="Transición"
@@ -266,6 +297,9 @@ export default function EditorTimeline({
           </div>
         </>
       ))}
+      {menu && onClipAction && (
+        <EditorClipMenu menu={menu} puedePartir={canSplitAt ? canSplitAt(menu.clip.id) : true} onAccion={(a) => onClipAction(menu.clip.id, a)} onClose={cerrarMenu} />
+      )}
     </div>
     </>
   );

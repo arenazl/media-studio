@@ -34,7 +34,7 @@
 
 .ed-tl-row { display: flex; align-items: center; margin-bottom: 6px; }
 .ed-tl-row-label {
-  width: 96px; flex: 0 0 96px; display: flex; align-items: center; gap: 8px; padding-left: 14px;
+  width: 168px; flex: 0 0 168px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; box-sizing: border-box;
   font-size: 11.5px; color: var(--rd-ink-dim); font-weight: 500;
 }
 .ed-tl-row-clips { flex: 1; position: relative; height: 38px; }
@@ -64,3 +64,52 @@
   border-radius: 5px; background: transparent; border: none; color: var(--rd-ink-faint);
 }
 .ed-tl-trans--sel { background: color-mix(in srgb, var(--rd-green) 25%, transparent); color: var(--rd-green); }
+
+/* ── Mezcla por pista (2026-10-11): perilla de volumen + S (solo) + M (mute) en la cabecera ── */
+.ed-tl-row-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ed-tl-mix { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.ed-tl-mix--callada .ed-knob { opacity: 0.4; }
+.ed-tl-sm {
+  width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--rd-border); background: var(--rd-surface-1);
+  color: var(--rd-ink-mute); font-size: 9.5px; font-weight: 800; cursor: pointer; padding: 0; line-height: 1;
+}
+.ed-tl-sm:hover { color: var(--rd-ink); border-color: var(--rd-ink-faint); }
+.ed-tl-sm--solo { background: #FBBF24; border-color: #FBBF24; color: #1a1206; }
+.ed-tl-sm--mute { background: #EF4444; border-color: #EF4444; color: #fff; }
+.ed-knob { cursor: ns-resize; flex: 0 0 auto; }
+.ed-knob--off { cursor: default; opacity: 0.4; }
+.ed-knob-track { fill: none; stroke: var(--rd-border); stroke-width: 2.4; stroke-linecap: round; }
+.ed-knob-val { fill: none; stroke: var(--rd-green); stroke-width: 2.4; stroke-linecap: round; }
+.ed-knob-cap { fill: var(--rd-surface-1); stroke: var(--rd-border); stroke-width: 1; }
+.ed-knob-dot { stroke: var(--rd-ink); stroke-width: 1.6; stroke-linecap: round; }
+
+/* ── Menú del clic derecho sobre un clip (2026-10-11) ── */
+.ed-cmenu {
+  position: fixed; z-index: 1000; min-width: 210px; padding: 6px; border-radius: 10px;
+  background: var(--rd-surface-1); border: 1px solid var(--rd-border); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  display: flex; flex-direction: column; gap: 1px; font-size: 12.5px;
+}
+.ed-cmenu-head { padding: 6px 9px 7px; font-size: 11px; color: var(--rd-ink-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+.ed-cmenu > button {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; border: none; border-radius: 7px;
+  background: none; color: var(--rd-ink); text-align: left; cursor: pointer; font: inherit;
+}
+.ed-cmenu > button:hover:not(:disabled) { background: color-mix(in srgb, var(--rd-green) 16%, transparent); }
+.ed-cmenu > button:disabled { color: var(--rd-ink-faint); cursor: default; }
+.ed-cmenu-ico { width: 14px; display: inline-flex; justify-content: center; color: var(--rd-ink-dim); }
+.ed-cmenu-danger, .ed-cmenu-danger .ed-cmenu-ico { color: #F87171 !important; }
+.ed-cmenu-sep { height: 1px; margin: 4px 6px; background: var(--rd-border); }
+.ed-cmenu-group { padding: 6px 9px; }
+.ed-cmenu-label { display: block; font-size: 11px; color: var(--rd-ink-mute); margin-bottom: 6px; }
+.ed-cmenu-chips { display: flex; gap: 4px; }
+.ed-cmenu-chip {
+  flex: 1; padding: 5px 4px; border-radius: 6px; border: 1px solid var(--rd-border); background: none;
+  color: var(--rd-ink-dim); font-size: 11px; cursor: pointer;
+}
+.ed-cmenu-chip:hover { color: var(--rd-ink); }
+.ed-cmenu-chip--on { background: var(--rd-green); border-color: var(--rd-green); color: var(--rd-on-accent); font-weight: 700; }
+
+/* el fade se ve sobre el clip, como en cualquier editor: una rampa al principio o al final */
+.ed-tl-fade { position: absolute; top: 0; bottom: 0; pointer-events: none; z-index: 2; }
+.ed-tl-fade--in { left: 0; background: linear-gradient(to top right, rgba(0, 0, 0, 0.55) 49%, transparent 51%); border-radius: 7px 0 0 7px; }
+.ed-tl-fade--out { right: 0; background: linear-gradient(to top left, rgba(0, 0, 0, 0.55) 49%, transparent 51%); border-radius: 0 7px 7px 0; }

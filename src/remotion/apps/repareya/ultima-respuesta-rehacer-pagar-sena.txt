@@ -1,0 +1,246 @@
+```tsx
+// ── 4. pagar la seña: un toque paga la seña y la plataforma la retiene ──
+
+// superficies oscuras propias de esta tarjeta (apenas más claras que el fondo)
+const SUP = '#2F221A';
+const SUP2 = '#241A14';
+const LINEA = 'rgba(255,255,255,0.10)';
+const TXT_C = '#F6EFE8';
+const TXT_C2 = 'rgba(246,239,232,0.62)';
+
+const FilaSena: React.FC<{
+  f: number;
+  desde: number;
+  rotulo: string;
+  monto: string;
+  fuerte?: boolean;
+  verde?: number;
+}> = ({ f, desde, rotulo, monto, fuerte, verde = 0 }) => {
+  const a = ease(f, desde, desde + 18);
+  const acento = fuerte ? NARANJA : LINEA;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 24,
+        padding: '26px 32px',
+        borderRadius: 18,
+        background: verde > 0 ? `rgba(15,157,99,${0.10 + 0.08 * verde})` : SUP2,
+        border: `2px solid ${verde > 0 ? EXITO : acento}`,
+        opacity: a,
+        transform: `translateY(${(1 - a) * 26}px)`,
+      }}
+    >
+      <span style={{ fontSize: 34, fontWeight: 600, color: verde > 0 ? EXITO : fuerte ? TXT_C : TXT_C2 }}>
+        {rotulo}
+      </span>
+      <span
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          fontFamily: cond,
+          fontWeight: 800,
+          letterSpacing: '-0.02em',
+          fontSize: fuerte ? 72 : 52,
+          color: verde > 0 ? EXITO : fuerte ? NARANJA : TXT_C,
+        }}
+      >
+        {verde > 0.5 ? <Ico d={D.check} size={40} color={EXITO} stroke={3} /> : null}
+        {monto}
+      </span>
+    </div>
+  );
+};
+
+export const PagarSena: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  // los cuatro estados reales, repartidos en los 7 s
+  const p1 = 44;                       // el cursor llega y aprieta Pagar
+  const p2 = p1 + (dur - p1 - 30) * 0.30;  // MercadoPago procesando
+  const p3 = p1 + (dur - p1 - 30) * 0.62;  // pago recibido
+  const p4 = p1 + (dur - p1 - 30) * 0.88;  // seña protegida
+  const etapa = f < p1 ? 0 : f < p2 ? 1 : f < p3 ? 2 : 3;
+
+  const apreta = interpolate(f, [p1 - 10, p1, p1 + 8], [0, 1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const cursorY = mix(f, 6, p1, 300, 744);
+  const cursorOp = 1 - lin(f, p1 + 10, p1 + 24);
+
+  const barra = lin(f, p1 + 2, p3 - 8);         // la barra de MercadoPago avanza con el spinner
+  const verde = ease(f, p3, p3 + 20);           // la fila de la seña se pone verde
+  const retenido = mixLin(f, p3 + 4, p4 + 22, 0, 124000); // el contador de retenidos sube
+  const custodia = lin(f, p3 + 10, dur - 12) * 2;         // la custodia avanza tramo por tramo
+  // el aviso de la vuelta de MercadoPago entra en el lugar de la fila del total y se queda hasta el final:
+  // así nunca se cruzan los dos en la misma ranura
+  const avisoOp = ease(f, p3, p3 + 14);
+  const totalOp = 1 - avisoOp;
+
+  const boton =
+    etapa <= 1
+      ? { t: 'Pagar $124.000', c: NARANJA, b: NARANJA_OSCURO }
+      : etapa === 2
+      ? { t: 'Pago recibido', c: EXITO, b: EXITO }
+      : { t: 'Marcar evento como finalizado', c: EXITO, b: EXITO };
+
+  const aparece = ease(f, 0, 18);
+  const latido = 1 + 0.02 * Math.abs(Math.sin(f / 9));
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 80,
+        top: 330,
+        width: 920,
+        height: 920,
+        borderRadius: 32,
+        background: SUP,
+        border: `1px solid ${LINEA}`,
+        boxShadow: '0 34px 80px rgba(0,0,0,0.55)',
+        padding: '42px 40px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 20,
+        overflow: 'hidden',
+        fontFamily: sans,
+        color: TXT_C,
+        opacity: aparece,
+        transform: `translateY(${(1 - aparece) * 36}px) scale(${0.97 + 0.03 * aparece})`,
+      }}
+    >
+      {/* 1 · la primera ranura: al principio el total del trabajo; cuando vuelve de MercadoPago, el aviso */}
+      <div style={{ position: 'relative', height: 108, flex: 'none' }}>
+        <div style={{ position: 'absolute', inset: 0, opacity: totalOp }}>
+          <FilaSena f={f} desde={6} rotulo="Total del trabajo" monto="$620.000" />
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            padding: '20px 28px',
+            borderRadius: 18,
+            background: '#0F9D63',
+            boxShadow: '0 18px 44px rgba(0,0,0,0.45)',
+            opacity: avisoOp,
+            transform: `translateY(${(1 - avisoOp) * -20}px)`,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: 6,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Ico d={D.check} size={30} color={BLANCO} stroke={3} />
+            <span style={{ fontSize: 34, fontWeight: 700, color: BLANCO }}>¡Pago recibido!</span>
+          </div>
+          <div style={{ fontSize: 30, lineHeight: 1.2, color: 'rgba(255,255,255,0.90)' }}>
+            Estamos confirmando tu reserva.
+          </div>
+        </div>
+      </div>
+
+      {/* 2 · la seña: lo que se paga ahora, y lo que se pone verde al acreditarse */}
+      <FilaSena
+        f={f}
+        desde={16}
+        rotulo={verde > 0.5 ? 'Seña protegida' : 'Seña a pagar ahora'}
+        monto="$124.000"
+        fuerte
+        verde={verde}
+      />
+
+      {/* 3 · MercadoPago: la barra avanza con el spinner */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 20,
+          padding: '22px 32px',
+          borderRadius: 18,
+          background: SUP2,
+          border: `1px solid ${LINEA}`,
+          opacity: ease(f, 26, 44),
+        }}
+      >
+        {etapa === 1 ? (
+          <span
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 999,
+              border: '4px solid rgba(255,255,255,0.22)',
+              borderTopColor: INFO,
+              transform: `rotate(${f * 14}deg)`,
+            }}
+          />
+        ) : (
+          <Ico d={barra >= 1 ? D.check : D.recibo} size={34} color={barra >= 1 ? EXITO : INFO} stroke={2.6} />
+        )}
+        <span style={{ fontSize: 34, fontWeight: 600, color: TXT_C }}>MercadoPago</span>
+        <div style={{ flex: 1, height: 14, borderRadius: 999, background: 'rgba(255,255,255,0.10)', overflow: 'hidden' }}>
+          <div style={{ width: `${barra * 100}%`, height: '100%', background: barra >= 1 ? EXITO : INFO }} />
+        </div>
+      </div>
+
+      {/* 4 · el botón que se aprieta y después cambia de estado */}
+      <div style={{ position: 'relative', marginTop: 4 }}>
+        <div
+          style={{
+            height: 108,
+            borderRadius: 20,
+            background: boton.c,
+            color: BLANCO,
+            fontSize: 40,
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+            textAlign: 'center',
+            padding: '0 24px',
+            transform: `scale(${(etapa === 0 ? latido : 1) - 0.035 * apreta})`,
+            boxShadow: `0 16px 40px ${boton.b}66`,
+          }}
+        >
+          {etapa >= 2 ? <Ico d={etapa === 2 ? D.check : D.escudo} size={38} color={BLANCO} stroke={3} /> : null}
+          {boton.t}
+        </div>
+        <Cursor x={700} y={cursorY - 744 + 54} apreta={apreta} op={cursorOp} />
+      </div>
+
+      {/* la seña queda retenida: el contador sube y la custodia avanza */}
+      <div
+        style={{
+          marginTop: 'auto',
+          padding: '24px 32px',
+          borderRadius: 18,
+          background: 'rgba(15,157,99,0.12)',
+          border: `2px solid ${verde > 0.4 ? EXITO : 'rgba(15,157,99,0.35)'}`,
+          opacity: ease(f, 34, 52),
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 34, fontWeight: 700, color: EXITO }}>
+            <Ico d={D.escudo} size={34} color={EXITO} stroke={2.4} />
+            Seña protegida
+          </span>
+          <span style={{ fontFamily: cond, fontWeight: 800, fontSize: 64, letterSpacing: '-0.02em', color: EXITO }}>
+            {pesos(retenido)}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
+          {[0, 1, 2].map((i) => {
+            const ll = Math.min(1, Math.max(0, custodia - i));
+            return (
+              <div key={i} style={{ flex: 1, height: 12, borderRadius: 999, background: 'rgba(255,255,255,0.10)', overflow: 'hidden' }}>
+                <div style={{ width: `${ll * 100}%`, height: '100%', background: i === 2 ? ALERTA : EXITO }} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+```

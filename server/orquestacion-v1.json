@@ -1,0 +1,128 @@
+{
+  "version": "orquestacion/1.1",
+  "fecha": "2026-10-10",
+  "curado": "2026-10-10, Lucas: las nueve decisiones como se recomendaron. Lo único que cambió la regla: Reel Flow no hace Consideración (va en híbrido). Pedidos a RepareHoy: tildes en el kit y dolores del proveedor.",
+  "principio": "La campaña, el ángulo de cada pieza y el material de cada momento los decide esta regla a partir del kit de la app. El modelo sólo escribe adentro del plan. Mismo kit y mismo formato, mismo plan, siempre. Todo lo de este archivo se cura sin tocar código.",
+
+  "objetivos": [
+    { "id": "awareness", "label": "Awareness", "industria": "Awareness (Meta)", "pregunta": "¿Me pasa esto?", "meta": "Que alguien que no conoce la marca reconozca su problema y sepa que existe una salida.", "angulos": ["antes-despues", "problema-solucion", "marca"], "tono": "natural" },
+    { "id": "consideracion", "label": "Consideración", "industria": "Consideration: Traffic / Engagement (Meta)", "pregunta": "¿Cómo funciona?", "meta": "Que se entienda cómo funciona, con la pantalla real, paso por paso.", "angulos": ["demo", "problema-solucion"], "tono": "sobrio" },
+    { "id": "conversion", "label": "Conversión", "industria": "Conversion: Leads / Sales / App promotion (Meta)", "pregunta": "¿Por qué ahora?", "meta": "Una razón concreta para entrar hoy, con el CTA del kit tal cual.", "angulos": ["problema-solucion", "testimonio", "antes-despues"], "tono": "calido" }
+  ],
+
+  "campana": {
+    "audienciaPrincipal": { "objetivos": ["awareness", "consideracion", "conversion"] },
+    "audienciaSecundaria": { "objetivos": ["conversion"], "nota": "La segunda audiencia tiene su propia pieza, con su momento y su CTA. Viene después de la principal." },
+    "noRepetirAngulo": true,
+    "objetivosPorFormato": { "reel-9-16": ["awareness", "conversion"] },
+    "notaFormato": "Consideración explica cómo funciona y pide la pantalla: en Reel Flow no se hace; va siempre en híbrido."
+  },
+
+  "tiposDeMomento": {
+    "persona": "Una persona en una situación: el dolor, la reacción, el resultado humano.",
+    "producto": "El producto funcionando: una pantalla real del kit con su zona clave.",
+    "marca": "El cierre: la placa con la marca y el CTA."
+  },
+
+  "angulos": [
+    {
+      "id": "problema-solucion", "label": "Problema y solución", "industria": "Problem–Agitate–Solution (PAS)", "enfoqueV3": "caso",
+      "requiere": { "dolores": 1, "pantallasDelMomento": 1 },
+      "momentos": [
+        { "id": "problema", "label": "El problema", "tipo": "persona", "dice": "El dolor en una situación concreta y reconocible.", "fuente": "dolor", "peso": 1.1 },
+        { "id": "agitacion", "label": "Cómo empeora", "tipo": "persona", "dice": "Lo que cuesta seguir así: el enemigo de la tesis.", "fuente": "enemigo", "peso": 0.9 },
+        { "id": "solucion", "label": "La solución", "tipo": "producto", "dice": "El producto resuelve ESE dolor, en la pantalla real que le responde.", "fuente": "respuestaAlDolor", "peso": 1 },
+        { "id": "cierre", "label": "Cierre", "tipo": "marca", "dice": "La placa con el CTA del kit.", "fuente": "cta" }
+      ]
+    },
+    {
+      "id": "antes-despues", "label": "Antes y después", "industria": "Before–After–Bridge (BAB)", "enfoqueV3": "antes-despues",
+      "requiere": { "enemigo": true, "pantallasDelMomento": 1 },
+      "momentos": [
+        { "id": "antes", "label": "Antes", "tipo": "persona", "dice": "Cómo se hace hoy, sin el producto: el enemigo de la tesis, sin ridiculizar.", "fuente": "enemigo", "peso": 1.2 },
+        { "id": "puente", "label": "El puente", "tipo": "producto", "dice": "El producto es el puente: el momento mágico en la pantalla real.", "fuente": "momentoMagico", "peso": 1 },
+        { "id": "despues", "label": "Después", "tipo": "persona", "dice": "La misma persona, con el problema resuelto: el remate del momento.", "fuente": "remate", "peso": 1 },
+        { "id": "cierre", "label": "Cierre", "tipo": "marca", "dice": "La placa con el CTA del kit.", "fuente": "cta" }
+      ]
+    },
+    {
+      "id": "demo", "label": "Demo", "industria": "Product demo / walkthrough", "enfoqueV3": "producto",
+      "requiere": { "pantallasDelMomento": 3, "pantallaVisible": true },
+      "momentos": [
+        { "id": "necesidad", "label": "La necesidad", "tipo": "persona", "dice": "Para qué alguien abre la app: el dolor que las pantallas de la demo resuelven.", "fuente": "dolorDeLasPantallas", "peso": 1 },
+        { "id": "paso1", "label": "Paso 1", "tipo": "producto", "dice": "El primer paso del momento del kit.", "fuente": "pantallaDelMomento:1", "peso": 0.9 },
+        { "id": "paso2", "label": "Paso 2", "tipo": "producto", "dice": "El segundo paso.", "fuente": "pantallaDelMomento:2", "peso": 0.9 },
+        { "id": "paso3", "label": "Paso 3", "tipo": "producto", "dice": "El tercer paso.", "fuente": "pantallaDelMomento:3", "peso": 0.9 },
+        { "id": "cierre", "label": "Cierre", "tipo": "marca", "dice": "La placa con el CTA del kit.", "fuente": "cta" }
+      ]
+    },
+    {
+      "id": "testimonio", "label": "Testimonio dramatizado", "industria": "Testimonial / UGC-style", "enfoqueV3": "testimonio",
+      "requiere": { "testimoniosAutorizados": true },
+      "momentos": [
+        { "id": "quien", "label": "Quién habla", "tipo": "persona", "dice": "Una persona a cámara cuenta qué le pasaba. Dramatización evidente.", "fuente": "dolor", "peso": 1.2 },
+        { "id": "como", "label": "Cómo lo resolvió", "tipo": "producto", "dice": "La pantalla donde se resolvió lo que contó.", "fuente": "respuestaAlDolor", "peso": 1 },
+        { "id": "cambio", "label": "Qué cambió", "tipo": "persona", "dice": "Qué cambió para esa persona, sin cifras ni reseñas.", "fuente": "remate", "peso": 1 },
+        { "id": "cierre", "label": "Cierre", "tipo": "marca", "dice": "La placa con el CTA del kit.", "fuente": "cta" }
+      ]
+    },
+    {
+      "id": "marca", "label": "Marca", "industria": "Brand story / manifiesto", "enfoqueV3": "institucional",
+      "requiere": { "fuerte": true, "diferenciales": 2 },
+      "momentos": [
+        { "id": "verdad", "label": "La verdad del rubro", "tipo": "persona", "dice": "Lo que todos conocen y nadie resolvió: el enemigo.", "fuente": "enemigo", "peso": 1 },
+        { "id": "promesa", "label": "La promesa", "tipo": "persona", "dice": "El fuerte de la tesis, dicho por una persona o en texto.", "fuente": "fuerte", "peso": 1 },
+        { "id": "prueba1", "label": "Prueba", "tipo": "producto", "dice": "Un diferencial, en su pantalla.", "fuente": "diferencial:1", "peso": 0.9 },
+        { "id": "prueba2", "label": "Otra prueba", "tipo": "producto", "dice": "Otro diferencial, en su pantalla.", "fuente": "diferencial:2", "peso": 0.9 },
+        { "id": "cierre", "label": "Cierre", "tipo": "marca", "dice": "La placa con el CTA del kit.", "fuente": "cta" }
+      ]
+    }
+  ],
+
+  "tonos": [
+    { "id": "natural", "label": "Cotidiano", "industria": "Conversational / friendly" },
+    { "id": "sobrio", "label": "Sobrio", "industria": "Professional" },
+    { "id": "calido", "label": "Cálido", "industria": "Warm / empathetic" },
+    { "id": "aspiracional", "label": "Inspirador", "industria": "Inspirational" },
+    { "id": "humor", "label": "Con humor", "industria": "Humorous / playful", "lleva": ["intensidadHumor", "recursoHumorId"] }
+  ],
+
+  "combinaciones": {
+    "no": [
+      { "angulo": "testimonio", "tono": "humor", "porque": "Un testimonio con chiste suena a parodia del cliente." },
+      { "angulo": "testimonio", "tono": "aspiracional", "porque": "Sin cliente real, un testimonio inspirador es una promesa." },
+      { "angulo": "marca", "tono": "humor", "porque": "Manifiesto con chiste: los dos registros se anulan." }
+    ],
+    "reparo": [
+      { "angulo": "antes-despues", "tono": "aspiracional", "porque": "El después inspirador promete sin querer que todo sale bien." },
+      { "angulo": "demo", "tono": "calido", "porque": "A una demo de pantallas la calidez le queda forzada." },
+      { "angulo": "demo", "tono": "humor", "porque": "Chistes sobre una interfaz son débiles; sólo si el humor está en la persona." },
+      { "angulo": "marca", "tono": "natural", "porque": "Sin tracción para mostrar, el manifiesto cotidiano queda chico." }
+    ]
+  },
+
+  "material": {
+    "reel-hibrido-9-16": { "persona": "filmada", "producto": "mockup", "marca": "placa" },
+    "reel-9-16": { "persona": "filmada", "producto": "consecuencia", "marca": "placa" },
+    "reel-animado-9-16": { "persona": "texto", "producto": "mockup", "marca": "placa" }
+  },
+  "materiales": {
+    "filmada": { "label": "Filmada en Flow", "dice": "Una toma de 8 s en Flow con el personaje de la pieza; el montaje la recorta.", "dur": { "base": 6, "min": 4, "max": 8 } },
+    "consecuencia": { "label": "Filmada: la consecuencia", "dice": "En vez de la pantalla, la persona y el resultado visible. Nunca se filma una pantalla.", "dur": { "base": 6, "min": 4, "max": 8 } },
+    "mockup": { "label": "Mockup de la pantalla", "dice": "La pantalla real del kit, animada sobre su zona clave.", "dur": { "base": 5, "min": 4, "max": 6 } },
+    "texto": { "label": "Texto animado", "dice": "La frase del momento en pantalla, con la marca.", "dur": { "base": 3.5, "min": 3, "max": 4 } },
+    "placa": { "label": "Placa final", "dice": "Logo y CTA del kit. Siempre la arma el motor; nunca se filma.", "dur": { "base": 3, "min": 3, "max": 4 } }
+  },
+  "duracionPorFormato": { "reel-hibrido-9-16": 26, "reel-9-16": 20, "reel-animado-9-16": 20 },
+
+  "reglasDeSeleccion": [
+    "Audiencias: las de los momentos del kit; la primera es la que nombra 'a quién le hablamos primero'. Sin eso, el orden de los momentos.",
+    "Ángulo: el primero de la lista del objetivo que cumpla sus requisitos con el kit y no se haya usado para esa audiencia. Si ninguno, se repite uno que cumpla, con aviso.",
+    "Tono: el del objetivo. Si la combinación ángulo y tono está prohibida, el siguiente tono permitido.",
+    "La Demo necesita que la pantalla se vea: en Reel Flow (sin mockups) no se elige.",
+    "Si falta el enemigo de la tesis, Cómo empeora usa otro dolor del kit, con aviso. La segunda audiencia usa otro dolor suyo: el enemigo está escrito desde la principal.",
+    "Pantallas: las del momento de la audiencia, en orden. El puente usa la pantalla que nombra el momento mágico; la solución, la que mejor responde al dolor de esa pieza; si ninguna se parece, la siguiente sin usar.",
+    "Dolores: uno distinto por pieza en toda la campaña. Se elige el que mejor responde una pantalla del kit, así la solución muestra justo lo que el problema pidió. En la Demo, el que mejor responden sus tres pantallas.",
+    "Duración: la del formato; el resto repartido por peso, dentro del mínimo y el máximo de cada material. Lo que no entra lo absorbe la placa, hasta 4 s."
+  ]
+}

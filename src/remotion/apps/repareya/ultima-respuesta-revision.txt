@@ -1,0 +1,849 @@
+Voy a mirar los cuadros renderizados y las referencias.
+
+undefined
+
+Voy a leer primero las referencias de Munify para entender el marco objetivo.
+
+undefined
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\referencia-munify-semaforo.png"}}
+
+{"type":"image","file":{"image_url":"munify-semaforo.png"}}
+
+Ahora la segunda referencia.
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\referencia-munify-dashboard.png"}}
+
+{"type":"image","file":{"image_url":"munify-dashboard.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\referencia-munify-tramite.png"}}
+
+{"type":"image","file":{"image_url":"munify-tramite.png"}}
+
+Ahora mis cuadros, uno por uno.
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\contar-problema.png"}}
+
+{"type":"image","file":{"image_url":"contar-problema.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\presupuestos-que-llegan.png"}}
+
+{"type":"image","file":{"image_url":"presupuestos.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\chat-plan-de-pagos.png"}}
+
+{"type":"image","file":{"image_url":"chat.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\pagar-la-sena.png"}}
+
+{"type":"image","file":{"image_url":"sena.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\bandeja-solicitudes.png"}}
+
+{"type":"image","file":{"image_url":"bandeja.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\armar-plan-de-pagos.png"}}
+
+{"type":"image","file":{"image_url":"plan.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\panel-proveedor.png"}}
+
+{"type":"image","file":{"image_url":"panel.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\reputacion-resenas.png"}}
+
+{"type":"image","file":{"image_url":"reputacion.png"}}
+
+{"name":"Read","input":{"file_path":"D:\\Code\\media-studio\\src\\remotion\\apps\\repareya\\revision\\mis-solicitudes.png"}}
+
+{"type":"image","file":{"image_url":"mis-solicitudes.png"}}
+
+Ya vi todo. Los problemas que encontré: el hueco de 480 px entre el logo y la tarjeta, las tarjetas altas (contar-problema, bandeja, plan de pagos, mis solicitudes) que se comen el título de abajo porque el `escala` reduce el ancho pero el contenido sigue excediendo los 640 px de hueco, y el bloque de título fijo en top 1290 sin medir el alto real de la tarjeta. Corregí el marco: la tarjeta arranca en top 340, cada escena declara su alto real, el título se calcula desde el borde inferior de la tarjeta con 60 px de aire y nunca baja de cierto piso, y el fondo quedó oscuro parejo en toda la pantalla con el halo de marca.
+
+```tsx
+// RepareHoy — tarjetas que ACTÚAN: el pedido que se escribe solo, los presupuestos que entran,
+// el chat que negocia el plan de pagos, la seña que se retiene y se libera, la bandeja que recibe,
+// el plan por etapas que se arma, el panel que cuenta y la reputación que suma una reseña.
+// MARCO: madera oscura en TODA la pantalla + halo naranja de marca. La tarjeta clara flota arriba
+// (arranca en top 340, pegada al logo) y el chip + título + bajada van SIEMPRE debajo de su borde
+// inferior, en blanco, con 60 px de aire. Cada escena declara su alto real para que nada se pise.
+import { useMemo } from 'react';
+import { AbsoluteFill, Easing, Img, Sequence, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
+import { loadFont as loadCond } from '@remotion/google-fonts/SairaCondensed';
+import { loadFont as loadSaira } from '@remotion/google-fonts/Saira';
+
+const { fontFamily: cond } = loadCond('normal', { weights: ['600', '700', '800'], subsets: ['latin', 'latin-ext'] });
+const { fontFamily: saira } = loadSaira('normal', { weights: ['400', '500', '600', '700'], subsets: ['latin', 'latin-ext'] });
+
+export interface EscenaTarjetaApp { tipo: string; durSec: number; chip?: string; titulo: string; resaltar?: string; sub?: string }
+export interface PlanTarjetasApp { app: string; width: number; height: number; fps: number; escenas: EscenaTarjetaApp[]; placa: { linea1: string; linea2: string; durSec: number }; logoSrc: string }
+
+// ── paleta de marca ──
+const NARANJA = '#EE5A0E';
+const NARANJA_CLARO = '#FF8A4C';
+const NARANJA_OSC = '#C9450A';
+const TINTE = '#FDEDE3';
+const CREMA = '#FBF6EF';
+const BLANCO = '#FFFFFF';
+const MADERA = '#2B1E17';
+const MADERA_P = '#1B120D';
+const MADERA_PP = '#120B07';
+const TXT = '#231A14';
+const TXT2 = '#5E5046';
+const TXT3 = '#8C7D71';
+const BORDE = 'rgba(43,30,23,0.16)';
+const EXITO = '#0F9D63';
+const ALERTA = '#F59E0B';
+const INFO = '#2563EB';
+const AMBAR_TXT = '#9A6200';
+const SOMBRA = '0 1px 2px rgba(43,30,23,0.04), 0 2px 6px rgba(43,30,23,0.05)';
+const SOMBRA_FLOTA = '0 18px 60px rgba(0,0,0,0.45), 0 4px 14px rgba(0,0,0,0.3)';
+
+// ── geometría del cuadro ──
+// La tarjeta arranca justo debajo del logo: nada de huecos de 400 px.
+const TARJETA_TOP = 340;
+// Ningún contenido de tarjeta puede pasar este alto: si pasa, se achica o muestra menos filas.
+const TARJETA_ALTO_MAX = 750;
+// Aire mínimo entre el borde inferior de la tarjeta y el chip del título.
+const AIRE = 60;
+// Piso del bloque de título: nunca sube más que esto, para que la bajada no se vaya al pie.
+const TITULO_TOP_MIN = 1180;
+
+const ease = (f: number, a: number, b: number) => interpolate(f, [a, b], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
+const lin = (f: number, a: number, b: number) => interpolate(f, [a, b], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+const pesos = (n: number) => '$' + Math.round(n).toLocaleString('es-AR');
+
+// ── íconos en SVG, sin librerías ──
+const IcoHerramienta: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.5 5.5a3.5 3.5 0 1 0 4.4 4.4l-8.1 8.1-4.4-4.4 8.1-8.1z" />
+    <path d="M4 20l2.4-2.4" />
+  </svg>
+);
+const IcoCampana: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6z" />
+    <path d="M10.3 20a2 2 0 0 0 3.4 0" />
+  </svg>
+);
+const IcoChat: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.4-4.4A8 8 0 1 1 21 12z" />
+  </svg>
+);
+const IcoEscudo: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3l7 3v5.5c0 4.6-3 8-7 9.5-4-1.5-7-4.9-7-9.5V6l7-3z" />
+    <path d="M9 12l2.2 2.2L15.5 10" />
+  </svg>
+);
+const IcoBandeja: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 14h4l1.5 3h7L17 14h4" />
+    <path d="M3 14l2.8-8h12.4L21 14v5H3v-5z" />
+  </svg>
+);
+const IcoBilletes: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="7" width="20" height="11" rx="2" />
+    <circle cx="12" cy="12.5" r="2.6" />
+    <path d="M5.5 4.5h13" />
+  </svg>
+);
+const IcoTablero: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19V11" /><path d="M10 19V5" /><path d="M16 19v-6" /><path d="M3 21h18" />
+  </svg>
+);
+const IcoEstrellaCont: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3.6l2.6 5.3 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.8L12 3.6z" />
+  </svg>
+);
+const IcoRuta: React.FC<{ s?: number; c?: string }> = ({ s = 30, c = NARANJA }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="5" cy="6" r="2.5" /><circle cx="19" cy="18" r="2.5" />
+    <path d="M5 8.5V13a4 4 0 0 0 4 4h7.5" />
+  </svg>
+);
+const Tilde: React.FC<{ s?: number; c?: string }> = ({ s = 20, c = BLANCO }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.5 12.5l5 5L19.5 7" />
+  </svg>
+);
+const Micro: React.FC<{ s?: number; c?: string }> = ({ s = 26, c = TXT3 }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="3" width="6" height="11" rx="3" />
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" /><path d="M12 18v3" />
+  </svg>
+);
+const Estrella: React.FC<{ s?: number; llena: number }> = ({ s = 26, llena }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24">
+    <path d="M12 3.3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3.3z"
+      fill={llena > 0.5 ? ALERTA : 'rgba(43,30,23,0.14)'} />
+  </svg>
+);
+
+// ── fondo: madera oscura en TODA la pantalla, grano cálido y halo naranja de marca ──
+// Sin franjas: un solo degradé oscuro de borde a borde y el color de marca sólo como halo.
+const MOTAS = Array.from({ length: 46 }, (_, i) => ({ x: (i * 67) % 100, y: (i * 41) % 100, r: 2 + (i % 4), f: 0.25 + ((i * 13) % 9) / 11 }));
+const Fondo: React.FC = () => {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill style={{ background: `linear-gradient(170deg, ${MADERA_PP} 0%, ${MADERA_P} 30%, ${MADERA} 56%, ${MADERA_P} 82%, ${MADERA_PP} 100%)` }}>
+      <AbsoluteFill style={{ background: 'radial-gradient(62% 30% at 50% 26%, rgba(238,90,14,0.30) 0%, rgba(238,90,14,0.09) 54%, rgba(238,90,14,0) 78%)' }} />
+      <AbsoluteFill style={{ background: 'radial-gradient(52% 28% at 50% 82%, rgba(238,90,14,0.16) 0%, rgba(238,90,14,0) 74%)' }} />
+      <AbsoluteFill style={{ background: 'radial-gradient(40% 24% at 8% 48%, rgba(255,138,76,0.10) 0%, rgba(255,138,76,0) 70%)' }} />
+      {MOTAS.map((m, i) => (
+        <div key={i} style={{ position: 'absolute', left: `${m.x}%`, top: `${m.y}%`, width: m.r * 2, height: m.r * 2, borderRadius: '50%', background: NARANJA_CLARO, opacity: 0.04 + 0.07 * Math.abs(Math.sin((f / 30) * m.f * 1.6 + i)) }} />
+      ))}
+      <AbsoluteFill style={{ background: 'radial-gradient(120% 120% at 50% 50%, rgba(0,0,0,0) 46%, rgba(0,0,0,0.42) 100%)' }} />
+    </AbsoluteFill>
+  );
+};
+
+const Progreso: React.FC<{ escenas: { from: number; dur: number }[] }> = ({ escenas }) => {
+  const f = useCurrentFrame();
+  return (
+    <div style={{ position: 'absolute', top: 44, left: 48, right: 48, display: 'flex', gap: 8 }}>
+      {escenas.map((e, i) => (
+        <div key={i} style={{ flex: 1, height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.24)', overflow: 'hidden' }}>
+          <div style={{ width: `${lin(f, e.from, e.from + e.dur) * 100}%`, height: '100%', background: NARANJA_CLARO }} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Logo chico y arriba: la tarjeta entra 120 px más abajo, sin vacío.
+const Logo: React.FC<{ src: string }> = ({ src }) => (
+  <div style={{ position: 'absolute', top: 150, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <Img src={src} style={{ height: 84 }} />
+  </div>
+);
+
+// ── piezas compartidas ──
+// La tarjeta no se toca por dentro. El marco le fija ancho y escala desde arriba; `alto` es el alto
+// ya escalado que la escena declara, y de ahí sale la posición del título.
+const Tarjeta: React.FC<{ f: number; titulo: string; sub?: string; icono: React.ReactNode; escala?: number; children: React.ReactNode }> = ({ f, titulo, sub, icono, escala = 1, children }) => {
+  const a = ease(f, 0, 16);
+  return (
+    <div style={{ position: 'absolute', left: 0, right: 0, top: TARJETA_TOP, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+      <div style={{ width: 880, transform: `scale(${escala})`, transformOrigin: 'top center' }}>
+        <div style={{ borderRadius: 14, background: BLANCO, border: '1px solid rgba(255,255,255,0.14)', boxShadow: SOMBRA_FLOTA, padding: '32px 36px', opacity: a, transform: `translateY(${(1 - a) * 42}px) scale(${0.965 + 0.035 * a})`, fontFamily: saira, color: TXT }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 12, background: TINTE, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icono}</div>
+            <div>
+              <div style={{ fontFamily: cond, fontSize: 40, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.05, color: TXT }}>{titulo}</div>
+              {sub ? <div style={{ fontSize: 23, color: TXT2, marginTop: 3 }}>{sub}</div> : null}
+            </div>
+          </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Chip: React.FC<{ texto: string }> = ({ texto }) => (
+  <div style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 999, background: NARANJA, color: BLANCO, fontFamily: saira, fontWeight: 700, fontSize: 23, letterSpacing: 3, textTransform: 'uppercase' }}>{texto}</div>
+);
+
+const Pastilla: React.FC<{ texto: string; color: string; tinte: string; op?: number }> = ({ texto, color, tinte, op = 1 }) => (
+  <span style={{ display: 'inline-block', padding: '6px 16px', borderRadius: 999, background: tinte, color, fontSize: 22, fontWeight: 700, letterSpacing: 1.4, opacity: op }}>{texto}</span>
+);
+
+const PastillaEstado: React.FC<{ estado: string; op?: number }> = ({ estado, op = 1 }) => {
+  const mapa: Record<string, [string, string]> = {
+    ACEPTADO: [EXITO, 'rgba(15,157,99,0.14)'],
+    COTIZADO: [INFO, 'rgba(37,99,235,0.14)'],
+    PENDIENTE: [AMBAR_TXT, 'rgba(245,158,11,0.18)'],
+    CONFIRMADO: [NARANJA_OSC, TINTE],
+    FINALIZADO: [TXT2, 'rgba(43,30,23,0.09)'],
+    'PRESUPUESTO RECIBIDO': [TXT2, 'rgba(43,30,23,0.09)'],
+  };
+  const [c, t] = mapa[estado] || [TXT2, 'rgba(43,30,23,0.09)'];
+  return <Pastilla texto={estado} color={c} tinte={t} op={op} />;
+};
+
+// Bloque de título: siempre DEBAJO de la tarjeta, blanco sobre el fondo oscuro, nunca superpuesto.
+const Titulo: React.FC<{ f: number; chip?: string; titulo: string; resaltar?: string; sub?: string; top: number; size?: number }> = ({ f, chip, titulo, resaltar, sub, top, size = 80 }) => {
+  const i = resaltar ? titulo.toLowerCase().indexOf(resaltar.toLowerCase()) : -1;
+  const [a, b, c] = i >= 0 && resaltar ? [titulo.slice(0, i), titulo.slice(i, i + resaltar.length), titulo.slice(i + resaltar.length)] : [titulo, '', ''];
+  const op = ease(f, 8, 26);
+  return (
+    <div style={{ position: 'absolute', top, left: 80, right: 80, textAlign: 'center', opacity: op, transform: `translateY(${(1 - op) * 20}px)` }}>
+      {chip ? <div style={{ marginBottom: 22 }}><Chip texto={chip} /></div> : null}
+      <div style={{ fontFamily: cond, fontWeight: 800, fontSize: size, lineHeight: 1.04, color: BLANCO, letterSpacing: '-0.02em', textShadow: '0 2px 18px rgba(0,0,0,0.6)' }}>
+        {a}<span style={{ color: NARANJA_CLARO }}>{b}</span>{c}
+      </div>
+      {sub ? <div style={{ marginTop: 20, fontFamily: saira, fontSize: 32, lineHeight: 1.34, color: 'rgba(255,255,255,0.9)', textShadow: '0 2px 12px rgba(0,0,0,0.55)' }}>{sub}</div> : null}
+    </div>
+  );
+};
+
+// ── 1. contar el problema: la barra de pasos avanza y la descripción se tipea sola ──
+const DESCRIPCION = 'Se me llueve el techo del lavadero cuando llueve fuerte...';
+export const ContarProblema: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const pasos = ['Tipo de trabajo', 'Detalles', 'Lugar', 'Resumen'];
+  const tramo = Math.max(20, (dur - 46) / 4);
+  const avance = lin(f, 16, 16 + tramo * 4) * 4;
+  const activo = Math.min(3, Math.floor(avance));
+  const letras = Math.round(interpolate(f, [22, 22 + tramo * 2.1], [0, DESCRIPCION.length], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }));
+  const listo = avance > 3.7;
+  const publicado = ease(f, 16 + tramo * 4 + 4, 16 + tramo * 4 + 20);
+  const cursor = Math.abs(Math.sin(f / 4)) > 0.45 && letras < DESCRIPCION.length;
+  return (
+    <Tarjeta f={f} titulo="Contanos qué hay que arreglar" sub={`Paso ${activo + 1} de 4 · ${pasos[activo]}`} icono={<IcoHerramienta />} escala={0.78}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+        {pasos.map((p, i) => (
+          <div key={i} style={{ flex: 1 }}>
+            <div style={{ height: 8, borderRadius: 999, background: 'rgba(43,30,23,0.10)', overflow: 'hidden' }}>
+              <div style={{ width: `${Math.max(0, Math.min(1, avance - i)) * 100}%`, height: '100%', background: NARANJA }} />
+            </div>
+            <div style={{ marginTop: 10, fontSize: 22, textAlign: 'center', color: i <= activo ? TXT : TXT3, fontWeight: i === activo ? 700 : 500 }}>{p}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 18 }}>
+        <div style={{ flex: 1, padding: '14px 18px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}` }}>
+          <div style={{ fontSize: 21, color: TXT3, letterSpacing: 1.4 }}>TIPO DE TRABAJO</div>
+          <div style={{ fontSize: 26, fontWeight: 600, marginTop: 2 }}>Humedad y filtraciones</div>
+        </div>
+        <div style={{ flex: 1, padding: '14px 18px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}` }}>
+          <div style={{ fontSize: 21, color: TXT3, letterSpacing: 1.4 }}>ZONA</div>
+          <div style={{ fontSize: 26, fontWeight: 600, marginTop: 2 }}>Villa Urquiza</div>
+        </div>
+      </div>
+      <div style={{ fontSize: 21, color: TXT3, letterSpacing: 1.4, marginBottom: 8 }}>TÍTULO DEL TRABAJO</div>
+      <div style={{ padding: '14px 18px', borderRadius: 12, background: BLANCO, border: `1px solid ${BORDE}`, fontSize: 27, fontWeight: 600, marginBottom: 16 }}>Humedad en el techo del lavadero</div>
+      <div style={{ fontSize: 21, color: TXT3, letterSpacing: 1.4, marginBottom: 8 }}>DESCRIPCIÓN</div>
+      <div style={{ position: 'relative', minHeight: 124, padding: '16px 18px', borderRadius: 12, background: BLANCO, border: `1px solid ${letras > 0 ? NARANJA : BORDE}`, boxShadow: letras > 0 ? `0 0 0 3px ${TINTE}` : 'none', fontSize: 27, lineHeight: 1.4, color: TXT }}>
+        {DESCRIPCION.slice(0, letras)}
+        <span style={{ opacity: cursor ? 1 : 0, color: NARANJA, fontWeight: 700 }}>|</span>
+        <div style={{ position: 'absolute', right: 16, bottom: 14 }}><Micro /></div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 22 }}>
+        <div style={{ padding: '0 34px', height: 56, borderRadius: 12, background: listo ? EXITO : NARANJA, color: BLANCO, fontWeight: 700, fontSize: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
+          {listo ? <Tilde /> : null}{listo ? 'Enviar' : 'Siguiente'}
+        </div>
+        <div style={{ opacity: publicado, fontSize: 25, color: EXITO, fontWeight: 600 }}>Tu pedido ya está publicado</div>
+      </div>
+    </Tarjeta>
+  );
+};
+
+// ── 2. te esperan tus proveedores: la tira se llena y el contador de la barra sube ──
+const ESPERAN = [
+  { s: 'Puertas placa y de madera maciza, co...', p: 'Carpintería Marcelo', e: 'falta la seña', m: 105000 },
+  { s: 'Cocina completa: alacena, bajo mesa...', p: 'Carpintería Marcelo', e: 'falta la seña', m: 1180000 },
+];
+export const Esperan: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const paso = Math.max(18, (dur - 56) / 3);
+  const ent = (i: number) => ease(f, 18 + i * paso, 18 + i * paso + 16);
+  const cuenta = Math.min(3, Math.floor(lin(f, 18, 18 + paso * 3) * 3.4));
+  const late = 0.55 + 0.45 * Math.abs(Math.sin(f / 5));
+  return (
+    <Tarjeta f={f} titulo="Te esperan tus proveedores" sub="Los presupuestos llegan solos, ordenados por urgencia" icono={<IcoCampana />} escala={0.88}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', borderRadius: 999, background: 'rgba(229,72,77,0.12)', border: '1px solid rgba(229,72,77,0.4)' }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#E5484D', opacity: late, transform: `scale(${0.85 + 0.25 * late})` }} />
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#C32128' }}>{cuenta} trabajos esperan algo tuyo</div>
+        </div>
+      </div>
+      <div style={{ borderRadius: 12, border: `2px solid ${NARANJA}`, background: TINTE, padding: '20px 22px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: NARANJA, opacity: late }} />
+          <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2.6, color: NARANJA_OSC }}>TE ESPERAN TUS PROVEEDORES</div>
+        </div>
+        <div style={{ display: 'flex', gap: 16 }}>
+          {ESPERAN.map((t, i) => {
+            const a = ent(i);
+            return (
+              <div key={i} style={{ flex: 1, borderRadius: 12, background: BLANCO, border: `1px solid ${BORDE}`, boxShadow: SOMBRA, overflow: 'hidden', opacity: a, transform: `translateX(${(1 - a) * -70}px)` }}>
+                <div style={{ height: 104, background: `linear-gradient(180deg, #6B5547 0%, ${MADERA} 100%)`, display: 'flex', alignItems: 'flex-end', padding: '0 16px 12px' }}>
+                  <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 25, color: BLANCO, letterSpacing: '-0.02em' }}>{t.s}</div>
+                </div>
+                <div style={{ padding: '16px 18px' }}>
+                  <div style={{ fontSize: 24, fontWeight: 600 }}>{t.p}</div>
+                  <div style={{ marginTop: 8 }}><Pastilla texto={t.e} color={AMBAR_TXT} tinte="rgba(245,158,11,0.18)" /></div>
+                  <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 46, marginTop: 10, letterSpacing: '-0.02em' }}>{pesos(t.m)}</div>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ width: 118, borderRadius: 12, border: `1px dashed ${BORDE}`, background: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 23, fontWeight: 600, color: NARANJA_OSC, opacity: ent(2) }}>Ver 1 más</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20, fontSize: 24, color: TXT2 }}>
+        <IcoEscudo s={26} c={EXITO} />La seña queda protegida hasta que el trabajo esté hecho
+      </div>
+    </Tarjeta>
+  );
+};
+
+// ── 3. el chat con el plan de pagos adentro ──
+const MENSAJES = [
+  { yo: true, t: 'Genial. Y el pago, cómo lo manejás? Preferiría no adelantar todo.' },
+  { yo: false, t: 'Te armo un plan en tres pagos: una parte para arrancar, otra cuando instalo, y el resto cuando quedás conforme.' },
+];
+export const ChatPlan: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const paso = Math.max(20, (dur - 62) / 3);
+  const ent = (i: number) => ease(f, 18 + i * paso, 18 + i * paso + 16);
+  const prop = ease(f, 18 + paso * 2, 18 + paso * 2 + 18);
+  const firmado = ease(f, 18 + paso * 3, 18 + paso * 3 + 16);
+  return (
+    <Tarjeta f={f} titulo="Carpintería Marcelo" sub="4,8 (9 reseñas) · Villa Urquiza · Responde en 4h promedio" icono={<IcoChat />} escala={0.8}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderRadius: 12, background: firmado > 0.5 ? 'rgba(15,157,99,0.10)' : CREMA, border: `1px solid ${firmado > 0.5 ? 'rgba(15,157,99,0.45)' : BORDE}`, marginBottom: 18 }}>
+        <div>
+          <div style={{ fontSize: 25, fontWeight: 700, color: firmado > 0.5 ? EXITO : TXT }}>{firmado > 0.5 ? 'Plan de pagos acordado' : 'Plan de pagos enviado'}</div>
+          <div style={{ fontSize: 22, color: TXT2, marginTop: 2 }}>{firmado > 0.5 ? 'Firmado por los dos' : '3 pagos · $1.180.000'}</div>
+        </div>
+        <div style={{ fontSize: 23, fontWeight: 600, color: NARANJA_OSC }}>Ver detalle</div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+        <PastillaEstado estado="PRESUPUESTO RECIBIDO" />
+        <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 44, letterSpacing: '-0.02em' }}>$1.180.000</div>
+      </div>
+      <div style={{ padding: '14px 18px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}`, fontSize: 23, color: TXT2, lineHeight: 1.36, marginBottom: 18 }}>
+        Melamina hidrófuga, herrajes importados, cajón ollero con guías telescópicas. Tres semanas.
+      </div>
+      <div style={{ fontSize: 21, color: TXT3, letterSpacing: 1.4, marginBottom: 12 }}>CONVERSACIÓN · 5 MENSAJES</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {MENSAJES.map((m, i) => {
+          const a = ent(i);
+          return (
+            <div key={i} style={{ display: 'flex', justifyContent: m.yo ? 'flex-end' : 'flex-start', opacity: a, transform: `translateY(${(1 - a) * 18}px)` }}>
+              <div style={{ maxWidth: '82%', padding: '16px 20px', borderRadius: 12, background: m.yo ? NARANJA : BLANCO, border: m.yo ? 'none' : `1px solid ${BORDE}`, boxShadow: m.yo ? 'none' : SOMBRA, color: m.yo ? BLANCO : TXT, fontSize: 24, lineHeight: 1.36 }}>{m.t}</div>
+            </div>
+          );
+        })}
+        <div style={{ opacity: prop, transform: `translateY(${(1 - prop) * 20}px) scale(${0.96 + 0.04 * prop})`, borderRadius: 12, border: `2px solid ${NARANJA}`, background: TINTE, padding: '18px 20px' }}>
+          <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2, color: NARANJA_OSC }}>PROPUESTA DE PAGO 1</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 8, fontFamily: cond, fontWeight: 800, fontSize: 42, letterSpacing: '-0.02em', color: TXT }}>
+            <span>$354.000</span><span style={{ fontSize: 30, color: TXT3 }}>+</span><span>$472.000</span><span style={{ fontSize: 30, color: TXT3 }}>+</span><span>$354.000</span>
+          </div>
+        </div>
+      </div>
+    </Tarjeta>
+  );
+};
+
+// ── 4. pagar la seña: el botón se aprueba y la seña se retiene y se libera ──
+export const PagarSena: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const paso = Math.max(22, (dur - 54) / 3);
+  const pago = ease(f, 20, 20 + 16);
+  const retenida = ease(f, 20 + paso, 20 + paso + 14);
+  const liberada = ease(f, 20 + paso * 2, 20 + paso * 2 + 14);
+  const estado = liberada > 0.5 ? 2 : retenida > 0.5 ? 1 : 0;
+  const cajas = [
+    { t: 'Seña protegida', d: 'La seña queda retenida por RepareHoy y se libera al proveedor recién cuando el trabajo está aprobado', c: TXT2, b: BORDE, bg: CREMA },
+    { t: 'Retenida hasta que el trabajo termine', d: 'RepareHoy la guarda: nadie la toca hasta que el trabajo esté aprobado', c: AMBAR_TXT, b: 'rgba(245,158,11,0.45)', bg: 'rgba(245,158,11,0.10)' },
+    { t: 'Liberada al proveedor', d: 'Trabajo terminado y aprobado por la clienta', c: EXITO, b: 'rgba(15,157,99,0.45)', bg: 'rgba(15,157,99,0.10)' },
+  ];
+  const caja = cajas[estado];
+  return (
+    <Tarjeta f={f} titulo="Confirmá tu pago" sub="Puertas placa y de madera maciza, con colocación · Carpintería Marcelo" icono={<IcoBilletes />} escala={0.8}>
+      <div style={{ borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}`, padding: '8px 22px', marginBottom: 18 }}>
+        {[
+          { l: 'Total del trabajo', v: '$350.000', fuerte: false },
+          { l: 'Seña (a pagar ahora)', v: '$105.000', fuerte: true },
+          { l: 'Saldo al terminar el trabajo', v: '$245.000', fuerte: false },
+        ].map((r, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: i < 2 ? `1px solid ${BORDE}` : 'none' }}>
+            <div style={{ fontSize: r.fuerte ? 27 : 24, fontWeight: r.fuerte ? 700 : 500, color: r.fuerte ? TXT : TXT2 }}>{r.l}</div>
+            <div style={{ fontFamily: cond, fontWeight: r.fuerte ? 800 : 700, fontSize: r.fuerte ? 50 : 38, letterSpacing: '-0.02em', color: r.fuerte ? NARANJA_OSC : TXT }}>{r.v}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 12, border: `1px solid ${BORDE}`, marginBottom: 18 }}>
+        <div style={{ width: 46, height: 32, borderRadius: 6, background: '#009EE3' }} />
+        <div>
+          <div style={{ fontSize: 25, fontWeight: 600 }}>MercadoPago</div>
+          <div style={{ fontSize: 21, color: TXT3 }}>Tarjeta, débito o dinero en cuenta</div>
+        </div>
+      </div>
+      <div style={{ height: 68, borderRadius: 12, background: pago > 0.5 ? EXITO : NARANJA, color: BLANCO, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, fontSize: 31, fontWeight: 700, transform: `scale(${1 - 0.03 * Math.sin(Math.PI * Math.min(1, pago))})` }}>
+        {pago > 0.5 ? <Tilde s={28} /> : null}{pago > 0.5 ? 'Pago aprobado' : 'Pagar $105.000'}
+      </div>
+      <div style={{ marginTop: 16, padding: '18px 20px', borderRadius: 12, background: caja.bg, border: `1px solid ${caja.b}`, display: 'flex', gap: 14 }}>
+        <IcoEscudo s={30} c={caja.c} />
+        <div>
+          <div style={{ fontSize: 25, fontWeight: 700, color: caja.c }}>{caja.t}</div>
+          <div style={{ fontSize: 22, color: TXT2, marginTop: 4, lineHeight: 1.34 }}>{caja.d}</div>
+        </div>
+      </div>
+      <div style={{ marginTop: 14, textAlign: 'center', fontSize: 21, color: TXT3, letterSpacing: 1.4 }}>CONEXIÓN SEGURA · REPAREHOY</div>
+    </Tarjeta>
+  );
+};
+
+// ── 5. bandeja del proveedor: entra un pedido nuevo y cambia de estado ──
+// Dos filas fijas en vez de tres: la tarjeta entra en el alto permitido sin pisar el título.
+const SOLICITUDES = [
+  { c: 'Sofía Benítez', s: 'Cocina completa: alacena, bajo mesada y zócalos', m: 1180000, e: 'ACEPTADO' },
+  { c: 'Sofía Benítez', s: 'Placares y vestidores con interior completo', m: 890000, e: 'COTIZADO' },
+];
+export const Bandeja: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const paso = Math.max(22, (dur - 54) / 3);
+  const entra = ease(f, 18, 18 + 16);
+  const cotiza = ease(f, 18 + paso * 1.6, 18 + paso * 1.6 + 14);
+  const total = 11 + Math.round(entra);
+  const cotizadas = 1 + Math.round(cotiza);
+  const resumen = [
+    { l: 'SOLICITUDES', v: `${total}`, d: '' },
+    { l: 'COTIZADAS', v: `${cotizadas}`, d: 'Esperando al cliente' },
+    { l: 'CONFIRMADAS', v: '2', d: '' },
+    { l: 'FINALIZADAS', v: '8', d: '' },
+  ];
+  const filtros = [`Todas ${total}`, 'Pendientes', `Cotizadas ${cotizadas}`, 'Aceptadas 2', 'Finalizados 8'];
+  return (
+    <Tarjeta f={f} titulo="Bandeja de solicitudes" sub="Respondé rápido para aumentar tu conversión" icono={<IcoBandeja />} escala={0.82}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 18 }}>
+        {resumen.map((r, i) => (
+          <div key={i} style={{ padding: '16px 16px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}` }}>
+            <div style={{ fontSize: 20, letterSpacing: 1.3, color: TXT3, lineHeight: 1.2 }}>{r.l}</div>
+            <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 52, letterSpacing: '-0.02em', marginTop: 2 }}>{r.v}</div>
+            {r.d ? <div style={{ fontSize: 20, color: TXT3, lineHeight: 1.2 }}>{r.d}</div> : null}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
+        {filtros.map((t, i) => (
+          <div key={i} style={{ padding: '8px 18px', borderRadius: 999, background: i === 0 ? NARANJA : BLANCO, border: `1px solid ${i === 0 ? NARANJA : BORDE}`, color: i === 0 ? BLANCO : TXT2, fontSize: 22, fontWeight: i === 0 ? 700 : 500 }}>{t}</div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 30, letterSpacing: '-0.02em' }}>Hoy</div>
+        <div style={{ fontSize: 22, color: TXT3 }}>{2 + Math.round(entra)} solicitudes</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ opacity: entra, transform: `translateY(${(1 - entra) * -26}px)`, maxHeight: entra * 120, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderRadius: 12, background: TINTE, border: `2px solid ${NARANJA}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: 25, fontWeight: 700 }}>Sofía Benítez</div>
+                <PastillaEstado estado={cotiza > 0.5 ? 'COTIZADO' : 'PENDIENTE'} />
+              </div>
+              <div style={{ fontSize: 23, color: TXT2, marginTop: 3 }}>Mueble a medida para el living</div>
+            </div>
+            <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 40, letterSpacing: '-0.02em' }}>{cotiza > 0.5 ? '$640.000' : '—'}</div>
+          </div>
+        </div>
+        {SOLICITUDES.map((s, i) => (
+          <div key={i} style={{ padding: '16px 20px', borderRadius: 12, background: BLANCO, border: `1px solid ${BORDE}`, boxShadow: SOMBRA, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: 25, fontWeight: 700 }}>{s.c}</div>
+                <PastillaEstado estado={s.e} />
+              </div>
+              <div style={{ fontSize: 23, color: TXT2, marginTop: 3 }}>{s.s}</div>
+            </div>
+            <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 40, letterSpacing: '-0.02em' }}>{pesos(s.m)}</div>
+          </div>
+        ))}
+      </div>
+    </Tarjeta>
+  );
+};
+
+// ── 6. armar el plan de pagos: la plantilla cambia, las etapas se despliegan, el tope avisa ──
+const PLANTILLAS = [
+  { t: 'Todo al final', d: 'Un pago, cuando termina' },
+  { t: 'Mitad y mitad', d: 'Arranque y entrega' },
+  { t: 'Contra avance', d: 'Un pago por etapa' },
+];
+const ETAPAS = [
+  { n: 1, c: 'Materiales y arranque', m: 178000 },
+  { n: 2, c: 'Avance de obra', m: 356000 },
+  { n: 3, c: 'Saldo final', m: 356000 },
+];
+export const PlanDePagos: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const paso = Math.max(20, (dur - 58) / 4);
+  const cambio = ease(f, 16, 16 + 12);
+  const elegida = cambio > 0.5 ? 2 : 0;
+  const etapa = (i: number) => ease(f, 20 + paso * 0.5 + i * (paso * 0.55), 20 + paso * 0.5 + i * (paso * 0.55) + 14);
+  const sube = lin(f, 20 + paso * 2.1, 20 + paso * 2.1 + 14);
+  const vuelve = lin(f, 20 + paso * 2.9, 20 + paso * 2.9 + 12);
+  const pct = 20 + 26 * sube - 26 * vuelve;
+  const excede = pct > 40.5;
+  const manda = ease(f, 20 + paso * 3.6, 20 + paso * 3.6 + 14);
+  return (
+    <Tarjeta f={f} titulo="¿Cómo cobrás este trabajo?" sub="Placares y vestidores · $890.000" icono={<IcoRuta />} escala={0.72}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 18 }}>
+        {PLANTILLAS.map((p, i) => (
+          <div key={i} style={{ flex: 1, padding: '16px 16px', borderRadius: 12, background: i === elegida ? TINTE : BLANCO, border: `${i === elegida ? 2 : 1}px solid ${i === elegida ? NARANJA : BORDE}`, boxShadow: i === elegida ? 'none' : SOMBRA }}>
+            <div style={{ fontSize: 25, fontWeight: 700, color: i === elegida ? NARANJA_OSC : TXT }}>{p.t}</div>
+            <div style={{ fontSize: 21, color: TXT3, marginTop: 2 }}>{p.d}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 18 }}>
+        <div style={{ flex: 1, padding: '14px 18px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}` }}>
+          <div style={{ fontSize: 24, fontWeight: 600 }}>Etapas: {1 + Math.round(etapa(1) + etapa(2))}</div>
+          <div style={{ fontSize: 21, color: TXT3 }}>las que necesite el trabajo</div>
+        </div>
+        <div style={{ flex: 1, padding: '14px 18px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}` }}>
+          <div style={{ fontSize: 24, fontWeight: 600 }}>Fondo de reparo</div>
+          <div style={{ fontSize: 21, color: TXT3 }}>10% a 30 días de terminado</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {ETAPAS.map((e, i) => {
+          const a = etapa(i);
+          const monto = i === 0 ? Math.round(e.m + 100000 * (sube - vuelve)) : e.m;
+          return (
+            <div key={i} style={{ opacity: a, maxHeight: a * 96, overflow: 'hidden', transform: `translateY(${(1 - a) * 14}px)` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 18px', borderRadius: 12, background: BLANCO, border: `1px solid ${BORDE}`, boxShadow: SOMBRA }}>
+                <div style={{ width: 42, height: 42, borderRadius: 999, background: TINTE, color: NARANJA_OSC, fontWeight: 700, fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{e.n}</div>
+                <div style={{ flex: 1, fontSize: 25, fontWeight: 600 }}>{e.c}</div>
+                <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 38, letterSpacing: '-0.02em', color: i === 0 && excede ? AMBAR_TXT : TXT }}>{pesos(monto)}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 14, borderTop: `1px solid ${BORDE}` }}>
+        <div style={{ fontSize: 24, color: TXT2 }}>Total</div>
+        <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 42, letterSpacing: '-0.02em' }}>$890.000</div>
+      </div>
+      <div style={{ marginTop: 14, padding: '14px 18px', borderRadius: 12, background: excede ? 'rgba(245,158,11,0.12)' : 'rgba(15,157,99,0.10)', border: `1px solid ${excede ? 'rgba(245,158,11,0.5)' : 'rgba(15,157,99,0.4)'}`, fontSize: 24, fontWeight: 600, color: excede ? AMBAR_TXT : EXITO }}>
+        {excede ? `Primer pago ${Math.round(pct)}%. Supera tu tope.` : `Primer pago ${Math.round(pct)}%. Podés pedir hasta 40%.`}
+      </div>
+      <div style={{ marginTop: 14, height: 62, borderRadius: 12, background: manda > 0.5 ? EXITO : NARANJA, color: BLANCO, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 29, fontWeight: 700 }}>
+        {manda > 0.5 ? <Tilde s={26} /> : null}{manda > 0.5 ? 'Propuesta enviada' : 'Mandar propuesta'}
+      </div>
+    </Tarjeta>
+  );
+};
+
+// ── 7. panel del proveedor: los números cuentan y el rating se enciende ──
+export const Panel: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const p = ease(f, 14, Math.max(44, dur - 34));
+  const grandes = [
+    { l: 'SOLICITUDES', v: Math.round(11 * p), d: 'Todo respondido' },
+    { l: 'CONFIRMADAS', v: Math.round(8 * p), d: 'Últimos 30 días' },
+    { l: 'INGRESOS EST.', v: pesos(9400000 * p), d: 'Comprometido en agenda' },
+    { l: 'CONVERSIÓN', v: `${Math.round(73 * p)}%`, d: '9 aceptadas de 11' },
+  ];
+  const rating = 4.78 * p;
+  return (
+    <Tarjeta f={f} titulo="Hola Marcelo" sub="Tu performance de los últimos 30 días" icono={<IcoTablero />} escala={0.86}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        {grandes.map((k, i) => (
+          <div key={i} style={{ padding: '20px 22px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}` }}>
+            <div style={{ fontSize: 21, letterSpacing: 1.6, color: TXT3 }}>{k.l}</div>
+            <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 64, letterSpacing: '-0.02em', marginTop: 2, color: i === 2 ? NARANJA_OSC : TXT }}>{k.v}</div>
+            <div style={{ fontSize: 21, color: TXT3 }}>{k.d}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginTop: 14 }}>
+        {[{ v: `${Math.round(6 * p)}`, l: 'servicios activos' }, { v: `${Math.round(11 * p)}`, l: 'cotizaciones' }, { v: `${Math.round(9 * p)}`, l: 'reseñas totales' }].map((c, i) => (
+          <div key={i} style={{ padding: '14px 18px', borderRadius: 12, background: BLANCO, border: `1px solid ${BORDE}`, boxShadow: SOMBRA }}>
+            <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 40, letterSpacing: '-0.02em' }}>{c.v}</div>
+            <div style={{ fontSize: 21, color: TXT3 }}>{c.l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 14, padding: '16px 20px', borderRadius: 12, background: TINTE, border: `1px solid ${BORDE}` }}>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {[0, 1, 2, 3, 4].map((i) => <Estrella key={i} s={32} llena={rating - i > 0.5 ? 1 : 0} />)}
+        </div>
+        <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 44, letterSpacing: '-0.02em' }}>{rating.toFixed(2)}</div>
+        <div style={{ fontSize: 23, color: TXT2 }}>rating promedio</div>
+        <div style={{ marginLeft: 'auto', padding: '10px 22px', borderRadius: 12, background: NARANJA, color: BLANCO, fontSize: 24, fontWeight: 700 }}>Publicar servicio</div>
+      </div>
+    </Tarjeta>
+  );
+};
+
+// ── 8. reputación: entra una reseña y las estrellas se encienden de a una ──
+const RESENAS = [
+  { n: 'Martín Ojeda', e: 5, t: 'Segunda vez que lo llamo...' },
+  { n: 'Gustavo Peralta', e: 5, t: 'Es la segunda cocina que le encargo...' },
+];
+export const Reputacion: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const entra = ease(f, 16, 16 + 16);
+  const estrella = (i: number) => ease(f, 26 + i * 7, 26 + i * 7 + 9);
+  const sumo = ease(f, 26 + 5 * 7 + 6, 26 + 5 * 7 + 20);
+  const resenas = 8 + Math.round(sumo);
+  return (
+    <Tarjeta f={f} titulo="Reseñas verificadas" sub={`4,8 / 5.0 · ${resenas} reseñas de trabajos terminados en la app`} icono={<IcoEstrellaCont />} escala={0.86}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ opacity: entra, maxHeight: entra * 200, overflow: 'hidden', transform: `translateY(${(1 - entra) * -24}px)` }}>
+          <div style={{ padding: '18px 20px', borderRadius: 12, background: TINTE, border: `2px solid ${NARANJA}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 26, fontWeight: 700 }}>Lucía Mendoza</div>
+              <Pastilla texto="Contratación Verificada" color={EXITO} tinte="rgba(15,157,99,0.14)" />
+            </div>
+            <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+              {[0, 1, 2, 3, 4].map((i) => <Estrella key={i} s={30} llena={estrella(i)} />)}
+            </div>
+            <div style={{ fontSize: 23, color: TXT2, marginTop: 8, lineHeight: 1.34 }}>Era la mesa de mi abuela y estaba para tirar...</div>
+          </div>
+        </div>
+        {RESENAS.map((r, i) => (
+          <div key={i} style={{ padding: '16px 20px', borderRadius: 12, background: BLANCO, border: `1px solid ${BORDE}`, boxShadow: SOMBRA }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 25, fontWeight: 700 }}>{r.n}</div>
+              <Pastilla texto="Contratación Verificada" color={EXITO} tinte="rgba(15,157,99,0.14)" />
+              <div style={{ display: 'flex', gap: 3, marginLeft: 'auto' }}>
+                {[0, 1, 2, 3, 4].map((k) => <Estrella key={k} s={26} llena={k < r.e ? 1 : 0} />)}
+              </div>
+            </div>
+            <div style={{ fontSize: 22, color: TXT2, marginTop: 6, lineHeight: 1.32 }}>{r.t}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18, fontSize: 23, color: TXT2 }}>
+        <IcoEscudo s={26} c={EXITO} />Cada estrella sale de un trabajo con seña protegida
+      </div>
+    </Tarjeta>
+  );
+};
+
+// ── 9. mis solicitudes: la barra de cuatro tramos se llena y el estado cambia ──
+// Dos trabajos en vez de tres: la línea de tiempo entra completa sin empujar el título.
+const TRAMOS = ['Pedido', 'Presupuesto', 'Seña', 'Terminado'];
+const ESTADOS = ['COTIZADO', 'ACEPTADO', 'CONFIRMADO', 'FINALIZADO'];
+export const MisSolicitudes: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const tramo = Math.max(18, (dur - 48) / 4);
+  const avance = lin(f, 16, 16 + tramo * 4) * 4;
+  const idx = Math.min(3, Math.floor(avance));
+  const falta = ['Esperando tu respuesta', 'Falta la seña', 'En curso', 'Trabajo terminado'][idx];
+  const trabajos = [
+    { p: 'Carpintería Marcelo', s: 'Cocina completa', m: 1180000, vivo: true },
+    { p: 'Carpintería Marcelo', s: 'Puertas placa', m: 350000, e: 'ACEPTADO', f: 'Falta la seña' },
+  ];
+  return (
+    <Tarjeta f={f} titulo="Mis solicitudes" sub="Cotizaciones recibidas y trabajos en curso" icono={<IcoRuta />} escala={0.82}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 18 }}>
+        {[{ l: 'SOLICITUDES', v: '4', d: '' }, { l: 'COTIZACIONES', v: '1', d: 'Por revisar' }, { l: 'COMPROMETIDO', v: '$1.250.000', d: '' }].map((k, i) => (
+          <div key={i} style={{ padding: '16px 18px', borderRadius: 12, background: CREMA, border: `1px solid ${BORDE}` }}>
+            <div style={{ fontSize: 20, letterSpacing: 1.3, color: TXT3, lineHeight: 1.2 }}>{k.l}</div>
+            <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 46, letterSpacing: '-0.02em', marginTop: 2, color: i === 2 ? NARANJA_OSC : TXT }}>{k.v}</div>
+            {k.d ? <div style={{ fontSize: 20, color: TXT3 }}>{k.d}</div> : null}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {trabajos.map((t, i) => {
+          const llenado = t.vivo ? avance : 2;
+          const estado = t.vivo ? ESTADOS[idx] : (t.e as string);
+          const nota = t.vivo ? falta : (t.f as string);
+          return (
+            <div key={i} style={{ padding: '18px 20px', borderRadius: 12, background: t.vivo ? TINTE : BLANCO, border: `${t.vivo ? 2 : 1}px solid ${t.vivo ? NARANJA : BORDE}`, boxShadow: t.vivo ? 'none' : SOMBRA }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ fontSize: 25, fontWeight: 700 }}>{t.p}</div>
+                <PastillaEstado estado={estado} />
+                <div style={{ marginLeft: 'auto', fontFamily: cond, fontWeight: 800, fontSize: 40, letterSpacing: '-0.02em' }}>{pesos(t.m)}</div>
+              </div>
+              <div style={{ fontSize: 23, color: TXT2, marginTop: 3 }}>{t.s}</div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                {TRAMOS.map((tr, k) => (
+                  <div key={k} style={{ flex: 1 }}>
+                    <div style={{ height: 8, borderRadius: 999, background: 'rgba(43,30,23,0.10)', overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.max(0, Math.min(1, llenado - k)) * 100}%`, height: '100%', background: NARANJA }} />
+                    </div>
+                    <div style={{ marginTop: 8, fontSize: 21, textAlign: 'center', color: llenado > k ? TXT : TXT3, fontWeight: llenado > k && llenado < k + 1.01 ? 700 : 500 }}>{tr}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 23, fontWeight: 600, color: t.vivo ? NARANJA_OSC : TXT2 }}>{nota}</div>
+            </div>
+          );
+        })}
+      </div>
+    </Tarjeta>
+  );
+};
+
+const Placa: React.FC<{ plan: PlanTarjetasApp }> = ({ plan }) => {
+  const f = useCurrentFrame();
+  const a = ease(f, 0, 14);
+  return (
+    <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', opacity: a }}>
+      <Img src={plan.logoSrc} style={{ height: 160, transform: `scale(${0.92 + 0.08 * a})` }} />
+      <div style={{ marginTop: 44, fontFamily: cond, fontWeight: 800, fontSize: 92, letterSpacing: '-0.02em', color: BLANCO, textAlign: 'center', padding: '0 80px', lineHeight: 1.04, textShadow: '0 2px 20px rgba(0,0,0,0.55)' }}>{plan.placa.linea1}</div>
+      <div style={{ marginTop: 32, padding: '20px 46px', borderRadius: 12, background: NARANJA, color: BLANCO, fontFamily: saira, fontWeight: 700, fontSize: 34, boxShadow: '0 10px 32px rgba(238,90,14,0.45)', opacity: ease(f, 10, 24) }}>{plan.placa.linea2}</div>
+    </AbsoluteFill>
+  );
+};
+
+// Alto real de cada tarjeta (ya multiplicado por su escala), medido del render.
+// De acá sale el top del título: borde inferior + AIRE, nunca encima de la tarjeta.
+const ALTO_TARJETA: Record<string, number> = {
+  'contar-problema': 735,
+  'presupuestos-que-llegan': 600,
+  'chat-plan-de-pagos': 740,
+  'pagar-la-sena': 700,
+  'bandeja-solicitudes': 745,
+  'armar-plan-de-pagos': 748,
+  'panel-proveedor': 650,
+  'reputacion-resenas': 600,
+  'mis-solicitudes': 700,
+};
+
+const topTitulo = (tipo: string) => {
+  const alto = Math.min(TARJETA_ALTO_MAX, ALTO_TARJETA[tipo] ?? 700);
+  return Math.max(TITULO_TOP_MIN, TARJETA_TOP + alto + AIRE);
+};
+
+const CuerpoEscena: React.FC<{ e: EscenaTarjetaApp & { dur: number } }> = ({ e }) => {
+  const f = useCurrentFrame();
+  const salida = 1 - lin(f, e.dur - 8, e.dur);
+  const conocido = Object.prototype.hasOwnProperty.call(ALTO_TARJETA, e.tipo);
+  if (!conocido) {
+    return <AbsoluteFill style={{ opacity: salida }}><Titulo f={f} chip={e.chip} titulo={e.titulo} resaltar={e.resaltar} sub={e.sub} top={760} size={104} /></AbsoluteFill>;
+  }
+  return (
+    <AbsoluteFill style={{ opacity: salida }}>
+      {e.tipo === 'contar-problema' ? <ContarProblema f={f} dur={e.dur} /> : null}
+      {e.tipo === 'presupuestos-que-llegan' ? <Esperan f={f} dur={e.dur} /> : null}
+      {e.tipo === 'chat-plan-de-pagos' ? <ChatPlan f={f} dur={e.dur} /> : null}
+      {e.tipo === 'pagar-la-sena' ? <PagarSena f={f} dur={e.dur} /> : null}
+      {e.tipo === 'bandeja-solicitudes' ? <Bandeja f={f} dur={e.dur} /> : null}
+      {e.tipo === 'armar-plan-de-pagos' ? <PlanDePagos f={f} dur={e.dur} /> : null}
+      {e.tipo === 'panel-proveedor' ? <Panel f={f} dur={e.dur} /> : null}
+      {e.tipo === 'reputacion-resenas' ? <Reputacion f={f} dur={e.dur} /> : null}
+      {e.tipo === 'mis-solicitudes' ? <MisSolicitudes f={f} dur={e.dur} /> : null}
+      <Titulo f={f} chip={e.chip} titulo={e.titulo} resaltar={e.resaltar} sub={e.sub} top={topTitulo(e.tipo)} size={74} />
+    </AbsoluteFill>
+  );
+};
+
+export const Tarjetas: React.FC<{ plan: PlanTarjetasApp }> = ({ plan }) => {
+  const { fps } = useVideoConfig();
+  const esc = useMemo(() => {
+    let c = 0;
+    return plan.escenas.map((e) => { const from = c; const dur = Math.round(e.durSec * fps); c += dur; return { ...e, from, dur }; });
+  }, [plan, fps]);
+  const finEscenas = esc.length ? esc[esc.length - 1].from + esc[esc.length - 1].dur : 0;
+  const placaDur = Math.round(plan.placa.durSec * fps);
+  return (
+    <AbsoluteFill style={{ backgroundColor: MADERA_PP }}>
+      <Fondo />
+      <Sequence from={0} durationInFrames={finEscenas} name="marco">
+        <Progreso escenas={esc} />
+        <Logo src={plan.logoSrc} />
+      </Sequence>
+      {esc.map((e, i) => (
+        <Sequence key={i} from={e.from} durationInFrames={e.dur} name={`${i + 1} ${e.tipo}`}>
+          <CuerpoEscena e={e} />
+        </Sequence>
+      ))}
+      {placaDur > 0 ? (
+        <Sequence from={finEscenas} durationInFrames={placaDur} name="placa">
+          <Placa plan={plan} />
+        </Sequence>
+      ) : null}
+      <div style={{ position: 'absolute', bottom: 70, left: 0, right: 0, textAlign: 'center', fontFamily: saira, fontWeight: 600, fontSize: 25, color: 'rgba(255,255,255,0.72)', letterSpacing: 3 }}>reparehoy.com.ar</div>
+    </AbsoluteFill>
+  );
+};
+```
+
+```json
+{"logo":"reparehoy-logo-oscuro.png","dominio":"reparehoy.com.ar","tarjetas":[{"id":"contar-problema","pantalla":"screens/01-cliente-contar-el-problema.png","nombre":"Contar el problema","patron":"formulario que se completa","chip":"Paso 1","titulo":"Contalo con tus palabras","resaltar":"tus palabras","sub":"Cuatro pasos cortos y listo: no hace falta saber qué oficio necesitás.","durSec":6},{"id":"presupuestos-que-llegan","pantalla":"screens/02-cliente-te-esperan-tus-proveedores.png","nombre":"Te esperan tus proveedores","patron":"aviso que llega / lista que se llena","chip":"Presupuestos","titulo":"Los presupuestos llegan solos","resaltar":"llegan solos","sub":"La app te marca qué trabajo está esperando algo tuyo.","durSec":5.5},{"id":"chat-plan-de-pagos","pantalla":"screens/03-cliente-conversacion-con-plan-de-pagos.png","nombre":"La conversación con el plan de pagos adentro","patron":"chat","chip":"Acuerdo","titulo":"El pago se acuerda en el chat","resaltar":"en el chat","sub":"La propuesta queda en el hilo, con fecha y montos: 3 pagos de $1.180.000.","durSec":6.5},{"id":"pagar-la-sena","pantalla":"screens/04-cliente-pagar-la-sena.png","nombre":"Pagar la seña","patron":"confirmación o pago","chip":"Seña","titulo":"Pagás la seña y queda retenida","resaltar":"queda retenida","sub":"$105.000 por MercadoPago: se liberan recién cuando el trabajo está aprobado.","durSec":6.5},{"id":"bandeja-solicitudes","pantalla":"screens/05-proveedor-bandeja-de-solicitudes.png","nombre":"Bandeja de solicitudes","patron":"aviso que llega / estado que cambia","chip":"Proveedor","titulo":"Los pedidos te llegan ordenados","resaltar":"te llegan","sub":"Cliente, servicio, monto y estado: el proveedor no sale a buscar trabajo.","durSec":6},{"id":"armar-plan-de-pagos","pantalla":"screens/06-proveedor-armar-plan-de-pagos.png","nombre":"Armar el plan de pagos","patron":"trámite que avanza / estado que cambia","chip":"Cobranza","titulo":"Elegís cómo cobrar el trabajo","resaltar":"cómo cobrar","sub":"Todo al final, mitades o contra avance; la app te marca tu tope de adelanto.","durSec":7},{"id":"panel-proveedor","pantalla":"screens/07-proveedor-panel.png","nombre":"El panel del proveedor","patron":"números que suben","chip":"Tu mes","titulo":"Tu mes en números claros","resaltar":"en números","sub":"11 solicitudes, 8 confirmadas, $9.400.000 comprometidos y 73% de conversión.","durSec":5.5},{"id":"reputacion-resenas","pantalla":"screens/08-proveedor-reputacion-y-resenas.png","nombre":"La reputación, hecha de trabajos reales","patron":"números que suben / lista que se llena","chip":"Reputación","titulo":"Reseñas de trabajos verificados","resaltar":"verificados","sub":"Cada estrella sale de un trabajo terminado adentro de la app.","durSec":5.5},{"id":"mis-solicitudes","pantalla":"screens/09-cliente-mis-solicitudes-linea-de-tiempo.png","nombre":"Mis solicitudes, con el progreso de cada trabajo","patron":"avanza por pasos / semáforo","chip":"Seguimiento","titulo":"Siempre sabés en qué paso estás","resaltar":"en qué paso","sub":"Pedido, presupuesto, seña y terminado: sin preguntarle a nadie.","durSec":6}]}
+```

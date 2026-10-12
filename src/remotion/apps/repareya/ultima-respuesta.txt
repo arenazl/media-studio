@@ -1,0 +1,2124 @@
+Voy a mirar las capturas antes de escribir.
+
+**Tool Use: Read**
+```json
+{
+  "file_path": "D:\\Code\\media-studio\\docs\\16-montaje-flow\\estandar-mockups\\munify-ocho-referencias.png"
+}
+```
+
+**Tool Result:**
+
+Error: File does not exist.
+
+**Tool Use: Bash**
+```json
+{
+  "command": "cd \"D:/Code/media-studio/docs/16-montaje-flow\" && ls -R | head -80",
+  "description": "Listar carpeta de estándar de mockups"
+}
+```
+
+**Tool Result:**
+
+```
+.:
+```
+
+**Tool Use: Bash**
+```json
+{
+  "command": "cd \"D:/Code/media-studio\" 2>/dev/null && ls || echo NO_EXISTE",
+  "description": "Ver raíz del proyecto media-studio"
+}
+```
+
+**Tool Result:**
+
+```
+NO_EXISTE
+```
+
+**Tool Use: Bash**
+```json
+{
+  "command": "pwd && ls",
+  "description": "Ver directorio actual"
+}
+```
+
+**Tool Result:**
+
+```
+/d/Code/repareya
+d:/Code/repareya
+```
+
+**Tool Use: Bash**
+```json
+{
+  "command": "ls -R screens 2>/dev/null | head -60",
+  "description": "Buscar carpeta screens"
+}
+```
+
+**Tool Result:**
+
+```
+```
+
+**Tool Use: Bash**
+```json
+{
+  "command": "find . -maxdepth 4 -type d -name \"screens\" 2>/dev/null | head -20",
+  "description": "Buscar screens en el repo"
+}
+```
+
+**Tool Result:**
+
+```
+```
+
+**Tool Use: Bash**
+```json
+{
+  "command": "find . -maxdepth 6 -name \"01-cliente-contar-el-problema.png\" 2>/dev/null | head",
+  "description": "Buscar captura por nombre"
+}
+```
+
+**Tool Result:**
+
+```
+```
+
+**Tool Use: Bash**
+```json
+{
+  "command": "ls -a && echo --- && find . -maxdepth 3 -iname \"*.png\" | head -30",
+  "description": "Listar contenido y PNGs"
+}
+```
+
+**Tool Result:**
+
+```
+.
+..
+```
+
+El directorio de trabajo está vacío: no tengo acceso a las capturas ni al PNG de referencia. Igual puedo escribir las tarjetas con los datos que trae el pedido (que describen cada estado al detalle), pero quiero avisarte de eso antes: los textos salen de las descripciones de los estados del kit, no de haber leído las imágenes.
+
+```tsx
+// RepareHoy · nueve tarjetas animadas para reel vertical 1080x1920 a 30fps.
+// Estructura calcada de los mockups de Munify: fondo con profundidad, barra de progreso arriba,
+// logo con el lema debajo, UNA tarjeta flotante que ACTÚA, y el chip + título con una palabra
+// resaltada abajo. Paleta de RepareHoy en modo oscuro: madera profunda como fondo y el naranja
+// obra (#EE5A0E) como único color vivo. Todo es función de useCurrentFrame().
+import { useMemo } from 'react';
+import {
+  AbsoluteFill,
+  Easing,
+  Img,
+  Sequence,
+  interpolate,
+  useCurrentFrame,
+  useVideoConfig,
+} from 'remotion';
+import { loadFont as loadCond } from '@remotion/google-fonts/SairaCondensed';
+import { loadFont as loadSans } from '@remotion/google-fonts/Saira';
+
+const { fontFamily: cond } = loadCond('normal', {
+  weights: ['600', '700', '800'],
+  subsets: ['latin', 'latin-ext'],
+});
+const { fontFamily: sans } = loadSans('normal', {
+  weights: ['400', '500', '600', '700'],
+  subsets: ['latin', 'latin-ext'],
+});
+
+/* ───────────────────────── contrato ───────────────────────── */
+
+export interface EscenaTarjetaApp {
+  tipo: string;
+  durSec: number;
+  chip?: string;
+  titulo: string;
+  resaltar?: string;
+  sub?: string;
+}
+export interface PlanTarjetasApp {
+  app: string;
+  width: number;
+  height: number;
+  fps: number;
+  escenas: EscenaTarjetaApp[];
+  placa: { linea1: string; linea2: string; durSec: number };
+  logoSrc: string;
+}
+
+/* ───────────────────────── paleta y helpers ───────────────────────── */
+
+const NAR = '#EE5A0E';
+const NAR_OSC = '#C9450A';
+const VERDE = '#0F9D63';
+const AZUL = '#2563EB';
+const AMBAR = '#F59E0B';
+const ROJO = '#E5484D';
+const FONDO = '#1A110C';
+const SUP = '#2B1E17';
+const SUP_2 = '#241811';
+const LINEA = 'rgba(255,255,255,0.10)';
+const TX = '#FBF6EF';
+const TX_2 = 'rgba(251,246,239,0.66)';
+const TX_3 = 'rgba(251,246,239,0.44)';
+
+const LEMA = 'Contá el problema. Elegí entre 3 presupuestos de profesionales verificados.';
+const DOMINIO = 'reparehoy.com.ar';
+
+const ease = (f: number, a: number, b: number) =>
+  interpolate(f, [a, b], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: Easing.out(Easing.cubic),
+  });
+const lin = (f: number, a: number, b: number) =>
+  interpolate(f, [a, b], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+const pop = (f: number, a: number, b: number) =>
+  interpolate(f, [a, b], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: Easing.out(Easing.back(1.5)),
+  });
+const pesos = (n: number) => '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+// corta un texto letra por letra, en función del cuadro
+const tipeo = (txt: string, f: number, a: number, b: number) =>
+  txt.slice(0, Math.round(lin(f, a, b) * txt.length));
+
+/* ───────────────────────── íconos SVG en línea ───────────────────────── */
+
+type Ico = { d?: React.ReactNode; vb?: string };
+const Icono: React.FC<{ nombre: string; size?: number; color?: string }> = ({
+  nombre,
+  size = 34,
+  color = NAR,
+}) => {
+  const s = { width: size, height: size, display: 'block' } as const;
+  const trazo = {
+    fill: 'none',
+    stroke: color,
+    strokeWidth: 2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  if (nombre === 'lapiz')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M4 20h4L20 8a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+        <path {...trazo} d="M14.5 5.5 18.5 9.5" />
+      </svg>
+    );
+  if (nombre === 'campana')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M18 15V10a6 6 0 1 0-12 0v5l-1.6 2.4h15.2L18 15Z" />
+        <path {...trazo} d="M10 20.5h4" />
+      </svg>
+    );
+  if (nombre === 'chat')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M20 13.5A4.5 4.5 0 0 1 15.5 18H9l-4 3v-3.6A4.5 4.5 0 0 1 3 13.5V8.5A4.5 4.5 0 0 1 7.5 4h8A4.5 4.5 0 0 1 20 8.5v5Z" />
+      </svg>
+    );
+  if (nombre === 'escudo')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M12 3l7 2.5v6c0 4.3-2.9 7.9-7 9.5-4.1-1.6-7-5.2-7-9.5v-6L12 3Z" />
+        <path {...trazo} d="M8.8 12.2l2.3 2.3 4.1-4.6" />
+      </svg>
+    );
+  if (nombre === 'bandeja')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M3 13h4l1.5 3h7L17 13h4" />
+        <path {...trazo} d="M5.5 5h13l2.5 8v5a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 18v-5L5.5 5Z" />
+      </svg>
+    );
+  if (nombre === 'billetes')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <rect {...trazo} x="2.5" y="6" width="19" height="12" rx="2" />
+        <circle {...trazo} cx="12" cy="12" r="2.6" />
+        <path {...trazo} d="M6 12h.01M18 12h.01" />
+      </svg>
+    );
+  if (nombre === 'tablero')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <rect {...trazo} x="3" y="3" width="8" height="8" rx="2" />
+        <rect {...trazo} x="13" y="3" width="8" height="5" rx="2" />
+        <rect {...trazo} x="3" y="13" width="8" height="8" rx="2" />
+        <rect {...trazo} x="13" y="10" width="8" height="11" rx="2" />
+      </svg>
+    );
+  if (nombre === 'estrella')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M12 3.6l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9-5.3-2.9-5.3 2.9 1.1-5.9L3.5 9.8l5.9-.8L12 3.6Z" />
+      </svg>
+    );
+  if (nombre === 'ruta')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <circle {...trazo} cx="6" cy="6" r="2.6" />
+        <circle {...trazo} cx="18" cy="18" r="2.6" />
+        <path {...trazo} d="M6 8.6V13a4 4 0 0 0 4 4h5.4" />
+      </svg>
+    );
+  if (nombre === 'tilde')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M4.5 12.5l5 5L19.5 6.5" />
+      </svg>
+    );
+  if (nombre === 'micro')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <rect {...trazo} x="9" y="3" width="6" height="11" rx="3" />
+        <path {...trazo} d="M5.5 12a6.5 6.5 0 0 0 13 0M12 18.5V21" />
+      </svg>
+    );
+  if (nombre === 'reloj')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <circle {...trazo} cx="12" cy="12" r="8.5" />
+        <path {...trazo} d="M12 7.5V12l3.2 2" />
+      </svg>
+    );
+  if (nombre === 'pin')
+    return (
+      <svg viewBox="0 0 24 24" style={s}>
+        <path {...trazo} d="M12 21s6.5-6 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 15 12 21 12 21Z" />
+        <circle {...trazo} cx="12" cy="10.3" r="2.3" />
+      </svg>
+    );
+  return (
+    <svg viewBox="0 0 24 24" style={s}>
+      <circle {...trazo} cx="12" cy="12" r="8.5" />
+    </svg>
+  );
+};
+
+const EstrellasFila: React.FC<{ llenas: number; size?: number }> = ({ llenas, size = 34 }) => (
+  <div style={{ display: 'flex', gap: 6 }}>
+    {[0, 1, 2, 3, 4].map((i) => (
+      <svg key={i} viewBox="0 0 24 24" style={{ width: size, height: size, display: 'block' }}>
+        <path
+          d="M12 3.2l2.7 5.6 6.1.9-4.4 4.3 1.1 6.1L12 17.2 6.5 20.1l1.1-6.1L3.2 9.7l6.1-.9L12 3.2Z"
+          fill={i < llenas ? AMBAR : 'rgba(255,255,255,0.16)'}
+        />
+      </svg>
+    ))}
+  </div>
+);
+
+/* ───────────────────────── marco: fondo, progreso, logo, pie ───────────────────────── */
+
+const MOTAS = Array.from({ length: 60 }, (_, i) => ({
+  x: (i * 71) % 100,
+  y: (i * 43) % 100,
+  r: 1.5 + (i % 3),
+  v: 0.25 + ((i * 13) % 9) / 10,
+}));
+
+const Fondo: React.FC = () => {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill
+      style={{
+        background:
+          'radial-gradient(72% 46% at 50% 16%, rgba(238,90,14,0.28) 0%, rgba(238,90,14,0) 70%), radial-gradient(48% 32% at 86% 90%, rgba(238,90,14,0.14) 0%, rgba(238,90,14,0) 72%), linear-gradient(180deg, #2B1E17 0%, #20150F 46%, #140C08 100%)',
+      }}
+    >
+      {MOTAS.map((m, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            left: `${m.x}%`,
+            top: `${m.y}%`,
+            width: m.r * 2,
+            height: m.r * 2,
+            borderRadius: '50%',
+            background: '#FBF6EF',
+            opacity: 0.1 + 0.16 * Math.abs(Math.sin((f / 34) * m.v * 2 + i)),
+          }}
+        />
+      ))}
+    </AbsoluteFill>
+  );
+};
+
+const Progreso: React.FC<{ escenas: { from: number; dur: number }[] }> = ({ escenas }) => {
+  const f = useCurrentFrame();
+  return (
+    <div style={{ position: 'absolute', top: 46, left: 56, right: 56, display: 'flex', gap: 8 }}>
+      {escenas.map((e, i) => (
+        <div
+          key={i}
+          style={{
+            flex: 1,
+            height: 6,
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.18)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${lin(f, e.from, e.from + e.dur) * 100}%`,
+              height: '100%',
+              background: NAR,
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const Encabezado: React.FC<{ src: string }> = ({ src }) => (
+  <div
+    style={{
+      position: 'absolute',
+      top: 96,
+      left: 0,
+      right: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 16,
+    }}
+  >
+    <Img src={src} style={{ height: 86 }} />
+    <div
+      style={{
+        fontFamily: sans,
+        fontSize: 30,
+        fontWeight: 500,
+        letterSpacing: 2.6,
+        textTransform: 'uppercase',
+        color: TX_3,
+        textAlign: 'center',
+        maxWidth: 880,
+        lineHeight: 1.4,
+      }}
+    >
+      {LEMA}
+    </div>
+  </div>
+);
+
+const Pie: React.FC = () => (
+  <div
+    style={{
+      position: 'absolute',
+      bottom: 64,
+      left: 0,
+      right: 0,
+      textAlign: 'center',
+      fontFamily: sans,
+      fontSize: 30,
+      letterSpacing: 4,
+      color: TX_3,
+    }}
+  >
+    {DOMINIO}
+  </div>
+);
+
+/* ───────────────────────── piezas compartidas ───────────────────────── */
+
+const ANCHO = 930;
+const IZQ = (1080 - ANCHO) / 2;
+const TOP = 330;
+const ALTO = 920;
+
+const Tarjeta: React.FC<{
+  f: number;
+  titulo: string;
+  sub?: string;
+  icono: string;
+  extra?: React.ReactNode;
+  children: React.ReactNode;
+}> = ({ f, titulo, sub, icono, extra, children }) => {
+  const a = ease(f, 0, 16);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: IZQ,
+        top: TOP,
+        width: ANCHO,
+        height: ALTO,
+        borderRadius: 28,
+        background: `linear-gradient(180deg, ${SUP} 0%, ${SUP_2} 100%)`,
+        border: `1px solid ${LINEA}`,
+        boxShadow: '0 40px 100px rgba(0,0,0,0.55)',
+        padding: '34px 36px 36px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 22,
+        overflow: 'hidden',
+        opacity: a,
+        transform: `translateY(${(1 - a) * 36}px) scale(${0.965 + 0.035 * a})`,
+        fontFamily: sans,
+        color: TX,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 18,
+            background: 'rgba(238,90,14,0.18)',
+            border: '1px solid rgba(238,90,14,0.38)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 'none',
+          }}
+        >
+          <Icono nombre={icono} size={38} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontFamily: cond,
+              fontWeight: 700,
+              fontSize: 44,
+              letterSpacing: -0.6,
+              lineHeight: 1.1,
+            }}
+          >
+            {titulo}
+          </div>
+          {sub ? (
+            <div style={{ fontSize: 30, color: TX_2, marginTop: 4, lineHeight: 1.25 }}>{sub}</div>
+          ) : null}
+        </div>
+        {extra ?? null}
+      </div>
+      {children}
+    </div>
+  );
+};
+
+const Pastilla: React.FC<{ texto: string; color: string; size?: number }> = ({
+  texto,
+  color,
+  size = 30,
+}) => (
+  <span
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '8px 18px',
+      borderRadius: 999,
+      background: `${color}26`,
+      color,
+      fontFamily: sans,
+      fontWeight: 700,
+      fontSize: size,
+      letterSpacing: 0.6,
+      whiteSpace: 'nowrap',
+    }}
+  >
+    {texto}
+  </span>
+);
+
+const Boton: React.FC<{
+  texto: string;
+  color?: string;
+  tx?: string;
+  alto?: number;
+  icono?: string;
+}> = ({ texto, color = NAR, tx = '#FFFFFF', alto = 84, icono }) => (
+  <div
+    style={{
+      height: alto,
+      borderRadius: 16,
+      background: color,
+      color: tx,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 14,
+      fontFamily: cond,
+      fontWeight: 700,
+      fontSize: 40,
+      letterSpacing: 0.4,
+    }}
+  >
+    {icono ? <Icono nombre={icono} size={34} color={tx} /> : null}
+    {texto}
+  </div>
+);
+
+const Fila: React.FC<{
+  op: number;
+  dx?: number;
+  children: React.ReactNode;
+  borde?: string;
+  fondo?: string;
+  pad?: string;
+}> = ({ op, dx = 0, children, borde = LINEA, fondo = 'rgba(255,255,255,0.045)', pad = '20px 22px' }) => (
+  <div
+    style={{
+      padding: pad,
+      borderRadius: 18,
+      background: fondo,
+      border: `1px solid ${borde}`,
+      opacity: op,
+      transform: `translateX(${dx}px)`,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+    }}
+  >
+    {children}
+  </div>
+);
+
+const Rotulo: React.FC<{ texto: string }> = ({ texto }) => (
+  <div
+    style={{
+      fontFamily: sans,
+      fontSize: 30,
+      fontWeight: 600,
+      letterSpacing: 2.4,
+      textTransform: 'uppercase',
+      color: TX_3,
+    }}
+  >
+    {texto}
+  </div>
+);
+
+/* ───────────────────────── 1 · contar el problema ───────────────────────── */
+
+const ContarProblema: React.FC<{ f: number }> = ({ f }) => {
+  const pasos = ['Tipo de trabajo', 'Detalles', 'Lugar', 'Resumen'];
+  const etapa = f < 44 ? 0 : f < 96 ? 1 : f < 150 ? 2 : 3;
+  const elegido = ease(f, 18, 34);
+  const desc =
+    'Se me llueve el techo del lavadero cuando llueve fuerte...';
+  return (
+    <Tarjeta f={f} titulo="Contanos qué hay que arreglar" sub={`Paso ${etapa + 1} de 4`} icono="lapiz">
+      <div style={{ display: 'flex', gap: 10 }}>
+        {pasos.map((p, i) => (
+          <div key={i} style={{ flex: 1 }}>
+            <div
+              style={{
+                height: 8,
+                borderRadius: 999,
+                background: 'rgba(255,255,255,0.14)',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.max(0, Math.min(1, lin(f, 16, 176) * 4 - i)) * 100}%`,
+                  height: '100%',
+                  background: NAR,
+                }}
+              />
+            </div>
+            <div
+              style={{
+                marginTop: 10,
+                fontSize: 30,
+                fontWeight: i === etapa ? 700 : 400,
+                color: i <= etapa ? TX : TX_3,
+                textAlign: 'center',
+              }}
+            >
+              {p}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {etapa === 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 8 }}>
+          {['Humedad y filtraciones', 'Electricidad', 'Plomería', 'Carpintería'].map((t, i) => {
+            const sel = i === 0 && elegido > 0.5;
+            return (
+              <div
+                key={i}
+                style={{
+                  height: 150,
+                  borderRadius: 18,
+                  background: sel ? 'rgba(238,90,14,0.18)' : 'rgba(255,255,255,0.045)',
+                  border: `2px solid ${sel ? NAR : LINEA}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  justifyContent: 'center',
+                  gap: 12,
+                  padding: '0 22px',
+                  transform: `scale(${sel ? 1 : 0.985})`,
+                }}
+              >
+                <Icono nombre={i === 0 ? 'escudo' : 'ruta'} size={34} color={sel ? NAR : TX_3} />
+                <div
+                  style={{
+                    fontFamily: cond,
+                    fontWeight: 700,
+                    fontSize: 36,
+                    color: sel ? TX : TX_2,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {t}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : etapa === 1 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+          <Fila op={1}>
+            <div style={{ flex: 1 }}>
+              <Rotulo texto="Tipo de trabajo" />
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40, marginTop: 4 }}>
+                Humedad y filtraciones
+              </div>
+            </div>
+            <Icono nombre="tilde" size={38} color={VERDE} />
+          </Fila>
+          <Fila op={ease(f, 54, 70)}>
+            <div style={{ flex: 1 }}>
+              <Rotulo texto="Superficie" />
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 56, marginTop: 2 }}>
+                12 m2
+              </div>
+            </div>
+          </Fila>
+          <Fila op={ease(f, 68, 84)}>
+            <div style={{ flex: 1 }}>
+              <Rotulo texto="Presupuesto máximo" />
+              <div
+                style={{
+                  fontFamily: cond,
+                  fontWeight: 800,
+                  fontSize: 64,
+                  marginTop: 2,
+                  color: NAR,
+                }}
+              >
+                {pesos(400000)}
+              </div>
+            </div>
+          </Fila>
+        </div>
+      ) : etapa === 2 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+          <Fila op={1}>
+            <Icono nombre="pin" size={34} />
+            <div style={{ flex: 1 }}>
+              <Rotulo texto="Zona" />
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40, marginTop: 2 }}>
+                Villa Urquiza
+              </div>
+            </div>
+          </Fila>
+          <div
+            style={{
+              borderRadius: 18,
+              border: `2px solid ${NAR}`,
+              background: 'rgba(0,0,0,0.26)',
+              padding: '20px 22px',
+              minHeight: 240,
+            }}
+          >
+            <Rotulo texto="Título del trabajo" />
+            <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40, margin: '4px 0 18px' }}>
+              Humedad en el techo del lavadero
+            </div>
+            <Rotulo texto="Descripción" />
+            <div style={{ fontSize: 34, color: TX, lineHeight: 1.3, marginTop: 6 }}>
+              {tipeo(desc, f, 112, 146)}
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 3,
+                  height: 32,
+                  marginLeft: 3,
+                  verticalAlign: -5,
+                  background: NAR,
+                  opacity: Math.floor(f / 8) % 2 ? 0.2 : 1,
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 84,
+                height: 84,
+                borderRadius: 999,
+                border: `1px solid ${LINEA}`,
+                background: 'rgba(255,255,255,0.045)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: 'none',
+              }}
+            >
+              <Icono nombre="micro" size={36} color={TX_2} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <Boton texto="Siguiente" />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+          <div
+            style={{
+              fontFamily: cond,
+              fontWeight: 700,
+              fontSize: 44,
+            }}
+          >
+            ¿Todo bien?
+          </div>
+          <Fila op={1}>
+            <div style={{ flex: 1 }}>
+              <Rotulo texto="Tipo de trabajo" />
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 38, marginTop: 2 }}>
+                Humedad y filtraciones · 12 m2
+              </div>
+            </div>
+          </Fila>
+          <Fila op={1}>
+            <div style={{ flex: 1 }}>
+              <Rotulo texto="Presupuesto máximo · Zona" />
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 38, marginTop: 2 }}>
+                {pesos(400000)} · Villa Urquiza
+              </div>
+            </div>
+          </Fila>
+          <div style={{ marginTop: 4 }}>
+            {f < 186 ? (
+              <Boton texto="Crear solicitud" />
+            ) : (
+              <Boton texto="Publicando…" color={NAR_OSC} />
+            )}
+          </div>
+          <div
+            style={{
+              opacity: ease(f, 196, 212),
+              padding: '18px 22px',
+              borderRadius: 18,
+              background: 'rgba(15,157,99,0.16)',
+              border: `1px solid ${VERDE}66`,
+              display: 'flex',
+              gap: 14,
+              alignItems: 'center',
+            }}
+          >
+            <Icono nombre="tilde" size={34} color={VERDE} />
+            <div style={{ fontSize: 32, color: TX, lineHeight: 1.25 }}>
+              ¡Solicitud publicada! Los proveedores de tu zona la van a cotizar.
+            </div>
+          </div>
+        </div>
+      )}
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 2 · te esperan tus proveedores ───────────────────────── */
+
+const TeEsperan: React.FC<{ f: number }> = ({ f }) => {
+  const uno = ease(f, 26, 46);
+  const dos = ease(f, 78, 98);
+  const aviso = ease(f, 30, 48);
+  const items = [
+    { s: 'Muebles a medida', p: 'Carpintería Marcelo', m: 620000, a: uno },
+    { s: 'Restauración y reparación de muebles', p: 'Carpintería Marcelo', m: 98000, a: dos },
+  ];
+  return (
+    <Tarjeta
+      f={f}
+      titulo="Te esperan tus proveedores"
+      sub="Los presupuestos llegan solos"
+      icono="campana"
+      extra={
+        <div style={{ opacity: aviso, transform: `scale(${0.9 + 0.1 * aviso})` }}>
+          <Pastilla
+            texto={dos > 0.5 ? '2 trabajos esperan algo tuyo' : '1 trabajo espera algo tuyo'}
+            color={ROJO}
+            size={28}
+          />
+        </div>
+      }
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, opacity: aviso }}>
+        <div
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: '50%',
+            background: NAR,
+            opacity: 0.55 + 0.45 * Math.abs(Math.sin(f / 7)),
+          }}
+        />
+        <Rotulo texto="Te esperan tus proveedores" />
+      </div>
+
+      <div
+        style={{
+          borderRadius: 22,
+          border: `2px solid ${NAR}`,
+          background: 'rgba(238,90,14,0.08)',
+          padding: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          opacity: aviso,
+        }}
+      >
+        {items.map((it, i) => (
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 18,
+              padding: '20px 20px',
+              borderRadius: 18,
+              background: 'rgba(0,0,0,0.3)',
+              border: `1px solid ${LINEA}`,
+              opacity: it.a,
+              transform: `translateY(${(1 - it.a) * 22}px)`,
+            }}
+          >
+            <div
+              style={{
+                width: 112,
+                height: 112,
+                borderRadius: 14,
+                flex: 'none',
+                background: 'linear-gradient(180deg, #4A3425 0%, #1C120C 100%)',
+                border: `1px solid ${LINEA}`,
+                display: 'flex',
+                alignItems: 'flex-end',
+                padding: 10,
+              }}
+            >
+              <Icono nombre="ruta" size={30} color="rgba(251,246,239,0.5)" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontFamily: cond,
+                  fontWeight: 700,
+                  fontSize: 38,
+                  lineHeight: 1.1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {it.s}
+              </div>
+              <div style={{ fontSize: 30, color: TX_2, marginTop: 4 }}>{it.p}</div>
+              <div style={{ marginTop: 10 }}>
+                <Pastilla texto="falta la seña" color={AMBAR} size={28} />
+              </div>
+            </div>
+            <div
+              style={{
+                fontFamily: cond,
+                fontWeight: 800,
+                fontSize: 58,
+                color: NAR,
+                letterSpacing: -1,
+              }}
+            >
+              {pesos(it.m)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          marginTop: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          padding: '18px 22px',
+          borderRadius: 18,
+          background: 'rgba(15,157,99,0.14)',
+          border: `1px solid ${VERDE}55`,
+        }}
+      >
+        <Icono nombre="escudo" size={34} color={VERDE} />
+        <div style={{ fontSize: 32, color: TX, lineHeight: 1.25 }}>
+          La seña queda protegida hasta que el trabajo esté hecho
+        </div>
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 3 · el chat con el plan de pagos ───────────────────────── */
+
+const ChatPlan: React.FC<{ f: number }> = ({ f }) => {
+  const m1 = ease(f, 18, 36);
+  const m2 = ease(f, 58, 76);
+  const prop = ease(f, 100, 120);
+  const firmado = ease(f, 152, 170);
+  const montos = firmado > 0.5 ? [124000, 248000, 248000] : [124000, 248000, 248000];
+  return (
+    <Tarjeta f={f} titulo="Conversación" sub="Carpintería Marcelo · 5 mensajes" icono="chat">
+      <div
+        style={{
+          padding: '18px 22px',
+          borderRadius: 18,
+          background: firmado > 0.5 ? 'rgba(15,157,99,0.16)' : 'rgba(238,90,14,0.12)',
+          border: `1px solid ${firmado > 0.5 ? VERDE + '66' : NAR + '66'}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          opacity: prop,
+        }}
+      >
+        <Icono nombre={firmado > 0.5 ? 'tilde' : 'billetes'} size={34} color={firmado > 0.5 ? VERDE : NAR} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 36 }}>
+            {firmado > 0.5 ? 'Plan de pagos acordado' : 'Plan de pagos enviado'}
+          </div>
+          <div style={{ fontSize: 30, color: TX_2, marginTop: 2 }}>3 pagos · {pesos(620000)}</div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
+        <div
+          style={{
+            alignSelf: 'flex-end',
+            maxWidth: '86%',
+            padding: '20px 24px',
+            borderRadius: 20,
+            borderBottomRightRadius: 6,
+            background: 'rgba(238,90,14,0.22)',
+            border: `1px solid ${NAR}55`,
+            fontSize: 34,
+            lineHeight: 1.3,
+            opacity: m1,
+            transform: `translateY(${(1 - m1) * 16}px)`,
+          }}
+        >
+          ¿Cómo manejás el pago? No quiero adelantar todo.
+        </div>
+        <div
+          style={{
+            alignSelf: 'flex-start',
+            maxWidth: '88%',
+            padding: '20px 24px',
+            borderRadius: 20,
+            borderBottomLeftRadius: 6,
+            background: 'rgba(255,255,255,0.065)',
+            border: `1px solid ${LINEA}`,
+            fontSize: 34,
+            lineHeight: 1.3,
+            opacity: m2,
+            transform: `translateY(${(1 - m2) * 16}px)`,
+          }}
+        >
+          Te armo un plan en tres pagos: una parte para arrancar, otra cuando instalo, y el resto
+          cuando quedás conforme.
+        </div>
+
+        <div
+          style={{
+            marginTop: 'auto',
+            borderRadius: 20,
+            border: `2px solid ${firmado > 0.5 ? VERDE : NAR}`,
+            background: firmado > 0.5 ? 'rgba(15,157,99,0.12)' : 'rgba(238,90,14,0.12)',
+            padding: '22px 24px',
+            opacity: prop,
+            transform: `translateY(${(1 - prop) * 24}px)`,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {firmado > 0.5 ? <Icono nombre="tilde" size={34} color={VERDE} /> : null}
+            <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40 }}>
+              {firmado > 0.5 ? 'Plan de pagos acordado' : 'Propuesta de pago 1'}
+            </div>
+            <div style={{ marginLeft: 'auto' }}>
+              <Pastilla texto="3 pagos" color={firmado > 0.5 ? VERDE : NAR} size={28} />
+            </div>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 12,
+              marginTop: 16,
+              fontFamily: cond,
+              fontWeight: 800,
+              fontSize: 56,
+              letterSpacing: -1,
+              color: TX,
+            }}
+          >
+            {montos.map((m, i) => (
+              <span key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                {i > 0 ? <span style={{ color: TX_3, fontSize: 44 }}>+</span> : null}
+                {pesos(m)}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 4 · pagar la seña ───────────────────────── */
+
+const PagarSena: React.FC<{ f: number }> = ({ f }) => {
+  const etapa = f < 92 ? 0 : f < 140 ? 1 : f < 182 ? 2 : 3;
+  const ap = ease(f, 14, 34);
+  return (
+    <Tarjeta f={f} titulo="Confirmá tu pago" sub="Carpintería Marcelo · Muebles a medida" icono="escudo">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: ap }}>
+        <Fila op={1} pad="18px 22px">
+          <div style={{ flex: 1, fontSize: 32, color: TX_2 }}>Total del trabajo</div>
+          <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 44 }}>{pesos(620000)}</div>
+        </Fila>
+        <div
+          style={{
+            padding: '22px 24px',
+            borderRadius: 18,
+            background: 'rgba(238,90,14,0.14)',
+            border: `2px solid ${NAR}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+          }}
+        >
+          <div style={{ flex: 1, fontFamily: cond, fontWeight: 700, fontSize: 38 }}>
+            Seña (a pagar ahora)
+          </div>
+          <div
+            style={{
+              fontFamily: cond,
+              fontWeight: 800,
+              fontSize: 72,
+              color: NAR,
+              letterSpacing: -1.5,
+            }}
+          >
+            {pesos(124000)}
+          </div>
+        </div>
+        <Fila op={1} pad="18px 22px">
+          <div style={{ flex: 1, fontSize: 32, color: TX_2 }}>Saldo al terminar el trabajo</div>
+          <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 44 }}>{pesos(496000)}</div>
+        </Fila>
+      </div>
+
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {etapa === 0 ? (
+          <>
+            <Fila op={1}>
+              <Icono nombre="billetes" size={34} color={AZUL} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 36 }}>MercadoPago</div>
+                <div style={{ fontSize: 30, color: TX_2, marginTop: 2 }}>
+                  Tarjeta, débito o dinero en cuenta
+                </div>
+              </div>
+            </Fila>
+            <Boton texto={`Pagar ${pesos(124000)}`} />
+          </>
+        ) : etapa === 1 ? (
+          <div
+            style={{
+              padding: '22px 24px',
+              borderRadius: 18,
+              background: 'rgba(15,157,99,0.16)',
+              border: `1px solid ${VERDE}66`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              opacity: ease(f, 92, 110),
+              transform: `translateY(${(1 - ease(f, 92, 110)) * -20}px)`,
+            }}
+          >
+            <Icono nombre="tilde" size={38} color={VERDE} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40 }}>¡Pago recibido!</div>
+              <div style={{ fontSize: 32, color: TX_2, marginTop: 2 }}>
+                Estamos confirmando tu reserva.
+              </div>
+            </div>
+          </div>
+        ) : etapa === 2 ? (
+          <div style={{ transform: `scale(${0.96 + 0.04 * pop(f, 140, 158)})` }}>
+            <Boton texto="Marcar evento como finalizado" color={VERDE} />
+          </div>
+        ) : (
+          <div style={{ transform: `scale(${0.96 + 0.04 * pop(f, 182, 200)})` }}>
+            <Boton texto="Dejar reseña al proveedor" color={AMBAR} tx="#231A14" icono="estrella" />
+          </div>
+        )}
+
+        <div
+          style={{
+            display: 'flex',
+            gap: 14,
+            padding: '20px 22px',
+            borderRadius: 18,
+            background: 'rgba(15,157,99,0.1)',
+            border: `1px solid ${VERDE}44`,
+          }}
+        >
+          <Icono nombre="escudo" size={34} color={VERDE} />
+          <div style={{ fontSize: 30, color: TX_2, lineHeight: 1.3 }}>
+            <b style={{ color: TX }}>Seña protegida:</b> queda retenida por RepareHoy y se le libera
+            al proveedor recién cuando el trabajo está terminado y aprobado.
+          </div>
+        </div>
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 5 · bandeja de solicitudes ───────────────────────── */
+
+const Bandeja: React.FC<{ f: number }> = ({ f }) => {
+  const entra = ease(f, 22, 44);
+  const cotiza = ease(f, 104, 126);
+  const totales = 13;
+  const cotizadas = cotiza > 0.5 ? 2 : 1;
+  return (
+    <Tarjeta
+      f={f}
+      titulo="Bandeja de solicitudes"
+      sub="Respondé rápido para aumentar tu tasa de conversión"
+      icono="bandeja"
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        {[
+          { l: 'Solicitudes totales', v: String(totales) },
+          { l: 'Cotizadas', v: String(cotizadas) },
+          { l: 'Finalizadas', v: '8' },
+        ].map((k, i) => (
+          <div
+            key={i}
+            style={{
+              padding: '20px 22px',
+              borderRadius: 18,
+              background: 'rgba(255,255,255,0.045)',
+              border: `1px solid ${i === 1 && cotiza > 0.5 ? NAR : LINEA}`,
+            }}
+          >
+            <Rotulo texto={k.l} />
+            <div
+              style={{
+                fontFamily: cond,
+                fontWeight: 800,
+                fontSize: 72,
+                letterSpacing: -1.5,
+                marginTop: 2,
+                color: i === 1 && cotiza > 0.5 ? NAR : TX,
+              }}
+            >
+              {k.v}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, opacity: entra }}>
+        <Rotulo texto="Hoy" />
+        <Pastilla
+          texto={cotiza > 0.5 ? '1 cotizada' : '1 pendientes de cotizar'}
+          color={cotiza > 0.5 ? AZUL : AMBAR}
+          size={28}
+        />
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div
+          style={{
+            padding: '22px 24px',
+            borderRadius: 18,
+            background: cotiza > 0.5 ? 'rgba(37,99,235,0.12)' : 'rgba(238,90,14,0.12)',
+            border: `2px solid ${cotiza > 0.5 ? AZUL : NAR}`,
+            opacity: entra,
+            transform: `translateY(${(1 - entra) * -26}px)`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 18,
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40 }}>Nicolás Romero</div>
+            <div style={{ fontSize: 30, color: TX_2, marginTop: 4 }}>Muebles a medida</div>
+          </div>
+          {cotiza > 0.5 ? (
+            <div style={{ textAlign: 'right' }}>
+              <Pastilla texto="COTIZADO" color={AZUL} size={28} />
+              <div
+                style={{
+                  fontFamily: cond,
+                  fontWeight: 800,
+                  fontSize: 58,
+                  color: NAR,
+                  marginTop: 8,
+                  letterSpacing: -1,
+                }}
+              >
+                {pesos(620000)}
+              </div>
+            </div>
+          ) : (
+            <Pastilla texto="PENDIENTE" color={AMBAR} size={28} />
+          )}
+        </div>
+
+        {[
+          { n: 'Sofía Benítez', s: 'Cocina completa: alacena, bajo mesada y zócalos', m: 1180000, e: 'ACEPTADO' },
+          { n: 'Sofía Benítez', s: 'Puertas placa y de madera maciza', m: 350000, e: 'ACEPTADO' },
+        ].map((r, i) => (
+          <Fila key={i} op={1}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 36 }}>{r.n}</div>
+              <div
+                style={{
+                  fontSize: 30,
+                  color: TX_2,
+                  marginTop: 2,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {r.s}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <Pastilla texto={r.e} color={VERDE} size={26} />
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 44, marginTop: 6 }}>
+                {pesos(r.m)}
+              </div>
+            </div>
+          </Fila>
+        ))}
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 6 · armar el plan de pagos ───────────────────────── */
+
+const PlanDePagos: React.FC<{ f: number }> = ({ f }) => {
+  const contra = f >= 96;
+  const plantillas = ['Todo al final', 'Mitad y mitad', 'Contra avance'];
+  const activa = contra ? 2 : 1;
+  const filas = contra
+    ? [
+        { c: 'Materiales y arranque', m: 124000 },
+        { c: 'Avance de obra', m: 248000 },
+        { c: 'Saldo final', m: 248000 },
+      ]
+    : [
+        { c: 'Arranque', m: 310000 },
+        { c: 'Entrega', m: 310000 },
+      ];
+  const manda = ease(f, 168, 186);
+  return (
+    <Tarjeta f={f} titulo="¿Cómo cobrás este trabajo?" sub="Carpintería Marcelo" icono="billetes"
+      extra={
+        <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 56, color: NAR, letterSpacing: -1 }}>
+          {pesos(620000)}
+        </div>
+      }
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+        {plantillas.map((p, i) => {
+          const sel = i === activa;
+          return (
+            <div
+              key={i}
+              style={{
+                padding: '18px 16px',
+                borderRadius: 18,
+                background: sel ? 'rgba(238,90,14,0.18)' : 'rgba(255,255,255,0.045)',
+                border: `2px solid ${sel ? NAR : LINEA}`,
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: cond,
+                  fontWeight: 700,
+                  fontSize: 34,
+                  color: sel ? TX : TX_2,
+                  lineHeight: 1.1,
+                }}
+              >
+                {p}
+              </div>
+              <div style={{ fontSize: 30, color: TX_3, marginTop: 6 }}>
+                {i === 0 ? 'Un pago' : i === 1 ? 'Arranque y entrega' : 'Un pago por etapa'}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {[0, 1, 2].map((i) => {
+          const fila = filas[i];
+          if (!fila) return <div key={i} style={{ height: 96 }} />;
+          const a = contra ? ease(f, 96 + i * 12, 110 + i * 12) : 1;
+          return (
+            <div
+              key={i}
+              style={{
+                padding: '20px 22px',
+                borderRadius: 18,
+                background: 'rgba(255,255,255,0.045)',
+                border: `1px solid ${LINEA}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 18,
+                opacity: a,
+                transform: `translateX(${(1 - a) * 18}px)`,
+                height: 96,
+                boxSizing: 'border-box',
+              }}
+            >
+              <div
+                style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 14,
+                  background: 'rgba(238,90,14,0.18)',
+                  color: NAR,
+                  fontFamily: cond,
+                  fontWeight: 800,
+                  fontSize: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 'none',
+                }}
+              >
+                {i + 1}
+              </div>
+              <div style={{ flex: 1, fontSize: 34 }}>{fila.c}</div>
+              <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 50 }}>{pesos(fila.m)}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div
+        style={{
+          marginTop: 'auto',
+          display: 'flex',
+          gap: 14,
+          alignItems: 'center',
+          padding: '20px 22px',
+          borderRadius: 18,
+          background: contra ? 'rgba(15,157,99,0.16)' : 'rgba(229,72,77,0.16)',
+          border: `1px solid ${contra ? VERDE : ROJO}66`,
+        }}
+      >
+        <Icono nombre={contra ? 'tilde' : 'campana'} size={34} color={contra ? VERDE : ROJO} />
+        <div style={{ fontSize: 32, color: TX, lineHeight: 1.3 }}>
+          {contra
+            ? 'Primer pago 20%. Podés pedir hasta 40%.'
+            : 'El primer pago es el 50% del total y el máximo para vos es 40%. Bajá el primer pago o repartilo en más etapas.'}
+        </div>
+      </div>
+
+      <div style={{ opacity: contra ? 1 : 0.35, transform: `scale(${0.98 + 0.02 * manda})` }}>
+        <Boton texto="Mandar propuesta" />
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 7 · el panel del proveedor ───────────────────────── */
+
+const Panel: React.FC<{ f: number }> = ({ f }) => {
+  const p = ease(f, 14, 56);
+  const q = ease(f, 92, 136);
+  const kpis = [
+    { l: 'Solicitudes', v: 12 + Math.round(2 * q), s: 'Todo respondido', money: false },
+    { l: 'Confirmadas', v: 9 + Math.round(1 * q), s: 'Últimos 30 días', money: false },
+  ];
+  const ing = 9496000 + (10116000 - 9496000) * q;
+  const conv = 75 + (71 - 75) * q;
+  return (
+    <Tarjeta f={f} titulo="Hola Marcelo" sub="Tu performance de los últimos 30 días" icono="tablero">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {kpis.map((k, i) => (
+          <div
+            key={i}
+            style={{
+              padding: '22px 24px',
+              borderRadius: 18,
+              background: 'rgba(255,255,255,0.045)',
+              border: `1px solid ${LINEA}`,
+            }}
+          >
+            <Rotulo texto={k.l} />
+            <div
+              style={{
+                fontFamily: cond,
+                fontWeight: 800,
+                fontSize: 92,
+                letterSpacing: -2,
+                marginTop: 2,
+              }}
+            >
+              {Math.round(k.v * p)}
+            </div>
+            <div style={{ fontSize: 30, color: TX_2 }}>{k.s}</div>
+          </div>
+        ))}
+        <div
+          style={{
+            padding: '22px 24px',
+            borderRadius: 18,
+            background: 'rgba(238,90,14,0.14)',
+            border: `1px solid ${NAR}66`,
+          }}
+        >
+          <Rotulo texto="Ingresos est." />
+          <div
+            style={{
+              fontFamily: cond,
+              fontWeight: 800,
+              fontSize: 72,
+              letterSpacing: -1.5,
+              color: NAR,
+              marginTop: 2,
+            }}
+          >
+            {pesos(ing * p)}
+          </div>
+          <div style={{ fontSize: 30, color: TX_2 }}>Comprometido en agenda</div>
+        </div>
+        <div
+          style={{
+            padding: '22px 24px',
+            borderRadius: 18,
+            background: 'rgba(255,255,255,0.045)',
+            border: `1px solid ${LINEA}`,
+          }}
+        >
+          <Rotulo texto="Conversión" />
+          <div
+            style={{
+              fontFamily: cond,
+              fontWeight: 800,
+              fontSize: 92,
+              letterSpacing: -2,
+              marginTop: 2,
+            }}
+          >
+            {Math.round(conv * p)}%
+          </div>
+          <div style={{ fontSize: 30, color: TX_2 }}>
+            {q > 0.5 ? '12 aceptadas de 14' : '11 aceptadas de 12'}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 14, marginTop: 'auto' }}>
+        {[
+          { v: '6', l: 'servicios activos' },
+          { v: '4.78', l: 'rating promedio' },
+          { v: '9', l: 'reseñas totales' },
+        ].map((m, i) => (
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              padding: '18px 18px',
+              borderRadius: 18,
+              background: 'rgba(255,255,255,0.045)',
+              border: `1px solid ${LINEA}`,
+              opacity: ease(f, 40 + i * 10, 56 + i * 10),
+            }}
+          >
+            <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 56, letterSpacing: -1 }}>
+              {m.v}
+            </div>
+            <div style={{ fontSize: 30, color: TX_2, lineHeight: 1.2 }}>{m.l}</div>
+          </div>
+        ))}
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 8 · reputación y reseñas ───────────────────────── */
+
+const Resenas: React.FC<{ f: number }> = ({ f }) => {
+  const nueva = ease(f, 36, 60);
+  const viejas = [
+    { n: 'Martín Ojeda', e: 5, t: 'Segunda vez que lo llamo...' },
+    { n: 'Gustavo Peralta', e: 5, t: 'Es la segunda cocina que le encargo...' },
+    { n: 'Andrés Quiroga', e: 4, t: 'Le bajo una estrella porque el presupuesto inicial no incluía el tratamiento contra humedad...' },
+  ];
+  return (
+    <Tarjeta
+      f={f}
+      titulo="Reseñas de Clientes Verificados"
+      sub="Experiencias reales"
+      icono="estrella"
+      extra={<Pastilla texto="4,8 / 5.0" color={AMBAR} size={32} />}
+    >
+      <div
+        style={{
+          padding: '22px 24px',
+          borderRadius: 20,
+          background: 'rgba(15,157,99,0.12)',
+          border: `2px solid ${VERDE}`,
+          opacity: nueva,
+          transform: `translateY(${(1 - nueva) * -28}px)`,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40, flex: 1 }}>
+            Nicolás Romero
+          </div>
+          <EstrellasFila llenas={5} size={32} />
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <Pastilla texto="Contratación Verificada" color={VERDE} size={28} />
+        </div>
+        <div style={{ fontSize: 32, color: TX, lineHeight: 1.3, marginTop: 14 }}>
+          “Me pasó el plano en 3D antes de cortar y la biblioteca entró justa contra el techo. Cobró
+          como habíamos acordado en el chat, sin sorpresas.”
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {viejas.map((r, i) => (
+          <Fila key={i} op={1} pad="18px 22px">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 36 }}>{r.n}</div>
+                <EstrellasFila llenas={r.e} size={26} />
+              </div>
+              <div
+                style={{
+                  fontSize: 30,
+                  color: TX_2,
+                  marginTop: 4,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {r.t}
+              </div>
+            </div>
+          </Fila>
+        ))}
+      </div>
+
+      <div
+        style={{
+          marginTop: 'auto',
+          display: 'flex',
+          gap: 14,
+          alignItems: 'center',
+          padding: '18px 22px',
+          borderRadius: 18,
+          background: 'rgba(15,157,99,0.1)',
+          border: `1px solid ${VERDE}44`,
+        }}
+      >
+        <Icono nombre="escudo" size={34} color={VERDE} />
+        <div style={{ fontSize: 32, color: TX }}>Trabajo hecho con seña protegida</div>
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── 9 · mis solicitudes, línea de tiempo ───────────────────────── */
+
+const LineaDeTiempo: React.FC<{ f: number }> = ({ f }) => {
+  const tramos = ['Pedido', 'Presupuesto', 'Seña', 'Terminado'];
+  const etapa = f < 48 ? 0 : f < 96 ? 1 : f < 144 ? 2 : 3;
+  const rotulo = ['Esperando presupuesto', 'Esperando tu respuesta', 'Trabajo agendado', 'Terminado'][
+    etapa
+  ];
+  const color = [TX_3, AZUL, NAR, VERDE][etapa];
+  const prog = lin(f, 14, 168);
+  return (
+    <Tarjeta f={f} titulo="Mis solicitudes" sub="Cotizaciones recibidas y bookings en curso" icono="ruta">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div
+          style={{
+            padding: '20px 22px',
+            borderRadius: 18,
+            background: 'rgba(255,255,255,0.045)',
+            border: `1px solid ${LINEA}`,
+          }}
+        >
+          <Rotulo texto="Solicitudes totales" />
+          <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 72, letterSpacing: -1.5 }}>4</div>
+        </div>
+        <div
+          style={{
+            padding: '20px 22px',
+            borderRadius: 18,
+            background: 'rgba(238,90,14,0.14)',
+            border: `1px solid ${NAR}66`,
+          }}
+        >
+          <Rotulo texto="Gasto comprometido" />
+          <div
+            style={{
+              fontFamily: cond,
+              fontWeight: 800,
+              fontSize: 60,
+              letterSpacing: -1.5,
+              color: NAR,
+            }}
+          >
+            {etapa >= 1 ? pesos(620000) : pesos(0)}
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          borderRadius: 22,
+          border: `2px solid ${color === TX_3 ? LINEA : color}`,
+          background: 'rgba(0,0,0,0.26)',
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 40 }}>
+              Carpintería Marcelo
+            </div>
+            <div style={{ fontSize: 30, color: TX_2, marginTop: 4 }}>Muebles a medida</div>
+          </div>
+          {etapa >= 1 ? (
+            <div style={{ textAlign: 'right' }}>
+              <Pastilla texto={etapa === 1 ? 'COTIZADO' : 'ACEPTADO'} color={etapa === 1 ? AZUL : VERDE} size={28} />
+              <div
+                style={{
+                  fontFamily: cond,
+                  fontWeight: 800,
+                  fontSize: 56,
+                  marginTop: 8,
+                  letterSpacing: -1,
+                }}
+              >
+                {pesos(620000)}
+              </div>
+            </div>
+          ) : (
+            <Pastilla texto="PENDIENTE" color={AMBAR} size={28} />
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          {tramos.map((t, i) => (
+            <div key={i} style={{ flex: 1 }}>
+              <div
+                style={{
+                  height: 12,
+                  borderRadius: 999,
+                  background: 'rgba(255,255,255,0.14)',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.max(0, Math.min(1, prog * 4 - i)) * 100}%`,
+                    height: '100%',
+                    background: i <= etapa ? NAR : 'transparent',
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  marginTop: 10,
+                  fontSize: 30,
+                  textAlign: 'center',
+                  fontWeight: i === etapa ? 700 : 400,
+                  color: i <= etapa ? TX : TX_3,
+                }}
+              >
+                {t}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '18px 22px',
+            borderRadius: 16,
+            background: `${color === TX_3 ? 'rgba(255,255,255,0.05)' : color + '22'}`,
+            border: `1px solid ${color === TX_3 ? LINEA : color + '66'}`,
+          }}
+        >
+          <Icono nombre={etapa === 3 ? 'tilde' : 'reloj'} size={34} color={color === TX_3 ? TX_2 : color} />
+          <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 38 }}>{rotulo}</div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Fila op={1} pad="18px 22px">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 34 }}>
+              Carpintería Marcelo
+            </div>
+            <div style={{ fontSize: 30, color: TX_2 }}>Placares y vestidores</div>
+          </div>
+          <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 44 }}>{pesos(890000)}</div>
+        </Fila>
+      </div>
+    </Tarjeta>
+  );
+};
+
+/* ───────────────────────── título abajo y placa ───────────────────────── */
+
+const Titulo: React.FC<{
+  f: number;
+  chip?: string;
+  titulo: string;
+  resaltar?: string;
+  sub?: string;
+  top: number;
+  size?: number;
+}> = ({ f, chip, titulo, resaltar, sub, top, size = 76 }) => {
+  const i = resaltar ? titulo.toLowerCase().indexOf(resaltar.toLowerCase()) : -1;
+  const [a, b, c] =
+    i >= 0 && resaltar
+      ? [titulo.slice(0, i), titulo.slice(i, i + resaltar.length), titulo.slice(i + resaltar.length)]
+      : [titulo, '', ''];
+  const op = ease(f, 10, 28);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top,
+        left: 80,
+        right: 80,
+        textAlign: 'center',
+        opacity: op,
+        transform: `translateY(${(1 - op) * 18}px)`,
+      }}
+    >
+      {chip ? (
+        <div style={{ marginBottom: 22 }}>
+          <span
+            style={{
+              display: 'inline-block',
+              padding: '10px 24px',
+              borderRadius: 999,
+              border: `1px solid ${NAR}88`,
+              background: 'rgba(238,90,14,0.16)',
+              color: NAR,
+              fontFamily: sans,
+              fontWeight: 700,
+              fontSize: 30,
+              letterSpacing: 3.4,
+              textTransform: 'uppercase',
+            }}
+          >
+            {chip}
+          </span>
+        </div>
+      ) : null}
+      <div
+        style={{
+          fontFamily: cond,
+          fontWeight: 800,
+          fontSize: size,
+          lineHeight: 1.06,
+          letterSpacing: -1.6,
+          color: TX,
+        }}
+      >
+        {a}
+        <span style={{ color: NAR }}>{b}</span>
+        {c}
+      </div>
+      {sub ? (
+        <div
+          style={{
+            marginTop: 18,
+            fontFamily: sans,
+            fontSize: 34,
+            lineHeight: 1.35,
+            color: TX_2,
+          }}
+        >
+          {sub}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+const Placa: React.FC<{ plan: PlanTarjetasApp }> = ({ plan }) => {
+  const f = useCurrentFrame();
+  const a = ease(f, 0, 16);
+  return (
+    <AbsoluteFill
+      style={{ justifyContent: 'center', alignItems: 'center', opacity: a, padding: '0 90px' }}
+    >
+      <Img src={plan.logoSrc} style={{ height: 170, transform: `scale(${0.92 + 0.08 * a})` }} />
+      <div
+        style={{
+          marginTop: 44,
+          fontFamily: cond,
+          fontWeight: 800,
+          fontSize: 92,
+          letterSpacing: -2,
+          color: TX,
+          textAlign: 'center',
+          lineHeight: 1.05,
+        }}
+      >
+        {plan.placa.linea1}
+      </div>
+      <div
+        style={{
+          marginTop: 34,
+          padding: '22px 48px',
+          borderRadius: 16,
+          background: NAR,
+          color: '#FFFFFF',
+          fontFamily: cond,
+          fontWeight: 800,
+          fontSize: 44,
+          boxShadow: '0 20px 60px rgba(238,90,14,0.35)',
+          opacity: ease(f, 12, 26),
+        }}
+      >
+        {plan.placa.linea2}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+/* ───────────────────────── armado ───────────────────────── */
+
+const Escena: React.FC<{ e: EscenaTarjetaApp & { dur: number } }> = ({ e }) => {
+  const f = useCurrentFrame();
+  const salida = 1 - lin(f, e.dur - 8, e.dur);
+  const cuerpo =
+    e.tipo === 'contar-problema' ? (
+      <ContarProblema f={f} />
+    ) : e.tipo === 'te-esperan' ? (
+      <TeEsperan f={f} />
+    ) : e.tipo === 'chat-plan-de-pagos' ? (
+      <ChatPlan f={f} />
+    ) : e.tipo === 'pagar-la-sena' ? (
+      <PagarSena f={f} />
+    ) : e.tipo === 'bandeja-solicitudes' ? (
+      <Bandeja f={f} />
+    ) : e.tipo === 'armar-plan-de-pagos' ? (
+      <PlanDePagos f={f} />
+    ) : e.tipo === 'panel-proveedor' ? (
+      <Panel f={f} />
+    ) : e.tipo === 'reputacion-resenas' ? (
+      <Resenas f={f} />
+    ) : e.tipo === 'linea-de-tiempo' ? (
+      <LineaDeTiempo f={f} />
+    ) : null;
+  if (!cuerpo) {
+    return (
+      <AbsoluteFill style={{ opacity: salida }}>
+        <Titulo f={f} chip={e.chip} titulo={e.titulo} resaltar={e.resaltar} sub={e.sub} top={820} size={104} />
+      </AbsoluteFill>
+    );
+  }
+  return (
+    <AbsoluteFill style={{ opacity: salida }}>
+      {cuerpo}
+      <Titulo f={f} chip={e.chip} titulo={e.titulo} resaltar={e.resaltar} sub={e.sub} top={1330} size={72} />
+    </AbsoluteFill>
+  );
+};
+
+export const Tarjetas: React.FC<{ plan: PlanTarjetasApp }> = ({ plan }) => {
+  const { fps } = useVideoConfig();
+  const esc = useMemo(() => {
+    let c = 0;
+    return plan.escenas.map((e) => {
+      const from = c;
+      const dur = Math.round(e.durSec * fps);
+      c += dur;
+      return { ...e, from, dur };
+    });
+  }, [plan, fps]);
+  const fin = esc.length ? esc[esc.length - 1].from + esc[esc.length - 1].dur : 0;
+  const placaDur = Math.round(plan.placa.durSec * fps);
+  return (
+    <AbsoluteFill style={{ backgroundColor: FONDO }}>
+      <Fondo />
+      <Sequence from={0} durationInFrames={fin} name="marco">
+        <Progreso escenas={esc} />
+        <Encabezado src={plan.logoSrc} />
+        <Pie />
+      </Sequence>
+      {esc.map((e, i) => (
+        <Sequence key={i} from={e.from} durationInFrames={e.dur} name={`${i + 1} ${e.tipo}`}>
+          <Escena e={e} />
+        </Sequence>
+      ))}
+      {placaDur > 0 ? (
+        <Sequence from={fin} durationInFrames={placaDur} name="placa">
+          <Placa plan={plan} />
+        </Sequence>
+      ) : null}
+    </AbsoluteFill>
+  );
+};
+```
+
+```json
+{
+  "logo": "logo-blanco.png",
+  "dominio": "reparehoy.com.ar",
+  "tarjetas": [
+    {
+      "id": "contar-problema",
+      "pantalla": "screens/01-cliente-contar-el-problema.png",
+      "nombre": "Contar el problema",
+      "patron": "formulario que se completa",
+      "chip": "Pedir un arreglo",
+      "titulo": "Contalo en tus palabras",
+      "resaltar": "tus palabras",
+      "sub": "Cuatro pasos cortos. No hace falta saber qué oficio necesitás.",
+      "durSec": 7
+    },
+    {
+      "id": "te-esperan",
+      "pantalla": "screens/02-cliente-te-esperan-tus-proveedores.png",
+      "nombre": "Te esperan tus proveedores",
+      "patron": "aviso que llega / lista que se llena",
+      "chip": "Presupuestos",
+      "titulo": "Los presupuestos llegan solos",
+      "resaltar": "llegan solos",
+      "sub": "La app te dice qué está esperando algo tuyo.",
+      "durSec": 5.5
+    },
+    {
+      "id": "chat-plan-de-pagos",
+      "pantalla": "screens/03-cliente-conversacion-con-plan-de-pagos.png",
+      "nombre": "La conversación con el plan de pagos adentro",
+      "patron": "chat",
+      "chip": "Conversación",
+      "titulo": "El plan de pagos queda en el chat",
+      "resaltar": "en el chat",
+      "sub": "Se acuerda ahí mismo y queda como registro.",
+      "durSec": 6.5
+    },
+    {
+      "id": "pagar-la-sena",
+      "pantalla": "screens/04-cliente-pagar-la-sena.png",
+      "nombre": "Pagar la seña",
+      "patron": "confirmación o pago",
+      "chip": "Seña protegida",
+      "titulo": "Pagás la seña y queda retenida",
+      "resaltar": "queda retenida",
+      "sub": "Se le libera al proveedor cuando el trabajo está terminado y aprobado.",
+      "durSec": 7
+    },
+    {
+      "id": "bandeja-solicitudes",
+      "pantalla": "screens/05-proveedor-bandeja-de-solicitudes.png",
+      "nombre": "Bandeja de solicitudes",
+      "patron": "aviso que llega / estado que cambia",
+      "chip": "Para el proveedor",
+      "titulo": "Los pedidos le llegan ordenados",
+      "resaltar": "ordenados",
+      "sub": "Entra pendiente, cotiza, y pasa a COTIZADO con su monto.",
+      "durSec": 5.5
+    },
+    {
+      "id": "armar-plan-de-pagos",
+      "pantalla": "screens/06-proveedor-armar-plan-de-pagos.png",
+      "nombre": "Armar el plan de pagos",
+      "patron": "trámite que avanza / estado que cambia",
+      "chip": "Cómo cobra",
+      "titulo": "Elegí cómo cobrás, con un tope",
+      "resaltar": "con un tope",
+      "sub": "La plataforma le marca hasta dónde puede pedir de adelanto.",
+      "durSec": 6.5
+    },
+    {
+      "id": "panel-proveedor",
+      "pantalla": "screens/07-proveedor-panel.png",
+      "nombre": "El panel del proveedor",
+      "patron": "números que suben",
+      "chip": "Tu mes",
+      "titulo": "Tu trabajo en números",
+      "resaltar": "en números",
+      "sub": "Solicitudes, confirmadas, ingresos comprometidos y conversión.",
+      "durSec": 6
+    },
+    {
+      "id": "reputacion-resenas",
+      "pantalla": "screens/08-proveedor-reputacion-y-resenas.png",
+      "nombre": "La reputación, hecha de trabajos reales",
+      "patron": "números que suben / lista que se llena",
+      "chip": "Experiencias reales",
+      "titulo": "Reseñas de trabajos terminados",
+      "resaltar": "terminados",
+      "sub": "Cada una con nombre, contratación verificada y estrellas.",
+      "durSec": 5.5
+    },
+    {
+      "id": "linea-de-tiempo",
+      "pantalla": "screens/09-cliente-mis-solicitudes-linea-de-tiempo.png",
+      "nombre": "Mis solicitudes, con el progreso de cada trabajo",
+      "patron": "avanza por pasos / semáforo",
+      "chip": "Seguimiento",
+      "titulo": "Sabés en qué paso está",
+      "resaltar": "en qué paso",
+      "sub": "Pedido, presupuesto, seña, terminado. Sin preguntarle a nadie.",
+      "durSec": 6.5
+    }
+  ]
+}
+```

@@ -1,0 +1,139 @@
+```tsx
+// ── 7. panel del proveedor: los números se mueven ──
+export const Panel: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const a = 18;
+  const b = Math.max(a + 40, dur - 18);
+
+  // superficie oscura propia de la tarjeta (ambiente de noche)
+  const SUP = 'linear-gradient(180deg, #2E211A 0%, #1C130E 100%)';
+  const SUP_INT = 'rgba(255,255,255,0.05)';
+  const BORDE_N = 'rgba(255,255,255,0.10)';
+  const TXT_N = '#F7F1EA';
+  const TXT_N2 = 'rgba(247,241,234,0.70)';
+  const TXT_N3 = 'rgba(247,241,234,0.46)';
+
+  const entra = ease(f, 0, 16);
+
+  const kpis = [
+    { l: 'SOLICITUDES', v: mixLin(f, a, b, 12, 14), fmt: (n: number) => String(Math.round(n)), p: 'Todo respondido' },
+    { l: 'CONFIRMADAS', v: mixLin(f, a, b, 9, 10), fmt: (n: number) => String(Math.round(n)), p: 'Últimos 30 días' },
+    { l: 'INGRESOS EST.', v: mixLin(f, a, b, 9496000, 10116000), fmt: (n: number) => pesos(Math.round(n / 1000) * 1000), p: 'Comprometido en agenda' },
+    { l: 'CONVERSIÓN', v: mixLin(f, a, b, 75, 71), fmt: (n: number) => Math.round(n) + '%', p: '12 aceptadas de 14' },
+  ];
+  // barras del mes: crecen tramo por tramo a lo largo de toda la escena
+  const barras = [0.42, 0.55, 0.48, 0.68, 0.74, 0.86, 1];
+  const dias = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 75,
+        top: 330,
+        width: 930,
+        height: 920,
+        borderRadius: 34,
+        background: SUP,
+        border: `1px solid ${BORDE_N}`,
+        boxShadow: '0 40px 90px rgba(0,0,0,0.60)',
+        overflow: 'hidden',
+        padding: '38px 40px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 22,
+        opacity: entra,
+        transform: `translateY(${(1 - entra) * 40}px) scale(${0.968 + 0.032 * entra})`,
+        fontFamily: sans,
+        color: TXT_N,
+      }}
+    >
+      {/* encabezado */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div
+          style={{
+            width: 76,
+            height: 76,
+            borderRadius: 20,
+            background: 'rgba(238,90,14,0.18)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 'none',
+          }}
+        >
+          <Ico d={D.grafico} size={40} color={NARANJA} />
+        </div>
+        <div>
+          <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 44, letterSpacing: '-0.02em', lineHeight: 1.06, color: TXT_N }}>
+            Hola Marcelo
+          </div>
+          <div style={{ fontSize: 30, color: TXT_N2, marginTop: 4 }}>Tu performance de los últimos 30 días</div>
+        </div>
+      </div>
+
+      {/* 1 · los cuatro KPI que cuentan */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+        {kpis.map((k, i) => {
+          const op = ease(f, 6 + i * 4, 22 + i * 4);
+          return (
+            <div
+              key={i}
+              style={{
+                padding: '20px 24px',
+                borderRadius: 20,
+                background: SUP_INT,
+                border: `1px solid ${BORDE_N}`,
+                opacity: op,
+                transform: `translateY(${(1 - op) * 18}px)`,
+              }}
+            >
+              <div style={{ fontSize: 30, letterSpacing: 1.2, color: TXT_N3, fontWeight: 600 }}>{k.l}</div>
+              <div
+                style={{
+                  fontFamily: cond,
+                  fontWeight: 800,
+                  fontSize: 64,
+                  letterSpacing: '-0.02em',
+                  color: i === 2 ? NARANJA : TXT_N,
+                  lineHeight: 1.1,
+                }}
+              >
+                {k.fmt(k.v)}
+              </div>
+              <div style={{ fontSize: 30, color: TXT_N2 }}>{k.p}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 2 · la semana que crece día por día */}
+      <div style={{ marginTop: 'auto', padding: '22px 26px', borderRadius: 20, background: SUP_INT, border: `1px solid ${BORDE_N}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ fontSize: 30, letterSpacing: 1.2, color: TXT_N3, fontWeight: 600 }}>TRABAJOS CONFIRMADOS POR DÍA</div>
+          <div style={{ fontSize: 30, color: EXITO, fontWeight: 700 }}>+{Math.round(lin(f, a, b) * 2)}</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14 }}>
+          {barras.map((h, i) => {
+            const g = lin(f, 10 + i * ((b - 20) / 7), 10 + i * ((b - 20) / 7) + 22);
+            return (
+              <div key={i} style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ height: 108, display: 'flex', alignItems: 'flex-end' }}>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: `${Math.max(8, h * g * 108)}px`,
+                      borderRadius: 10,
+                      background: i === barras.length - 1 ? NARANJA : 'rgba(238,90,14,0.34)',
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: 30, color: TXT_N3, marginTop: 8 }}>{dias[i]}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+```

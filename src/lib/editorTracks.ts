@@ -3,10 +3,10 @@
 // testeable — sin IA, sin red. NO inventa datos: si el comercial no tiene storyboard/montaje, cada
 // pista vuelve vacía (estado honesto) en vez de rellenarse con ejemplos.
 import type { Comercial } from './comercial';
-import { storyboardToMontaje, sceneStarts, totalDuration, transitionDur, type MontajePlan, type MontajeState, type Transicion } from './montajePlan';
+import { storyboardToMontaje, sceneStarts, totalDuration, transitionDur, type MezclaPista, type MontajePlan, type MontajeState, type PistaAudio, type Transicion } from './montajePlan';
 import { MUSIC_TRACKS } from './music';
 
-export type TrackId = 'video' | 'texto' | 'voz' | 'musica' | 'sfx' | 'fx';
+export type TrackId = 'video' | 'pantallas' | 'texto' | 'voz' | 'musica' | 'sfx' | 'fx';
 export type TransitionKind = 'cut' | 'dissolve' | 'slide';
 
 export interface EditorClip {
@@ -28,13 +28,21 @@ export interface EditorClip {
   audioGain?: number;   // WO-4: volumen del clip (video) — 0-1, persistido a scene.audioGain
   rol?: string;         // rol de la escena base (hook/desarrollo/gag/cta) — para reponerlo en la inversión
   audio?: 'keep' | 'mute';   // modo de audio de la escena (para la inversión)
+  // la escena cuyo material es un MOCKUP de la app vive en la pista Mockups (separada de lo filmado), pero sigue siendo
+  // una escena de la secuencia, no un inserto encima: la inversión la vuelve a meter entre las escenas por su tiempo.
+  esEscena?: boolean;
+  fadeIn?: number;    // segundos (menú del clip): escenas, mockups encima, voz y música
+  fadeOut?: number;
 }
 
 export interface EditorTrack {
   id: TrackId;
   name: string;
   clips: EditorClip[];
+  mix?: MezclaPista;   // sólo pistas con sonido (video/voz/música/sfx): volumen, mute y solo de la cabecera
 }
+
+export const PISTAS_CON_AUDIO: TrackId[] = ['video', 'voz', 'musica', 'sfx'];
 
 export interface EditorTimeline {
   tracks: EditorTrack[];
@@ -54,8 +62,17 @@ export function aspectLabel(width: number, height: number): string {
 }
 
 const TRACK_META: Record<TrackId, string> = {
-  video: 'Video', texto: 'Texto', voz: 'Voz', musica: 'Música', sfx: 'SFX', fx: 'Efectos',
+  video: 'Video', pantallas: 'Mockups', texto: 'Texto', voz: 'Voz', musica: 'Música', sfx: 'SFX', fx: 'Efectos',
 };
+
+// fileRefs de los mockups de la app que tiene la pieza (los del paso Mockups y las tomas que salieron de ahí)
+export function refsDeMockups(comercial: Comercial | undefined): Set<string> {
+  return new Set([
+    ...(comercial?.mockups || []).map((m) => m.fileRef),
+    ...(comercial?.rodaje || []).filter((t) => t.origen === 'mockup').map((t) => t.fileRef),
+  ].filter(Boolean));
+}
+const COLOR_MOCKUP = '#22C3E6';
 
 const ROLE_COLOR: Record<string, string> = {
   hook: '#FFB800', desarrollo: '#7C5CFF', giro: '#FF5C8A', gag: '#FF5C8A', cta: '#00B37E', animado: '#7C5CFF',
@@ -100,25 +117,63 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
   if (!plan) return { tracks: empty, totalSec: 0, width: 1080, height: 1920 };
 
   const starts = sceneStarts(plan);
-  const videoClips: EditorClip[] = plan.scenes.map((s, i) => ({
-    id: `video-${s.escenaN}`,
-    label: `Escena ${s.escenaN}`,
-    startSec: starts[i],
-    durSec: Math.max(0.1, s.out - s.in),
-    color: roleColor(s.rol),
-    fileRef: s.src || undefined,
-    meta: s.rol,
-    dialogo: s.dialogo,
-    transitionAfter: i < plan.scenes.length - 1 ? transitionKind(s.transition) : undefined,
-    // WO-4: identidad de origen para la inversión (montajeFromTracks).
-    srcIn: s.in,
-    escenaN: s.escenaN,
-    audioGain: s.audioGain,
-    rol: s.rol,
-    audio: s.audio,
-  }));
+  const mockups = refsDeMockups(comercial);
+  const nombreMockup = (ref: string) => comercial?.mockups?.find((m) => m.fileRef === ref)?.nombre;
+  const sceneClips: EditorClip[] = plan.scenes.map((s, i) => {
+    const esMockup = !!s.src && mockups.has(s.src);
+    return {
+      id: `video-${s.escenaN}`,
+      label: esMockup ? `Escena ${s.escenaN} · ${nombreMockup(s.src) || s.screen || 'mockup'}` : `Escena ${s.escenaN}`,
+      startSec: starts[i],
+      durSec: Math.max(0.1, s.out - s.in),
+      color: esMockup ? COLOR_MOCKUP : roleColor(s.rol),
+      fileRef: s.src || undefined,
+      meta: s.rol,
+      dialogo: s.dialogo,
+      transitionAfter: i < plan.scenes.length - 1 ? transitionKind(s.transition) : undefined,
+      // WO-4: identidad de origen para la inversión (montajeFromTracks).
+      srcIn: s.in,
+      escenaN: s.escenaN,
+      audioGain: s.audioGain,
+      rol: s.rol,
+      audio: s.audio,
+      ...(esMockup ? { esEscena: true } : {}),
+      ...(s.fadeIn ? { fadeIn: s.fadeIn } : {}),
+      ...(s.fadeOut ? { fadeOut: s.fadeOut } : {}),
+    };
+  });
+  // lo filmado en Video; las escenas que son un mockup de la app, en la pista Mockups (Lucas, 2026-10-11)
+  const videoClips = sceneClips.filter((c) => !c.esEscena);
+  const escenasMockup = sceneClips.filter((c) => c.esEscena);
 
-  const total = Math.max(0.1, totalDuration(plan));
+  // la placa final (endCard) va al cierre de la pista de video: se ve y se le ajusta la duración (el render la funde
+  // sobre el último clip y dura durSec). El total del reel la incluye.
+  const finClips = totalDuration(plan);
+  const placaClips: EditorClip[] = plan.endCard ? [{
+    id: 'placa-final',
+    label: `Placa final · ${plan.endCard.linea1}`,
+    startSec: finClips,
+    durSec: Math.max(0.5, plan.endCard.durSec),
+    color: '#00B37E',
+    meta: 'placa',
+  }] : [];
+  // los insertos de pantalla (mockups de la app sobre una escena) en su propia pista, en el tiempo REAL del reel: el
+  // mismo cálculo que el render (inicio de la escena + atSec - in)
+  const insertoClips: EditorClip[] = plan.scenes.flatMap((s, i) => (s.inserts || []).map((ins, k) => ({
+    id: `pantalla-${s.escenaN}-${k}`,
+    label: ins.nombre || 'Pantalla',
+    startSec: starts[i] + Math.max(0, ins.atSec - s.in),
+    durSec: Math.max(0.3, ins.durSec),
+    color: COLOR_MOCKUP,
+    fileRef: ins.src || undefined,
+    escenaN: s.escenaN,
+    meta: ins.tarjeta,
+    ...(ins.fadeIn != null ? { fadeIn: ins.fadeIn } : {}),
+    ...(ins.fadeOut != null ? { fadeOut: ins.fadeOut } : {}),
+  })));
+  const pantallasClips = [...escenasMockup, ...insertoClips].sort((a, b) => a.startSec - b.startSec);
+
+  const total = Math.max(0.1, finClips + (plan.endCard?.durSec || 0));
 
   const textoClips: EditorClip[] = (plan.texts || []).map((t, i) => ({
     id: `texto-${i}`,
@@ -140,6 +195,8 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
       color: '#00B37E',
       fileRef: plan.voice.src,
       meta: `desde ${plan.voice.at}s`,
+      ...(plan.voice.fadeIn ? { fadeIn: plan.voice.fadeIn } : {}),
+      ...(plan.voice.fadeOut ? { fadeOut: plan.voice.fadeOut } : {}),
     }]
     : [];
 
@@ -152,6 +209,8 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
       color: '#FFB800',
       fileRef: plan.music.src,
       meta: plan.music.duck ? 'con ducking' : 'sin ducking',
+      ...(plan.music.fadeIn != null ? { fadeIn: plan.music.fadeIn } : {}),
+      ...(plan.music.fadeOut != null ? { fadeOut: plan.music.fadeOut } : {}),
     }]
     : [];
 
@@ -171,17 +230,33 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
       color: '#4AA3FF',
     }));
 
+  // los acercamientos (punch-in del montajista) en la pista de efectos: se ven y, si se borran, la escena queda sin zoom
+  const zoomClips: EditorClip[] = plan.scenes
+    .map((s, i) => ({ s, i, desde: s.punchFrom ?? 1, hasta: s.punchTo ?? s.punchFrom ?? 1 }))
+    .filter(({ desde, hasta }) => desde !== 1 || hasta !== 1)
+    .map(({ s, i, desde, hasta }) => ({
+      id: `zoom-${s.escenaN}`,
+      label: `Acercamiento ${desde.toFixed(2)} → ${hasta.toFixed(2)}`,
+      startSec: starts[i],
+      durSec: Math.max(0.1, s.out - s.in),
+      color: '#4AA3FF',
+      escenaN: s.escenaN,
+      meta: 'acercamiento',
+    }));
+
+  const mix = (id: PistaAudio) => (plan.mezcla?.[id] ? { mix: { ...plan.mezcla[id]! } } : {});
   return {
     totalSec: total,
     width: plan.width,
     height: plan.height,
     tracks: [
-      { id: 'video', name: TRACK_META.video, clips: videoClips },
+      { id: 'video', name: TRACK_META.video, clips: [...videoClips, ...placaClips], ...mix('video') },
+      { id: 'pantallas', name: TRACK_META.pantallas, clips: pantallasClips },
       { id: 'texto', name: TRACK_META.texto, clips: textoClips },
-      { id: 'voz', name: TRACK_META.voz, clips: vozClips },
-      { id: 'musica', name: TRACK_META.musica, clips: musicaClips },
-      { id: 'sfx', name: TRACK_META.sfx, clips: sfxClips },
-      { id: 'fx', name: TRACK_META.fx, clips: fxClips },
+      { id: 'voz', name: TRACK_META.voz, clips: vozClips, ...mix('voz') },
+      { id: 'musica', name: TRACK_META.musica, clips: musicaClips, ...mix('musica') },
+      { id: 'sfx', name: TRACK_META.sfx, clips: sfxClips, ...mix('sfx') },
+      { id: 'fx', name: TRACK_META.fx, clips: [...fxClips, ...zoomClips] },
     ],
   };
 }

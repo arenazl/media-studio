@@ -87,21 +87,24 @@ describe('estadoDelPaso — pack', () => {
   });
 });
 
-describe('estadoDelPaso — rodaje', () => {
+describe('estadoDelPaso — mockups (id interno rodaje)', () => {
   it('vacío', () => {
-    expect(estadoDelPaso('rodaje', base())).toBe('Importá los clips que bajaste de Flow');
+    expect(estadoDelPaso('rodaje', base())).toBe('Hacé los mockups de la app');
   });
-  it('cuenta escenas con clip sobre el total del storyboard', () => {
+  it('cuenta los mockups y en cuántas escenas entraron (sin contar dos veces la misma escena)', () => {
+    const mk = (id: string) => ({ id, tarjeta: id, nombre: id, fileRef: `mk/${id}.mp4`, durSec: 6 });
     const c: Comercial = {
       ...base(),
       storyboard: [escena(1), escena(2), escena(3), escena(4)],
+      mockups: [mk('a'), mk('b'), mk('c')],
       rodaje: [
-        { id: 't1', escenaN: 1, fileRef: 'r', durSec: 8 },
-        { id: 't2', escenaN: 2, fileRef: 'r', durSec: 8 },
-        { id: 't2b', escenaN: 2, fileRef: 'r', durSec: 8 },   // 2da toma de la misma escena → no la cuenta doble
+        { id: 't1', escenaN: 1, fileRef: 'r', durSec: 8 },                                   // clip de Flow: no cuenta
+        { id: 't2', escenaN: 2, fileRef: 'mk/a.mp4', durSec: 6, origen: 'mockup' },
+        { id: 't2b', escenaN: 2, fileRef: 'mk/b.mp4', durSec: 6, origen: 'mockup' },          // misma escena
+        { id: 't3', escenaN: 3, fileRef: 'mk/c.mp4', durSec: 6, origen: 'mockup' },
       ],
     };
-    expect(estadoDelPaso('rodaje', c)).toBe('2/4 escenas con clip');
+    expect(estadoDelPaso('rodaje', c)).toBe('3 mockups · 2 en sus escenas');
   });
 });
 

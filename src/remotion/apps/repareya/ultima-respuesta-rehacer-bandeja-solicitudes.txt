@@ -1,0 +1,186 @@
+```tsx
+// ── 5. bandeja del proveedor: entra el pedido y pasa a COTIZADO ──
+const B_SUP = '#1A1F2E';
+const B_SUP2 = '#141A26';
+const B_LINEA = 'rgba(255,255,255,0.10)';
+const B_TXT = '#F4F6FB';
+const B_TXT2 = '#AEB6C6';
+const B_TXT3 = '#7C8698';
+
+const BandejaKpi: React.FC<{ rot: string; val: string; acento?: boolean }> = ({ rot, val, acento }) => (
+  <div style={{ flex: 1, padding: '20px 22px', borderRadius: 18, background: B_SUP2, border: `1px solid ${B_LINEA}` }}>
+    <div style={{ fontSize: 30, letterSpacing: 1.2, color: B_TXT3, fontWeight: 600 }}>{rot}</div>
+    <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 72, lineHeight: 1, letterSpacing: '-0.02em', marginTop: 6, color: acento ? NARANJA : B_TXT }}>
+      {val}
+    </div>
+  </div>
+);
+
+const BandejaPast: React.FC<{ texto: string; color: string }> = ({ texto, color }) => (
+  <span
+    style={{
+      display: 'inline-block',
+      padding: '10px 22px',
+      borderRadius: 999,
+      background: color + '26',
+      border: `1px solid ${color}66`,
+      color,
+      fontSize: 30,
+      fontWeight: 700,
+      letterSpacing: 1,
+    }}
+  >
+    {texto}
+  </span>
+);
+
+export const Bandeja: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const t = Math.max(30, (dur - 48) / 3);
+  const abre = ease(f, 0, 18);
+  const entra = ease(f, 18, 38);
+  const cotizando = f > 18 + t && f <= 18 + t * 2;
+  const cotizado = f > 18 + t * 2;
+  const cot = ease(f, 18 + t * 2, 18 + t * 2 + 16);
+  const totales = Math.round(mixLin(f, 18, 38, 11, 13));
+  const cotizadas = Math.round(mixLin(f, 18 + t * 2, 18 + t * 2 + 16, 1, 2));
+  const finalizadas = Math.round(mixLin(f, dur - 34, dur - 12, 8, 9));
+  const respuesta = lin(f, 18 + t, 18 + t * 2);
+  const monto = cotizado ? '$620.000' : pesos(Math.round(mixLin(f, 18 + t, 18 + t * 2, 0, 620000) / 1000) * 1000);
+  const latido = 0.5 + 0.5 * Math.sin(f / 7);
+
+  const nuevo = { n: 'Nicolás Romero', s: 'Biblioteca a medida' };
+  const viejo = { n: 'Sofía Benítez', s: 'Cocina completa: alacena, bajo mesada y zócalos', m: '$1.180.000' };
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 90,
+        top: 330,
+        width: 900,
+        height: 920,
+        borderRadius: 30,
+        background: `linear-gradient(180deg, ${B_SUP} 0%, #0F1420 100%)`,
+        border: `1px solid ${B_LINEA}`,
+        boxShadow: '0 34px 80px rgba(0,0,0,0.55)',
+        padding: '38px 40px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 24,
+        overflow: 'hidden',
+        fontFamily: sans,
+        color: B_TXT,
+        opacity: abre,
+        transform: `translateY(${(1 - abre) * 40}px) scale(${0.97 + 0.03 * abre})`,
+      }}
+    >
+      {/* encabezado */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div style={{ width: 76, height: 76, borderRadius: 20, background: 'rgba(238,90,14,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+          <Ico d={D.bandeja} size={40} color={NARANJA} stroke={2.4} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: cond, fontWeight: 700, fontSize: 44, lineHeight: 1.06, letterSpacing: '-0.02em', color: B_TXT }}>
+            Bandeja de solicitudes
+          </div>
+          <div style={{ fontSize: 30, color: B_TXT2, marginTop: 4 }}>Respondé rápido</div>
+        </div>
+      </div>
+
+      {/* 1 · los tres números */}
+      <div style={{ display: 'flex', gap: 16 }}>
+        <BandejaKpi rot="TOTALES" val={String(totales)} />
+        <BandejaKpi rot="COTIZADAS" val={String(cotizadas)} acento={cotizado} />
+        <BandejaKpi rot="FINALIZADAS" val={String(finalizadas)} />
+      </div>
+
+      {/* 2 · el aviso de hoy (lugar fijo, cambia de texto) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
+        <div style={{ fontSize: 34, fontWeight: 700, color: B_TXT2 }}>Hoy</div>
+        <div style={{ opacity: cotizado ? 1 : entra, transform: `scale(${cotizado ? 1 : 0.94 + 0.06 * entra})` }}>
+          <BandejaPast
+            texto={cotizado ? 'COTIZADO' : cotizando ? 'cotizando ahora' : '1 pendiente de cotizar'}
+            color={cotizado ? INFO : ALERTA}
+          />
+        </div>
+      </div>
+
+      {/* 3 · el pedido nuevo */}
+      <div
+        style={{
+          padding: '26px 28px',
+          borderRadius: 22,
+          background: B_SUP2,
+          border: `2px solid ${cotizado ? INFO : NARANJA}`,
+          boxShadow: cotizado ? 'none' : `0 0 ${18 + 16 * latido}px rgba(238,90,14,0.28)`,
+          opacity: entra,
+          transform: `translateY(${(1 - entra) * -30}px)`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ width: 66, height: 66, borderRadius: 999, background: 'rgba(255,255,255,0.08)', border: `1px solid ${B_LINEA}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: cond, fontWeight: 800, fontSize: 34, color: B_TXT2, flex: 'none' }}>
+            N
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 36, fontWeight: 700, lineHeight: 1.1 }}>{nuevo.n}</div>
+            <div style={{ fontSize: 30, color: B_TXT2, marginTop: 2 }}>{nuevo.s}</div>
+          </div>
+        </div>
+        <div style={{ height: 10, borderRadius: 999, background: 'rgba(255,255,255,0.09)', overflow: 'hidden' }}>
+          <div style={{ width: `${respuesta * 100}%`, height: '100%', background: respuesta >= 1 ? INFO : NARANJA }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <BandejaPast
+            texto={cotizado ? 'COTIZADO' : cotizando ? 'ESCRIBIENDO' : 'PENDIENTE'}
+            color={cotizado ? INFO : cotizando ? NARANJA : B_TXT3}
+          />
+          <div
+            style={{
+              fontFamily: cond,
+              fontWeight: 800,
+              fontSize: 72,
+              lineHeight: 1,
+              letterSpacing: '-0.02em',
+              color: cotizado ? B_TXT : NARANJA,
+              opacity: Math.max(cot, respuesta * 0.75),
+            }}
+          >
+            {monto}
+          </div>
+        </div>
+      </div>
+
+      {/* 4 · una solicitud ya aceptada */}
+      <div
+        style={{
+          marginTop: 'auto',
+          padding: '24px 28px',
+          borderRadius: 22,
+          background: 'rgba(255,255,255,0.04)',
+          border: `1px solid ${B_LINEA}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 18,
+          opacity: ease(f, 8, 26),
+          transform: `translateY(${(1 - ease(f, 8, 26)) * 18}px)`,
+        }}
+      >
+        <div style={{ width: 60, height: 60, borderRadius: 999, background: 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: cond, fontWeight: 800, fontSize: 32, color: B_TXT3, flex: 'none' }}>
+          S
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 34, fontWeight: 700 }}>{viejo.n}</div>
+          <div style={{ fontSize: 30, color: B_TXT3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{viejo.s}</div>
+        </div>
+        <div style={{ textAlign: 'right', flex: 'none' }}>
+          <BandejaPast texto="ACEPTADO" color={EXITO} />
+          <div style={{ fontFamily: cond, fontWeight: 800, fontSize: 44, letterSpacing: '-0.02em', marginTop: 6 }}>{viejo.m}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```

@@ -54,3 +54,61 @@
 .ed-lib-item-label { font-size: 12.5px; font-weight: 600; color: var(--rd-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ed-lib-item-meta { font-size: 10.5px; color: var(--rd-ink-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ed-lib-item-add { color: var(--rd-ink-faint); flex: 0 0 auto; }
+
+/* ── Miniaturas (2026-10-11): cada item muestra lo que es, en un cuadro vertical como el reel ── */
+.ed-lib-thumb {
+  width: 40px; height: 56px; flex: 0 0 40px; border-radius: 7px; overflow: hidden; position: relative;
+  border: 1px solid var(--rd-border); background: #0A0806;
+}
+.ed-lib-thumb--video { object-fit: cover; display: block; }
+.ed-lib-thumb--frame { background: linear-gradient(170deg, #3B3355 0%, #1C1828 70%); }
+
+/* audio: play ahí mismo + barras que se mueven mientras suena */
+.ed-lib-thumb--audio {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+  color: var(--c); background: color-mix(in srgb, var(--c) 14%, #0A0806); border-color: color-mix(in srgb, var(--c) 40%, transparent);
+}
+.ed-lib-thumb--audio:hover { background: color-mix(in srgb, var(--c) 24%, #0A0806); }
+.ed-lib-bars { display: flex; align-items: flex-end; gap: 2px; height: 10px; }
+.ed-lib-bars i { width: 3px; height: 4px; border-radius: 1px; background: var(--c); opacity: 0.7; }
+.ed-lib-thumb--on .ed-lib-bars i { animation: ed-lib-bar 0.9s ease-in-out infinite; }
+.ed-lib-thumb--on .ed-lib-bars i:nth-child(2) { animation-delay: -0.3s; }
+.ed-lib-thumb--on .ed-lib-bars i:nth-child(3) { animation-delay: -0.6s; }
+.ed-lib-thumb--on .ed-lib-bars i:nth-child(4) { animation-delay: -0.15s; }
+@keyframes ed-lib-bar { 0%, 100% { height: 3px; } 50% { height: 10px; } }
+
+/* texto: la muestra donde cae en el cuadro */
+.ed-lib-txt { display: flex; justify-content: center; }
+.ed-lib-txt span { position: absolute; left: 3px; right: 3px; text-align: center; color: #fff; font-weight: 800; line-height: 1.1; }
+.ed-lib-txt--titulo span { top: 9px; font-size: 9px; font-family: Georgia, serif; font-weight: 400; }
+.ed-lib-txt--lower span { bottom: 9px; left: 0; right: 8px; text-align: left; padding: 2px 3px; font-size: 6.5px; background: var(--c); color: #0A0806; }
+.ed-lib-txt--cta span { bottom: 8px; left: 5px; right: 5px; padding: 2px 0; border-radius: 99px; font-size: 6.5px; background: var(--c); color: #1a1206; }
+.ed-lib-txt--subs span { top: 34px; padding: 1px 2px; border-radius: 3px; font-size: 6px; background: rgba(22, 16, 34, 0.7); }
+.ed-lib-txt--subs span::first-letter { color: var(--c); }
+.ed-lib-txt--precio span { top: 20px; font-size: 10px; color: var(--c); }
+
+/* efectos: una escena mínima y el efecto actuando al pasar el mouse */
+.ed-lib-fx-escena {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 38%, #F2C9A0 0 7px, transparent 8px), radial-gradient(ellipse at 50% 90%, #6B5BC4 0 16px, transparent 17px), linear-gradient(170deg, #3B3355 0%, #1C1828 70%);
+}
+.ed-lib-fx-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+.ed-lib-item:hover .ed-lib-fx--fx-pushin .ed-lib-fx-escena { animation: ed-fx-pushin 1.6s ease-in-out infinite alternate; }
+.ed-lib-item:hover .ed-lib-fx--fx-fade .ed-lib-fx-escena { animation: ed-fx-fade 1.4s ease-in-out infinite; }
+.ed-lib-item:hover .ed-lib-fx--fx-zoom .ed-lib-fx-escena { animation: ed-fx-zoom 1.2s cubic-bezier(.2, .8, .2, 1) infinite; }
+.ed-lib-item:hover .ed-lib-fx--fx-flash .ed-lib-fx-flash { animation: ed-fx-flash 1.1s ease-out infinite; }
+.ed-lib-item:hover .ed-lib-fx--fx-ramp .ed-lib-fx-escena { animation: ed-fx-ramp 1.6s cubic-bezier(.9, 0, .1, 1) infinite; }
+@keyframes ed-fx-pushin { from { transform: scale(1); } to { transform: scale(1.18); } }
+@keyframes ed-fx-fade { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes ed-fx-zoom { 0% { transform: scale(1); } 25% { transform: scale(1.35); } 100% { transform: scale(1.35); } }
+@keyframes ed-fx-flash { 0% { opacity: 0.95; } 40%, 100% { opacity: 0; } }
+@keyframes ed-fx-ramp { 0% { transform: translateX(-30%); } 100% { transform: translateX(30%); } }
+
+/* marca */
+.ed-lib-thumb--logo { display: flex; align-items: center; justify-content: center; padding: 4px; }
+.ed-lib-thumb--logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ed-lib-thumb--fon { display: flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-size: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ed-lib-item:hover .ed-lib-fx-escena, .ed-lib-item:hover .ed-lib-fx-flash, .ed-lib-thumb--on .ed-lib-bars i { animation: none; }
+}

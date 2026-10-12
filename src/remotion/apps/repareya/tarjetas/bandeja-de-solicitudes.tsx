@@ -1,0 +1,81 @@
+import React from 'react';
+import { Fila, Numero, Pastilla, Tarjeta, cuenta, ease, entra, momento, pesos, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) los resúmenes de arriba cuentan solos
+  const n0 = momento(dur, 0.1), n1 = momento(dur, 0.42);
+  // 2) entran los pedidos de la lista de hoy
+  const p1 = momento(dur, 0.2), p2 = momento(dur, 0.3);
+  // 3) entra arriba el pedido nuevo de Nicolás Romero
+  const nuevo = momento(dur, 0.42);
+  // 4) Marcelo cotiza: pasa a COTIZADO con su monto
+  const cotiza = momento(dur, 0.66);
+  const cotizado = ease(f, cotiza, cotiza + 12);
+
+  return (
+    <Tarjeta
+      f={f}
+      m={m}
+      icono="lista"
+      titulo="Bandeja de solicitudes"
+      bajada="Respondé rápido para aumentar tu tasa de conversión."
+      derecha={<Pastilla m={m} texto={cotizado > 0.5 ? 'Cotizadas 2' : 'Todas 13'} color={m.acento} />}
+    >
+      <div style={{ display: 'flex', gap: 18, ...entra(f, n0) }}>
+        <Numero
+          m={m}
+          etiqueta="Solicitudes totales"
+          texto={String(Math.round(cuenta(f, n0, n1, 11, 13)))}
+          color={m.acento}
+          style={{ flex: 1 }}
+        />
+        <Numero
+          m={m}
+          etiqueta="Cotizadas"
+          texto={String(Math.round(cuenta(f, cotiza, cotiza + 14, 1, 2)))}
+          color={m.info}
+          style={{ flex: 1 }}
+        />
+        <Numero m={m} etiqueta="Finalizadas" texto="9" color={m.exito} style={{ flex: 1 }} />
+      </div>
+
+      <Fila
+        m={m}
+        icono="usuario"
+        etiqueta="Nicolás Romero"
+        detalle="Muebles a medida en melamina y madera maciza"
+        valor={cotizado > 0.5 ? pesos(620000) : undefined}
+        destacada
+        color={cotizado > 0.5 ? m.info : m.alerta}
+        pastilla={
+          cotizado < 0.5 ? (
+            <Pastilla m={m} texto="Solicitado" color={m.alerta} style={{ opacity: 0.6 + 0.4 * pulso(f, 24) }} />
+          ) : (
+            <Pastilla m={m} texto="Cotizado" color={m.info} style={{ transform: `scale(${0.8 + 0.2 * cotizado})` }} />
+          )
+        }
+        style={entra(f, nuevo)}
+      />
+
+      <Fila
+        m={m}
+        icono="documento"
+        etiqueta="Sofía Benítez"
+        detalle="Cocina completa: alacena, bajo mesada y zócalos"
+        valor={pesos(1180000)}
+        pastilla={<Pastilla m={m} texto="Aceptado" color={m.exito} />}
+        style={entra(f, p1)}
+      />
+
+      <Fila
+        m={m}
+        icono="documento"
+        etiqueta="Sofía Benítez"
+        detalle="Placares y vestidores con interior completo"
+        valor={pesos(890000)}
+        pastilla={<Pastilla m={m} texto="Cotizado" color={m.info} />}
+        style={entra(f, p2)}
+      />
+    </Tarjeta>
+  );
+};

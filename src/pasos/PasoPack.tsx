@@ -9,6 +9,9 @@ import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKi
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { packProgress, pasoHabilitado, type EscenaFlow, type PersonajeFlow } from '../lib/comercial';
 import BrandBlock from '../BrandBlock';
+import CuracionGuion, { conGuionCurado } from './CuracionGuion';
+import CrudosFlow from './CrudosFlow';
+import { getFormato } from '../lib/formato';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', giro: 'Giro', gag: 'Remate', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
@@ -24,9 +27,11 @@ function downloadTxt(name: string, text: string) {
 interface FlowJob { id: string; estado: string; paso: string; log: string[]; escenas: { escenaN: number; estado: string; fileRef: string | null }[]; error: string | null; flowProjectUrl: string | null; extension?: boolean; pestanas?: number }
 
 export default function PasoPack({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
+  const [avisoCur, setAvisoCur] = useState('');
   const [job, setJob] = useState<FlowJob | null>(null);
   const [autoBusy, setAutoBusy] = useState(false);
   const [verLog, setVerLog] = useState(false);
+  const [verManual, setVerManual] = useState(false);   // los prompts, plegados: para revisar o hacerlo a mano
   useEffect(() => {
     if (!job || job.estado === 'listo' || job.estado === 'error') return;
     const t = setInterval(async () => {
@@ -36,6 +41,8 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
         if (r.ok && d.job) {
           const j = d.job as FlowJob;
           setJob(j);
+          // el proyecto de Flow que creó la rutina queda en la pieza: la próxima corrida lo reutiliza (personajes incluidos)
+          if (j.flowProjectUrl) setComercial((c) => (c.flowProjectUrl === j.flowProjectUrl ? c : { ...c, flowProjectUrl: j.flowProjectUrl as string }));
           // cada clip que la rutina importó entra al rodaje del comercial en pantalla (el server ya lo guardó en la base)
           const importadas = j.escenas.filter((e) => e.estado === 'importada' && e.fileRef);
           if (importadas.length) {
@@ -158,11 +165,19 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
   return (
     <PasoShell
       titulo="Pack Flow"
-      sub="¡Ya tenés los prompts perfectos! Ahora seguí esta guía paso a paso para generar tus videos en Google Flow."
+      sub="Los videos de cada escena filmada: Media Studio los genera en tu Flow y los baja acá."
       hasContent={esNuevo} busy={busy} onGenerate={generar} error={error}
-      onApprove={goNext} canApprove={esNuevo && !!escenas.length} approveLabel="Pack listo, al rodaje"
+      onApprove={goNext} canApprove={esNuevo && !!escenas.length} approveLabel="Videos listos, a los mockups"
       functionId="flowpack" estado={estadoDelPaso('pack', comercial)}
     >
+      {/* curación con ChatGPT (2026-10-10): el camino entero, con lo que se le manda a Flow, antes de generar los videos */}
+      {comercial?.guion && (
+        <CuracionGuion project={project} comercial={comercial}
+          durationSec={project.reels.find((r) => r.id === reelId)?.durationSec ?? getFormato(comercial.formatoId)?.duracion.default ?? 20}
+          formatoNombre={getFormato(comercial.formatoId)?.nombre || ''}
+          onAplicar={(g, info) => { setComercial((c) => conGuionCurado(c, g, info.archivo)); setAvisoCur(`Guion curado con ChatGPT aplicado. Personajes, storyboard y este pack se habían armado con el guion anterior: regeneralos en orden antes de generar los videos.${info.conPrompts ? ' La curación de los prompts y de las descripciones para Flow quedó guardada, pendiente de tu dale.' : ''}`); }} />
+      )}
+      {avisoCur && <div className="paso-empty" style={{ marginBottom: 8 }}>{avisoCur}</div>}
       {esViejo && (
         <div className="pack-migrate">
           <AlertTriangle size={16} />
@@ -172,13 +187,12 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
 
       {esNuevo && pack ? (
         <div className="pack-guided-experience">
+          {/* el orden es el del trabajo (Lucas, 2026-10-11): arriba automatizar, en el medio los videos, abajo los prompts plegados */}
           <div className="pack-guide-intro">
-            <h3>Guía de Trabajo en Google Flow</h3>
-            <p>Mantené esta pestaña abierta. Vas a ir copiando cada prompt de acá y pegándolo en Flow para armar el comercial pieza por pieza.</p>
+            <h3>Videos en Google Flow</h3>
+            <p>Media Studio usa tu Flow: crea los personajes, genera cada escena y baja los clips. Quedan acá abajo, en Los crudos de Flow.</p>
             <div className="pack-bar">
-              <span className="pack-prog">{prog.copiados}/{prog.total} escenas copiadas · {prog.importados} importadas</span>
-              <button className="pack-export" onClick={exportTxt}><Download size={14} /> Exportar .txt</button>
-              <button className="paso-gen pack-auto" onClick={() => void automatizar()} disabled={autoBusy || (!!job && job.estado !== 'listo' && job.estado !== 'error')} title="Media Studio abre Flow en un Chrome propio, crea los personajes, genera cada escena y deja los clips en el Rodaje">
+              <button className="paso-gen pack-auto" onClick={() => void automatizar()} disabled={autoBusy || (!!job && job.estado !== 'listo' && job.estado !== 'error')} title="Media Studio usa tu Flow para crear los personajes, generar cada escena y bajar los clips: quedan abajo, en Los crudos de Flow">
                 {autoBusy || (job && job.estado !== 'listo' && job.estado !== 'error') ? <Loader2 size={14} className="paso-spin" /> : <Bot size={14} />} Automatizar creación en Flow
               </button>
             </div>
@@ -188,14 +202,14 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
             <div className={`pack-job pack-job--${job.estado}`}>
               <div className="pack-job-h">
                 <Clapperboard size={13} />
-                <b>{job.estado === 'listo' ? 'Clips importados en el Rodaje' : job.estado === 'error' ? 'La rutina se detuvo' : 'Generando en Flow…'}</b>
+                <b>{job.estado === 'listo' ? 'Clips de Flow bajados' : job.estado === 'error' ? 'La rutina se detuvo' : 'Generando en Flow…'}</b>
                 <span className="pack-job-paso">{job.paso}</span>
                 <button className="rodaje-var" onClick={() => setVerLog((v) => !v)}>{verLog ? 'ocultar detalle' : 'ver detalle'}</button>
               </div>
               {job.error && <div className="paso-error" style={{ marginTop: 6 }}>{job.error}</div>}
               {!!job.escenas.length && (
                 <div className="pack-job-escenas">
-                  {job.escenas.map((e) => <span key={e.escenaN} className={`tag ${e.estado === 'importada' ? 'pack-job-ok' : 'pack-job-run'}`}>Escena {e.escenaN} · {e.estado === 'importada' ? 'en el Rodaje' : 'generando'}</span>)}
+                  {job.escenas.map((e) => <span key={e.escenaN} className={`tag ${e.estado === 'importada' ? 'pack-job-ok' : 'pack-job-run'}`}>Escena {e.escenaN} · {e.estado === 'importada' ? 'bajada' : e.estado}</span>)}
                 </div>
               )}
               {job.estado === 'corriendo' && job.extension === false && (
@@ -208,121 +222,151 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
                   La extensión está, pero no hay ninguna pestaña de <code>flow.google.com</code> abierta. Abrí una (no hace falta que quede a la vista) y la rutina sigue sola.
                 </div>
               )}
-              {verLog && <pre className="pack-job-log">{job.log.join('\n')}</pre>}
-              {job.estado === 'listo' && <button className="paso-approve" style={{ marginTop: 8 }} onClick={goNext}>Ir al Rodaje</button>}
+              {/* el avance se ve siempre (las últimas líneas); "ver detalle" despliega el log entero. Lucas, 2026-10-10: "el detalle no muestra nada" */}
+              {(() => {
+                const lineas = verLog ? job.log : job.log.slice(-4);
+                return lineas.length
+                  ? <pre className="pack-job-log">{lineas.join('\n')}</pre>
+                  : <div className="pack-job-paso" style={{ marginTop: 6 }}>Esperando el primer paso de la extensión en tu Chrome…</div>;
+              })()}
+              {job.estado === 'listo' && <button className="paso-approve" style={{ marginTop: 8 }} onClick={goNext}>Seguir a los mockups</button>}
             </div>
           )}
 
-          {/* PASO 1 */}
-          <div className="pack-guide-step">
-            <div className="step-header">
-              <span className="step-number">1</span>
-              <div>
-                <h4>Configurá el Estilo Global</h4>
-                <p>Copiá este prompt y pegalo en la configuración de estilo de tu proyecto en Flow. Si te pide assets de marca, acá los tenés a mano.</p>
-              </div>
-            </div>
-            
-            <BrandBlock brandKit={project.brandKit} variant="pack" />
+          {/* los crudos de Flow: el clip de cada escena filmada (antes en el paso Rodaje) */}
+          <CrudosFlow project={project} comercial={comercial} setComercial={setComercial} />
 
-            <div className={`pack-clip pack-clip--master${openEstilo ? ' pack-clip--open' : ''}`}>
-              <div className="pack-clip-row">
-                <span className="pack-clip-tag">ESTILO</span>
-                <span className="pack-clip-desc">estética · formato · luz</span>
-                <div className="pack-clip-actions">
-                  <button className="paso-icon" title="Copiar el estilo" onClick={() => copyText('estilo', pack.estilo)}>
-                    {copied === 'estilo' ? <Check size={13} /> : <Copy size={13} />}
-                  </button>
-                  <button className="paso-icon" title={openEstilo ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenEstilo((o) => !o)} aria-expanded={openEstilo}>
-                    {openEstilo ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-                  </button>
+          {/* los prompts: lo que se le manda a Flow, para revisar o para hacerlo a mano si la automatización falla */}
+          <div className="pack-manual" style={{ marginTop: 18 }}>
+            <button className="pack-export" style={{ width: '100%', justifyContent: 'flex-start' }} onClick={() => setVerManual((v) => !v)}>
+              {verManual ? <ChevronDown size={14} /> : <ChevronRight size={14} />} Lo que se le manda a Flow · para revisar o hacerlo a mano · {prog.copiados}/{prog.total} escenas copiadas
+            </button>
+            {verManual && (
+              <>
+                <div className="pack-bar" style={{ marginTop: 10 }}>
+                  <span className="pack-prog">Copiá cada prompt y pegalo en Flow, en este orden.</span>
+                  <button className="pack-export" onClick={exportTxt}><Download size={14} /> Exportar .txt</button>
+                </div>
+              {/* PASO 1 */}
+              <div className="pack-guide-step">
+                <div className="step-header">
+                  <span className="step-number">1</span>
+                  <div>
+                    <h4>Configurá el Estilo Global</h4>
+                    <p>Copiá este prompt y pegalo en la configuración de estilo de tu proyecto en Flow. Si te pide assets de marca, acá los tenés a mano.</p>
+                  </div>
+                </div>
+            
+                <BrandBlock brandKit={project.brandKit} variant="pack" />
+
+                <div className={`pack-clip pack-clip--master${openEstilo ? ' pack-clip--open' : ''}`}>
+                  <div className="pack-clip-row">
+                    <span className="pack-clip-tag">ESTILO</span>
+                    <span className="pack-clip-desc">estética · formato · luz</span>
+                    <div className="pack-clip-actions">
+                      <button className="paso-icon" title="Copiar el estilo" onClick={() => copyText('estilo', pack.estilo)}>
+                        {copied === 'estilo' ? <Check size={13} /> : <Copy size={13} />}
+                      </button>
+                      <button className="paso-icon" title={openEstilo ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenEstilo((o) => !o)} aria-expanded={openEstilo}>
+                        {openEstilo ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      </button>
+                    </div>
+                  </div>
+                  {openEstilo && <pre className="pack-prompt">{pack.estilo}</pre>}
                 </div>
               </div>
-              {openEstilo && <pre className="pack-prompt">{pack.estilo}</pre>}
-            </div>
-          </div>
 
-          {/* PASO 2 */}
-          <div className="pack-guide-step">
-            <div className="step-header">
-              <span className="step-number">2</span>
-              <div>
-                <h4>Creá los Personajes</h4>
-                <p>Flow reusa esta imagen en cada escena. Copiá cada prompt, pegalo en la sección "Personajes" de Flow, generá la imagen y guardalo con su nombre.</p>
-              </div>
-            </div>
-            <div className="pack-clips">
-                {personajes.map((p) => {
-                  const open = openPersona === p.id;
-                  return (
-                    <div key={p.id} className={`pack-clip pack-clip--persona${open ? ' pack-clip--open' : ''}`}>
-                      <div className="pack-clip-row">
-                        <span className="pack-persona-ico"><User size={15} /></span>
-                        <span className="pack-persona-nombre">{p.nombre}</span>
-                        <span className="pack-clip-desc"><ImageIcon size={12} /> imagen de referencia</span>
-                        <div className="pack-clip-actions">
-                          <button className="paso-icon" title="Copiar el prompt de la imagen" onClick={() => copyText('p' + p.id, p.promptImagen)}>
-                            {copied === 'p' + p.id ? <Check size={13} /> : <Copy size={13} />}
-                          </button>
-                          <button className="paso-icon" title={open ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenPersona(open ? null : p.id)} aria-expanded={open}>
-                            {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-                          </button>
-                        </div>
-                      </div>
-                      {open && <pre className="pack-prompt">{p.promptImagen}</pre>}
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-
-          {/* PASO 3 */}
-          <div className="pack-guide-step">
-            <div className="step-header">
-              <span className="step-number">3</span>
-              <div>
-                <h4>Animá las Escenas</h4>
-                <p>Ahora copiá cada prompt, generá el video en Flow, y cuando esté listo descargalo a tu computadora. Los estados se irán marcando acá para que lleves control.</p>
-              </div>
-            </div>
-            
-            <div className="pack-legend">
-              <span className="pack-legend-lbl">Estados</span>
-              <span className="pack-legend-i"><span className="pack-estado pack-estado--pendiente">pendiente</span> sin copiar</span>
-              <span className="pack-legend-i"><span className="pack-estado pack-estado--copiado">copiado</span> ya lo enviaste a Flow</span>
-              <span className="pack-legend-i"><span className="pack-estado pack-estado--importado">importado</span> video descargado</span>
-            </div>
-
-            <div className="pack-clips">
-              {escenas.map((esc) => {
-                const sb = escenasSb.find((e) => e.n === esc.escenaN);
-                const open = openEscena === esc.escenaN;
-                const isNext = esc.escenaN === nextEscenaN;
-                return (
-                  <div key={esc.escenaN} className={`pack-clip${open ? ' pack-clip--open' : ''}${isNext ? ' pack-clip--next' : ''}`}>
-                    <div className="pack-clip-row">
-                      <span className="pack-clip-n">#{esc.escenaN}</span>
-                      {isNext && <span className="pack-clip-next-tag">la que sigue</span>}
-                      <span className={`paso-role paso-role--${roleKind(esc.rol)}`}>{ROL_LABEL[esc.rol] || esc.rol}</span>
-                      {sb && <span className="paso-t">{sb.durSec}s</span>}
-                      <span className={`pack-estado pack-estado--${esc.estado}`}>{esc.estado}</span>
-                      <div className="pack-clip-actions">
-                        <button className="paso-icon" title="Copiar prompt" onClick={() => copyEscena(esc)}>
-                          {copied === 'e' + esc.escenaN ? <Check size={13} /> : <Copy size={13} />}
-                        </button>
-                        <button className="paso-icon" title="Regenerar (mismo personaje, otra idea visual)" disabled={busyN !== null} onClick={() => regenEscena(esc.escenaN)}>
-                          {busyN === esc.escenaN ? <Loader2 size={13} className="paso-spin" /> : <RefreshCw size={13} />}
-                        </button>
-                        <button className="paso-icon" title={open ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenEscena(open ? null : esc.escenaN)}>
-                          {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-                        </button>
-                      </div>
-                    </div>
-                    {open && <pre className="pack-prompt">{esc.prompt}</pre>}
+              {/* PASO 2 */}
+              <div className="pack-guide-step">
+                <div className="step-header">
+                  <span className="step-number">2</span>
+                  <div>
+                    <h4>Creá los Personajes</h4>
+                    <p>Flow reusa esta imagen en cada escena. Copiá cada prompt, pegalo en la sección "Personajes" de Flow, generá la imagen y guardalo con su nombre.</p>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+                <div className="pack-clips">
+                    {personajes.map((p) => {
+                      const open = openPersona === p.id;
+                      return (
+                        <div key={p.id} className={`pack-clip pack-clip--persona${open ? ' pack-clip--open' : ''}`}>
+                          <div className="pack-clip-row">
+                            <span className="pack-persona-ico"><User size={15} /></span>
+                            <span className="pack-persona-nombre">{p.nombre}</span>
+                            <span className="pack-clip-desc"><ImageIcon size={12} /> imagen de referencia</span>
+                            <div className="pack-clip-actions">
+                              <button className="paso-icon" title="Copiar el prompt de la imagen" onClick={() => copyText('p' + p.id, p.promptImagen)}>
+                                {copied === 'p' + p.id ? <Check size={13} /> : <Copy size={13} />}
+                              </button>
+                              <button className="paso-icon" title={open ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenPersona(open ? null : p.id)} aria-expanded={open}>
+                                {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                              </button>
+                            </div>
+                          </div>
+                          {open && <pre className="pack-prompt">{p.promptImagen}</pre>}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* PASO 3 */}
+              <div className="pack-guide-step">
+                <div className="step-header">
+                  <span className="step-number">3</span>
+                  <div>
+                    <h4>Animá las Escenas</h4>
+                    <p>Ahora copiá cada prompt, generá el video en Flow, y cuando esté listo descargalo a tu computadora. Los estados se irán marcando acá para que lleves control.</p>
+                  </div>
+                </div>
+            
+                <div className="pack-legend">
+                  <span className="pack-legend-lbl">Estados</span>
+                  <span className="pack-legend-i"><span className="pack-estado pack-estado--pendiente">pendiente</span> sin copiar</span>
+                  <span className="pack-legend-i"><span className="pack-estado pack-estado--copiado">copiado</span> ya lo enviaste a Flow</span>
+                  <span className="pack-legend-i"><span className="pack-estado pack-estado--importado">importado</span> video descargado</span>
+                </div>
+
+                {escenasSb.some((e) => e.rol === 'cta') && (
+                  <div className="paso-empty" style={{ marginBottom: 8 }}>
+                    La escena {escenasSb.find((e) => e.rol === 'cta')?.n} (cta) es la placa de cierre: logo, marca y llamada a la acción. La dibuja el montaje; no se genera en Flow.
+                  </div>
+                )}
+                <div className="pack-clips">
+                  {escenas.map((esc) => {
+                    const sb = escenasSb.find((e) => e.n === esc.escenaN);
+                    const open = openEscena === esc.escenaN;
+                    const isNext = esc.escenaN === nextEscenaN;
+                    return (
+                      <div key={esc.escenaN} className={`pack-clip${open ? ' pack-clip--open' : ''}${isNext ? ' pack-clip--next' : ''}`}>
+                        <div className="pack-clip-row">
+                          <span className="pack-clip-n">#{esc.escenaN}</span>
+                          {isNext && <span className="pack-clip-next-tag">la que sigue</span>}
+                          <span className={`paso-role paso-role--${roleKind(esc.rol)}`}>{ROL_LABEL[esc.rol] || esc.rol}</span>
+                          {sb && <span className="paso-t">{sb.durSec}s</span>}
+                          {esc.rol === 'cta'
+                            ? <span className="pack-estado" title="La placa de cierre (logo, marca y llamada a la acción) la pone el montaje. Esta escena no se genera en Flow ni la toma la rutina.">placa de cierre · no se filma</span>
+                            : <span className={`pack-estado pack-estado--${esc.estado}`}>{esc.estado}</span>}
+                          <div className="pack-clip-actions">
+                            <button className="paso-icon" title="Copiar prompt" onClick={() => copyEscena(esc)}>
+                              {copied === 'e' + esc.escenaN ? <Check size={13} /> : <Copy size={13} />}
+                            </button>
+                            <button className="paso-icon" title="Regenerar (mismo personaje, otra idea visual)" disabled={busyN !== null} onClick={() => regenEscena(esc.escenaN)}>
+                              {busyN === esc.escenaN ? <Loader2 size={13} className="paso-spin" /> : <RefreshCw size={13} />}
+                            </button>
+                            <button className="paso-icon" title={open ? 'Colapsar' : 'Ver prompt'} onClick={() => setOpenEscena(open ? null : esc.escenaN)}>
+                              {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                            </button>
+                          </div>
+                        </div>
+                        {open && <pre className="pack-prompt">{esc.prompt}</pre>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              </>
+            )}
           </div>
         </div>
       ) : (

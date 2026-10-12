@@ -1,0 +1,484 @@
+<title>Munify, mockups animados</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sora:wght@600;700&display=swap">
+<style>
+/* Layout: seis cuadros 9:16 al estilo de los bocetos de junio (noche con estrellas, logo arriba, una tarjeta
+   que ACTÚA en el medio, chip + título serif con resaltado dorado + bajada, dominio al pie). Ciclo de 10 s. */
+:root{
+  --bg:#0a0f1c; --fg:#eef1f8; --mut:#8e97ad; --line:#1d2740;
+  --n1:#0e2140; --n2:#0a1428; --n3:#060b16; --card:#0f1626; --card2:#0b111f; --cl:rgba(255,255,255,.09);
+  --oro:#f2b84b; --verde:#22c55e; --rojo:#ef4444; --ambar:#f59e0b; --azul:#3b82f6; --tx:#f4f6fb; --tx2:#aab3c7; --tx3:#6d778f;
+  --sans:'Nunito',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --serif:'Sora',system-ui,sans-serif; --T:10s;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ --bg:#f2f4f9; --fg:#101523; --mut:#59627a; --line:#d5dae6; color-scheme:light } }
+:root[data-theme="light"]{ --bg:#f2f4f9; --fg:#101523; --mut:#59627a; --line:#d5dae6; color-scheme:light }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.45}
+main{max-width:1180px;margin:0 auto;padding-block:28px 64px;padding-inline:16px}
+h1{font-family:var(--serif);font-weight:700;font-size:clamp(34px,4.4vw,54px);letter-spacing:-.01em;margin:0 0 6px;line-height:1.05;text-wrap:balance}
+h1 em{color:var(--oro);font-style:italic}
+.lead{color:var(--mut);margin:0 0 28px;max-width:64ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:30px 22px;align-items:start}
+.item{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cap b{font-size:15px;font-weight:700;display:block}
+.cap span{font-size:13px;color:var(--mut)}
+
+/* ── el cuadro 9:16 ── */
+.reel{position:relative;width:min(100%,330px);aspect-ratio:9/16;margin:0 auto;border-radius:18px;overflow:hidden;color:var(--tx);
+  background:radial-gradient(70% 45% at 50% 18%,#1b3a6b 0%,rgba(27,58,107,0) 70%),radial-gradient(45% 30% at 88% 92%,rgba(201,162,74,.22) 0%,rgba(201,162,74,0) 70%),linear-gradient(180deg,var(--n1) 0%,var(--n2) 45%,var(--n3) 100%);
+  box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06);font-size:12px}
+.stars{position:absolute;inset:0;pointer-events:none}
+.stars i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.35;animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.85}}
+.prog{position:absolute;top:12px;left:14px;right:14px;display:flex;gap:5px;z-index:3}
+.prog i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.22);overflow:hidden}
+.prog i:after{content:"";display:block;height:100%;background:#fff;transform:scaleX(0);transform-origin:left;animation:fill var(--T) linear infinite;animation-delay:calc(var(--off,0s) * -1)}
+@keyframes fill{to{transform:scaleX(1)}}
+.logo{position:absolute;top:30px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:8px;z-index:3}
+.logo{flex-wrap:wrap;row-gap:0}.logo svg{width:24px;height:24px}.logo em{flex-basis:100%;text-align:center;font-style:normal;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:2px}
+.logo span{font-family:var(--serif);font-weight:700;font-size:22px;letter-spacing:-.5px}
+.dom{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:9px;letter-spacing:.14em;color:rgba(255,255,255,.45);text-transform:lowercase}
+.txt{position:absolute;left:18px;right:18px;top:68%;text-align:center}
+.chip{display:inline-block;padding:4px 11px;border-radius:999px;border:1px solid rgba(242,184,75,.45);background:rgba(242,184,75,.14);color:var(--oro);font-size:8.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+.chip.v{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.14);color:#4ade80}
+.chip.r{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.14);color:#f87171}
+.chip.b{border-color:rgba(59,130,246,.45);background:rgba(59,130,246,.14);color:#7fb0ff}
+.txt h3{font-family:var(--serif);font-weight:700;font-size:21px;line-height:1.15;margin:9px 0 5px;letter-spacing:-.4px}
+.txt h3 u{color:var(--oro);text-decoration-thickness:1.5px;text-underline-offset:4px}
+.txt p{margin:0;font-size:10.5px;color:var(--tx2);line-height:1.4}
+
+/* ── la tarjeta ── */
+.cardwrap{position:absolute;left:22px;right:22px;top:19%;height:46%}
+.card{position:absolute;inset:0;border-radius:16px;background:linear-gradient(180deg,#121b2e 0%,#0c1322 100%);border:1px solid var(--cl);box-shadow:0 30px 70px rgba(0,0,0,.6);padding:13px 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;
+  opacity:0;transform:translateY(26px) scale(.96);animation:cardIn var(--T) ease-out infinite;animation-delay:calc(var(--off,0s) * -1)}
+@keyframes cardIn{0%{opacity:0;transform:translateY(26px) scale(.96)}6%,94%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-10px)}}
+.hd{display:flex;align-items:center;gap:9px}
+.hd .ic{width:28px;height:28px;border-radius:9px;background:rgba(242,184,75,.16);display:grid;place-items:center;font-size:13px;color:var(--oro);flex:none}
+.hd b{font-size:13px;display:block;letter-spacing:-.2px}
+.hd small{font-size:9.5px;color:var(--tx2)}
+.lbl{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx3);font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.04em}
+.tag.r{background:#3a1a1c;color:#f87171}.tag.a{background:#3a2a10;color:#fbbf24}.tag.g{background:#10301d;color:#4ade80}.tag.b{background:#152747;color:#7fb0ff}.tag.n{background:rgba(255,255,255,.07);color:var(--tx2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:10.5px;font-weight:700;padding:8px 12px;border-radius:9px;background:var(--oro);color:#1a1206}
+.btn.l{background:rgba(255,255,255,.06);color:var(--tx);border:1px solid var(--cl);font-weight:600}
+.rel{position:relative}
+[data-a]{animation-duration:var(--T);animation-iteration-count:infinite;animation-fill-mode:both;animation-timing-function:ease-out;animation-delay:calc(var(--off,0s) * -1)}
+
+/* 1 · semáforo */
+.sem{display:grid;grid-template-columns:34px 1fr;gap:10px;flex:1}
+.luz{border-radius:14px;background:#070b14;border:1px solid var(--cl);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:8px 0}
+.luz i{width:20px;height:20px;border-radius:50%;background:#222a3a;opacity:.25}
+.luz i.r{background:var(--rojo)}.luz i.a{background:var(--ambar)}.luz i.g{background:var(--verde)}
+.st{display:flex;flex-direction:column;gap:6px}
+.st div{padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);opacity:.3;transform:translateX(8px)}
+.st b{font-size:10.5px;display:flex;align-items:center;gap:6px}
+.st b i{width:12px;height:12px;border-radius:50%;display:inline-grid;place-items:center;font-size:8px;color:#06101c;font-style:normal;background:rgba(255,255,255,.15)}
+.st span{font-size:8.5px;color:var(--tx2);margin-left:18px;display:block}
+@keyframes luz1{0%,100%{opacity:.25;box-shadow:none}8%,96%{opacity:1;box-shadow:0 0 14px currentColor}}
+@keyframes luz2{0%,36%,100%{opacity:.25;box-shadow:none}42%,96%{opacity:1;box-shadow:0 0 14px currentColor}}
+@keyframes luz3{0%,66%,100%{opacity:.25;box-shadow:none}72%,96%{opacity:1;box-shadow:0 0 14px currentColor}}
+@keyframes paso1{0%,100%{opacity:.3;transform:translateX(8px)}8%,96%{opacity:1;transform:none}}
+@keyframes paso2{0%,36%,100%{opacity:.3;transform:translateX(8px)}42%,96%{opacity:1;transform:none}}
+@keyframes paso3{0%,66%,100%{opacity:.3;transform:translateX(8px)}72%,96%{opacity:1;transform:none}}
+.fot{display:grid;grid-template-columns:1fr 1fr;gap:6px;opacity:0;transform:translateY(6px)}
+.fot i{aspect-ratio:16/9;border-radius:7px;display:block;position:relative;border:1px solid var(--cl)}
+.fot i.a{background:radial-gradient(60% 50% at 50% 60%,#262626 0 30%,#58574f 32% 100%)}.fot i.d{background:linear-gradient(180deg,#3a3d3a,#242625)}
+.fot i small{position:absolute;left:5px;bottom:4px;font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(0,0,0,.6);padding:1px 5px;border-radius:999px;font-style:normal}
+@keyframes fotIn{0%,74%{opacity:0;transform:translateY(6px)}80%,96%{opacity:1;transform:none}100%{opacity:0}}
+
+/* 2 · IA chat */
+.chat{display:flex;flex-direction:column;gap:7px;flex:1;justify-content:flex-end}
+.msg{max-width:86%;padding:8px 10px;border-radius:12px;font-size:10.5px;line-height:1.35;opacity:0;transform:translateY(8px)}
+.msg.v{align-self:flex-end;background:#1e4d36;border-bottom-right-radius:3px}
+.msg.m{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid var(--cl);border-bottom-left-radius:3px}
+.msg b{color:var(--oro);font-weight:700}
+.msg time{display:block;font-size:7.5px;color:rgba(255,255,255,.45);margin-top:3px;text-align:right}
+.typing{align-self:flex-start;display:flex;gap:3px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.07);opacity:0}
+.typing i{width:5px;height:5px;border-radius:50%;background:var(--tx2);animation:dot 1s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes dot{50%{opacity:.3;transform:translateY(-2px)}}
+@keyframes m1{0%,8%{opacity:0;transform:translateY(8px)}13%,100%{opacity:1;transform:none}}
+@keyframes ty1{0%,16%{opacity:0}20%,36%{opacity:1}39%,100%{opacity:0}}
+@keyframes m2{0%,38%{opacity:0;transform:translateY(8px)}43%,100%{opacity:1;transform:none}}
+@keyframes m3{0%,58%{opacity:0;transform:translateY(8px)}63%,100%{opacity:1;transform:none}}
+@keyframes m4{0%,78%{opacity:0;transform:translateY(8px)}83%,100%{opacity:1;transform:none}}
+
+/* 3 · trámite */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.steps i{height:4px;border-radius:2px;background:rgba(255,255,255,.12);display:block;position:relative;overflow:hidden}
+.steps i:after{content:"";position:absolute;inset:0;background:var(--oro);transform:scaleX(0);transform-origin:left;animation:inherit}
+.steps i[data-a]:after{animation-name:inherit}
+.stn{display:grid;grid-template-columns:repeat(3,1fr);font-size:8.5px;color:var(--tx3);text-align:center}
+.stage{position:relative;flex:1}
+.pane{position:absolute;inset:0;display:flex;flex-direction:column;gap:7px;opacity:0}
+.inp{border:1px solid rgba(242,184,75,.4);border-radius:9px;padding:8px 10px;background:#070b14;font-size:10.5px;min-height:32px;display:flex;align-items:center;gap:5px}
+.inp .tw{white-space:nowrap;overflow:hidden;display:inline-block;max-width:0}
+.inp .cur{width:1.5px;height:12px;background:var(--oro);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.ia{font-size:9.5px;color:#fde9b6;opacity:0}
+.ia b{background:rgba(242,184,75,.14);border:1px solid rgba(242,184,75,.4);padding:2px 7px;border-radius:999px;color:var(--oro)}
+.ring{width:66px;height:66px;margin:4px auto 0;position:relative}
+.ring svg{width:66px;height:66px;transform:rotate(-90deg)}
+.ring .bg{fill:none;stroke:rgba(255,255,255,.12);stroke-width:5}
+.ring .fg{fill:none;stroke:var(--oro);stroke-width:5;stroke-linecap:round;stroke-dasharray:176;stroke-dashoffset:176}
+.ring .ok{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;font-weight:800;color:var(--verde);opacity:0}
+.stamp{margin:6px auto 0;padding:7px 16px;border-radius:999px;background:var(--verde);color:#06101c;font-weight:800;letter-spacing:.1em;font-size:12px;opacity:0;transform:scale(.6) rotate(-8deg)}
+@keyframes p1{0%,2%{opacity:1}34%{opacity:1}37%,100%{opacity:0}}
+@keyframes p2{0%,35%{opacity:0}38%,68%{opacity:1}71%,100%{opacity:0}}
+@keyframes p3{0%,69%{opacity:0}72%,97%{opacity:1}100%{opacity:0}}
+@keyframes tw1{0%,4%{max-width:0}26%,100%{max-width:180px}}
+@keyframes iaIn{0%,24%{opacity:0}28%,100%{opacity:1}}
+@keyframes ringF{0%,38%{stroke-dashoffset:176}56%,100%{stroke-dashoffset:0}}
+@keyframes ringOk{0%,56%{opacity:0;transform:scale(.6)}60%,100%{opacity:1;transform:scale(1)}}
+@keyframes t1{0%,56%{opacity:1}59%,100%{opacity:0}}
+@keyframes t2{0%,56%{opacity:0}59%,100%{opacity:1}}
+@keyframes stampIn{0%,74%{opacity:0;transform:scale(.6) rotate(-8deg)}79%,100%{opacity:1;transform:none}}
+@keyframes s1{0%{transform:scaleX(0)}5%,100%{transform:scaleX(1)}}
+@keyframes s2{0%,36%{transform:scaleX(0)}41%,100%{transform:scaleX(1)}}
+@keyframes s3{0%,70%{transform:scaleX(0)}75%,100%{transform:scaleX(1)}}
+
+/* 4 · mapa */
+.map{position:relative;flex:1;border-radius:11px;overflow:hidden;background:#070b14;border:1px solid var(--cl);background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:34px 34px}
+.blob{position:absolute;width:38px;height:38px;border-radius:50%;filter:blur(9px);opacity:0;transform:scale(.3);margin:-19px 0 0 -19px}
+.pin{position:absolute;width:16px;height:16px;margin:-20px 0 0 -8px;border-radius:50% 50% 50% 0;background:var(--oro);transform:rotate(-45deg);box-shadow:0 0 0 2px #070b14,0 0 16px var(--oro);opacity:0}
+.tip{position:absolute;background:#121b2e;border:1px solid rgba(242,184,75,.35);border-radius:8px;padding:6px 8px;font-size:9px;opacity:0;transform:translateY(6px);white-space:nowrap;box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.tip b{display:block;font-size:10px}.tip span{color:var(--tx2)}
+.leg{display:flex;gap:10px;font-size:8.5px;color:var(--tx2)}
+.leg b{font-weight:600}
+@keyframes b1{0%,8%{opacity:0;transform:scale(.3)}14%,94%{opacity:.85;transform:scale(1)}100%{opacity:0}}
+@keyframes b2{0%,16%{opacity:0;transform:scale(.3)}22%,94%{opacity:.85;transform:scale(1)}100%{opacity:0}}
+@keyframes b3{0%,24%{opacity:0;transform:scale(.3)}30%,94%{opacity:.85;transform:scale(1)}100%{opacity:0}}
+@keyframes b4{0%,32%{opacity:0;transform:scale(.3)}38%,94%{opacity:.85;transform:scale(1)}100%{opacity:0}}
+@keyframes b5{0%,40%{opacity:0;transform:scale(.3)}46%,94%{opacity:.85;transform:scale(1)}100%{opacity:0}}
+@keyframes b6{0%,48%{opacity:0;transform:scale(.3)}54%,94%{opacity:.85;transform:scale(1)}100%{opacity:0}}
+@keyframes pinIn{0%,58%{opacity:0;transform:rotate(-45deg) translate(-20px,-20px)}64%,94%{opacity:1;transform:rotate(-45deg)}100%{opacity:0}}
+@keyframes tipIn{0%,66%{opacity:0;transform:translateY(6px)}71%,94%{opacity:1;transform:none}100%{opacity:0}}
+
+/* 5 · cuadrillas */
+.ord{padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--cl);display:flex;flex-direction:column;gap:4px}
+.ord.u{border-left:3px solid var(--rojo)}
+.ord b{font-size:10.5px}.ord span{font-size:8.5px;color:var(--tx2)}
+.ord .row{display:flex;align-items:center;gap:6px}
+.ord .row .sw{margin-left:auto;position:relative;width:78px;height:17px}
+.ord .row .sw i{position:absolute;right:0}
+.bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--verde)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#0d1424;border-top:1px solid rgba(242,184,75,.35);border-radius:14px 14px 0 0;padding:11px 12px 12px;transform:translateY(105%);box-shadow:0 -20px 40px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:6px}
+.sheet .h{font-weight:700;font-size:11.5px}
+.cq{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;border:1px solid var(--cl);background:rgba(255,255,255,.04);font-size:10px}
+.cq .av{width:22px;height:22px;border-radius:50%;background:#1e4d36;color:#8fdcab;font-weight:800;font-size:9px;display:grid;place-items:center}
+.cq small{margin-left:auto;color:var(--tx3);font-size:8.5px}
+@keyframes tagU{0%,24%{opacity:1}27%,100%{opacity:0}}
+@keyframes sheetIn{0%,26%{transform:translateY(105%)}31%,60%{transform:none}65%,100%{transform:translateY(105%)}}
+@keyframes selIn{0%,44%{border-color:rgba(255,255,255,.09);background:rgba(255,255,255,.04)}49%,100%{border-color:var(--oro);background:rgba(242,184,75,.12)}}
+@keyframes tagAs{0%,65%{opacity:0}68%,84%{opacity:1}87%,100%{opacity:0}}
+@keyframes tagEn{0%,86%{opacity:0}89%,98%{opacity:1}100%{opacity:0}}
+@keyframes barIn{0%,86%{width:0}97%,100%{width:62%}}
+
+/* 6 · tesorería */
+.pag{display:flex;flex-direction:column;gap:6px}
+.pg{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid var(--cl);opacity:0;transform:translateX(10px)}
+.pg .ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11px;background:rgba(255,255,255,.06)}
+.pg b{font-size:10.5px;display:block}.pg span{font-size:8.5px;color:var(--tx2)}
+.pg .amt{margin-left:auto;text-align:right;font-weight:800;font-size:11.5px;font-variant-numeric:tabular-nums}
+.pg .amt .tag{display:block;margin-top:2px}
+@keyframes pg1{0%,8%{opacity:0;transform:translateX(10px)}13%,100%{opacity:1;transform:none}}
+@keyframes pg2{0%,18%{opacity:0;transform:translateX(10px)}23%,100%{opacity:1;transform:none}}
+@keyframes pg3{0%,28%{opacity:0;transform:translateX(10px)}33%,100%{opacity:1;transform:none}}
+.saldos{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:auto}
+.sd{padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid var(--cl)}
+.sd .v{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:#4ade80;letter-spacing:-.2px}
+.sd.t .v{color:var(--oro)}
+@keyframes paid{0%,56%{opacity:1}60%,100%{opacity:0}}
+@keyframes paidOn{0%,56%{opacity:0}60%,100%{opacity:1}}
+
+/* 7 · cargar reclamo con foto */
+.vf{position:relative;flex:1;border-radius:11px;overflow:hidden;background:linear-gradient(180deg,#0b1222 0%,#141a26 70%,#1b1f28 100%);border:1px solid var(--cl)}
+.vf .pole{position:absolute;left:58%;bottom:0;width:6px;height:78%;background:#2a3140;border-radius:3px}
+.vf .lamp{position:absolute;left:calc(58% - 10px);top:14%;width:28px;height:10px;border-radius:5px;background:#3a4252}
+.vf .ret{position:absolute;inset:14px;border:1.5px solid rgba(255,255,255,.35);border-radius:8px}
+.vf .ret:before,.vf .ret:after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--oro)}
+.vf .ret:before{left:-2px;top:-2px;border-right:0;border-bottom:0}.vf .ret:after{right:-2px;bottom:-2px;border-left:0;border-top:0}
+.vf .sh{position:absolute;left:50%;bottom:10px;width:34px;height:34px;margin-left:-17px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.vf .flash{position:absolute;inset:0;background:#fff;opacity:0}
+@keyframes vfOut{0%,20%{opacity:1}24%,100%{opacity:0}}
+@keyframes flash{0%,18%{opacity:0}19.5%{opacity:.95}22%,100%{opacity:0}}
+@keyframes shut{0%,17%{transform:scale(1)}19%{transform:scale(.82)}21%,100%{transform:scale(1)}}
+.form{position:absolute;inset:0;display:flex;flex-direction:column;gap:7px;opacity:0}
+@keyframes formIn{0%,22%{opacity:0}26%,96%{opacity:1}100%{opacity:0}}
+.frow{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid var(--cl);font-size:10px}
+.frow .th{width:40px;height:40px;border-radius:7px;background:linear-gradient(180deg,#0b1222,#1b1f28);position:relative;overflow:hidden;flex:none;border:1px solid var(--cl)}
+.frow .th:after{content:"";position:absolute;left:58%;bottom:0;width:3px;height:70%;background:#2a3140}
+.frow .lbl{display:block;margin-bottom:2px}
+.frow .tw{white-space:nowrap;overflow:hidden;display:block;max-width:0;font-size:10px}
+@keyframes tw2{0%,30%{max-width:0}50%,100%{max-width:220px}}
+.iach{display:flex;align-items:center;gap:6px;font-size:9.5px;color:#fde9b6;opacity:0}
+.iach b{background:rgba(242,184,75,.14);border:1px solid rgba(242,184,75,.4);padding:2px 7px;border-radius:999px;color:var(--oro)}
+@keyframes iach{0%,52%{opacity:0;transform:translateY(4px)}56%,100%{opacity:1;transform:none}}
+.send{position:relative;margin-top:auto;height:32px}
+.send .btn{position:absolute;inset:0}
+@keyframes sendA{0%,74%{opacity:1}78%,100%{opacity:0}}
+@keyframes sendB{0%,76%{opacity:0;transform:scale(.9)}80%,100%{opacity:1;transform:none}}
+.send .btn.ok{background:var(--verde);color:#06101c}
+
+/* 8 · notificaciones */
+.lock{position:relative;flex:1;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#0b1222,#060b16)}
+.lock .clock{position:absolute;top:12px;left:0;right:0;text-align:center}
+.lock .clock b{font-size:34px;font-weight:300;letter-spacing:-1px;display:block;line-height:1}
+.lock .clock span{font-size:9px;color:var(--tx2)}
+.push{position:absolute;left:10px;right:10px;background:rgba(18,27,46,.95);border:1px solid var(--cl);border-radius:12px;padding:8px 10px;display:flex;gap:8px;box-shadow:0 14px 30px rgba(0,0,0,.5);opacity:0;transform:translateY(-30px)}
+.push .ic{width:26px;height:26px;border-radius:7px;background:#0e2140;display:grid;place-items:center;flex:none;border:1px solid var(--cl)}
+.push .ic svg{width:16px;height:16px}
+.push .t{font-size:8px;color:var(--tx3);display:flex;justify-content:space-between}
+.push b{font-size:10px;display:block;margin:1px 0}
+.push span{font-size:9px;color:var(--tx2);line-height:1.3}
+.push .th{width:34px;height:34px;border-radius:6px;flex:none;background:radial-gradient(circle at 50% 30%,rgba(255,220,120,.9) 0,rgba(255,220,120,0) 60%),linear-gradient(180deg,#0b1222,#1b1f28);border:1px solid var(--cl)}
+@keyframes push1down{0%,10%{opacity:0;transform:translateY(-30px)}15%,52%{opacity:1;transform:none}57%,96%{opacity:.7;transform:translateY(74px)}100%{opacity:0}}
+@keyframes push2{0%,52%{opacity:0;transform:translateY(-30px)}57%,96%{opacity:1;transform:none}100%{opacity:0}}
+.stars5{display:flex;gap:4px;justify-content:center;font-size:16px;color:rgba(255,255,255,.2)}
+.stars5 i{font-style:normal}
+@keyframes star{0%,var(--s){color:rgba(255,255,255,.2);transform:scale(1)}var(--e),100%{color:var(--oro);transform:scale(1.15)}}
+.ping{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--verde);opacity:0}
+@keyframes ping{0%,8%{opacity:0;transform:scale(1)}10%{opacity:.8}18%{opacity:0;transform:scale(14)}50%{opacity:0;transform:scale(1)}52%{opacity:.8}60%,100%{opacity:0;transform:scale(14)}}
+@media (prefers-reduced-motion: reduce){ [data-a],.card,.prog i:after,.stars i,.inp .cur,.typing i{animation-play-state:paused} }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="munify" viewBox="0 0 1446.79 1426"><polygon fill="#ffffff" points="1271.65 371.24 1271.65 1069.5 635.82 1426 0 1069.5 0 356.5 635.82 0 1128.59 276.29 1000.48 381.26 636.9 177.4 160.18 444.69 160.18 979.27 636.9 1246.56 1113.62 979.27 1113.62 544.87 1271.65 371.24"/><polygon fill="#22c55e" points="1446.79 79.97 1225.77 330.78 1113.62 458.05 644.86 989.99 448.06 781.76 448.06 568.98 637.63 759.38 1052.94 410.67 1179.19 304.66 1446.79 79.97"/><polygon fill="#ffffff" points="404.64 517.83 404.64 1037.89 253.8 953.49 253.8 500.38 332.09 454.86 404.64 517.83"/><polygon fill="#ffffff" points="1020.14 650.78 1020.14 954.08 867.22 1039.31 868.09 818.95 1020.14 650.78"/></symbol></svg>
+<main>
+  <h1>Munify, <em>ocho mockups</em> que actúan</h1>
+  <p class="lead">Tipografía del front actual de Munify (Sora y Nunito). El estilo de los bocetos: noche, el logo arriba, una tarjeta del sistema en el medio que hace algo, y el título con la palabra que importa. Cada cuadro es un ciclo de diez segundos y se repite. Los datos son de muestra.</p>
+
+  <div class="grid">
+
+    <!-- 1 · reclamo con semáforo -->
+    <section class="item">
+      <div class="reel" style="--off:0s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card">
+          <div class="hd"><i class="ic">⚑</i><div><b>Reclamo #1287</b><small>Bache · Belgrano 450, Chacabuco · vecina M. González</small></div></div>
+          <div class="sem">
+            <div class="luz"><i class="r" data-a style="animation-name:luz1"></i><i class="a" data-a style="animation-name:luz2"></i><i class="g" data-a style="animation-name:luz3"></i></div>
+            <div class="st">
+              <div data-a style="animation-name:paso1"><b><i style="background:var(--rojo)">✓</i>Recibido</b><span>Hoy 09:14 · lo clasificó la IA</span></div>
+              <div data-a style="animation-name:paso2"><b><i style="background:var(--ambar)">✓</i>En curso</b><span>Hoy 09:52 · cuadrilla asignada, en camino</span></div>
+              <div data-a style="animation-name:paso3"><b><i style="background:var(--verde)">✓</i>Resuelto</b><span>Hoy 15:40 · foto del antes y del después</span></div>
+            </div>
+          </div>
+          <div class="fot" data-a style="animation-name:fotIn"><i class="a"><small>Antes</small></i><i class="d"><small>Después</small></i></div>
+        </div></div>
+        <div class="txt"><span class="chip">Seguimiento</span><h3>Lo seguís <u>como un envío</u></h3><p>Recibido, en curso, resuelto. El vecino ve cada paso.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Reclamos</b><span>El semáforo se enciende paso a paso y al final aparecen las fotos del antes y el después.</span></div>
+    </section>
+
+    <!-- 2 · la IA clasifica -->
+    <section class="item">
+      <div class="reel" style="--off:1.7s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card">
+          <div class="hd"><i class="ic" style="background:rgba(34,197,94,.16);color:#4ade80">●</i><div><b>Municipalidad de Chacabuco</b><small>en línea</small></div></div>
+          <div class="chat">
+            <div class="msg v" data-a style="animation-name:m1">Hola! Hay un árbol caído en Belgrano 450, tapa media calle.<time>09:12</time></div>
+            <div class="typing" data-a style="animation-name:ty1"><i></i><i></i><i></i></div>
+            <div class="msg m" data-a style="animation-name:m2">Gracias. Registré tu reclamo <b>#1287</b> como <b>Arbolado · urgente</b> y lo derivé a <b>Espacios Verdes</b>.<time>09:12</time></div>
+            <div class="msg m" data-a style="animation-name:m3">Te aviso cuando la cuadrilla esté en camino.<time>09:12</time></div>
+            <div class="msg v" data-a style="animation-name:m4">Genial, gracias!<time>09:13</time></div>
+          </div>
+        </div></div>
+        <div class="txt"><span class="chip v">Inteligencia artificial</span><h3>La IA <u>lo clasifica</u></h3><p>Detecta el tipo, la urgencia y lo manda al área correcta. Sin formularios.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Reclamo por chat</b><span>El vecino escribe como le sale, la IA entiende, registra y deriva en el momento.</span></div>
+    </section>
+
+    <!-- 3 · trámite -->
+    <section class="item">
+      <div class="reel" style="--off:3.4s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card">
+          <div class="hd"><i class="ic">▤</i><div><b>Nuevo trámite</b><small>Paso a paso · desde el celular</small></div></div>
+          <div class="steps"><i data-a style="animation-name:s1"></i><i data-a style="animation-name:s2"></i><i data-a style="animation-name:s3"></i></div>
+          <div class="stn"><span>Qué</span><span>Identidad</span><span>Listo</span></div>
+          <div class="stage">
+            <div class="pane" data-a style="animation-name:p1">
+              <div class="lbl">Contanos qué necesitás</div>
+              <div class="inp"><span class="tw" data-a style="animation-name:tw1">licencia de conducir, renovación</span><i class="cur"></i></div>
+              <div class="ia" data-a style="animation-name:iaIn">✦ La IA sugiere <b>Tránsito y Seguridad Vial</b></div>
+              <div style="display:flex;gap:6px;margin-top:auto"><span class="btn l">Anterior</span><span class="btn" style="margin-left:auto">Siguiente ›</span></div>
+            </div>
+            <div class="pane" data-a style="animation-name:p2;align-items:center;text-align:center">
+              <div class="lbl">Validación biométrica · RENAPER</div>
+              <div class="ring"><svg viewBox="0 0 66 66"><circle class="bg" cx="33" cy="33" r="28"/><circle class="fg" cx="33" cy="33" r="28" data-a style="animation-name:ringF"/></svg><div class="ok" data-a style="animation-name:ringOk">✓</div></div>
+              <div class="rel" style="height:34px;width:100%">
+                <div data-a style="position:absolute;inset:0;animation-name:t1"><b style="font-size:11px">Validando con RENAPER…</b><div style="font-size:9px;color:var(--tx2)">DNI + selfie con prueba de vida · 30 s</div></div>
+                <div data-a style="position:absolute;inset:0;animation-name:t2"><b style="font-size:11px;color:#4ade80">Identidad validada</b><div style="font-size:9px;color:var(--tx2)">Sin ir al municipio. Sin papel.</div></div>
+              </div>
+            </div>
+            <div class="pane" data-a style="animation-name:p3;align-items:center;text-align:center;justify-content:center">
+              <div class="stamp" data-a style="animation-name:stampIn">ENVIADO</div>
+              <b style="font-size:12px;margin-top:6px">Trámite #4410</b>
+              <div style="font-size:9.5px;color:var(--tx2)">Seguimiento por la app. Te avisamos en cada paso.</div>
+            </div>
+          </div>
+        </div></div>
+        <div class="txt"><span class="chip">Trámites</span><h3>Trámites <u>sin pisar</u> el municipio</h3><p>Identidad validada con RENAPER, desde el celular.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Trámites</b><span>Escribe qué necesita, la IA elige el área, RENAPER valida y queda enviado con número.</span></div>
+    </section>
+
+    <!-- 4 · mapa de calor -->
+    <section class="item">
+      <div class="reel" style="--off:5.1s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card">
+          <div class="hd"><i class="ic">◎</i><div><b>Mapa de calor</b><small>Concentración de reclamos · 90 días</small></div><span class="tag n" style="margin-left:auto">118 abiertos</span></div>
+          <div class="map">
+            <div class="blob" data-a style="left:24%;top:30%;background:#ef4444;animation-name:b1"></div>
+            <div class="blob" data-a style="left:62%;top:22%;background:#f59e0b;animation-name:b2"></div>
+            <div class="blob" data-a style="left:48%;top:52%;background:#ef4444;width:50px;height:50px;margin:-25px 0 0 -25px;animation-name:b3"></div>
+            <div class="blob" data-a style="left:80%;top:62%;background:#22c55e;animation-name:b4"></div>
+            <div class="blob" data-a style="left:20%;top:72%;background:#f59e0b;animation-name:b5"></div>
+            <div class="blob" data-a style="left:66%;top:84%;background:#ef4444;animation-name:b6"></div>
+            <div class="pin" data-a style="left:48%;top:52%;animation-name:pinIn"></div>
+            <div class="tip" data-a style="left:14%;top:8%;animation-name:tipIn"><b>Bache profundo · Eusebio Ayala</b><span>Bacheo y calles · 4 días · urgente</span></div>
+          </div>
+          <div class="leg"><span>● <b style="color:#f87171">Urgente</b></span><span>● <b style="color:#fbbf24">Sin asignar</b></span><span>● <b style="color:#4ade80">En curso</b></span></div>
+        </div></div>
+        <div class="txt"><span class="chip r">Mapa de calor</span><h3>Dónde están <u>los problemas</u></h3><p>Visualizá la concentración de reclamos por zona.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Mapa de calor</b><span>Los focos aparecen por prioridad y el pin señala el más urgente.</span></div>
+    </section>
+
+    <!-- 5 · cuadrillas -->
+    <section class="item">
+      <div class="reel" style="--off:6.8s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card">
+          <div class="hd"><i class="ic">⚒</i><div><b>Órdenes de trabajo</b><small>Obras Públicas · hoy</small></div></div>
+          <div class="ord u">
+            <div class="row"><b>Bache profundo sobre Eusebio Ayala</b></div>
+            <div class="row"><span>Bacheo y calles · 4 d</span><span class="sw"><i class="tag r" data-a style="animation-name:tagU">Sin asignar</i><i class="tag a" data-a style="animation-name:tagAs">Cuadrilla 2</i><i class="tag g" data-a style="animation-name:tagEn">En curso</i></span></div>
+            <div class="bar"><i data-a style="animation-name:barIn"></i></div>
+          </div>
+          <div class="ord"><div class="row"><b>Semáforo apagado en cruce</b></div><div class="row"><span>Tránsito · 3 d</span><span class="sw"><i class="tag a">Cuadrilla 1</i></span></div></div>
+          <div class="ord"><div class="row"><b>Cartel de PARE derribado</b></div><div class="row"><span>Tránsito · 2 d</span><span class="sw"><i class="tag g">En curso</i></span></div></div>
+          <div class="sheet" data-a style="animation-name:sheetIn">
+            <div class="h">Asignar a una cuadrilla</div>
+            <div class="cq"><i class="av">C1</i>Cuadrilla 1 · Bacheo<small>4 trabajos hoy</small></div>
+            <div class="cq" data-a style="animation-name:selIn"><i class="av">C2</i>Cuadrilla 2 · Bacheo<small style="color:#4ade80">2 trabajos · cerca</small></div>
+            <div class="cq"><i class="av">C3</i>Cuadrilla 3 · Alumbrado<small>6 trabajos hoy</small></div>
+            <span class="btn">Asignar y avisar al vecino</span>
+          </div>
+        </div></div>
+        <div class="txt"><span class="chip b">Cuadrillas</span><h3>Lo asignás <u>en un toque</u></h3><p>Quién está cerca y cuánto tiene. La cuadrilla recibe la orden en el celular.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Empleados y cuadrillas</b><span>Un reclamo sin asignar, la hoja con las cuadrillas, la que está cerca, y pasa a en curso.</span></div>
+    </section>
+
+    <!-- 6 · tesorería -->
+    <section class="item">
+      <div class="reel" style="--off:8.5s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card">
+          <div class="hd"><i class="ic">▦</i><div><b>Pagos programados</b><small>Tesorería · octubre</small></div><span class="btn" style="margin-left:auto;padding:5px 9px;font-size:9px">+ Nuevo</span></div>
+          <div class="pag">
+            <div class="pg" data-a style="animation-name:pg1"><i class="ic">▤</i><div><b>Proveedor de insumos</b><span>vence 12/10</span></div><div class="amt">$ 480.000<i class="tag a">Programado</i></div></div>
+            <div class="pg" data-a style="animation-name:pg2"><i class="ic">⚡</i><div><b>Servicio eléctrico</b><span>pagado 03/10</span></div><div class="amt">$ 1.250.000<i class="tag g">Pagado</i></div></div>
+            <div class="pg" data-a style="animation-name:pg3"><i class="ic">⛽</i><div><b>Combustible flota</b><span>vence 09/10</span></div><div class="amt">$ 320.000<span class="rel" style="display:block;height:16px"><i class="tag r" data-a style="position:absolute;right:0;animation-name:paid">Pendiente</i><i class="tag g" data-a style="position:absolute;right:0;animation-name:paidOn">Pagado</i></span></div></div>
+          </div>
+          <div class="saldos">
+            <div class="sd"><div class="lbl">Caja central</div><div class="v" data-count="0,4820000,1.2,3.4,$">$ 4.820.000</div></div>
+            <div class="sd t"><div class="lbl">Banco Provincia</div><div class="v" data-count="0,12340000,1.4,3.8,$">$ 12.340.000</div></div>
+          </div>
+        </div></div>
+        <div class="txt"><span class="chip">Tesorería</span><h3>Manejá la plata <u>sin planillas</u></h3><p>Cada egreso cargado, autorizado y trazado. El banco cuadra solo.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Tesorería</b><span>Los pagos entran uno a uno, un pendiente se paga y los saldos cuentan solos.</span></div>
+    </section>
+
+    <!-- 7 · cargar un reclamo con foto -->
+    <section class="item">
+      <div class="reel" style="--off:0.8s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card">
+          <div class="hd"><i class="ic">+</i><div><b>Cargar un reclamo</b><small>Con foto y ubicación · desde el celular</small></div></div>
+          <div class="rel" style="flex:1">
+            <div class="vf" data-a style="position:absolute;inset:0;animation-name:vfOut"><i class="pole"></i><i class="lamp"></i><i class="ret"></i><i class="sh" data-a style="animation-name:shut"></i><i class="flash" data-a style="animation-name:flash"></i></div>
+            <div class="form" data-a style="animation-name:formIn">
+              <div class="frow"><i class="th"></i><div><span class="lbl">Foto</span><b style="font-size:10px">IMG_1287.jpg</b><br><span style="font-size:8.5px;color:var(--tx2)">◉ Belgrano 450, Chacabuco · ubicación automática</span></div></div>
+              <div class="frow" style="display:block"><span class="lbl">Qué pasa</span><span class="tw" data-a style="animation-name:tw2">El poste de la esquina está apagado hace tres noches</span></div>
+              <div class="iach" data-a style="animation-name:iach">✦ La IA lo clasifica <b>Alumbrado público</b> → Servicios Públicos</div>
+              <div class="send"><span class="btn" data-a style="animation-name:sendA">Enviar reclamo</span><span class="btn ok" data-a style="animation-name:sendB">✓ Enviado · caso #1287</span></div>
+            </div>
+          </div>
+        </div></div>
+        <div class="txt"><span class="chip">Reclamos</span><h3>Sacás la foto <u>y listo</u></h3><p>La ubicación va sola, la IA lo clasifica y queda cargado con número.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Cargar un reclamo</b><span>La foto, la dirección automática, la IA que clasifica y el envío. Treinta segundos en la vereda.</span></div>
+    </section>
+
+    <!-- 8 · notificaciones al vecino -->
+    <section class="item">
+      <div class="reel" style="--off:2.9s">
+        <div class="stars"></div>
+        <div class="prog"><i></i></div>
+        <div class="logo"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg><span>Munify</span><em>Chacabuco · Buenos Aires</em></div>
+        <div class="cardwrap"><div class="card" style="padding:0">
+          <div class="lock">
+            <div class="clock"><b>21:14</b><span>jueves 9 de octubre</span></div>
+            <i class="ping" data-a style="animation-name:ping"></i>
+            <div class="push" data-a style="top:64px;animation-name:push1down"><i class="ic"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg></i><div style="flex:1"><div class="t"><span>MUNIFY</span><span>ahora</span></div><b>Tu caso #1287 está en tratamiento</b><span>Alumbrado público · la cuadrilla fue asignada. Te avisamos cuando esté.</span></div></div>
+            <div class="push" data-a style="top:64px;animation-name:push2"><i class="ic"><svg viewBox="0 0 1446.79 1426"><use href="#munify"/></svg></i><div style="flex:1"><div class="t"><span>MUNIFY</span><span>ahora</span></div><b>Tu caso #1287 se resolvió</b><span>El poste ya está prendido. Mirá la foto y calificá el trabajo.</span></div><i class="th"></i></div>
+            <div class="stars5" style="position:absolute;left:0;right:0;bottom:12px"><i data-a style="--s:76%;--e:79%;animation-name:star">★</i><i data-a style="--s:79%;--e:82%;animation-name:star">★</i><i data-a style="--s:82%;--e:85%;animation-name:star">★</i><i data-a style="--s:85%;--e:88%;animation-name:star">★</i><i data-a style="--s:88%;--e:91%;animation-name:star">★</i></div>
+          </div>
+        </div></div>
+        <div class="txt"><span class="chip v">Notificaciones</span><h3>Te avisa <u>en cada paso</u></h3><p>En tratamiento, resuelto, y la foto del después. Sin llamar a nadie.</p></div>
+        <div class="dom">munify.com.ar</div>
+      </div>
+      <div class="cap"><b>Notificaciones</b><span>Las dos que importan: está en tratamiento, se resolvió. Y el vecino califica.</span></div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+(function(){
+  // estrellas determinísticas por cuadro
+  document.querySelectorAll('.stars').forEach(function(s){
+    var h=''; for (var i=0;i<46;i++){ var x=(i*73)%100, y=(i*37)%100, d=(i%7)*0.4; h+='<i style="left:'+x+'%;top:'+y+'%;animation-delay:-'+d+'s;transform:scale('+(0.6+(i%3)*0.4)+')"></i>'; }
+    s.innerHTML=h;
+  });
+  // contadores: data-count="desde,hasta,segInicio,segFin,prefijo" en el ciclo de 10 s de su cuadro
+  var T=10, els=[].slice.call(document.querySelectorAll('[data-count]'));
+  els.forEach(function(el){ var p=el.getAttribute('data-count').split(','); el._c={a:+p[0],b:+p[1],s:+p[2],e:+p[3],pre:(p[4]||'')}; var r=el.closest('.reel'); el._off=parseFloat((r&&r.style.getPropertyValue('--off'))||'0')||0; });
+  var fmt=function(v){ return Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.'); };
+  function tick(now){
+    var t0=now/1000;
+    els.forEach(function(el){ var c=el._c, t=((t0+el._off)%T+T)%T, v;
+      if (t<c.s) v=c.a; else if (t>=c.e) v=c.b; else { var k=(t-c.s)/(c.e-c.s); k=1-Math.pow(1-k,3); v=c.a+(c.b-c.a)*k; }
+      var txt=(c.pre?c.pre+' ':'')+fmt(v); if (el.textContent!==txt) el.textContent=txt; });
+    requestAnimationFrame(tick);
+  }
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(tick);
+})();
+</script>

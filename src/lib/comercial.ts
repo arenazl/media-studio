@@ -28,6 +28,7 @@ export interface Concepto {
   estetica: string;          // dirección visual (luz, paleta, estilo de foto)
   referencia: string;        // a qué tipo de anuncio conocido se parece
   porQueFunciona: string;
+  editadoAMano?: boolean;    // 2026-10-10: el dueño la retocó a mano después de generarla (la radiografía lo dice)
 }
 
 export interface GuionBloque {
@@ -35,6 +36,7 @@ export interface GuionBloque {
   narration: string;         // lo que se DICE (voz)
   visual: string;            // lo que se VE
   durSec?: number;
+  quien?: string;            // script/3.x (filmado): quién lo dice en cámara; "placa" = texto de la placa final
 }
 
 export interface GuionEstructurado {
@@ -50,6 +52,9 @@ export interface CharacterSheet {
   fisicoEs: string;   // resumen en español, para la UI
   vestuario: string;
   personalidad: string;
+  vestuarioEn?: string;   // cast/2.2: la ropa en inglés (viaja en cada pedido a Flow para que no cambie entre tomas)
+  lugarEn?: string;       // cast/2.1: SU lugar, en inglés (la electricista en su obra, no en la casa de la vecina)
+  quien?: string;         // cómo lo nombra el guion en "quien"
 }
 
 export interface Cast {
@@ -69,6 +74,9 @@ export interface Escena {
   continuidad: string;               // filmado: qué matchea con la escena vecina · animado: palabra a RESALTAR
   screen?: string;                   // animado: label de la pantalla del KB
   archivoCaptura?: string;           // WO-K4: relpath de la captura REAL del media kit (ej. "screens/01-home.png")
+  pantalla?: string;                 // storyboard/2.1: inserto de pantalla → nombre EXACTO de la captura; no va a Flow, va el mockup
+  accionEn?: string;                 // storyboard/3.x: la acción en inglés para el generador (quién, dónde, qué hace en orden)
+  sobreEscena?: number;              // contrato ChatGPT: el inserto entra sobre la frase de esa escena (la voz sigue)
 }
 
 // Flujo NUEVO de Google Flow (imagen-first): el personaje es una ENTIDAD con una IMAGEN de referencia
@@ -102,6 +110,21 @@ export interface Toma {
   fileRef: string;
   durSec: number;
   promptUsado?: string;   // WO-6b/D8: snapshot del prompt de Flow que originó este clip (histórico real)
+  origen?: 'flow' | 'mockup' | 'archivo';   // de dónde salió la toma (2026-10-10: los mockups de la app también son tomas)
+}
+
+// Mockup de la app renderizado por el motor (paso "Mockups de la app", 2026-10-10): una tarjeta del catálogo de la app
+// como clip corto sin audio. Se guarda en la pieza y se usa como toma de cualquier escena (híbrido).
+export interface MockupApp {
+  id: string;
+  tarjeta: string;        // id de la tarjeta en el catálogo del motor (semaforo, tramite, mapa, dashboard, ...)
+  nombre: string;
+  patron?: string;        // el patrón de animación del estándar (avanza por pasos, estado que cambia, ...)
+  chip?: string;
+  titulo?: string;
+  fileRef: string;
+  durSec: number;
+  generadoEn?: number;
 }
 
 export interface PublishPack {
@@ -132,12 +155,14 @@ export interface Comercial {
   intensidadHumor?: string;          // sutil | media | alta (sólo si enfoque o tratamiento es humor)
   recursoHumorId?: string;           // auto o un mecanismo de humor del catálogo
   cierreMarca?: string;              // claim aprobado por el dueño (p. ej. "Munify, para vos"); vacío = el modelo propone una firma simple
+  flowProjectUrl?: string;           // proyecto de Google Flow asociado a la pieza (lo crea el puente en la primera corrida y se reutiliza)
   messageScope?: string;             // doctrina 2026-10-07: brand-global|problem|demo|benefit|proof|objection|conversion (de `strategy`)
   primaryMessage?: string;           // el mensaje principal de ESTA pieza (de `strategy`)
   supportingFacts?: string[];        // los hechos del brief que esta pieza usa (de `strategy`)
   estados: Record<PasoId, EstadoPaso>;
   concepto?: Concepto;               // paso 2
   guion?: GuionEstructurado;         // paso 3
+  guionCurado?: { fecha: number; fuente: string; archivo?: string };   // 2026-10-10: el guion vino de una curación externa (ChatGPT)
   cast?: Cast;                       // paso 4 (solo filmado)
   storyboard?: Escena[];             // paso 5
   packFlow?: PackFlow;               // paso 6a (solo filmado)
@@ -145,6 +170,7 @@ export interface Comercial {
   renderDurSec?: number;             // su duración real (el montaje la usa para no cortar la placa final)
   descripcionReel?: string;          // paso 6b (solo animado): el reel descrito con las palabras del dueño (molde mockupsTexto)
   rodaje?: Toma[];                   // paso 7 (solo filmado; refs a server/storage)
+  mockups?: MockupApp[];             // mockups de la app renderizados por el motor, disponibles como tomas (híbrido)
   montaje?: unknown;                 // paso 8 — MontajePlan lo define la Fase 4 (tipado laxo hasta entonces)
   qa?: QaResult;                     // paso 8 — QA holístico persistido (C9: antes vivía en useState y se perdía)
   publicacion?: PublishPack;         // paso 9

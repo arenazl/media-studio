@@ -1,0 +1,388 @@
+<!-- Hecho con la plantilla "nodos que se abren" (base-compartida/plantillas-doc/nodos-que-se-abren.html, formato 2 del doc 33). Para actualizarlo: cambiar FASES / SECT / ACTORES y los textos del hero; el render y la navegación no se tocan. Publicado como artefacto y en looklogic.com.ar/docs/mediastudio/milla-cero-explicada/. -->
+<title>Milla cero explicada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --noche:#0A1729; --panel:#11253F; --panel-2:#0D1E35; --panel-3:#162C4C;
+    --linea:#1D3A5C; --linea-suave:#16304E;
+    --tinta:#E8EFF9; --tinta-2:#94ABC8; --tinta-3:#647FA0;
+    --marca:#2D7FF9; --verde:#22C55E; --activo:#FF8A3D; --rojo:#FF5A5F; --violeta:#A78BFA; --celeste:#38BDF8;
+    --hecho:#22C55E; --curso:#FF8A3D; --pend:#4F6A8C;
+    --ancho:1040px;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--noche);color:var(--tinta);font-family:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--ancho);margin:0 auto;padding-inline:16px}
+  h1,h2,h3{font-family:'IBM Plex Sans Condensed','IBM Plex Sans',sans-serif;font-weight:700;text-wrap:balance;margin:0}
+  p{margin:0}
+  .barra{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:rgba(10,23,41,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--linea-suave)}
+  .barra .wrap{display:flex;align-items:center;gap:12px;height:58px}
+  .logo{display:flex;align-items:center;gap:9px}
+  .logo svg{width:24px;height:24px;flex:none}
+  .logo__n{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:19px;letter-spacing:.3px}
+  .barra .doc{margin-left:auto;font-size:11.5px;color:var(--tinta-3);letter-spacing:.06em;text-transform:uppercase;text-align:right;line-height:1.3}
+
+  /* navegación */
+  .nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:16px 6px}
+  .nav button{font:inherit;font-size:13px;font-weight:600;color:var(--tinta);background:var(--panel-2);border:1px solid var(--linea);border-radius:7px;padding:8px 13px;cursor:pointer;display:flex;align-items:center;gap:7px}
+  .nav button:hover{border-color:var(--marca)}
+  .nav button[disabled]{opacity:.35;cursor:default}
+  .miga{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--tinta-3)}
+  .miga b{color:var(--tinta-2);font-weight:500;cursor:pointer}
+  .miga b:hover{color:var(--marca)}
+  .miga b.actual{color:var(--tinta);cursor:default}
+  .miga i{font-style:normal;color:var(--tinta-3)}
+  .ayuda{font-size:12.5px;color:var(--tinta-3);margin-left:auto}
+
+  /* escena */
+  .escena{margin-top:8px;border:1px solid var(--linea-suave);border-radius:12px;background:var(--panel-2);overflow:hidden;animation:aparece .18s ease}
+  @keyframes aparece{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.escena{animation:none}}
+  .escena svg{display:block;width:100%;height:auto}
+  .cab-escena{padding:16px 18px 0}
+  .cab-escena h2{font-size:clamp(20px,3.2vw,27px);line-height:1.15}
+  .cab-escena p{margin-top:5px;color:var(--tinta-2);font-size:14.5px;max-width:70ch}
+  .ley{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 18px 14px;font-size:12px;color:var(--tinta-3)}
+  .ley span{display:flex;align-items:center;gap:6px}
+  .sw{width:10px;height:10px;border-radius:50%;flex:none}
+
+  /* svg comunes */
+  .t-tit{fill:var(--tinta);font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700}
+  .t-sub{fill:var(--tinta-2);font-family:'IBM Plex Sans',sans-serif}
+  .t-eti{fill:var(--tinta-3);font-family:'IBM Plex Mono',monospace;letter-spacing:.1em}
+  .t-num{fill:var(--tinta);font-family:'IBM Plex Mono',monospace;font-weight:600}
+  .clic{cursor:pointer}
+  .clic:hover .aro{stroke:var(--marca)}
+  .clic:hover .fondo{fill:var(--panel-3)}
+  .apagado{opacity:.35}
+  .flecha{fill:none;stroke:var(--linea);stroke-width:2}
+  .flecha.viva{stroke:var(--marca)}
+
+  /* nivel 2: tarjetas gráficas */
+  .tarjetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:6px 18px 20px}
+  .tj{border:1px solid var(--linea);border-radius:10px;background:var(--noche);padding:14px;display:flex;flex-direction:column;gap:8px;min-height:150px}
+  .tj svg{width:100%;height:auto;display:block}
+  .tj .tt{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:15px;line-height:1.2}
+  .tj .ss{font-size:13px;color:var(--tinta-2);line-height:1.4}
+  .tj .mono{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--tinta-3);word-break:break-word}
+  .vacio{padding:26px 18px 30px;color:var(--tinta-2);font-size:15px}
+  footer{padding-block:22px 40px}
+  footer .txt{font-size:13px;color:var(--tinta-3);max-width:64ch}
+</style>
+
+<div class="barra"><div class="wrap">
+  <span class="logo"><svg viewBox="0 0 24 24" role="img" aria-label="Media Studio" fill="none" stroke="#FF8A3D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg><span class="logo__n">Media Studio</span></span>
+  <span class="doc">Milla cero con RepareHoy<br>qué hice, gráfico por gráfico</span>
+</div></div>
+
+<main class="wrap">
+  <div class="nav">
+    <button type="button" id="volver" disabled>&#8592; Volver</button>
+    <div class="miga" id="miga"></div>
+    <span class="ayuda" id="ayuda">Tocá un paso o una pieza para abrirlo</span>
+  </div>
+  <div id="escena"></div>
+</main>
+<footer class="wrap"><p class="txt">Media Studio · Orquestador · milla cero con RepareHoy · 10/10/2026. Documento interno: nada de lo que dice se ejecutó contra la IA; la propuesta del último paso espera tu decisión.</p></footer>
+
+<script>
+(function () {
+  // ------------------------------------------------------------------ íconos (24x24)
+  var ICO = {
+    casa:     '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/>',
+    caso:     '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>',
+    datos:    '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+    servidor: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    pantalla: '<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 18h4"/>',
+    red:      '<path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+    bandera:  '<path d="M5 22V3"/><path d="M5 4h12l-2.5 4L17 12H5"/>',
+    lupa:     '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+    letras:   '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
+    nota:     '<path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5"/><path d="M15 4v5h5"/>',
+    llave:    '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/>',
+    tablero:  '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    check:    '<path d="M5 12l4 4L19 6"/>',
+    campana:  '<path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/>',
+    capas:    '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 17l9 5 9-5"/>',
+    pregunta: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7"/><path d="M12 17h.01"/>',
+    repetir:  '<path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 21v-5h5"/>',
+    balanza:  '<path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0z"/><path d="M19 7l-3 7a3 3 0 0 0 6 0z"/>'
+  };
+  function ico(n, x, y, s, col) {
+    var k = s / 24;
+    return '<g transform="translate(' + x + ',' + y + ') scale(' + k + ')" fill="none" stroke="' + (col || '#E8EFF9') + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICO[n] + '</g>';
+  }
+  function icoHTML(n, s, col) {
+    return '<svg viewBox="0 0 24 24" width="' + s + '" height="' + s + '" fill="none" stroke="' + (col || '#E8EFF9') + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:' + s + 'px;height:' + s + 'px">' + ICO[n] + '</svg>';
+  }
+  var COL = { h: '#22C55E', c: '#FF8A3D', p: '#4F6A8C' };
+  var EST = { h: 'hecho', c: 'mi veredicto', p: 'tu decisión' };
+
+  // ------------------------------------------------------------------ el modelo
+  // Cada paso: qué hay en cada sector. Tipo de tarjeta: tabla | flujo | pantalla | numero | texto
+  var FASES = [
+    { id: 0, n: 'Paso 1', t: 'La ficha de RepareHoy', e: 'h', ico: 'caso', obj: 'Lo único propio de la app que entra al prompt. Sale del media kit que dejó RepareHoy: hechos, no prosa.', cierre: 'La ficha entra entera en cada combinación: 1.481 palabras, siempre las mismas.',
+      s: {
+        entra: [
+          { tipo: 'tabla', tt: 'La tesis', ss: 'Lo intangible que la app dice de sí misma. Manda sobre el resto.', cols: ['el fuerte: juez entre los dos', 'el enemigo: WhatsApp y la seña a ciegas', 'el momento mágico: "te esperan tus proveedores"', 'a quién primero: al cliente'] },
+          { tipo: 'tabla', tt: 'Nueve pantallas reales', ss: 'Con qué demuestra cada una y qué se anima adentro.', cols: ['contar el problema', 'te esperan tus proveedores', 'el chat con el plan de pagos', 'pagar la seña'] },
+          { tipo: 'tabla', tt: 'Dos momentos', ss: 'Una historia por lado, con sus pantallas en orden.', cols: ['cliente: del problema al trabajo pagado', 'proveedor: el trabajo que llega'] },
+          { tipo: 'tabla', tt: 'El NO DECIR', ss: 'Lo que ningún comercial puede afirmar.', cols: ['precios concretos', 'cantidades como si fueran tracción', '"garantizado", "100% seguro"', 'que el pago al proveedor es automático'] }
+        ],
+        hace: [ { tipo: 'texto', tt: 'Nada se interpreta', ss: 'La ficha se pega tal cual. El modelo recibe todo y decide él qué usar y qué no.', ico: 'datos' } ],
+        sale: [ { tipo: 'numero', tt: 'La parte más grande del prompt', ss: 'Más de la mitad de lo que viaja es la ficha. Lo que vos elegís es mucho menos.', n: '1.481', sub: 'palabras de RepareHoy' } ],
+        ojo: [ { tipo: 'texto', tt: 'La tesis no llegaba', ss: 'Hasta hoy, cuando el proyecto traía la ficha completa, la tesis quedaba afuera sin que nadie lo viera. Arreglado: ahora entra en todos los moldes.', ico: 'campana' } ]
+      } },
+    { id: 1, n: 'Paso 2', t: 'Las cuatro preguntas', e: 'h', ico: 'pregunta', obj: 'Lo que vos elegís en el asistente y en Concepto. Cada respuesta cambia algo del prompt.', cierre: 'Cuatro preguntas, 420 maneras de contestarlas.',
+      s: {
+        entra: [
+          { tipo: 'tabla', tt: 'Formato', ss: 'Cómo se produce la pieza.', cols: ['Reel Flow (filmado)', 'Reel animado', 'Reel híbrido'] },
+          { tipo: 'tabla', tt: 'Tipo de campaña', ss: 'Para qué es la pieza.', cols: ['campaña completa', 'awareness', 'demo de producto', 'conversión'] },
+          { tipo: 'tabla', tt: 'Enfoque (siete)', ss: 'Cómo se organiza la historia. Además: testimonio, institucional, humor.', cols: ['un caso de principio a fin', 'producto a la vista', 'los dos lados', 'antes y después'] },
+          { tipo: 'tabla', tt: 'Tratamiento (cinco)', ss: 'El registro del spot. Además: con humor.', cols: ['cotidiano', 'sobrio', 'cálido', 'aspiracional'] }
+        ],
+        hace: [ { tipo: 'flujo', tt: 'Se multiplican', ss: 'Cada respuesta se combina con todas las demás.', de: '3 × 4 × 7 × 5', a: '420' } ],
+        sale: [ { tipo: 'numero', tt: 'Todas las respuestas posibles', ss: 'Son las combinaciones del formulario, no comerciales.', n: '420', sub: 'combinaciones' } ],
+        ojo: [ { tipo: 'texto', tt: 'Dos de las cuatro deciden poco', ss: 'El formato sólo prende o apaga bloques enteros. Y el tipo de campaña en Concepto va fijo en "campaña completa": nunca lo elegís.', ico: 'lupa' } ]
+      } },
+    { id: 2, n: 'Paso 3', t: 'El armador', e: 'h', ico: 'capas', obj: 'Cómo nace un prompt: bloques de texto pegados uno abajo del otro. Sin inteligencia en el medio.', cierre: 'Mismas respuestas, mismo prompt, siempre. Eso es lo determinístico que pediste; lo que falta es la regla.',
+      s: {
+        entra: [ { tipo: 'texto', tt: 'Tres fuentes', ss: 'El texto fijo del molde (rol, reglas, campos), la ficha de la app, y los dos bloques que dependen de tus respuestas.', ico: 'capas' } ],
+        hace: [
+          { tipo: 'flujo', tt: 'Pega capas', ss: 'Una abajo de la otra, en un orden fijo.', de: 'fijo + ficha + elecciones', a: 'un prompt' },
+          { tipo: 'texto', tt: 'Diez a doce capas', ss: 'Rol, objetivo, ficha, pantallas, decisiones creativas, humor, reglas, control de calidad, campos, formato de salida. Si es animado, una de técnica.', ico: 'letras' }
+        ],
+        sale: [
+          { tipo: 'numero', tt: 'El prompt más corto', ss: 'Filmado, sin humor.', n: '2.448', sub: 'palabras' },
+          { tipo: 'numero', tt: 'El más largo', ss: 'Animado con humor: suma la técnica animada y la sala de guionistas.', n: '3.852', sub: 'palabras' }
+        ],
+        ojo: [ { tipo: 'texto', tt: 'Es un formulario, no un algoritmo', ss: 'Ninguna regla mira la ficha y elige. Todo lo que se decide lo decide el modelo después, con todo pegado adelante.', ico: 'balanza' } ]
+      } },
+    { id: 3, n: 'Paso 4', t: 'Las 420 corridas', e: 'h', ico: 'repetir', obj: 'Correr el armador una vez por combinación y guardar los 420 textos. Sin llamar a la IA ni una vez.', cierre: 'Cinco segundos, costo cero, nada ejecutado.',
+      s: {
+        entra: [ { tipo: 'texto', tt: 'La misma ficha, 420 veces', ss: 'Lo único que cambié entre una corrida y otra fueron las cuatro respuestas, una combinación por vez.', ico: 'caso' } ],
+        hace: [
+          { tipo: 'flujo', tt: 'Un pedido por combinación', ss: 'Al mismo armador que usa la pantalla de Concepto.', de: '420 pedidos', a: '420 prompts guardados' },
+          { tipo: 'texto', tt: 'Como imprimir todas las configuraciones de un formulario', ss: 'Para poner los textos uno al lado del otro y ver qué cambia y qué no.', ico: 'tablero' }
+        ],
+        sale: [
+          { tipo: 'numero', tt: 'Lo que tardó', ss: 'Las 420 juntas.', n: '5 s', sub: 'en total' },
+          { tipo: 'numero', tt: 'Lo que costó', ss: 'Ni un concepto generado, ni un guion.', n: '0', sub: 'llamadas a la IA' }
+        ],
+        ojo: [ { tipo: 'texto', tt: 'No son 420 comerciales', ss: 'Son 420 textos de pedido. Ninguno se le mandó al modelo. Por eso se pudo hacer en segundos.', ico: 'red' } ]
+      } },
+    { id: 4, n: 'Paso 5', t: 'Lo que medí', e: 'h', ico: 'lupa', obj: 'Comparar los 420 textos capa por capa: qué capa cambia con qué pregunta y cuánto pesa cada una.', cierre: 'Cuatro números que dicen cómo está el orquestador hoy, y los nombres que usa la industria.',
+      s: {
+        entra: [ { tipo: 'texto', tt: 'Los 420 textos, capa por capa', ss: 'Cada capa con su título, sus palabras y en qué combinaciones aparece.', ico: 'capas' } ],
+        hace: [ { tipo: 'flujo', tt: 'Qué mueve a cada capa', ss: 'Si dos combinaciones tienen la misma capa igual, esa capa no depende de lo que cambió entre ellas.', de: 'capa por capa', a: 'quién la mueve' } ],
+        sale: [
+          { tipo: 'numero', tt: 'Lo que cambia con vos', ss: '301 de 2.448 palabras: el objetivo y las decisiones creativas.', n: '12%', sub: 'del prompt' },
+          { tipo: 'numero', tt: 'Lo que no cambia nunca', ss: 'El texto fijo del molde y la ficha de la app.', n: '88%', sub: 'del prompt' },
+          { tipo: 'numero', tt: 'El humor está dos veces', ss: 'Está en el enfoque y en el tratamiento. "Humor + sobrio" se contradice; "humor + humor" se repite.', n: '11 / 35', sub: 'combinaciones con humor' },
+          { tipo: 'numero', tt: 'El híbrido no existe para el Concepto', ss: 'Reel Flow y Reel híbrido arman el mismo prompt, palabra por palabra.', n: '= ', sub: 'Flow y híbrido, iguales' }
+        ],
+        ojo: [ { tipo: 'texto', tt: 'Los nombres de afuera', ss: 'Enfoque se llama ángulo (Problem–Solution, Antes/Después, Demo, Testimonio, Marca). Tratamiento se llama tono de voz. El objetivo (Awareness, Consideración, Conversión) es la primera pregunta de Meta; acá va fija.', ico: 'letras' } ]
+      } },
+    { id: 5, n: 'Paso 6', t: 'El veredicto', e: 'c', ico: 'bandera', obj: '¿Llegamos al nivel de calidad del orquestador? No. Hoy es un formulario que pega bloques; un algoritmo tendría una regla que gobierne la variabilidad.', cierre: 'Tenés razón en el miedo: con 420 combinaciones y sin regla, las cosas salen mal. Y el sistema no frena las que se pelean.',
+      s: {
+        entra: [ { tipo: 'texto', tt: 'Lo bueno', ss: 'La ficha entra entera y el armado es determinístico. Eso es base, no calidad.', ico: 'check' } ],
+        hace: [ { tipo: 'texto', tt: 'Lo que falta', ss: 'Ninguna regla usa la tesis para elegir ángulo, audiencia o pantallas. Lo que vos elegís es texto genérico del catálogo, igual para cualquier app.', ico: 'balanza' } ],
+        sale: [ { tipo: 'texto', tt: 'Lo que se rompe', ss: 'Combinaciones que se pelean (humor + sobrio), testimonios que chocan con el NO DECIR, y nadie las frena antes de generar.', ico: 'campana' } ],
+        ojo: [ { tipo: 'numero', tt: 'Nivel actual', ss: 'Mi nota, no una medición. Sube cuando haya una regla y menos preguntas.', n: '2 / 10', sub: 'el orquestador hoy' } ]
+      } },
+    { id: 6, n: 'Paso 7', t: 'La propuesta', e: 'p', ico: 'llave', obj: 'Una pregunta, no cuatro. Primero el objetivo, con los nombres de Meta; la audiencia sale del kit; una fila pre-llena el resto y se pisa a mano.', cierre: 'Con tu dale se toca el catálogo. Sin él, nada cambia: nada de esto está aplicado.',
+      s: {
+        entra: [
+          { tipo: 'tabla', tt: 'Objetivo', ss: 'Los nombres que usa Meta. Una de tres.', cols: ['awareness', 'consideración', 'conversión'] },
+          { tipo: 'tabla', tt: 'Audiencia', ss: 'Sale de los momentos del kit. El default es el que la tesis dice primero.', cols: ['cliente (primero)', 'proveedor (segunda pieza)'] }
+        ],
+        hace: [
+          { tipo: 'flujo', tt: 'La fila de orquestación', ss: 'Objetivo y audiencia determinan el resto. Mismas respuestas, mismo prompt.', de: 'objetivo + audiencia', a: 'ángulo · tono · formato · pantallas' },
+          { tipo: 'texto', tt: 'Pisable', ss: 'Cada casillero se cambia a mano, como en el motor de Habláh. El humor pasa a ser un tono, con su intensidad y su mecanismo adentro.', ico: 'llave' }
+        ],
+        sale: [
+          { tipo: 'numero', tt: 'Orquestaciones por defecto', ss: 'Tres objetivos por dos audiencias. Para RepareHoy ya están escritas las cuatro que importan.', n: '6', sub: 'filas' },
+          { tipo: 'numero', tt: 'Combinaciones para pisar', ss: 'Seis ángulos por cinco tonos, sin el humor repetido.', n: '30', sub: 'en vez de 420' }
+        ],
+        ojo: [ { tipo: 'texto', tt: 'Lo que no se hizo', ss: 'No toqué catálogo, moldes ni pantallas. Es para decidirlo juntos.', ico: 'red' } ]
+      } }
+  ];
+  var SECT = [
+    { k: 'entra', t: 'Lo que entra', ico: 'datos', col: '#2D7FF9', ss: 'Con qué se trabaja' },
+    { k: 'hace', t: 'Lo que hace', ico: 'servidor', col: '#A78BFA', ss: 'El mecanismo' },
+    { k: 'sale', t: 'Lo que sale', ico: 'tablero', col: '#FF8A3D', ss: 'Los números' },
+    { k: 'ojo', t: 'Lo que importa', ico: 'red', col: '#22C55E', ss: 'Para quedarse con esto' }
+  ];
+  var ACTORES = {
+    ficha: { t: 'La ficha de RepareHoy', ico: 'caso', col: '#2D7FF9', ss: 'Lo único propio de la app. Es la capa más grande del prompt y es igual en las 420 combinaciones.', p: [
+      { tt: 'La tesis', ss: 'El fuerte, el enemigo, el momento mágico, a quién primero.', mock: 'detalle', e: 'app' },
+      { tt: 'El negocio', ss: 'Qué es, para quién, qué ofrece, por qué es distinto.', mock: 'lista', e: 'app' },
+      { tt: 'Nueve pantallas', ss: 'Capturas reales, con qué demuestra cada una.', mock: 'detalle', e: 'app' },
+      { tt: 'El NO DECIR', ss: 'Lo que ningún comercial puede afirmar.', mock: 'lista', e: 'app' } ] },
+    preguntas: { t: 'Las cuatro preguntas', ico: 'pregunta', col: '#FF8A3D', ss: 'Lo que vos elegís. Entre todas mueven el 12% del prompt.', p: [
+      { tt: 'Formato', ss: 'Prende o apaga el bloque de técnica animada.', mock: 'config', e: 'mueve' },
+      { tt: 'Tipo de campaña', ss: 'Cambia el objetivo (36 palabras). En Concepto va fijo.', mock: 'config', e: 'mueve' },
+      { tt: 'Enfoque', ss: 'Cambia las decisiones creativas (265 palabras).', mock: 'config', e: 'mueve' },
+      { tt: 'Tratamiento', ss: 'Cambia el registro dentro de las decisiones creativas.', mock: 'config', e: 'mueve' } ] },
+    molde: { t: 'El texto fijo del molde', ico: 'letras', col: '#4F6A8C', ss: 'Lo que el molde dice siempre, para cualquier app y cualquier respuesta.', p: [
+      { tt: 'Rol', ss: 'Quién es el que escribe: la dupla creativa.', mock: 'form', e: 'fijo' },
+      { tt: 'Reglas de publicidad y veracidad', ss: 'No inventar, no prometer, no mostrar lo que no está en el kit.', mock: 'lista', e: 'fijo' },
+      { tt: 'Control de calidad', ss: 'Lo que el modelo se revisa antes de responder.', mock: 'lista', e: 'fijo' },
+      { tt: 'Campos y formato de salida', ss: 'Cómo tiene que devolver la respuesta para que el sistema la lea.', mock: 'form', e: 'fijo' } ] },
+    prompt: { t: 'Un prompt de Concepto', ico: 'capas', col: '#22C55E', ss: 'Las capas en el orden en que viajan. Ejemplo: Reel híbrido, awareness, un caso, cotidiano. 2.448 palabras.', p: [
+      { tt: '1. Rol', ss: '59 palabras.', mock: 'form', e: 'fijo' },
+      { tt: '2. Objetivo comercial', ss: '36 palabras. La mueve el tipo de campaña.', mock: 'config', e: 'mueve' },
+      { tt: '3. Ficha real del negocio', ss: '719 palabras, con la tesis adentro.', mock: 'detalle', e: 'app' },
+      { tt: '4. Capturas reales de la app', ss: '762 palabras: las nueve pantallas y los dos momentos.', mock: 'detalle', e: 'app' },
+      { tt: '5. Decisiones creativas', ss: '265 palabras. Las mueven enfoque y tratamiento.', mock: 'config', e: 'mueve' },
+      { tt: '6. Humor no solicitado', ss: '23 palabras. Si hay humor, se cambia por la sala de guionistas (388).', mock: 'lista', e: 'fijo' },
+      { tt: '7. Reglas de publicidad', ss: '242 palabras.', mock: 'lista', e: 'fijo' },
+      { tt: '8. Control de calidad', ss: '64 palabras.', mock: 'lista', e: 'fijo' },
+      { tt: '9. Campos y longitudes', ss: '124 palabras.', mock: 'form', e: 'fijo' },
+      { tt: '10. Formato de salida', ss: '74 palabras.', mock: 'form', e: 'fijo' } ] }
+  };
+
+  // ------------------------------------------------------------------ nivel 0: el mapa
+  function escenaRuta() {
+    var s = '<svg viewBox="0 0 1000 640" role="img" aria-label="Qué hice en la milla cero">';
+    s += '<text class="t-eti" x="24" y="30" font-size="11">DE QUÉ ESTÁ HECHO UN PROMPT DE CONCEPTO</text>';
+    var org = [ ['ficha','La ficha de RepareHoy','tesis · 9 pantallas · 2 momentos · NO DECIR', 90, '#2D7FF9'],
+                ['preguntas','Las cuatro preguntas','formato · campaña · enfoque · tratamiento', 165, '#FF8A3D'],
+                ['molde','El texto fijo del molde','rol · reglas · campos · formato de salida', 240, '#4F6A8C'] ];
+    org.forEach(function (o) {
+      s += '<g class="clic" data-actor="' + o[0] + '">';
+      s += '<rect class="fondo" x="24" y="' + (o[3]-26) + '" width="300" height="52" rx="10" fill="#11253F"/><rect class="aro" x="24" y="' + (o[3]-26) + '" width="300" height="52" rx="10" fill="none" stroke="#1D3A5C" stroke-width="1.5"/>';
+      s += '<circle cx="54" cy="' + o[3] + '" r="17" fill="' + o[4] + '22" stroke="' + o[4] + '" stroke-width="1.5"/>' + ico(o[0] === 'ficha' ? 'caso' : o[0] === 'preguntas' ? 'pregunta' : 'letras', 42, o[3]-12, 24, o[4]);
+      s += '<text class="t-tit" x="82" y="' + (o[3]-4) + '" font-size="15">' + o[1] + '</text><text class="t-sub" x="82" y="' + (o[3]+14) + '" font-size="11.5">' + o[2] + '</text>';
+      s += '<path class="flecha' + (o[0]==='preguntas'?' viva':'') + '" d="M324 ' + o[3] + ' C 380 ' + o[3] + ' 380 165 440 165"/>';
+      s += '</g>';
+    });
+    s += '<g><rect x="440" y="115" width="180" height="100" rx="14" fill="#162C4C" stroke="#2D7FF9" stroke-width="2"/>' + ico('capas', 466, 130, 34, '#E8EFF9');
+    s += '<text class="t-tit" x="508" y="150" font-size="20">El armador</text><text class="t-sub" x="508" y="170" font-size="12">pega las capas una</text><text class="t-sub" x="508" y="185" font-size="12">abajo de la otra</text><text class="t-sub" x="456" y="203" font-size="11">sin llamar a la IA · siempre igual</text></g>';
+    s += '<path class="flecha viva" d="M620 165 L690 165"/><path d="M684 159 L694 165 L684 171z" fill="#2D7FF9"/>';
+    s += '<g class="clic" data-actor="prompt"><rect class="fondo" x="696" y="115" width="280" height="100" rx="14" fill="#11253F"/><rect class="aro" x="696" y="115" width="280" height="100" rx="14" fill="none" stroke="#22C55E" stroke-width="2"/>' + ico('nota', 716, 130, 34, '#22C55E');
+    s += '<text class="t-tit" x="760" y="150" font-size="18">Un prompt de Concepto</text><text class="t-sub" x="760" y="171" font-size="12">entre 2.448 y 3.852 palabras;</text><text class="t-sub" x="760" y="186" font-size="12">420 versiones posibles</text><text class="t-eti" x="760" y="204" font-size="10">TOCÁ PARA VER LAS CAPAS</text></g>';
+    s += '<line x1="24" y1="300" x2="976" y2="300" stroke="#16304E"/>';
+    s += '<text class="t-eti" x="24" y="330" font-size="11">LO QUE HICE: SIETE PASOS, EN ORDEN</text>';
+    var xs = [], ys = [];
+    FASES.forEach(function (f, i) { xs.push(90 + i * 137); ys.push(i % 2 ? 490 : 430); });
+    var d = 'M' + xs[0] + ' ' + ys[0];
+    for (var i = 1; i < xs.length; i++) d += ' C ' + (xs[i-1]+68) + ' ' + ys[i-1] + ' ' + (xs[i]-68) + ' ' + ys[i] + ' ' + xs[i] + ' ' + ys[i];
+    s += '<path d="' + d + '" fill="none" stroke="#1D3A5C" stroke-width="6" stroke-linecap="round"/>';
+    var dh = 'M' + xs[0] + ' ' + ys[0]; for (var j = 1; j <= 4; j++) dh += ' C ' + (xs[j-1]+68) + ' ' + ys[j-1] + ' ' + (xs[j]-68) + ' ' + ys[j] + ' ' + xs[j] + ' ' + ys[j];
+    s += '<path d="' + dh + '" fill="none" stroke="#22C55E" stroke-width="6" stroke-linecap="round"/>';
+    FASES.forEach(function (f, i) {
+      var c = COL[f.e], x = xs[i], y = ys[i];
+      s += '<g class="clic" data-fase="' + f.id + '">';
+      s += '<circle class="fondo" cx="' + x + '" cy="' + y + '" r="36" fill="#11253F"/><circle class="aro" cx="' + x + '" cy="' + y + '" r="36" fill="none" stroke="' + c + '" stroke-width="3"/>';
+      s += ico(f.ico, x-16, y-16, 32, c);
+      var ty = y + (i % 2 ? 62 : -68);
+      s += '<text class="t-eti" x="' + x + '" y="' + (ty - 14) + '" font-size="10" text-anchor="middle">' + f.n.toUpperCase() + '</text>';
+      s += '<text class="t-tit" x="' + x + '" y="' + (ty + 4) + '" font-size="14" text-anchor="middle">' + f.t + '</text>';
+      s += '<text x="' + x + '" y="' + (ty + 21) + '" font-size="11" text-anchor="middle" fill="' + c + '" font-family="IBM Plex Mono, monospace">' + EST[f.e] + '</text>';
+      s += '</g>';
+    });
+    s += '<text class="t-eti" x="24" y="618" font-size="10">TOCÁ UN PASO PARA VER QUÉ ENTRA, QUÉ HACE, QUÉ SALE Y QUÉ IMPORTA</text>';
+    s += '</svg>';
+    return '<div class="escena">' + s +
+      '<div class="ley"><span><i class="sw" style="background:#22C55E"></i>hecho</span><span><i class="sw" style="background:#FF8A3D"></i>mi veredicto</span><span><i class="sw" style="background:#4F6A8C"></i>tu decisión</span><span style="margin-left:auto">Nada de esto se mandó a la IA: son los pedidos, no las respuestas.</span></div></div>';
+  }
+
+  // ------------------------------------------------------------------ nivel 1: un paso
+  function escenaFase(f) {
+    var c = COL[f.e];
+    var s = '<svg viewBox="0 0 1000 520" role="img" aria-label="' + f.n + '">';
+    var pos = { entra: [190, 130], hace: [810, 130], sale: [190, 390], ojo: [810, 390] };
+    SECT.forEach(function (sc) { var p = pos[sc.k]; var n = (f.s[sc.k] || []).length; s += '<path d="M' + p[0] + ' ' + p[1] + ' L500 260" fill="none" stroke="' + (n ? sc.col : '#16304E') + '" stroke-width="' + (n ? 2 : 1) + '" stroke-dasharray="' + (n ? '0' : '4 5') + '" opacity=".7"/>'; });
+    s += '<circle cx="500" cy="260" r="92" fill="#162C4C" stroke="' + c + '" stroke-width="3"/>' + ico(f.ico, 476, 200, 48, c);
+    s += '<text class="t-eti" x="500" y="270" font-size="10" text-anchor="middle">' + f.n.toUpperCase() + '</text>';
+    s += '<text class="t-tit" x="500" y="292" font-size="19" text-anchor="middle">' + f.t + '</text>';
+    s += '<text x="500" y="312" font-size="11" text-anchor="middle" fill="' + c + '" font-family="IBM Plex Mono, monospace">' + EST[f.e] + '</text>';
+    SECT.forEach(function (sc) {
+      var p = pos[sc.k], items = f.s[sc.k] || [], n = items.length;
+      s += '<g class="clic' + (n ? '' : ' apagado') + '" data-sector="' + sc.k + '">';
+      s += '<rect class="fondo" x="' + (p[0]-150) + '" y="' + (p[1]-52) + '" width="300" height="104" rx="14" fill="#11253F"/><rect class="aro" x="' + (p[0]-150) + '" y="' + (p[1]-52) + '" width="300" height="104" rx="14" fill="none" stroke="' + (n ? sc.col : '#1D3A5C') + '" stroke-width="2"/>';
+      s += '<circle cx="' + (p[0]-105) + '" cy="' + p[1] + '" r="26" fill="' + sc.col + '22"/>' + ico(sc.ico, p[0]-120, p[1]-15, 30, sc.col);
+      s += '<text class="t-tit" x="' + (p[0]-66) + '" y="' + (p[1]-16) + '" font-size="17">' + sc.t + '</text>';
+      s += '<text class="t-sub" x="' + (p[0]-66) + '" y="' + (p[1]+4) + '" font-size="12">' + sc.ss + '</text>';
+      s += '<text x="' + (p[0]-66) + '" y="' + (p[1]+26) + '" font-size="12" fill="' + (n ? sc.col : '#4F6A8C') + '" font-family="IBM Plex Mono, monospace">' + (n ? (n === 1 ? '1 tarjeta' : n + ' tarjetas') + '  →' : 'no aplica en este paso') + '</text>';
+      s += '</g>';
+    });
+    s += '</svg>';
+    return '<div class="escena"><div class="cab-escena"><h2>' + f.n + ' · ' + f.t + '</h2><p><b>Qué es:</b> ' + f.obj + '</p><p><b>Lo que queda:</b> ' + f.cierre + '</p></div>' + s +
+      '<div class="ley"><span>Tocá un sector para ver el detalle en tarjetas.</span></div></div>';
+  }
+
+  // ------------------------------------------------------------------ nivel 2: tarjetas gráficas
+  function mock(tipo, col) {
+    col = col || '#FF8A3D';
+    var b = '<svg viewBox="0 0 120 84">';
+    b += '<rect x="30" y="2" width="60" height="80" rx="8" fill="#0A1729" stroke="#1D3A5C"/><rect x="36" y="9" width="48" height="6" rx="2" fill="#1D3A5C"/>';
+    if (tipo === 'lista') { for (var i = 0; i < 4; i++) b += '<rect x="36" y="' + (20 + i*13) + '" width="48" height="9" rx="2" fill="' + (i===0? col : '#162C4C') + '"/>'; }
+    else if (tipo === 'detalle') { b += '<rect x="36" y="20" width="48" height="16" rx="2" fill="#162C4C"/>'; for (var k = 0; k < 3; k++) b += '<circle cx="41" cy="' + (44 + k*11) + '" r="2.5" fill="' + (k===1? col : '#1D3A5C') + '"/><rect x="47" y="' + (42 + k*11) + '" width="37" height="5" rx="1.5" fill="#162C4C"/>'; }
+    else if (tipo === 'form') { for (var m = 0; m < 3; m++) b += '<rect x="36" y="' + (20 + m*13) + '" width="48" height="9" rx="2" fill="#162C4C" stroke="#1D3A5C"/>'; b += '<rect x="36" y="62" width="48" height="11" rx="3" fill="' + col + '"/>'; }
+    else if (tipo === 'config') { for (var q = 0; q < 3; q++) b += '<rect x="36" y="' + (22 + q*14) + '" width="30" height="6" rx="2" fill="#162C4C"/><rect x="70" y="' + (20 + q*14) + '" width="14" height="9" rx="4.5" fill="' + (q===0? col : '#1D3A5C') + '"/><circle cx="' + (q===0? 79 : 75) + '" cy="' + (24.5 + q*14) + '" r="3.2" fill="#E8EFF9"/>'; }
+    else if (tipo === 'tablero') { b += '<rect x="36" y="20" width="48" height="10" rx="2" fill="#162C4C"/>'; [22, 30, 14, 26].forEach(function (h, i) { b += '<rect x="' + (38 + i*12) + '" y="' + (74 - h) + '" width="8" height="' + h + '" rx="1.5" fill="' + (i===1? col : '#2D7FF9') + '"/>'; }); }
+    return b + '</svg>';
+  }
+  function tarjeta(it, col) {
+    var h = '<div class="tj">';
+    if (it.tipo === 'tabla') {
+      h += '<svg viewBox="0 0 120 84"><rect x="6" y="6" width="108" height="72" rx="6" fill="#0A1729" stroke="' + col + '"/><rect x="6" y="6" width="108" height="16" rx="6" fill="' + col + '33"/>' + '<g transform="translate(12,9) scale(0.42)" fill="none" stroke="' + col + '" stroke-width="2">' + ICO.datos + '</g>';
+      it.cols.forEach(function (c, i) { if (i < 4) h += '<rect x="14" y="' + (29 + i*12) + '" width="6" height="6" rx="1" fill="' + col + '"/><text x="25" y="' + (35 + i*12) + '" font-size="7" fill="#E8EFF9" font-family="IBM Plex Mono, monospace">+ ' + c + '</text>'; });
+      h += '</svg><div class="tt">' + it.tt + '</div><div class="ss">' + it.ss + '</div>';
+    } else if (it.tipo === 'flujo') {
+      h += '<svg viewBox="0 0 120 84"><rect x="2" y="30" width="48" height="24" rx="6" fill="#162C4C" stroke="#1D3A5C"/><text x="26" y="45" font-size="6" text-anchor="middle" fill="#94ABC8">' + it.de + '</text><path d="M52 42 L64 42" stroke="' + col + '" stroke-width="2"/><path d="M60 37 L67 42 L60 47z" fill="' + col + '"/><rect x="68" y="30" width="50" height="24" rx="6" fill="' + col + '22" stroke="' + col + '"/><text x="93" y="45" font-size="6" text-anchor="middle" fill="#E8EFF9">' + it.a + '</text></svg><div class="tt">' + it.tt + '</div><div class="ss">' + it.ss + '</div>';
+    } else if (it.tipo === 'pantalla') {
+      h += mock(it.mock, col) + '<div class="tt">' + it.tt + '</div><div class="ss">' + it.ss + '</div>';
+    } else if (it.tipo === 'numero') {
+      h += '<svg viewBox="0 0 120 84"><circle cx="60" cy="42" r="32" fill="' + col + '22" stroke="' + col + '" stroke-width="2"/><text x="60" y="40" font-size="14" text-anchor="middle" fill="#E8EFF9" font-family="IBM Plex Mono, monospace" font-weight="600">' + it.n + '</text><text x="60" y="54" font-size="6.5" text-anchor="middle" fill="#94ABC8">' + it.sub + '</text></svg><div class="tt">' + it.tt + '</div><div class="ss">' + it.ss + '</div>';
+    } else {
+      h += '<div style="display:flex;justify-content:center;padding:14px 0">' + icoHTML(it.ico || 'nota', 44, col) + '</div><div class="tt">' + it.tt + '</div><div class="ss">' + it.ss + '</div>';
+    }
+    return h + '</div>';
+  }
+  function escenaSector(f, sc) {
+    var items = f.s[sc.k] || [];
+    var h = '<div class="escena"><div class="cab-escena"><h2>' + f.n + ' · ' + sc.t + '</h2><p>' + (items.length ? sc.ss + '. Cada tarjeta es una cosa.' : 'Este paso no tiene nada acá.') + '</p></div>';
+    h += items.length ? '<div class="tarjetas">' + items.map(function (it) { return tarjeta(it, sc.col); }).join('') + '</div>' : '<div class="vacio">Nada acá. Volvé y tocá otro sector.</div>';
+    return h + '</div>';
+  }
+  function escenaActor(a) {
+    var h = '<div class="escena"><div class="cab-escena"><h2>' + a.t + '</h2><p>' + a.ss + '</p></div><div class="tarjetas">';
+    a.p.forEach(function (p) {
+      var col = p.e === 'mueve' ? '#FF8A3D' : (p.e === 'app' ? '#2D7FF9' : '#4F6A8C');
+      h += '<div class="tj">' + mock(p.mock, col) + '<div class="tt">' + p.tt + '</div><div class="ss">' + p.ss + '</div><div class="mono" style="color:' + col + '">' + (p.e === 'mueve' ? 'lo mueven tus respuestas' : p.e === 'app' ? 'datos de la app' : 'fijo del molde') + '</div></div>';
+    });
+    return h + '</div></div>';
+  }
+
+  // ------------------------------------------------------------------ navegación
+  var pila = [];
+  var cont = document.getElementById('escena'), miga = document.getElementById('miga'), volver = document.getElementById('volver'), ayuda = document.getElementById('ayuda');
+  function ir(e) { pila.push(e); pintar(); }
+  function pintar() {
+    var e = pila[pila.length - 1];
+    if (e.tipo === 'ruta') cont.innerHTML = escenaRuta();
+    else if (e.tipo === 'fase') cont.innerHTML = escenaFase(e.f);
+    else if (e.tipo === 'sector') cont.innerHTML = escenaSector(e.f, e.sc);
+    else if (e.tipo === 'actor') cont.innerHTML = escenaActor(e.a);
+    volver.disabled = pila.length < 2;
+    miga.innerHTML = pila.map(function (x, i) {
+      var t = x.tipo === 'ruta' ? 'Qué hice' : x.tipo === 'fase' ? x.f.n + ' · ' + x.f.t : x.tipo === 'sector' ? x.sc.t : x.a.t;
+      return (i ? '<i>›</i>' : '') + '<b data-i="' + i + '" class="' + (i === pila.length - 1 ? 'actual' : '') + '">' + t + '</b>';
+    }).join('');
+    ayuda.textContent = e.tipo === 'ruta' ? 'Tocá un paso o una pieza para abrirlo' : e.tipo === 'fase' ? 'Tocá un sector para bajar al detalle' : '';
+    cont.querySelectorAll('[data-fase]').forEach(function (g) { g.addEventListener('click', function () { ir({ tipo: 'fase', f: FASES[+g.dataset.fase] }); }); });
+    cont.querySelectorAll('[data-actor]').forEach(function (g) { g.addEventListener('click', function () { ir({ tipo: 'actor', a: ACTORES[g.dataset.actor] }); }); });
+    cont.querySelectorAll('[data-sector]').forEach(function (g) { g.addEventListener('click', function () { var sc = SECT.filter(function (x) { return x.k === g.dataset.sector; })[0]; if ((e.f.s[sc.k] || []).length) ir({ tipo: 'sector', f: e.f, sc: sc }); }); });
+    miga.querySelectorAll('b[data-i]').forEach(function (b) { b.addEventListener('click', function () { var i = +b.dataset.i; if (i < pila.length - 1) { pila = pila.slice(0, i + 1); pintar(); } }); });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  volver.addEventListener('click', function () { if (pila.length > 1) { pila.pop(); pintar(); } });
+  ir({ tipo: 'ruta' });
+})();
+</script>

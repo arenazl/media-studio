@@ -28,9 +28,9 @@
         "pantallasDelProducto": "Insertos puntuales únicamente de interfaces verificadas en el media kit. Si no hay capturas, describir la acción sin inventar pantallas ni textos literales.",
         "tono": "Cercano y creíble; el tratamiento elegido decide si es sobrio, cálido o humorístico.",
         "noAsumir": [
-          "garantizar que todo reclamo se resuelve",
+          "garantizar que todo pedido se resuelve",
           "inventar plazos, interfaces o pantallas",
-          "convertir una ciudad mencionada en un cliente real",
+          "convertir una organización mencionada en un cliente real",
           "presentar un caso inventado como caso documentado"
         ],
         "cierre": "Una consecuencia humana ligada al beneficio, con firma o mensaje de marca si está disponible.",
@@ -41,7 +41,9 @@
           "beneficio específico",
           "qué parte de la operación se evidencia"
         ]
-      }
+      },
+      "fichaTexto": "ENFOQUE: UN CASO DE PRINCIPIO A FIN [caso]\n\nPROPÓSITO\nDemostrar un beneficio real del producto mediante una situación\nhumana específica. El espectador debe identificar el problema,\ncomprender qué cambia gracias a la marca y reconocer una\nconsecuencia verificable.\n\nREGLA CREATIVA CENTRAL\nUna historia no es una enumeración de funcionalidades.\nElegí una necesidad humana, una acción importante y\nuna transformación perceptible.\n\nESTRUCTURA NARRATIVA\nLa historia puede utilizar:\n- Una situación concreta que ya está ocurriendo.\n- Una decisión o acción sencilla de la persona.\n- Una intervención verificable del producto.\n- Una consecuencia humana o práctica.\n- Una firma de marca.\n\nEstos componentes son recursos narrativos, NO escenas obligatorias.\nNo exijas introducción, nudo y desenlace separados.\nSe puede comenzar por la consecuencia y revelar la causa después.\n\nESCALA\nEn piezas de hasta 30 segundos:\n- Un único conflicto principal.\n- Un beneficio dominante.\n- Como máximo dos capacidades del producto si se complementan.\n- Un cambio reconocible antes del cierre.\n\nPERSONAJES\nLa persona afectada debe conservar su iniciativa.\nPuede recibir ayuda, pero nunca perder su autonomía sólo\npara que otro personaje explique el producto.\n\nVERACIDAD\nEl resultado puede ser un avance, una decisión o una\nsituación mejor informada. No tiene que ser el problema\ncompletamente resuelto.\n\nNo inventes plazos, éxitos comerciales, resultados finales,\nclientes reales ni testimonios documentados.\n\nPANTALLAS\nLas interfaces verificadas se incorporan como material de\nmontaje. No pedir al generador de video que recree sus textos,\nbotones, cifras ni animaciones.\n\nCRITERIO DE APROBACIÓN\nSi eliminamos el logo, la historia debe seguir teniendo\nsentido humano.\nSi eliminamos el producto, debe perder su solución específica.\nSi el beneficio elegido no aparece, el concepto no está listo.",
+      "curacion": "02 (2026-10-11): texto de ChatGPT tal cual; reemplaza a la ficha en el prompt"
     },
     {
       "id": "producto",
@@ -97,7 +99,7 @@
         "pantallasDelProducto": "Usar únicamente interfaces reales para representar la conexión; evitar pantallas imaginarias de interoperabilidad.",
         "tono": "Humano, colaborativo, equilibrado entre las dos perspectivas.",
         "noAsumir": [
-          "que el equipo municipal es negligente",
+          "que el equipo que atiende es negligente",
           "que la solución garantiza respuesta inmediata",
           "que ambas partes ven exactamente la misma información"
         ],
@@ -236,7 +238,7 @@
         "noAsumir": [
           "mascotas o personificaciones absurdas por defecto",
           "chistes sin relación con el producto",
-          "ridiculizar funcionarios, vecinos o clientes",
+          "ridiculizar a quienes atienden o a los usuarios",
           "falsos casos de corrupción o negligencia",
           "explicar el remate con una locución"
         ],
@@ -265,7 +267,8 @@
     {
       "id": "calido",
       "label": "Cálido",
-      "instruccion": "Cercanía y vínculo humano. Emoción que nace de la situación, no de frases inspiracionales."
+      "instruccion": "TRATAMIENTO: CÁLIDO [calido]\n\nOBJETIVO\nTransmitir cercanía, humanidad y confianza sin sentimentalismo.\n\nESCRITURA\n- Español rioplatense conversado.\n- Frases que una persona realmente diría.\n- Preferir observaciones concretas antes que conceptos abstractos.\n- Permitir pequeños rasgos de personalidad y humor cotidiano.\n- Evitar explicaciones técnicas en boca de personajes.\n- No convertir a los protagonistas en vendedores del producto.\n\nACTUACIÓN\n- Gestos contenidos y espontáneos.\n- Miradas, silencios y reacciones breves.\n- Complicidad entre personajes cuando corresponda.\n- Evitar sonrisas constantes, emoción forzada y sobreactuación.\n- Mantener la autonomía de los personajes mayores.\n\nREALIZACIÓN\n- Cámara a escala humana.\n- Luz natural o motivada por el ambiente.\n- Espacios con detalles cotidianos, no decorados genéricos.\n- Música discreta que acompañe, no que imponga la emoción.\n\nHUMOR\nPuede surgir de una frase, una mirada o una situación reconocible.\nNo exigir chiste, remate cómico ni estructura de sketch.\n\nCONTROL\nPreguntate:\n¿La emoción nace del acontecimiento o estamos fabricándola\ncon música, frases o actuación?\n¿El personaje parece una persona o un portavoz de marketing?\n¿La marca interviene en el momento correcto?",
+      "curacion": "02 (2026-10-11): texto de ChatGPT tal cual"
     },
     {
       "id": "aspiracional",

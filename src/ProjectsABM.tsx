@@ -21,8 +21,9 @@ function cardAccent(p: Project): string {
   return ACCENT_VARS[hash % ACCENT_VARS.length];
 }
 
+// fecha y hora (Lucas, 2026-10-10: "ponele fecha de creación a cada proyecto"; hay varios "Munify" y se distinguen por la hora)
 const fmtDate = (ms: number) =>
-  ms ? new Date(ms).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '';
+  ms ? new Date(ms).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
 
 // Cuenta reels que ya tienen voiceConfig guardado
 const reelsGrabados = (p: Project) => p.reels.filter((r) => r.voiceConfig?.voice_id).length;
@@ -126,9 +127,9 @@ export default function ProjectsABM({ onOpen }: Props) {
                   {p.reels.length} reels
                   {grabados > 0 && <span className="abm-card-stat-chip">{grabados} grabados</span>}
                 </span>
-                <span className="abm-card-stat abm-card-stat--right">
+                <span className="abm-card-stat abm-card-stat--right" title={`creado ${fmtDate(p.created_at)} · modificado ${fmtDate(p.updated_at)} · id ${p.id}`}>
                   <Clock size={11} />
-                  {fmtDate(p.updated_at)}
+                  creado {fmtDate(p.created_at)}
                 </span>
               </div>
             </div>

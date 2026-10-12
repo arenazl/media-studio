@@ -38,10 +38,9 @@ import {
   listProjects, getProject, saveProject, deleteProject,
   listCloudVideos, saveCloudVideo, deleteCloudVideo,
   getAppConfig, listAppConfigs, saveAppConfig, deleteAppConfig,
-  saveGenerationRun, listGenerationRuns, findCachedRun,
-  DB_PATH,
-} from './db.mjs';
-import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS, extractJson } from './functions.mjs';
+  saveGenerationRun, listGenerationRuns, findCachedRun, listRunsDePieza,
+  DB_PATH, runsCompletosDePieza, estrategiaHuerfana } from './db.mjs';
+import { buildFunctionPrompt, parseFunctionResult, IMPLEMENTED_FUNCTIONS, extractJson, normalizarDuraciones, asignarCapturas } from './functions.mjs';
 import { validarResultado, promptReparacion, generationKey } from './prompting.mjs';
 import { scanMediaKits, readMediaKit, resolveKitFile, MEDIA_KIT_ROOT } from './mediaKit.mjs';
 import { assemble } from './assemble.mjs';
@@ -49,6 +48,13 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
+import { generarMockupsApp, catalogoDeApp } from './mockupsApp.mjs';
+import { escribirTarjetasPlantilla, progresoDe } from './tarjetasPlantilla.mjs';
+import { capasDe } from './orquestador.mjs';
+import { planDeCampana, REGLAS as REGLAS_ORQUESTACION } from './orquestacion.mjs';
+import { radiografia } from './radiografia.mjs';
+import { exportarGuion, importarGuion } from './curacionGuion.mjs';
+import { armarPedido, leerRespuesta, CONTRATO_VERSION } from './contratoMateriaPrima.mjs';
 import { transcribirArchivo } from './transcribir.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
@@ -110,6 +116,66 @@ function loadRegistry() {
   } catch { return { generadores: {}, aplicaciones: [] }; }
 }
 const loadKbApps = () => loadRegistry().aplicaciones || [];
+// Apps que todavía no están en el registro KSP pero dejaron su media-kit/ en D:\Code (RepareHoy, 2026-10-10): entran
+// a las Integraciones igual, con el KB armado desde el kit. Cuando Infra las registre, el registro manda.
+const appsSoloKit = () => {
+  const registradas = new Set(loadKbApps().map((a) => String(a.id || '').toLowerCase()));
+  return scanMediaKits(MEDIA_KIT_ROOT).filter((k) => !registradas.has(String(k.id).toLowerCase())).map((k) => ({ id: k.id, nombre: k.app || k.id, servidor: '', soloKit: true }));
+};
+const buscarApp = (appId) => loadKbApps().find((a) => a.id === appId) || appsSoloKit().find((a) => a.id === appId) || null;
+// El KB (contrato 1.2) construido sólo con el media kit: negocio, marca, logo, pantallas y CTA. Es lo mismo que hace
+// /api/kb/inspect cuando el KB remoto no responde, factorizado para las apps que sólo tienen kit.
+// Las corridas de una pieza para la radiografía; si la estrategia del proyecto no quedó registrada con él (asistente viejo),
+// se busca la que corrió cerca de la creación del proyecto.
+function corridasConEstrategia(row, pieceId) {
+  const runs = runsCompletosDePieza(row.id, pieceId);
+  if (!runs.some((r) => r.function_id === 'strategy')) { const h = estrategiaHuerfana(Number(row.created_at) || 0); if (h) runs.unshift(h); }
+  return runs;
+}
+function kbDesdeMediaKit(mk, nombreApp) {
+  const logoUrl = mk.marca?.logo?.principal ? `http://localhost:${PORT}/api/media-kit/${encodeURIComponent(mk.id)}/file/${mk.marca.logo.principal.replace(/^\/+/, '')}` : '';
+  return {
+    contract_version: '1.2-mediakit',
+    last_updated: mk.generado || new Date().toISOString(),
+    business: {
+      name: mk.app || mk.marca?.nombreExacto || nombreApp,
+      tagline: mk.negocio?.queEs,
+      description: mk.negocio?.queVende,
+      target_audience: mk.negocio?.audienciaPrioritaria || (Array.isArray(mk.negocio?.aQuien) ? mk.negocio.aQuien.join(', ') : ''),
+      industry: mk.negocio?.zona,
+    },
+    differentiators: mk.negocio?.diferenciales || [],
+    // la tesis (38 §3 5bis): lo que se vende, contra qué, el momento mágico, a quién primero; va arriba del brief
+    thesis: mk.tesis && typeof mk.tesis === 'object' ? { strong: mk.tesis.fuerte, comparison: mk.tesis.comparacion, enemy: mk.tesis.enemigo, magic_moment: mk.tesis.momentoMagico, sell_first: mk.tesis.venderPrimero } : undefined,
+    pains: mk.negocio?.dolorDelCliente || [],
+    // un dolor por audiencia: dolorDelCliente, dolorDelProveedor, ... (RepareHoy, 2026-10-10: el del proveedor no se leía)
+    pains_by_audience: Object.fromEntries(Object.entries(mk.negocio || {}).filter(([k, v]) => /^dolorDel?[A-ZÁÉÍÓÚ]/.test(k) && Array.isArray(v) && v.length).map(([k, v]) => [k.replace(/^dolorDel?/, '').toLowerCase(), v])),
+    do_not_say: mk.negocio?.queNoDecir || [],
+    cta: mk.cta ? { primary: mk.cta.principal, url: mk.cta.url, secondary: mk.cta.secundario } : undefined,
+    brand: {
+      name: mk.marca?.nombreExacto || mk.app || nombreApp,
+      phonetic: mk.marca?.fonetica,
+      claim: mk.marca?.claim,
+      colors: { primary: mk.marca?.colores?.primario || '#0f172a', accent: mk.marca?.colores?.acento || '#e11d48', background: mk.marca?.colores?.fondo, text: mk.marca?.colores?.texto },
+      fonts: { titles: mk.marca?.tipografias?.titulos || 'Inter', body: mk.marca?.tipografias?.texto || 'Inter' },
+      logo: { primary: logoUrl, svg: mk.marca?.logo?.svg },
+      ui_style: mk.marca?.estiloUI,
+      tone: mk.marca?.tono,
+    },
+    screens: (mk.pantallas || []).map((p) => ({
+      label: p.nombre || p.archivo,
+      kind: p.viewport || 'desktop',
+      headline: p.queDemuestra,
+      components: p.datosVisibles || [],
+      zona_clave: p.zonaClave,
+      micro_animation: p.microAnimacion,
+      pattern: p.patronDelEstandar,
+      image: p.archivo ? `http://localhost:${PORT}/api/media-kit/${encodeURIComponent(mk.id)}/file/${String(p.archivo).replace(/^\/+/, '')}` : undefined,
+    })),
+    moments: mk.momentos || [],
+    media_kit_id: mk.id,
+  };
+}
 // mi clave de generador: env (prod, desde Secret Manager) o el registro (local). El front nunca la ve.
 const myKbKey = () => process.env.KB_CLAVE_MEDIASTUDIO || loadRegistry().generadores?.[KB_GENERATOR]?.clave || '';
 
@@ -248,7 +314,7 @@ console.log(`[media-studio] claude CLI: ${CLAUDE_BIN.cmd}`);
 // Code. Sin esto cada molde arrancaba con ~49K tokens de CLAUDE.md global, memoria, 40 agentes y
 // skills que no tienen nada que ver con escribir un concepto — y que además lo condicionan.
 const MOLDE_SYSTEM = 'Sos un redactor creativo que trabaja para un estudio de video de marketing. Hacés exactamente lo que te pide el pedido, en el formato que te pide, sin comentarios, sin preguntas y sin markdown. No inventás datos que no estén en el pedido. Escribís en español rioplatense natural, con voseo cuando corresponda, sin emojis ni jerga publicitaria vacía; la excepción son los campos cuyo contrato pida otro idioma (por ejemplo, descripciones en inglés para prompts de video), que van en ese idioma.';
-function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash,Edit,Write', timeout = 900_000, model, clean = false, thinking } = {}) {
+function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash,Edit,Write', timeout = 900_000, model, clean = false, thinking, tools = '', system = '' } = {}) {
   return new Promise((resolve, reject) => {
     const env = { ...process.env };
     delete env.CLAUDECODE; delete env.CLAUDE_CODE_ENTRYPOINT;
@@ -259,7 +325,8 @@ function runClaude(prompt, { cwd = REPO_CWD, allowedTools = 'Read,Grep,Glob,Bash
     const args = clean
       // --strict-mcp-config + mcp vacío: sin esto el CLI carga igual los ~60 tools de los conectores
       // de claude.ai (Gmail, Drive, Docs...) y son 41K tokens de contexto por molde. Medido: 198 tokens.
-      ? ['-p', '--output-format', 'stream-json', '--verbose', '--setting-sources', '', '--tools', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--system-prompt', MOLDE_SYSTEM]
+      // tools: sólo para quien necesita ojos (el agente de tarjetas mira capturas con Read); el resto sigue sin herramientas
+      ? ['-p', '--output-format', 'stream-json', '--verbose', '--setting-sources', '', '--tools', tools || '', ...(tools ? ['--permission-mode', 'bypassPermissions'] : []), '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--system-prompt', system || MOLDE_SYSTEM]
       : ['-p', '--output-format', 'stream-json', '--verbose', '--allowedTools', allowedTools, '--permission-mode', 'bypassPermissions'];
     if (MODEL_WHITELIST.includes(model)) args.push('--model', model);
     const proc = spawn(CLAUDE_BIN.cmd, args, { cwd, env, shell: CLAUDE_BIN.shell });
@@ -341,7 +408,7 @@ const MODELO_INTERMEDIO = { creativo: 'opus', estructurado: 'sonnet', transforma
 // Tope de tokens de pensamiento por clase: lo creativo puede pensar un poco (tope, no ilimitado);
 // convertir con reglas y traducir no necesitan pensar (0 = apagado). Override: body.thinking.
 const THINKING_POR_CLASE = { creativo: 2000, estructurado: 0, transformacion: 0 };
-async function runAI({ prompt, imageBuffer = null, cwd, allowedTools, model, functionId, provider, thinking }) {
+async function runAI({ prompt, imageBuffer = null, cwd, allowedTools, model, functionId, provider, thinking, tools, system }) {
   const selectedProvider = provider || (currentLlmProvider === 'auto' ? (IS_PROD ? 'gemini' : 'claude') : currentLlmProvider);
   const isCreativePhase = ['concept', 'strategy', 'angulo'].includes(functionId);
 
@@ -363,7 +430,7 @@ async function runAI({ prompt, imageBuffer = null, cwd, allowedTools, model, fun
   }
   // Molde de texto puro: sin tools ni settings del CLI (ver MOLDE_SYSTEM).
   const tope = thinking != null ? thinking : THINKING_POR_CLASE[TASK_CLASS[functionId] || 'transformacion'];
-  const r = await runClaude(prompt, { cwd, allowedTools, model: claudeModel, clean: true, thinking: tope });
+  const r = await runClaude(prompt, { cwd, allowedTools, model: claudeModel, clean: true, thinking: tope, tools, system });
   return { ...r, topeThinking: tope };
 }
 
@@ -999,28 +1066,39 @@ ${src}`;
 
     // ── Integraciones (KSP): lista del registro + traer el KB ────────────────
     if (p === '/api/kb/apps' && req.method === 'GET') {
-      const apps = loadKbApps().map((a) => ({ id: a.id, name: a.nombre, base_url: a.servidor || '', ready: !!a.servidor }));
+      const apps = [
+        ...loadKbApps().map((a) => ({ id: a.id, name: a.nombre, base_url: a.servidor || '', ready: !!a.servidor })),
+        ...appsSoloKit().map((a) => ({ id: a.id, name: a.nombre, base_url: '', ready: true, soloKit: true })),
+      ];
       return json(res, 200, { apps });
     }
     if (p === '/api/kb/fetch' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
-      const app = loadKbApps().find((a) => a.id === body.appId);
-      if (!app) return json(res, 404, { error: 'esa Integración no está en el registro' });
+      const app = buscarApp(body.appId);
+      if (!app) return json(res, 404, { error: 'esa Integración no está en el registro ni tiene media kit' });
+      if (app.soloKit) {
+        const mk = readMediaKit(app.id) || readMediaKit(String(app.id).toLowerCase());
+        if (!mk) return json(res, 404, { error: 'no pude leer el media kit de esa app' });
+        return json(res, 200, { app: { id: app.id, name: app.nombre, soloKit: true }, kb: kbDesdeMediaKit(mk, app.nombre) });
+      }
       try { return json(res, 200, { app: { id: app.id, name: app.nombre }, kb: await fetchKbFor(app) }); }
       catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error trayendo el KB' }); }
     }
     // trae el KB + chequea la salud (1.2: pantallas = METADATA descriptiva, no URLs; logo inline/URL).
     if (p === '/api/kb/inspect' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
-      const app = loadKbApps().find((a) => a.id === body.appId);
-      if (!app) return json(res, 404, { error: 'esa Integración no está en el registro' });
+      const app = buscarApp(body.appId);
+      if (!app) return json(res, 404, { error: 'esa Integración no está en el registro ni tiene media kit' });
 
       const mk = readMediaKit(app.id) || readMediaKit(app.id.toLowerCase());
       let kb = null;
-      try {
-        kb = await fetchKbFor(app);
-      } catch {
-        /* remote offline */
+      if (app.soloKit && mk) kb = kbDesdeMediaKit(mk, app.nombre);   // sin KSP: el kit es el KB
+      else {
+        try {
+          kb = await fetchKbFor(app);
+        } catch {
+          /* remote offline */
+        }
       }
 
       if (mk) {
@@ -1133,6 +1211,151 @@ ${src}`;
     // El front manda { functionId, context, options, regenerate }. El backend arma el
     // prompt (molde de la función) y lo corre con la IA. regenerate = { clipId, sequence }
     // rehace solo ese ítem. Barato: 1 llamada por botón, nunca el panel completo.
+    // ── Orquestador (2026-10-10): el prompt de un molde para una pieza, armado SIN llamar al modelo, por capas ──
+    // ── Orquestación de campaña (2026-10-10): el plan de la campaña desde el kit, sin llamar al modelo ──
+    if (p === '/api/orquestacion/reglas' && req.method === 'GET') return json(res, 200, REGLAS_ORQUESTACION);
+    if (p === '/api/orquestacion/plan' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      let kb = body.kb || null;
+      if (!kb && body.appId) {
+        const app = buscarApp(body.appId);
+        if (!app) return json(res, 404, { error: 'esa Integración no está en el registro ni tiene media kit' });
+        const mk = readMediaKit(app.id) || readMediaKit(String(app.id).toLowerCase());
+        if (mk) kb = kbDesdeMediaKit(mk, app.nombre);   // el kit trae momentos y pantallas: es lo que la regla necesita
+        else {
+          try { kb = await fetchKbFor(app); } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error trayendo el KB' }); }
+        }
+      }
+      if (!kb) return json(res, 400, { error: 'falta appId o kb' });
+      try { return json(res, 200, planDeCampana(kb, { formatoId: body.formatoId || 'reel-hibrido-9-16' })); }
+      catch (e) { return json(res, 400, { error: e instanceof Error ? e.message : 'no pude armar el plan' }); }
+    }
+    // ── Radiografía (2026-10-10): qué entró, qué salió, qué usó del kit y qué imaginó cada paso de una pieza ──
+    if (p.startsWith('/radiografia/') && req.method === 'GET') {
+      const [projectId, pieceId] = p.slice('/radiografia/'.length).split('/').map((s) => decodeURIComponent(s || ''));
+      const row = getProject(projectId);
+      const project = row ? { ...row.data, id: row.id, name: row.data?.name || row.name } : null;
+      const reel = project && (project.reels || []).find((r) => r.comercial?.id === pieceId || r.id === pieceId);
+      if (!reel?.comercial) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('No existe esa pieza en ese proyecto.'); }
+      let piezaPlan = null;
+      const nPlan = Number(url.searchParams.get('plan') || 0);
+      if (nPlan && project.kb) { try { piezaPlan = planDeCampana(project.kb, { formatoId: reel.comercial.formatoId || project.formatoId || 'reel-hibrido-9-16' }).piezas[nPlan - 1] || null; } catch { piezaPlan = null; } }
+      const datos = radiografia({ project, comercial: reel.comercial, runs: corridasConEstrategia(row, reel.comercial.id), piezaPlan });
+      const plantilla = fs.readFileSync(new URL('../scripts/radiografia/plantilla.html', import.meta.url), 'utf8');
+      const cuerpo = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/<\//g, '<\\/')).replace('__TITULO__', `Radiografía · ${String(reel.comercial.titulo || reel.comercial.angulo || '').replace(/[<>]/g, '')}`);
+      const i = cuerpo.indexOf('</style>') + '</style>'.length;
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="dark">${cuerpo.slice(0, i)}</head><body>${cuerpo.slice(i)}</body></html>`);
+    }
+    // ── Curación externa del guion (2026-10-10): exportar el camino entero para ChatGPT, leer su respuesta y aplicarla ──
+    // CONTRATO DE MATERIA PRIMA con ChatGPT (2026-10-11): `pedido` arma el JSON para pegarle a ChatGPT con los hechos reales
+    // del proyecto y sus piezas; `leer` toma la respuesta y devuelve, por pieza, el concepto, el guion, los personajes y el
+    // storyboard listos para cargar (los aplica el front, dueño único del proyecto). `aplicado` guarda pedido y respuesta
+    // completos en la carpeta compartida (doc 36). Ningún modelo se llama acá.
+    if (p.startsWith('/api/contrato/') && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const row = getProject(String(body.projectId || ''));
+      if (!row) return json(res, 404, { error: 'no existe ese proyecto' });
+      const project = { ...row.data, ...(body.project || {}), id: row.id, name: row.data?.name || row.name };
+      const accion = p.slice('/api/contrato/'.length);
+      if (accion === 'pedido') {
+        const pedido = armarPedido({ project });
+        return json(res, 200, { pedido, texto: JSON.stringify(pedido, null, 2), version: CONTRATO_VERSION });
+      }
+      if (accion === 'leer') return json(res, 200, leerRespuesta(String(body.texto || ''), { project, normalizar: normalizarDuraciones, asignarCapturas }));
+      if (accion === 'aplicado') {
+        try {
+          const dir = path.join(MEDIA_KIT_ROOT, 'base-compartida', 'mediastudio', 'curaciones');
+          fs.mkdirSync(path.join(dir, 'pedidos'), { recursive: true });
+          const nums = fs.readdirSync(dir).map((f) => Number((f.match(/^(\d{2})-/) || [])[1]) || 0);
+          const nn = String(Math.max(0, ...nums) + 1).padStart(2, '0');
+          const slug = `materia-prima-${String(project.name || 'proyecto').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}`;
+          const fecha = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+          fs.writeFileSync(path.join(dir, 'pedidos', `${nn}-${slug}.json`), String(body.pedido || ''), 'utf8');
+          fs.writeFileSync(path.join(dir, `${nn}-${slug}.md`), [`# ${nn} · Materia prima de ${project.name} escrita por ChatGPT (contrato ${CONTRATO_VERSION})`, '',
+            `- **Fecha:** ${fecha} (ART)`, `- **Aplicado a:** ${(body.piezas || []).join(', ') || '(ninguna)'}`, `- **Pedido:** \`pedidos/${nn}-${slug}.json\``, '', '## La respuesta completa de ChatGPT', '', '```json', String(body.texto || ''), '```', ''].join('\n'), 'utf8');
+          return json(res, 200, { archivo: path.join(dir, `${nn}-${slug}.md`) });
+        } catch (e) { return json(res, 500, { error: e instanceof Error ? e.message : 'no se guardó la curación' }); }
+      }
+      return json(res, 404, { error: 'acción desconocida' });
+    }
+    if (p.startsWith('/api/curacion/guion/') && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const row = getProject(String(body.projectId || ''));
+      if (!row) return json(res, 404, { error: 'no existe ese proyecto' });
+      if (!body.comercial?.id) return json(res, 400, { error: 'falta la pieza' });
+      const project = { ...row.data, id: row.id, name: row.data?.name || row.name };
+      const comercial = body.comercial;
+      const durationSec = Number(body.durationSec) || 20;
+      const accion = p.slice('/api/curacion/guion/'.length);
+      if (accion === 'exportar') {
+        const runs = corridasConEstrategia(row, comercial.id);
+        const radio = radiografia({ project, comercial, runs });
+        const texto = exportarGuion({ project, comercial, durationSec, formato: String(body.formatoNombre || ''), corridas: runs, radio });
+        return json(res, 200, { texto, palabras: texto.split(/\s+/).filter(Boolean).length });
+      }
+      if (accion === 'leer') return json(res, 200, importarGuion(String(body.texto || ''), { project, comercial, durationSec }));
+      if (accion === 'aplicar') {
+        const leido = importarGuion(String(body.texto || ''), { project, comercial, durationSec });
+        if (!leido.guion) return json(res, 400, { error: leido.errores[0] });
+        const ahora = Date.now();
+        // la curación queda como una corrida más del guion: la radiografía y la consola la muestran (prompt = lo exportado)
+        try { saveGenerationRun({ project_id: row.id, piece_id: comercial.id, function_id: 'script', prompt_version: 'script/curacion-externa', provider: 'chatgpt', model: 'chatgpt', model_real: 'ChatGPT (curación pegada a mano)', generation_key: '', started_at: ahora, finished_at: ahora, status: 'ok', validation: leido.errores, result_json: JSON.stringify(leido.guion), decisiones: { curacion: 'externa', enfoque: comercial.enfoque || null, tratamiento: comercial.tratamiento || null }, prompt_text: String(body.exportado || '') }); } catch (e) { console.warn('[media-studio] curación: no se registró la corrida:', e instanceof Error ? e.message : e); }
+        // la curación de los prompts se guarda completa, tal cual vino, en la carpeta compartida (doc 36); se aplica con el dale de Lucas
+        let archivo = '';
+        try {
+          const dir = path.join(MEDIA_KIT_ROOT, 'base-compartida', 'mediastudio', 'curaciones');
+          const nums = fs.readdirSync(dir).map((f) => Number((f.match(/^(\d{2})-/) || [])[1]) || 0);
+          const nn = String(Math.max(0, ...nums) + 1).padStart(2, '0');
+          const slug = `guion-${comercial.enfoque || 'enfoque'}-${comercial.tratamiento || 'tratamiento'}`;
+          const fecha = new Date(ahora).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+          fs.mkdirSync(path.join(dir, 'pedidos'), { recursive: true });
+          fs.writeFileSync(path.join(dir, 'pedidos', `${nn}-${slug}.md`), String(body.exportado || ''), 'utf8');
+          const md = [`# ${nn} · Curación del guion y de los prompts (${comercial.enfoque || '?'} + ${comercial.tratamiento || '?'}) por ChatGPT`, '',
+            `- **Problema:** el guion que sale de la orquestación (Negocio, Concepto, Guion) queda flojo; se cura afuera con todo el camino, la radiografía y los prompts.`,
+            `- **Fecha:** ${fecha} (ART)`,
+            `- **Pieza:** ${project.name} · ${comercial.titulo || comercial.angulo || comercial.id} (${comercial.enfoque || '?'}, ${comercial.tratamiento || '?'}, ${comercial.formatoId || '?'})`,
+            `- **Aplicado:** el guion curado, en la pieza${leido.errores.length ? ` (con avisos del validador: ${leido.errores.join('; ')})` : ''}. Los prompts: PENDIENTE, se aplican tal cual con el dale de Lucas.`,
+            `- **Pedido:** \`pedidos/${nn}-${slug}.md\``, '', '## La respuesta completa de ChatGPT', '', String(body.texto || ''), ''].join('\n');
+          fs.writeFileSync(path.join(dir, `${nn}-${slug}.md`), md, 'utf8');
+          const readme = path.join(dir, 'README.md');
+          if (fs.existsSync(readme)) fs.appendFileSync(readme, `| ${nn} | Guion y prompts del enfoque ${comercial.enfoque || '?'} + ${comercial.tratamiento || '?'} (${project.name}) | ${new Date(ahora).toISOString().slice(0, 10)} | \`pedidos/${nn}-${slug}.md\` | \`${nn}-${slug}.md\` | guion en la pieza; prompts pendientes |\n`, 'utf8');
+          archivo = path.join(dir, `${nn}-${slug}.md`);
+        } catch (e) { console.warn('[media-studio] curación: no se guardó el archivo:', e instanceof Error ? e.message : e); }
+        return json(res, 200, { ...leido, archivo });
+      }
+      return json(res, 404, { error: 'acción desconocida' });
+    }
+    // la consola de debug manda la pieza como la tiene el front (recién generada, quizá todavía sin guardar en la base)
+    if (p === '/api/radiografia' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const row = getProject(String(body.projectId || ''));
+      if (!row) return json(res, 404, { error: 'no existe ese proyecto' });
+      if (!body.comercial?.id) return json(res, 400, { error: 'falta la pieza' });
+      const project = { ...row.data, id: row.id, name: row.data?.name || row.name };
+      try { return json(res, 200, radiografia({ project, comercial: body.comercial, runs: corridasConEstrategia(row, body.comercial.id) })); }
+      catch (e) { return json(res, 500, { error: e instanceof Error ? e.message : 'no pude armar la radiografía' }); }
+    }
+    if (p.startsWith('/api/radiografia/') && req.method === 'GET') {
+      const [projectId, pieceId] = p.slice('/api/radiografia/'.length).split('/').map((s) => decodeURIComponent(s || ''));
+      const row = getProject(projectId);
+      if (!row) return json(res, 404, { error: 'no existe ese proyecto' });
+      const project = { ...row.data, id: row.id, name: row.data?.name || row.name };
+      const reel = (project.reels || []).find((r) => r.comercial?.id === pieceId || r.id === pieceId);
+      if (!reel?.comercial) return json(res, 404, { error: 'no existe esa pieza en el proyecto' });
+      // ?plan=N compara con la pieza N del plan de campaña (sólo si el proyecto trae el kit)
+      let piezaPlan = null;
+      const nPlan = Number(url.searchParams.get('plan') || 0);
+      if (nPlan && project.kb) { try { piezaPlan = planDeCampana(project.kb, { formatoId: reel.comercial.formatoId || project.formatoId || 'reel-hibrido-9-16' }).piezas[nPlan - 1] || null; } catch { piezaPlan = null; } }
+      try { return json(res, 200, radiografia({ project, comercial: reel.comercial, runs: corridasConEstrategia(row, reel.comercial.id), piezaPlan })); }
+      catch (e) { return json(res, 500, { error: e instanceof Error ? e.message : 'no pude armar la radiografía' }); }
+    }
+    if (p === '/api/orquestador/capas' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!body.functionId) return json(res, 400, { error: 'falta functionId' });
+      try { return json(res, 200, capasDe(body)); }
+      catch (e) { return json(res, 400, { error: e instanceof Error ? e.message : 'no pude armar el prompt' }); }
+    }
     if (p === '/api/run-function' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
       if (!body.functionId) return json(res, 400, { error: 'falta functionId' });
@@ -1142,7 +1365,10 @@ ${src}`;
         const key = generationKey({ functionId: body.functionId, promptVersion, model, prompt, provider: body.provider });
         const projectId = String(body.projectId || ''), pieceId = String(body.pieceId || '');
         const t0 = Date.now();
-        const registrar = (extra) => { try { saveGenerationRun({ project_id: projectId, piece_id: pieceId, function_id: body.functionId, prompt_version: promptVersion, provider: body.provider || 'claude', model: model || '', generation_key: key, started_at: t0, finished_at: Date.now(), duration_ms: Date.now() - t0, input_chars: prompt.length, ...extra }); } catch (e) { console.warn('[media-studio] generation_runs:', e instanceof Error ? e.message : e); } };
+        // Traza de orquestación (2026-10-10): las DECISIONES con las que se pidió la corrida quedan con la corrida.
+        const px = body.context?.piece || {}, ox = body.options || {};
+        const decisiones = { perfil: ox.perfil ?? null, enfoque: ox.enfoque ?? px.enfoque ?? null, tratamiento: ox.tratamiento ?? px.tratamiento ?? null, intensidadHumor: ox.intensidadHumor ?? px.intensidadHumor ?? null, recursoHumorId: ox.recursoHumorId ?? px.recursoHumorId ?? null, cierreMarca: px.cierreMarca || null, angulo: px.angulo || null, tipo: px.tipo || null, durationSec: px.durationSec ?? null, tono: ox.tono ?? null, molde: ox.molde ?? null, cache: body.cache === true, regenerate: !!body.regenerate, modeloPedido: body.model || null };
+        const registrar = (extra) => { try { saveGenerationRun({ project_id: projectId, piece_id: pieceId, function_id: body.functionId, prompt_version: promptVersion, provider: body.provider || 'claude', model: model || '', generation_key: key, started_at: t0, finished_at: Date.now(), duration_ms: Date.now() - t0, input_chars: prompt.length, decisiones, prompt_text: prompt, ...extra }); } catch (e) { console.warn('[media-studio] generation_runs:', e instanceof Error ? e.message : e); } };
         if (compilado && !prompt) {
           // Fase 5: molde 100% determinístico (ej. flowpack sin acciones que traducir): sin IA.
           console.log(`[media-studio] run-function ${body.functionId} ← compilado sin IA`);
@@ -1204,6 +1430,48 @@ ${src}`;
           throw e;
         } finally { EN_VUELO.delete(key); }
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error corriendo la función' }); }
+    }
+
+    // ── Traza de orquestación (2026-10-10, pedido de Lucas): la METADATA de todas las corridas de una pieza, no el
+    // resultado. Qué se eligió (perfil, enfoque, tratamiento, humor, ángulo), qué molde y versión corrió, con qué modelo,
+    // cuánto tardó y costó, qué validó, y el estado actual de la pieza (concepto elegido, estados). Con dos de estas se
+    // comparan dos orquestaciones del mismo brief sin mirar los videos. Se abre en el navegador o se baja con ?descargar=1.
+    if (p.startsWith('/api/trazas/') && req.method === 'GET') {
+      const [projectId, pieceId] = p.slice('/api/trazas/'.length).split('/').map((s) => decodeURIComponent(s || ''));
+      const proj = getProject(projectId);
+      if (!proj) return json(res, 404, { error: 'proyecto no existe' });
+      const reel = (proj.data?.reels || []).find((r) => r.comercial?.id === pieceId || r.id === pieceId) || null;
+      const com = reel?.comercial || null;
+      const pasos = listRunsDePieza(projectId, pieceId || undefined).map((r) => {
+        let validacion = [], decisiones = {};
+        try { validacion = JSON.parse(r.validation_json || '[]'); } catch { /* vacío */ }
+        try { decisiones = JSON.parse(r.decisiones_json || '{}'); } catch { /* vacío */ }
+        return {
+          paso: r.function_id, cuando: new Date(r.finished_at).toISOString(), promptVersion: r.prompt_version, proveedor: r.provider,
+          modeloPedido: r.model || null, modeloReal: r.model_real || null, estado: r.status, cache: r.status === 'cache',
+          durMs: r.duration_ms, apiMs: r.api_ms, tokens: { entrada: r.input_tokens, salida: r.output_tokens, pensando: r.thinking_tokens },
+          costoUsd: r.cost_usd, reparado: r.retry_count > 0, validacion: { ok: validacion.length === 0, errores: validacion }, decisiones,
+        };
+      });
+      const traza = {
+        proyecto: { id: projectId, nombre: proj.name },
+        pieza: com ? { id: com.id, titulo: com.titulo, tipo: com.tipo, formatoId: com.formatoId || null } : { id: pieceId || null },
+        generadaEl: new Date().toISOString(),
+        decisionesVigentes: com ? { enfoque: com.enfoque || null, tratamiento: com.tratamiento || null, intensidadHumor: com.intensidadHumor || null, recursoHumorId: com.recursoHumorId || null, cierreMarca: com.cierreMarca || null, angulo: com.angulo || null, creativeBrief: com.creativeBrief || null, durationSec: reel?.durationSec || null } : null,
+        elecciones: com ? {
+          conceptoElegido: com.concepto ? { id: com.concepto.id, topico: com.concepto.topico, tipoGancho: com.concepto.tipoGancho } : null,
+          estados: com.estados || null, musica: com.guion?.music || null,
+          personajes: (com.cast?.personajes || []).map((x) => x.nombre), escenas: Array.isArray(com.storyboard) ? com.storyboard.length : 0,
+          promptsFlow: Array.isArray(com.packFlow?.escenas) ? com.packFlow.escenas.length : 0,
+        } : null,
+        totales: {
+          corridas: pasos.length, costoUsd: Number(pasos.reduce((a, x) => a + (x.costoUsd || 0), 0).toFixed(4)),
+          durMs: pasos.reduce((a, x) => a + (x.durMs || 0), 0), reparaciones: pasos.filter((x) => x.reparado).length, conErrores: pasos.filter((x) => !x.validacion.ok).length,
+        },
+        pasos,
+      };
+      if (url.searchParams.get('descargar') === '1') res.setHeader('Content-Disposition', `attachment; filename="traza-${projectId}-${pieceId || 'todas'}.json"`);
+      return json(res, 200, traza);
     }
 
     // ── Observabilidad (Fase 9): las corridas de la IA, de la más nueva a la más vieja ──
@@ -1283,8 +1551,68 @@ ${src}`;
         data.updated_at = Date.now();
         saveProject({ id: projectId, name: proj.name, data });
       };
+      // los mockups ya no los hace la rutina de Flow: tienen su paso propio (Mockups, 2026-10-11)
       const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, guardarClip, agregarToma, guardarFlowUrl });
       return json(res, 200, { job });
+    }
+    // ── Mockups de la app (paso de la orquestación, 2026-10-10): renderiza las tarjetas del catálogo de la app como
+    // clips sin audio y las guarda en la pieza (`comercial.mockups`). Híbrido: crudos filmados + mockups; el montaje decide.
+    if (p === '/api/mockups-app/catalogo' && req.method === 'GET') {
+      const proj = getProject(url.searchParams.get('projectId') || '');
+      const cat = proj ? catalogoDeApp({ ...proj.data, id: proj.id, name: proj.name }) : null;
+      return json(res, 200, { app: cat?.app || null, tarjetas: cat ? cat.tarjetas.map((t) => ({ id: t.id, nombre: t.nombre, patron: t.patron, durSec: t.durSec })) : [] });
+    }
+    // ── Agente de mockups (2026-10-10): escribe las tarjetas de una app desde las capturas de su media kit ──
+    if (p === '/api/mockups-app/escribir' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const appId = String(body.appId || '').trim();
+      const kitInfo = scanMediaKits(MEDIA_KIT_ROOT).find((k) => k.id === appId);
+      if (!kitInfo) return json(res, 404, { error: 'esa app no tiene media kit' });
+      const kitDir = path.join(MEDIA_KIT_ROOT, kitInfo.carpeta, 'media-kit');
+      const mk = readMediaKit(appId) || {};
+      const logo = mk.marca?.logo?.paraFondoOscuroRaster || mk.marca?.logo?.paraFondoOscuro || mk.marca?.logo?.principal || '';
+      const logoUrl = logo ? `http://localhost:${PORT}/api/media-kit/${encodeURIComponent(appId)}/file/${String(logo).replace(/^\/+/, '')}` : '';
+      try {
+        // el método de las tarjetas (2026-10-11, el único): una llamada por pantalla, mirando su captura y sus estados
+        const r = await escribirTarjetasPlantilla({ appId: body.destino ? String(body.destino).toLowerCase().replace(/[^a-z0-9-]/g, '') : appId, kitDir, root: process.cwd(), runAI, logoUrl, model: MODEL_WHITELIST.includes(body.model) ? body.model : 'opus', soloIds: Array.isArray(body.soloIds) ? body.soloIds : null, log: (m) => console.log('[media-studio] mockups-agente:', m) });
+        // los cuadros quedan para que el dueño los juzgue
+        const dirCuadros = path.join(process.cwd(), 'docs', '16-montaje-flow', `mockups-${appId}`);
+        fs.mkdirSync(dirCuadros, { recursive: true });
+        for (const c of r.cuadros) fs.writeFileSync(path.join(dirCuadros, `${c.id}.png`), c.png);
+        return json(res, 200, { appId, archivo: r.archivo, tarjetas: r.catalogo.tarjetas, errores: r.errores, cuadros: r.cuadros.map((c) => path.join(dirCuadros, `${c.id}.png`)), movimiento: r.movimiento, segundos: r.segundos, costo: r.costo });
+      } catch (e) { return json(res, 500, { error: e instanceof Error ? e.message : 'el agente de mockups falló' }); }
+    }
+    // el progreso del agente de tarjetas: qué pantalla está mirando, cuántas van (lo consulta Rodaje mientras escribe)
+    if (p === '/api/mockups-app/progreso' && req.method === 'GET') {
+      return json(res, 200, progresoDe(String(url.searchParams.get('appId') || '').trim()) || { fase: '' });
+    }
+    if (p === '/api/mockups-app/generar' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const projectId = String(body.projectId || ''), reelId = String(body.reelId || '');
+      // cada pedido queda en el registro apenas llega, y su error si falla (2026-10-11: un pedido que no dejó rastro)
+      console.log(`[media-studio] mockups-app: pedido de generar · proyecto ${projectId || '(sin id)'} · pieza ${reelId || '(primera)'}`);
+      const proj = getProject(projectId);
+      if (!proj) { console.log('[media-studio] mockups-app: ERROR proyecto no existe'); return json(res, 404, { error: 'proyecto no existe' }); }
+      const data = proj.data || {};
+      const reel = (data.reels || []).find((r) => r.id === reelId) || (data.reels || [])[0];
+      if (!reel?.comercial) return json(res, 400, { error: 'la pieza no tiene comercial' });
+      const folder = `${CLD_FOLDER}/${projectId}`;
+      const guardar = async (buffer, nombre) => {
+        const saved = await saveAsset(buffer, nombre, folder, 'video/mp4');
+        let durSec = 0;
+        try { durSec = (await probeDuration(path.join(STORAGE_DIR, saved.public_id))) || 0; } catch { /* queda la del render */ }
+        return { fileRef: saved.public_id, durSec };
+      };
+      try {
+        const marca = { logoUrl: data.marcaKit?.logoUrl || data.brandKit?.logoUrl };
+        const mockups = await generarMockupsApp({ project: { ...data, id: proj.id, name: proj.name }, marca, port: PORT, guardar, soloIds: Array.isArray(body.soloIds) ? body.soloIds : undefined, log: (m) => console.log('[media-studio] mockups-app:', m) });
+        // se reemplazan los de la misma tarjeta; los demás se conservan
+        const previos = (reel.comercial.mockups || []).filter((m) => !mockups.some((n) => n.tarjeta === m.tarjeta));
+        reel.comercial.mockups = [...previos, ...mockups];
+        data.updated_at = Date.now();
+        saveProject({ id: projectId, name: proj.name, data });
+        return json(res, 200, { mockups: reel.comercial.mockups });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudieron generar los mockups' }); }
     }
     if (p === '/api/flow/jobs' && req.method === 'GET') return json(res, 200, { jobs: puente.listarJobs(), extension: puente.extensionViva() });
     if (p.startsWith('/api/flow/jobs/') && req.method === 'GET') {

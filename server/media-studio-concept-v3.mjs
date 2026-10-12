@@ -96,33 +96,62 @@ ${bloquePieza ? `Instrucciones del proyecto / Estrategia:\n${bloquePieza}\n` : '
 FICHA REAL DEL NEGOCIO — ÚNICA FUENTE DE VERDAD FACTUAL
 ${brief}
 
-${bloqueKit ? `MEDIA KIT / CAPTURAS REALES VERIFICADAS\n${bloqueKit}\n` : 'MEDIA KIT: no provisto. No describas interfaces específicas ni pantallas supuestamente reales.\n'}
+${bloqueKit ? `MEDIA KIT / RECORRIDO DE PANTALLAS DE LA APP\n${bloqueKit}\n` : 'MEDIA KIT: no provisto. No describas interfaces específicas ni pantallas supuestamente reales.\n'}
 ${bloqueTecnica ? `CONDICIONES TÉCNICAS NO NEGOCIABLES\n${bloqueTecnica}\n` : ''}
 ${tipo === 'animado' ? 'PRODUCCIÓN ANIMADA: representar personas como grafismos o recursos visuales cuando sea apropiado; no pedir actores filmados ni fingir capturas del producto.\n' : ''}
 
 DECISIONES CREATIVAS ELEGIDAS POR EL DUEÑO
 ENFOQUE (la estructura del relato): ${enfoque.label} [${enfoque.id}]
 FICHA COMPLETA DEL ENFOQUE:
-${JSON.stringify(enfoque.ficha, null, 2)}
+${enfoque.fichaTexto || JSON.stringify(enfoque.ficha, null, 2)}
 TRATAMIENTO (el registro del spot): ${tratamiento.label} [${tratamiento.id}]
 ${tratamiento.instruccion}
 ${cierreMarca?.trim() ? `CIERRE DE MARCA APROBADO: ${cierreMarca.trim()} (respetá las palabras; podés variar su presentación).` : 'CIERRE DE MARCA: si no hay claim aprobado, proponé una firma simple sin hacerla pasar por eslogan oficial.'}
 IMPORTANTE: El campo "recorrido" del enfoque es una guía semántica de opciones, NO una lista obligatoria de escenas ni un orden fijo. Conservá libertad narrativa.
 ${indicacionHumor}
 
+FIDELIDAD AL ÁNGULO
+
+La tensión humana puede enriquecer la idea, pero no sustituir
+el mensaje principal seleccionado por la estrategia.
+
+Para cada concepto, verificá internamente:
+- ¿Qué demuestra exactamente?
+- ¿Qué acción real del producto interviene?
+- ¿Qué verá el espectador como prueba?
+- ¿Qué lo diferencia de los otros conceptos?
+- ¿Se podría filmar con los recursos disponibles?
+
+Generá tres ideas realmente distintas.
+
+Diversificá por mecanismo narrativo:
+- contraste,
+- observación cotidiana,
+- demostración,
+- vínculo humano,
+- inversión de expectativa,
+- tensión y alivio,
+según resulte apropiado.
+
+No fuerces diversidad cambiando solamente personajes,
+profesiones o escenarios.
+
+Si un concepto explica mejor otro mensaje de la marca
+que el ángulo actual, descartalo o reformulalo.
+
 REGLAS DE PUBLICIDAD Y VERACIDAD
 1. Toda historia debe conectar una NECESIDAD específica, una capacidad VERIFICABLE del negocio y un BENEFICIO entendible para la audiencia. Debe construir marca, no sólo entretenimiento.
 2. Diferenciá las tres propuestas por situación, personaje, función o beneficio, y tensión dramática/creativa. Si hay humor, además diferenciá el mecanismo cómico. No entregues la misma idea con otro título.
-3. Nunca inventes funciones, flujos, automatizaciones, integraciones, métricas, tiempos, premios, clientes, testimonios, cargos reales, avales, municipios clientes, ni resultados garantizados.
+3. Nunca inventes funciones, flujos, automatizaciones, integraciones, métricas, tiempos, premios, clientes, testimonios, cargos reales, avales, organizaciones clientes, ni resultados garantizados.
 4. Un personaje de ficción puede vivir una situación simulada. NO lo presentes como testimonio comprobado. Si se menciona una localidad, no impliques que ya contrató el producto salvo prueba explícita en la ficha.
 5. Si hay media kit, las pantallas descritas deben existir en él. Sin kit, mantené la referencia al producto conceptual y no atribuyas diseño, botones, notificaciones literales ni textos de UI.
 6. La propuesta debe ser filmable o producible en 20 a 30 segundos. Evitá demasiados personajes, locaciones o subtramas; sin indicar segundos, planos, cortes, movimientos de cámara o desglose de escenas en "idea".
 7. Presentador/a a cámara, narración, firma con logo, explicación, demostración y CTA SON recursos válidos cuando corresponden. No los prohíbas por prejuicio de formato.
-8. Nunca hagas al municipio, sus trabajadores, vecinos o compradores objeto de burla, ni presupongas negligencia. La situación debe ser verosímil, especialmente en contextos públicos.
+8. Nunca hagas a la organización que atiende, a sus trabajadores ni a sus usuarios objeto de burla, ni presupongas negligencia. La situación debe ser verosímil.
 9. Español rioplatense natural, concreto, sin solemnidad vacía y sin clichés como «solución integral», «somos líderes», «transformá la gestión».
 
 CONTROL DE CALIDAD INTERNO ANTES DE RESPONDER
-Para cada propuesta: ¿es un spot de esta marca y no un contenido genérico?, ¿qué beneficio se entiende?, ¿cuál es la prueba o acción real?, ¿cumple enfoque y tratamiento?, ¿se puede producir?, ¿hay alguna afirmación inventada? Descartá las que fallen. Si hay humor: ¿la observación es humana?, ¿el quiebre es claro?, ¿se entiende sin explicar el chiste?, ¿la marca es necesaria para la historia?
+Para cada propuesta: ¿es un spot de esta marca y no un contenido genérico?, ¿qué beneficio se entiende?, ¿cuál es la prueba o acción real?, ¿cumple enfoque y tratamiento?, ¿se puede producir?, ¿hay alguna afirmación inventada? Descartá las que fallen. ¿Este concepto sigue siendo el mejor vehículo para el ángulo comercial asignado? Si hay humor: ¿la observación es humana?, ¿el quiebre es claro?, ¿se entiende sin explicar el chiste?, ¿la marca es necesaria para la historia?
 
 CAMPOS Y LONGITUDES — CONTÁ LAS PALABRAS
 - topico: de 2 a 4 palabras; título concreto.

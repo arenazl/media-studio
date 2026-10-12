@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react';
 import { Building2, Download, Loader2, Sparkles, X, ArrowRight, Check } from 'lucide-react';
 import { API_BASE } from './config';
 import { kbToProjectInput, type KnowledgeBase } from './lib/knowledgeBase';
+import { isValidMediaKit, mediaKitToProjectInput } from './lib/mediaKit';
 import { saveProject, type Project } from './lib/projects';
 import './KbImport.css';
 
-interface AppItem { id: string; name: string; base_url: string; ready: boolean }
+interface AppItem { id: string; name: string; base_url: string; ready: boolean; soloKit?: boolean }   // soloKit: sin KSP, el KB sale de su media-kit/
 interface Pieza { objetivo: string; angulo: string; formato: string; duracionSeg?: number }
 interface Plan { prospecto: string; publico?: string[]; propuesta: { perfil: string; piezas: Pieza[]; resumen: string } }
 type Phase = 'idle' | 'fetching' | 'planning' | 'done' | 'error';
@@ -40,10 +41,22 @@ export default function KbImport({ onClose, onCreated }: { onClose: () => void; 
     } catch (e) { setErr(e instanceof Error ? e.message : 'error'); setPhase('error'); }
   };
 
-  const crear = () => {
+  const crear = async () => {
     if (!kb) return;
     const inp = kbToProjectInput(kb);
-    const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, kb: inp.kb, brandKit: inp.brandKit, contentType: 'combinado' });
+    // app sin KSP (RepareHoy, 2026-10-10): el KB salió de su media-kit/; el proyecto nace además con la marca completa,
+    // el CTA, los momentos y las capturas del kit, igual que un proyecto creado desde el asistente con kit
+    let delKit: Partial<ReturnType<typeof mediaKitToProjectInput>> = {};
+    const kitId = (kb as unknown as { media_kit_id?: string }).media_kit_id;
+    if (kitId) {
+      try {
+        const r = await fetch(`${API_BASE}/api/media-kit/${encodeURIComponent(kitId)}`);
+        const d = await r.json();
+        const kit = d?.kit ?? d;
+        if (r.ok && isValidMediaKit(kit)) { const mk = mediaKitToProjectInput(kit); delKit = { marcaKit: mk.marcaKit, mediaKitId: mk.mediaKitId, cta: mk.cta, momentos: mk.momentos, pantallasKit: mk.pantallasKit }; }
+      } catch { /* sin kit legible: el proyecto nace sólo con el KB */ }
+    }
+    const proj = saveProject({ name: inp.name, type: inp.type, brief: inp.brief, kb: inp.kb, brandKit: inp.brandKit, contentType: 'combinado', ...delKit });
     onCreated(proj);
   };
 
@@ -63,8 +76,8 @@ export default function KbImport({ onClose, onCreated }: { onClose: () => void; 
           {apps.map((a) => (
             <button key={a.id} disabled={!a.ready || busy}
               className={appId === a.id ? 'kbi-chip kbi-chip--on' : 'kbi-chip'}
-              title={a.ready ? a.base_url : 'sin URL en el registro'}
-              onClick={() => setAppId(a.id)}>{a.name}{!a.ready && ' ·'}</button>
+              title={a.soloKit ? 'sin KSP: el KB sale de su media-kit/' : a.ready ? a.base_url : 'sin URL en el registro'}
+              onClick={() => setAppId(a.id)}>{a.name}{a.soloKit && ' (kit)'}{!a.ready && ' ·'}</button>
           ))}
           {!apps.length && <span className="kbi-muted">leyendo registro…</span>}
         </div>

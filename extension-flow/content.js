@@ -47,8 +47,26 @@
     await espera(150);
   }
   async function vaciar(el) { el.focus(); document.execCommand('selectAll', false, null); document.execCommand('delete', false, null); await espera(150); }
-  async function navItem(re) { const it = hojaTexto(re); if (!it) throw new Error(`no encontré el ítem ${re} del menú`); (it.closest('a, button, [role="menuitem"], li') || it).click(); await espera(1200); }
-  function nombresDeTiles() { return q(SEL.tile).map((t) => textoDe(t)); }
+  // el editor de personaje (/character) no tiene el menú lateral: si estamos ahí, primero "Volver"
+  const enEditorPersonaje = () => /\/character\/?$/.test(location.pathname) && !!caja();
+  async function volverDelEditor() {
+    const back = q('button').find((b) => /^(Volver|Back)$/i.test(b.getAttribute('aria-label') || ''));
+    if (back) { back.click(); await espera(1500); return true; }
+    history.back(); await espera(1500); return false;
+  }
+  // el menú de un proyecto recién creado tarda unos segundos en aparecer: se espera hasta 20 s antes de darlo por ausente
+  async function navItem(re) {
+    if (enEditorPersonaje()) await volverDelEditor();
+    const it = await esperar(() => hojaTexto(re), 20000, `el ítem ${re} del menú`).catch(() => null);
+    if (!it) throw new Error(`no encontré el ítem ${re} del menú`);
+    (it.closest('a, button, [role="menuitem"], li') || it).click();
+    await espera(1200);
+  }
+  // el texto de un tile de personaje trae el nombre y el icono ("Empleada accessibility_new"): se saca el icono
+  const nombreDeTile = (t) => textoDe(t).replace(/\s*accessibility_new\s*$/, '').trim();
+  function nombresDeTiles() { return q(SEL.tile).map(nombreDeTile); }
+  const mismoNombre = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+  const centro = (el) => { const r = el.getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) }; };
 
   const acciones = {
     async estado() { return { url: location.href, titulo: document.title, visible: !document.hidden }; },
@@ -78,43 +96,76 @@
 
     async personajeExiste({ nombre }) {
       await navItem(/^Caracteres$|^Characters$/);
-      await espera(1000);
-      const re = new RegExp(`^${nombre}$`, 'i');
-      const existe = nombresDeTiles().some((t) => re.test(t)) || !!hojaTexto(re);
-      return { existe };
+      // se espera a que aparezca la grilla de personajes o el editor (proyecto sin personajes), hasta 12 s
+      for (let i = 0; i < 24 && !q(SEL.tile).length && !enEditorPersonaje(); i++) await espera(500);
+      await espera(800);
+      if (enEditorPersonaje() && !q(SEL.tile).length) return { existe: false, editorAbierto: true };
+      const nombres = nombresDeTiles();
+      const existe = nombres.some((t) => mismoNombre(t, nombre)) || !!hojaTexto(new RegExp(`^${nombre}$`, 'i'));
+      return { existe, nombres: nombres.map((t) => t.slice(0, 30)) };
     },
 
-    async crearPersonaje({ nombre, prompt }) {
-      await navItem(/^Caracteres$|^Characters$/);
-      await espera(800);
-      const nuevo = await esperar(() => botonTexto(/Nuevo personaje|New character/i), 20000, '"Nuevo personaje"');
-      nuevo.click();
-      await esperar(() => /\/character/.test(location.href) && caja(), 20000, 'el editor de personaje');
+    // ── Personaje nuevo, en tres pasos (relevado en vivo el 2026-10-10, 03:10 ART) ──
+    // La flecha "Iniciar generación" del editor de personaje NO responde a un click programado (ni a Enter): sólo a un
+    // click real. Por eso acá se prepara (editor abierto + prompt escrito) y se devuelven las coordenadas de la flecha;
+    // el background hace el click real por el depurador de Chrome; después se espera la generación y se renombra desde
+    // la grilla (menú "Cambiar nombre"), que sí acepta el tipeo programado. El título dentro del editor no lo acepta.
+    async prepararPersonaje({ prompt }) {
+      if (!enEditorPersonaje()) {
+        await navItem(/^Caracteres$|^Characters$/);
+        await espera(800);
+        if (!enEditorPersonaje()) {
+          const nuevo = await esperar(() => botonTexto(/Nuevo personaje|New character/i), 20000, '"Nuevo personaje"');
+          nuevo.click();
+        }
+      }
+      await esperar(() => /\/character\/?$/.test(location.pathname) && caja(), 20000, 'el editor de personaje');
       await espera(600);
       const c = caja();
-      await vaciar(c);
-      await escribir(c, prompt);
-      await espera(300);
-      (await esperar(() => q(SEL.enviar)[0], 10000, 'la flecha de generar')).click();
-      // generando: aparece el título editable "Personaje sin nombre"; termina cuando no hay porcentaje en pantalla
-      const titulo = await esperar(() => q(SEL.tituloEditable).find((i) => /Personaje sin nombre|Untitled character/i.test(i.value || '')), 240000, 'el título del personaje');
-      const t0 = Date.now();
-      while (porcentajeEnPantalla() && Date.now() - t0 < 240000) await espera(2000);
-      await espera(1500);
-      titulo.focus(); titulo.select();
-      document.execCommand('insertText', false, nombre);
-      titulo.dispatchEvent(new Event('input', { bubbles: true }));
-      titulo.dispatchEvent(new Event('change', { bubbles: true }));
-      titulo.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      titulo.blur();
-      await espera(800);
-      const listo = botonTexto(/^Listo$|^Done$/);
-      if (listo) { listo.click(); await espera(1500); }
-      else { history.back(); await espera(1500); }
-      return { nombre, titulo: titulo.value };
+      if (textoDe(c) !== String(prompt || '').replace(/\s+/g, ' ').trim()) { await vaciar(c); await escribir(c, prompt); await espera(400); }
+      const btn = await esperar(() => { const b = q(SEL.enviar)[0]; return b && !b.disabled ? b : null; }, 10000, 'la flecha de generar habilitada');
+      return { ...centro(btn), url: location.href };
     },
+    async esperarPersonaje({ maxSeg = 240 } = {}) {
+      const t0 = Date.now();
+      // arrancó cuando la página pasa a /character/<id>
+      let arranco = false;
+      for (let i = 0; i < 60 && !arranco; i++) { await espera(500); arranco = /\/character\/[^/]+/.test(location.pathname); }
+      if (!arranco) return { arranco: false, seg: Math.round((Date.now() - t0) / 1000) };
+      await espera(3000);
+      while (porcentajeEnPantalla() && Date.now() - t0 < maxSeg * 1000) await espera(2000);
+      await espera(1500);
+      return { arranco: true, terminado: !porcentajeEnPantalla(), seg: Math.round((Date.now() - t0) / 1000), url: location.href };
+    },
+    async renombrarUltimoPersonaje({ nombre }) {
+      await navItem(/^Caracteres$|^Characters$/);
+      await espera(800);
+      if (nombresDeTiles().some((t) => mismoNombre(t, nombre))) return { ok: true, yaEstaba: true };
+      // el recién generado es el que todavía se llama "Personaje sin nombre"; si no hay ninguno, el primero de la grilla
+      const tile = await esperar(() => q(SEL.tile).find((t) => /^Personaje sin nombre$|^Untitled/i.test(nombreDeTile(t))) || q(SEL.tile)[0], 15000, 'el personaje en la grilla');
+      const r = tile.getBoundingClientRect();
+      tile.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, button: 2 }));
+      const ren = await esperar(() => q(SEL.menuitem).find((m) => /Cambiar nombre|Rename/i.test(textoDe(m))), 10000, 'el ítem "Cambiar nombre"');
+      ren.click();
+      const inp = await esperar(() => q(SEL.tituloEditable).find((i) => i.classList.contains('editing')) || q(SEL.tituloEditable).find((i) => /Personaje sin nombre|Untitled/i.test(i.value || '')), 10000, 'el nombre editable del personaje');
+      inp.focus(); inp.select();
+      document.execCommand('insertText', false, nombre);
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      await espera(200);
+      for (const tipo of ['keydown', 'keypress', 'keyup']) inp.dispatchEvent(new KeyboardEvent(tipo, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+      await espera(1500);
+      const tiles = nombresDeTiles();
+      return { ok: tiles.some((t) => mismoNombre(t, nombre)), tiles: tiles.map((t) => t.slice(0, 40)) };
+    },
+    // coordenadas de un control para el click real del background (cuando el click programado no dispara)
+    async coordsEnviar() { const b = await esperar(() => q(SEL.enviar)[0], 10000, 'la flecha de generar'); return centro(b); },
 
-    async irAContenido() { await navItem(/^Todo el contenido|^All media/i); return { url: location.href }; },
+    async irAContenido() {
+      await navItem(/^Todo el contenido|^All media/i);
+      // la grilla puede tardar en cambiar de filtro: se espera hasta ver un video o 6 s
+      for (let i = 0; i < 12 && !q(SEL.tile).some((t) => /play_circle/.test(textoDe(t)) || t.querySelector('video')); i++) await espera(500);
+      return { url: location.href, tiles: nombresDeTiles().slice(0, 5) };
+    },
 
     // el panel de ajustes: pastillas (role=radio) para Imagen/Vídeo, Fotogramas/Ingredientes, 16:9/9:16 y x1..x4; el
     // modelo es un desplegable. Resolución y duración se verifican leyendo la pastilla ("Vídeo · 720p · 8 s ...").
@@ -166,31 +217,54 @@
       await espera(2500);
       let disparado = porcentajeEnPantalla() || q(SEL.tile).length > antes;
       if (!disparado && textoDe(c).length > 0) { enviar.click(); await espera(2500); disparado = porcentajeEnPantalla() || q(SEL.tile).length > antes; }
-      return { disparado, tiles: q(SEL.tile).length };
+      // si el click programado no disparó, el servidor puede pedir un click real en estas coordenadas
+      const r2 = enviar.getBoundingClientRect();
+      // `antes`: con él el servidor sabe cuántos clips dejó este pedido (x2 deja dos y corría el reparto por escena)
+      return { disparado, antes, tiles: q(SEL.tile).length, enviar: { x: Math.round(r2.left + r2.width / 2), y: Math.round(r2.top + r2.height / 2) } };
     },
 
-    async esperarGeneracion({ maxSeg = 300 } = {}) {
+    // Lucas (2026-10-10): a veces el clip queda "cargando" y Flow tira error; con refrescar la pestaña aparece bien. Acá se
+    // detecta el tile con error o el porcentaje clavado; el servidor refresca (acción "recargar") y vuelve a esperar.
+    async esperarGeneracion({ maxSeg = 300, atascadoSeg = 150 } = {}) {
       const t0 = Date.now();
+      const seg = () => Math.round((Date.now() - t0) / 1000);
+      const pctActual = () => { const m = (document.body.innerText || '').match(/\b(\d{1,2})\s?%/); return m ? Number(m[1]) : null; };
+      const tileConError = () => { const t = q(SEL.tile)[0]; return !!t && /\berror\b|no se pudo|volver a intentar|algo sali[oó] mal|try again|failed/i.test(textoDe(t)); };
       await espera(4000);
-      while (porcentajeEnPantalla() && Date.now() - t0 < maxSeg * 1000) await espera(2000);
+      let ultimoPct = null, desdePct = Date.now();
+      while (Date.now() - t0 < maxSeg * 1000) {
+        if (tileConError()) return { seg: seg(), terminado: false, conError: true };
+        if (!porcentajeEnPantalla()) break;
+        const p = pctActual();
+        if (p !== ultimoPct) { ultimoPct = p; desdePct = Date.now(); }
+        else if (Date.now() - desdePct > atascadoSeg * 1000) return { seg: seg(), terminado: false, atascado: true, pct: p };
+        await espera(2000);
+      }
       await espera(1500);
-      return { seg: Math.round((Date.now() - t0) / 1000), terminado: !porcentajeEnPantalla() };
+      return { seg: seg(), terminado: !porcentajeEnPantalla(), conError: tileConError() };
     },
 
-    // el clip más nuevo es el primer tile de la grilla; el menú contextual trae "Descargar" directo (calidad original)
-    async descargarUltimo() {
-      const tile = await esperar(() => q(SEL.tile)[0], 10000, 'el clip en la grilla');
-      const r = tile.getBoundingClientRect();
-      tile.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, button: 2 }));
-      const item = await esperar(() => q(SEL.menuitem).find((m) => /^(download\s*)?(Descargar|Download)$/i.test(textoDe(m))), 10000, 'el ítem Descargar');
-      item.click();
-      // "Descargar" abre un submenú: 270p GIF · 720p Tamaño original · 1080p/4K Resolución mejorada (esas dos gastan créditos)
-      const original = await esperar(() => q(SEL.menuitem).find((m) => /Tama[ñn]o original|Original size/i.test(textoDe(m)))
-        || q(SEL.menuitem).find((m) => /^720p/.test(textoDe(m)) && !/mejorada|upscal/i.test(textoDe(m))), 10000, 'la opción "Tamaño original" del submenú de descarga');
-      const calidad = textoDe(original);
-      original.click();
-      await espera(800);
-      return { pedido: true, calidad, tile: textoDe(tile).slice(0, 60) };
+    // las URLs de los archivos de video de los clips de la grilla, del más nuevo al más viejo. Sin menú ni clicks: la
+    // descarga la hace el background con chrome.downloads, esté o no la pestaña a la vista (2026-10-11: el menú de clic
+    // derecho no apareció con la ventana de Flow al fondo y se cortó la rutina entera)
+    async urlsDeClips() {
+      const esVideo = (t) => /play_circle/.test(textoDe(t)) || !!t.querySelector('video');
+      const urlDe = (t) => { const v = t.querySelector('video'); if (!v) return ''; const src = v.currentSrc || v.src || (v.querySelector('source') || {}).src || ''; return /^https?:/.test(src) ? src : ''; };
+      // Flow arma el <video> de un clip recién cuando el mouse pasa por encima: se simula el paso del mouse en el tile
+      const pasar = (t, tipos) => { for (const el of [t, ...t.querySelectorAll('*')].slice(0, 15)) for (const tipo of tipos) el.dispatchEvent(new MouseEvent(tipo, { bubbles: /over|out/.test(tipo), cancelable: true, view: window })); };
+      const tiles = q(SEL.tile).filter(esVideo);
+      const urls = [];
+      for (const t of tiles) {
+        let u = urlDe(t);
+        if (!u) {
+          pasar(t, ['pointerover', 'pointerenter', 'mouseover', 'mouseenter']);
+          for (let i = 0; i < 12 && !(u = urlDe(t)); i++) await espera(300);
+          pasar(t, ['pointerout', 'pointerleave', 'mouseout', 'mouseleave']);
+        }
+        urls.push(u);
+      }
+      // del más nuevo al más viejo; '' donde Flow no dio el video
+      return { total: tiles.length, urls, sinUrl: urls.filter((u) => !u).length };
     },
   };
 

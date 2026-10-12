@@ -56,6 +56,7 @@ export interface ProjectReel extends ReelKitMeta {
   voiceConfig?: VoiceConfig | null;
   demoMontage?: MontageSnapshot; // montaje precompuesto (demo) — el editor lo usa si no hay uno guardado
   comercial?: Comercial;         // rework: el comercial del pipeline (aditivo; los campos legacy quedan)
+  respaldoContrato?: { fecha: number; comercial: Comercial };   // la pieza como estaba antes de importar la materia prima de ChatGPT
 }
 export interface Project {
   id: string;

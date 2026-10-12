@@ -151,13 +151,15 @@ describe('flowpack — parametrización por formato (pack COMPILADO desde la Fas
     expect(out.estilo).toContain('vertical 9:16');
     expect(out.escenas[0].prompt).toContain('vertical 9:16');
   });
-  it('CON 16:9 el estilo es horizontal 16:9 y conserva las reglas de Veo (b-roll, logo)', () => {
+  it('CON 16:9 el estilo es horizontal 16:9 y conserva las reglas de Veo (b-roll, aire arriba sin logo)', () => {
     const body = { functionId: 'flowpack', context: { project: PROJECT, piece: { storyboard: SB1, cast: null, formato: FMT_YT } }, options: {} };
     const out = parseFunctionResult('flowpack', '1| a', body);
     expect(out.estilo).toContain('horizontal 16:9');
     expect(out.estilo).not.toContain('9:16');
     expect(out.escenas[0].prompt).toContain('No spoken dialogue, ambient sound only');
-    expect(out.escenas[0].prompt).toContain('brand logo overlay');
+    // 2026-10-11: ya no se nombra el logo (Veo dibujaba uno); sólo aire arriba
+    expect(out.escenas[0].prompt).toContain('empty headroom at the top');
+    expect(out.escenas[0].prompt).not.toContain('logo');
   });
 });
 

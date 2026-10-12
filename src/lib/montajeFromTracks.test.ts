@@ -40,11 +40,44 @@ describe('round-trip identidad (sin ediciones)', () => {
     expect(back.scenes[0]).toMatchObject({ escenaN: 1, src: 'a.mp4', in: 0, out: 8, audio: 'keep' });
     expect(back.scenes[1]).toMatchObject({ escenaN: 2, src: 'b.mp4', in: 0, out: 6, audio: 'mute' });
     expect(back.scenes[1].transition).toBeUndefined();   // el último no lleva transición
-    // El editor distingue 3 kinds (cut/dissolve/slide); 'fade' del plan colapsa a la familia
-    // "disolvencia" y vuelve como su representante canónico 'crossfade' — MISMA duración de xfade en el
-    // render (equivalencia de comportamiento, no de etiqueta). No es pérdida real: el mp4 sale igual.
-    expect(back.scenes[0].transition).toBe('crossfade');
+    // sin ediciones, la transición vuelve tal cual (2026-10-11: antes 'fade' volvía como 'crossfade')
+    expect(back.scenes[0].transition).toBe('fade');
     expect(transitionDur(back.scenes[0].transition)).toBe(transitionDur('fade'));
+  });
+  it('conserva lo que el editor no modela: placa final, estilo, motor, insertos, acercamientos, palabras', () => {
+    const conTodo: MontajePlan = { ...planBase, motor: 'remotion' as const, endCard: { linea1: 'Probalo', durSec: 3 }, estilo: { primario: '#111111', acento: '#EE5A0E', fondo: '#000000', texto: '#FFFFFF' },
+      scenes: planBase.scenes.map((s, i) => (i === 0 ? { ...s, punchFrom: 1, punchTo: 1.2, inserts: [{ atSec: 1, durSec: 2, src: 'mk.mp4' }], words: [{ text: 'hola', start: 0.2, end: 0.5 }] } : s)) };
+    const ida = buildEditorTimeline(comercialConPlan(conTodo));
+    const vuelta = tracksToMontaje(ida.tracks, conTodo);
+    expect(vuelta.motor).toBe('remotion');
+    expect(vuelta.endCard).toEqual({ linea1: 'Probalo', durSec: 3 });
+    expect(vuelta.estilo?.acento).toBe('#EE5A0E');
+    expect(vuelta.scenes[0]).toMatchObject({ punchFrom: 1, punchTo: 1.2, inserts: [{ atSec: 1, durSec: 2, src: 'mk.mp4' }], words: [{ text: 'hola', start: 0.2, end: 0.5 }] });
+  });
+  it('el multipista muestra insertos, placa y acercamientos, y lo que se mueve o se borra vuelve al montaje', () => {
+    const conTodo: MontajePlan = { ...planBase, endCard: { linea1: 'Probalo', durSec: 3 },
+      scenes: planBase.scenes.map((s, i) => (i === 0 ? { ...s, in: 1, out: 8, punchFrom: 1, punchTo: 1.15, inserts: [{ atSec: 3, durSec: 2, src: 'mk.mp4', nombre: 'Pagar la seña' }] } : s)) };
+    const ida = buildEditorTimeline(comercialConPlan(conTodo));
+    const pista = (id: string) => ida.tracks.find((t) => t.id === id)!.clips;
+    // el inserto aparece en el tiempo del reel: la escena 1 arranca en 0 y el inserto está 2 s después de su "in"
+    expect(pista('pantallas')).toMatchObject([{ label: 'Pagar la seña', startSec: 2, durSec: 2, fileRef: 'mk.mp4' }]);
+    expect(pista('video').find((c) => c.id === 'placa-final')).toMatchObject({ durSec: 3 });
+    expect(pista('fx').find((c) => c.id === 'zoom-1')).toBeTruthy();
+    // se corre el inserto 1 s, se estira la placa a 4 s y se borra el acercamiento
+    const tracks = ida.tracks.map((t) => ({
+      ...t,
+      clips: t.id === 'pantallas' ? t.clips.map((c) => ({ ...c, startSec: c.startSec + 1 }))
+        : t.id === 'video' ? t.clips.map((c) => (c.id === 'placa-final' ? { ...c, durSec: 4 } : c))
+        : t.id === 'fx' ? t.clips.filter((c) => c.id !== 'zoom-1') : t.clips,
+    }));
+    const vuelta = tracksToMontaje(tracks, conTodo);
+    expect(vuelta.scenes[0].inserts).toEqual([{ atSec: 4, durSec: 2, src: 'mk.mp4', nombre: 'Pagar la seña', video: true }]);
+    expect(vuelta.endCard?.durSec).toBe(4);
+    expect(vuelta.scenes[0].punchFrom).toBeUndefined();
+    expect(vuelta.scenes).toHaveLength(2);   // la placa no se convierte en escena
+    // y si se borra la placa, el reel termina sin placa
+    const sinPlaca = tracksToMontaje(ida.tracks.map((t) => (t.id === 'video' ? { ...t, clips: t.clips.filter((c) => c.id !== 'placa-final') } : t)), conTodo);
+    expect(sinPlaca.endCard).toBeUndefined();
   });
   it('preserva voice/music/silences/texts', () => {
     expect(back.voice).toEqual({ src: 'voz.mp3', at: 0 });

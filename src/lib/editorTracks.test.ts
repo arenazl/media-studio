@@ -17,10 +17,10 @@ const escena = (n: number, over: Partial<Escena> = {}): Escena => ({
 });
 
 describe('buildEditorTimeline — sin datos', () => {
-  it('comercial undefined → 6 pistas vacías, totalSec 0, aspecto default 9:16', () => {
+  it('comercial undefined → 7 pistas vacías, totalSec 0, aspecto default 9:16', () => {
     const { tracks, totalSec, width, height } = buildEditorTimeline(undefined);
     expect(totalSec).toBe(0);
-    expect(tracks.map((t) => t.id)).toEqual(['video', 'texto', 'voz', 'musica', 'sfx', 'fx']);
+    expect(tracks.map((t) => t.id)).toEqual(['video', 'pantallas', 'texto', 'voz', 'musica', 'sfx', 'fx']);
     for (const t of tracks) expect(t.clips).toEqual([]);
     expect(aspectLabel(width, height)).toBe('9:16');
   });

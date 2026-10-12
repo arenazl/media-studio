@@ -4,6 +4,7 @@ import { Comercial, type ComercialProps } from './Comercial';
 import { Mockups, type MockupsProps } from './Mockups';
 import { MunifyTarjetas, type TarjetasProps, type PlanTarjetas } from './munify/Tarjetas';
 import planMunify from './munify/plan-munify.json';
+import { AppTarjetas, type AppTarjetasProps, type PlanTarjetasApp } from './AppTarjetas';
 import { derivarRender } from './derivar';
 import { derivarMockups } from './derivarMockups';
 import { ESTILO_OSCURO } from '../lib/mockups';
@@ -49,6 +50,21 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
       calculateMetadata={({ props }: { props: TarjetasProps }) => {
+        const fps = props.plan.fps || 30;
+        const total = props.plan.escenas.reduce((n, e) => n + Math.round(e.durSec * fps), 0) + Math.round(props.plan.placa.durSec * fps);
+        return { durationInFrames: Math.max(1, total), fps, width: props.plan.width, height: props.plan.height };
+      }}
+    />
+    {/* tarjetas de cualquier app, escritas por el agente de mockups (2026-10-10) */}
+    <Composition
+      id="AppTarjetas"
+      component={AppTarjetas}
+      defaultProps={{ plan: { app: '', width: 1080, height: 1920, fps: 30, escenas: [], placa: { linea1: '', linea2: '', durSec: 0 }, logoSrc: '' } as PlanTarjetasApp }}
+      durationInFrames={30}
+      fps={30}
+      width={1080}
+      height={1920}
+      calculateMetadata={({ props }: { props: AppTarjetasProps }) => {
         const fps = props.plan.fps || 30;
         const total = props.plan.escenas.reduce((n, e) => n + Math.round(e.durSec * fps), 0) + Math.round(props.plan.placa.durSec * fps);
         return { durationInFrames: Math.max(1, total), fps, width: props.plan.width, height: props.plan.height };

@@ -45,7 +45,7 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
   const runFn = async (functionId: string, piece?: object, options: object = {}) => {
     const r = await fetch(`${API_BASE}/api/run-function`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ functionId, context: { project: base, ...(piece ? { piece } : {}) }, options, model: effectiveModel(functionId) }),
+      body: JSON.stringify({ functionId, context: { project: base, ...(piece ? { piece } : {}) }, options, model: effectiveModel(functionId), projectId: project.id, pieceId: '' }),
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || `falló ${functionId}`);

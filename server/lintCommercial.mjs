@@ -18,7 +18,6 @@ const OPCIONALES = new Set(['giro']);                       // el giro (antes "g
 const rolCanonico = (r) => (r === 'gag' ? 'giro' : r);       // piezas viejas
 const WPS_MAX = 3.2;     // palabras por segundo que un TTS dice sin atropellar (~2.7 es cómodo)
 const WPS_MIN = 1.2;     // menos que esto es un bloque con aire de más
-const TALKING_HEAD_MIN = 8;
 
 const S = (v) => String(v ?? '').trim();
 const palabras = (t) => S(t).split(/\s+/).filter(Boolean).length;
@@ -47,7 +46,7 @@ export function lintCommercial(piece = {}, { facts } = {}) {
     if (dur && suma && Math.abs(suma - dur) > dur * 0.25) add('media', 'guion.duracion', `Los bloques suman ${suma}s y la pieza es de ${dur}s (más del 25% de diferencia).`);
     for (const b of blocks) {
       const w = palabras(b.narration), d = Number(b.durSec) || 0;
-      if (!w && !OPCIONALES.has(rolCanonico(b.role))) add('media', 'guion.bloque-vacio', `El bloque "${b.role}" no tiene narración.`);
+      if (!w && !OPCIONALES.has(rolCanonico(b.role)) && tipo === 'animado') add('media', 'guion.bloque-vacio', `El bloque "${b.role}" no tiene narración.`);   // en el filmado un bloque puede ser sólo imagen
       if (w && d && w / d > WPS_MAX) add('alta', 'guion.muy-rapido', `El bloque "${b.role}" tiene ${w} palabras en ${d}s (${(w / d).toFixed(1)} por segundo): no se puede decir.`);
       if (w && d >= 4 && w / d < WPS_MIN) add('baja', 'guion.muy-lento', `El bloque "${b.role}" tiene ${w} palabras en ${d}s: queda mucho aire.`);
     }
@@ -70,10 +69,12 @@ export function lintCommercial(piece = {}, { facts } = {}) {
     const sumaE = escenas.reduce((a, e) => a + (Number(e.durSec) || 0), 0);
     const ths = escenas.filter(esTalkingHead);
     const th = ths.length;
-    const topeE = th >= 2 ? Math.max(Math.round(dur * 1.35), 30) : Math.round(dur * 1.35);
-    if (dur && sumaE && (sumaE > topeE || sumaE < dur * 0.65)) add('media', 'storyboard.duracion', `Las escenas suman ${sumaE}s y la pieza es de ${dur}s (${th} talking head(s) de 8s: tope ${topeE}s).`);
-    if (tipo === 'filmado' && dur && th > (dur <= 24 ? 2 : 3)) add('alta', 'storyboard.demasiados-talking-heads', `${th} talking heads para ${dur}s: como máximo ${dur <= 24 ? 2 : 3}; el resto va como b-roll con voz en off.`);
-    for (const e of ths) if (tipo === 'filmado' && (Number(e.durSec) || 0) >= 8 && palabras(e.dialogo) < 12) add('media', 'storyboard.talking-head-vacio', `La escena ${e.n} es un talking head de ${e.durSec}s con ${palabras(e.dialogo)} palabras: queda aire.`);
+    // 2026-10-11 (storyboard/3.0): en el filmado no hay locutor; cada frase la dice su personaje en una escena de 4 a 8s.
+    // Se sacaron "demasiados talking heads", "talking head vacío" y "talking head corto": empujaban a juntar frases de
+    // dos personas en un monólogo y a pasar el resto a una voz en off que nadie grababa.
+    const topeE = Math.round(dur * 1.35);
+    if (dur && sumaE && (sumaE > topeE || sumaE < dur * 0.65)) add('media', 'storyboard.duracion', `Las escenas suman ${sumaE}s y la pieza es de ${dur}s (${th} escenas con persona hablando: tope ${topeE}s).`);
+    for (const e of escenas) if (tipo === 'filmado' && S(e.dialogo) && !(e.personajes || []).length && !S(e.pantalla)) add('media', 'storyboard.frase-sin-persona', `La escena ${e.n} tiene frase y nadie en cuadro que la diga.`);
     for (const e of escenas) { const w = palabras(e.dialogo), d = Number(e.durSec) || 0; if (tipo === 'filmado' && w && !(e.personajes || []).length && d > Math.max(4, Math.ceil(w / 2.7) + 1)) add('media', 'storyboard.broll-largo', `La escena ${e.n} es b-roll con ${w} palabras de voz en off y dura ${d}s: le sobran ${d - Math.max(4, Math.ceil(w / 2.7))}s.`); }
     const rolesE = escenas.map((e) => S(e.rol));
     const iGag = Math.max(rolesE.lastIndexOf('gag'), rolesE.lastIndexOf('giro')), iCta = rolesE.indexOf('cta');
@@ -86,7 +87,6 @@ export function lintCommercial(piece = {}, { facts } = {}) {
       if (!ROLES.includes(S(e.rol))) add('alta', 'storyboard.rol-invalido', `La escena ${e.n} tiene el rol "${e.rol}".`);
       for (const pid of e.personajes || []) if (cast && !ids.has(pid)) add('alta', 'storyboard.personaje-inexistente', `La escena ${e.n} usa el personaje "${pid}" que no está en el cast.`);
       const d = Number(e.durSec) || 0;
-      if (tipo === 'filmado' && S(e.dialogo) && (e.personajes || []).length && d && d < TALKING_HEAD_MIN) add('alta', 'storyboard.talking-head-corto', `La escena ${e.n} es un talking head de ${d}s: Flow necesita ${TALKING_HEAD_MIN}s mínimo.`);
       if (tipo === 'filmado' && S(e.dialogo) && palabras(e.dialogo) / (d || 1) > WPS_MAX) add('media', 'storyboard.dialogo-largo', `La escena ${e.n} tiene ${palabras(e.dialogo)} palabras en ${d}s.`);
       if (tipo === 'animado') {
         const sc = norm(e.screen);

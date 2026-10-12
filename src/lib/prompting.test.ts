@@ -30,12 +30,16 @@ describe('presupuesto de palabras (Regla 5)', () => {
     expect(prompt).toContain('PRESUPUESTO HABLADO (contá palabras):\n- hook: 3s, máximo 8 palabras');
     expect(prompt).toContain('Total: 20s, máximo 52 palabras');
     expect(prompt).not.toContain('SÉ MUY CONCISO');
-    expect(promptVersion).toBe('script/2.0');
+    expect(promptVersion).toBe('script/3.8');
   });
   it('el storyboard filmado acota el diálogo por segundo y el total', () => {
     const { prompt } = buildFunctionPrompt({ functionId: 'storyboard', context: { project: { name: 'X' }, piece: { tipo: 'filmado', durationSec: 20, guion: { blocks: [] } } }, options: {} });
-    expect(prompt).toContain('máximo 2,7 palabras por segundo (8s = 21 palabras)');
-    expect(prompt).toContain('(máximo 25s)');
+    // storyboard/3.8 (2026-10-12, estudio curado): la duración es la del guion; dirección narrativa y actoral
+    expect(prompt).toContain('coincide con la del GUION aprobado (20s)');
+    expect(prompt).toContain('DIRECCIÓN NARRATIVA DE ESCENAS');
+    expect(prompt).toContain('DIRECCIÓN ACTORAL');
+    expect(prompt).not.toContain('CADA ESCENA FILMADA ES UNA SITUACIÓN, NO UNA CARA');
+    expect(prompt).not.toContain('JUNTÁ bloques');
   });
 });
 
@@ -44,7 +48,7 @@ describe('versionado (Regla 2)', () => {
     for (const id of ['strategy', 'concept', 'script', 'cast', 'storyboard', 'flowpack', 'publish', 'qa', 'videoprompt', 'briefToKb']) {
       expect(PROMPT_VERSIONS[id], id).toMatch(/^[a-zA-Z]+\/\d/);
     }
-    expect(buildFunctionPrompt({ functionId: 'concept', context: { project: { name: 'X', brief: 'b' }, piece: {} }, options: {} }).promptVersion).toBe('concept/3.0');
+    expect(buildFunctionPrompt({ functionId: 'concept', context: { project: { name: 'X', brief: 'b' }, piece: {} }, options: {} }).promptVersion).toBe('concept/3.2');
   });
 });
 
@@ -64,8 +68,17 @@ describe('validación por molde (P0.7)', () => {
   });
   it('script: roles, orden, palabras por segundo y suma de duraciones', () => {
     const body = { options: { duracion: 20 }, context: { piece: {} } };
-    const ok = { blocks: [{ role: 'hook', narration: idea(7), durSec: 3 }, { role: 'desarrollo', narration: idea(22), durSec: 9 }, { role: 'gag', narration: idea(9), durSec: 4 }, { role: 'cta', narration: idea(9), durSec: 4 }] };
+    // script/3.x (filmado): cada frase con quién la dice en cámara, una toma por bloque, hasta 3 frases en 20 s, cta en la placa
+    const ok = { blocks: [{ role: 'hook', quien: 'vecina', narration: idea(7), durSec: 3 }, { role: 'desarrollo', quien: 'vecina', narration: idea(15), durSec: 9 }, { role: 'gag', quien: 'vecina', narration: idea(9), durSec: 4 }, { role: 'cta', quien: 'placa', narration: idea(6), durSec: 4 }] };
     expect(validarResultado('script', ok, body)).toEqual([]);
+    const sinQuien = { blocks: ok.blocks.map((b) => ({ ...b, quien: b.role === 'cta' ? 'placa' : '' })) };
+    expect(validarResultado('script', sinQuien, body).filter((x: string) => x.includes('quién lo dice'))).toHaveLength(3);
+    // script/3.7 (2026-10-12): ya no hay tope de frases ni de palabras por bloque (eran reglas del 11/10, no del framework)
+    const cuatro = { blocks: [ok.blocks[0], ok.blocks[1], { ...ok.blocks[1], narration: idea(5) }, ok.blocks[2], ok.blocks[3]] };
+    expect(validarResultado('script', cuatro, body).some((x: string) => x.includes('frases habladas'))).toBe(false);
+    // en el animado no hay quien: la voz es la del locutor
+    const animado = { options: { duracion: 20 }, context: { piece: { tipo: 'animado' } } };
+    expect(validarResultado('script', { blocks: ok.blocks.map(({ quien: _q, ...b }) => b) }, animado)).toEqual([]);
     const mal = { blocks: [{ role: 'hook', narration: idea(20), durSec: 3 }, { role: 'cta', narration: idea(5), durSec: 4 }, { role: 'gag', narration: idea(5), durSec: 4 }] };
     const e = validarResultado('script', mal, body);
     expect(e.some((x: string) => x.includes('falta el bloque "desarrollo"'))).toBe(true);
@@ -83,7 +96,9 @@ describe('validación por molde (P0.7)', () => {
     expect(e.some((x: string) => x.includes('suman 38s'))).toBe(true);
   });
   it('cast y publish: largos', () => {
-    expect(validarResultado('cast', { personajes: [{ id: 'p1', fisicoEn: idea(5), fisicoEs: idea(30) }], lugar: { descripcionEn: idea(100) } }, {})).toHaveLength(3);
+    // cast/2.2: además de los largos, cada personaje necesita su lugar (lugarEn) y su ropa en inglés (vestuarioEn)
+    expect(validarResultado('cast', { personajes: [{ id: 'p1', fisicoEn: idea(5), fisicoEs: idea(30) }], lugar: { descripcionEn: idea(100) } }, {})).toHaveLength(5);
+    expect(validarResultado('cast', { personajes: [{ id: 'p1', fisicoEn: idea(30), fisicoEs: idea(10), lugarEn: 'her kitchen', vestuarioEn: 'grey sweater' }], lugar: { descripcionEn: idea(30) } }, {})).toEqual([]);
     expect(validarResultado('publish', { caption: '', hookOnScreen: idea(12), hashtags: ['#a b'] }, {})).toHaveLength(3);
     expect(validarResultado('publish', { caption: 'x', hookOnScreen: 'y', hashtags: ['#ok'] }, {})).toEqual([]);
   });

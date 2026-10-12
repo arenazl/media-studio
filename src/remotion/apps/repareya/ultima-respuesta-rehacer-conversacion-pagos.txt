@@ -1,0 +1,253 @@
+```tsx
+// ── 3. el chat con el plan de pagos adentro ──
+const ConvFila: React.FC<{
+  f: number;
+  acordado: boolean;
+  op: number;
+}> = ({ acordado, op }) => (
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 18,
+      padding: '22px 26px',
+      borderRadius: 16,
+      background: acordado ? 'rgba(15,157,99,0.14)' : 'rgba(255,255,255,0.05)',
+      border: `1px solid ${acordado ? 'rgba(15,157,99,0.55)' : 'rgba(255,255,255,0.10)'}`,
+      opacity: op,
+      transform: `translateY(${(1 - op) * 16}px)`,
+    }}
+  >
+    <Ico d={acordado ? D.check : D.recibo} size={34} color={acordado ? EXITO : NARANJA} />
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: 34, fontWeight: 700, color: acordado ? '#6EE7B0' : BLANCO, lineHeight: 1.15 }}>
+        {acordado ? 'Plan de pagos acordado' : 'Plan de pagos enviado'}
+      </div>
+      <div style={{ fontSize: 30, color: 'rgba(255,255,255,0.62)', marginTop: 4 }}>3 pagos · $620.000</div>
+    </div>
+  </div>
+);
+
+const ConvBurbuja: React.FC<{
+  op: number;
+  mia?: boolean;
+  children: React.ReactNode;
+}> = ({ op, mia, children }) => (
+  <div
+    style={{
+      alignSelf: mia ? 'flex-end' : 'flex-start',
+      maxWidth: '88%',
+      opacity: op,
+      transform: `translateY(${(1 - op) * 18}px)`,
+    }}
+  >
+    <div
+      style={{
+        padding: '22px 26px',
+        borderRadius: 20,
+        borderBottomRightRadius: mia ? 6 : 20,
+        borderBottomLeftRadius: mia ? 20 : 6,
+        background: mia ? NARANJA : 'rgba(255,255,255,0.07)',
+        border: mia ? 'none' : '1px solid rgba(255,255,255,0.10)',
+        color: mia ? BLANCO : 'rgba(255,255,255,0.92)',
+        fontSize: 34,
+        lineHeight: 1.34,
+      }}
+    >
+      {children}
+    </div>
+  </div>
+);
+
+export const Conversacion: React.FC<{ f: number; dur: number }> = ({ f, dur }) => {
+  const SUP = 'rgba(255,255,255,0.055)';
+  const BORDE_N = 'rgba(255,255,255,0.11)';
+  const VERDE_CLARO = '#6EE7B0';
+
+  const base = 16;
+  const paso = Math.max(20, (dur - 70) / 3);
+  const entra = ease(f, 0, 16);
+
+  const m1 = ease(f, base, base + 14);
+  const escribiendo = f > base + 14 && f < base + paso * 0.55;
+  const m2 = ease(f, base + paso * 0.55, base + paso * 0.55 + 14);
+  const prop = ease(f, base + paso * 1.3, base + paso * 1.3 + 16);
+  const firma = ease(f, base + paso * 2.2, base + paso * 2.2 + 16);
+  const acordado = firma > 0.5;
+  const sello = ease(f, dur - 26, dur - 8);
+  const montos = ['$124.000', '$248.000', '$248.000'];
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 70,
+        top: 330,
+        width: 940,
+        height: 920,
+        borderRadius: 30,
+        background: `linear-gradient(180deg, rgba(255,255,255,0.075) 0%, rgba(255,255,255,0.035) 100%), ${MADERA_P}`,
+        border: `1px solid ${BORDE_N}`,
+        boxShadow: '0 34px 80px rgba(0,0,0,0.58)',
+        overflow: 'hidden',
+        padding: '34px 36px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 22,
+        fontFamily: sans,
+        color: BLANCO,
+        opacity: entra,
+        transform: `translateY(${(1 - entra) * 40}px) scale(${0.97 + 0.03 * entra})`,
+      }}
+    >
+      {/* encabezado */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 20,
+            background: 'rgba(238,90,14,0.20)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 'none',
+          }}
+        >
+          <Ico d={D.chat} size={38} color={NARANJA} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: cond, fontSize: 44, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.08 }}>
+            Carpintería Marcelo
+          </div>
+          <div style={{ fontSize: 30, color: 'rgba(255,255,255,0.60)', marginTop: 2 }}>Villa Urquiza</div>
+        </div>
+      </div>
+
+      {/* acceso de arriba: enviado → acordado */}
+      <ConvFila f={f} acordado={acordado} op={prop} />
+
+      {/* el hilo */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <ConvBurbuja op={m1} mia>
+          ¿Cómo manejás el pago? No quiero adelantar todo.
+        </ConvBurbuja>
+
+        <div style={{ minHeight: 92 }}>
+          {escribiendo ? (
+            <div style={{ alignSelf: 'flex-start' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  gap: 12,
+                  padding: '28px 30px',
+                  borderRadius: 20,
+                  borderBottomLeftRadius: 6,
+                  background: 'rgba(255,255,255,0.07)',
+                  border: `1px solid ${BORDE_N}`,
+                }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,0.75)',
+                      opacity: 0.25 + 0.75 * Math.abs(Math.sin(f / 6 + i * 0.9)),
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <ConvBurbuja op={m2}>Te armo un plan en tres pagos</ConvBurbuja>
+          )}
+        </div>
+      </div>
+
+      {/* la propuesta dentro del hilo */}
+      <div
+        style={{
+          marginTop: 'auto',
+          borderRadius: 22,
+          background: acordado ? 'rgba(15,157,99,0.12)' : 'rgba(238,90,14,0.12)',
+          border: `2px solid ${acordado ? EXITO : NARANJA}`,
+          padding: '24px 24px 26px',
+          opacity: prop,
+          transform: `translateY(${(1 - prop) * 26}px) scale(${0.97 + 0.03 * prop})`,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            fontSize: 34,
+            fontWeight: 700,
+            color: acordado ? VERDE_CLARO : BLANCO,
+          }}
+        >
+          <Ico d={acordado ? D.check : D.recibo} size={32} color={acordado ? EXITO : NARANJA} />
+          {acordado ? 'Plan de pagos acordado' : 'Propuesta de pago 1'}
+          <span style={{ fontSize: 30, fontWeight: 600, color: 'rgba(255,255,255,0.60)' }}>· 3 pagos</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 14, marginTop: 20 }}>
+          {montos.map((m, i) => {
+            const a = ease(f, base + paso * 1.3 + 8 + i * 8, base + paso * 1.3 + 24 + i * 8);
+            return (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  padding: '18px 6px 20px',
+                  borderRadius: 16,
+                  background: SUP,
+                  border: `1px solid ${BORDE_N}`,
+                  opacity: a,
+                  transform: `translateY(${(1 - a) * 16}px)`,
+                }}
+              >
+                <div style={{ fontSize: 30, color: 'rgba(255,255,255,0.58)' }}>Pago {i + 1}</div>
+                <div
+                  style={{
+                    fontFamily: cond,
+                    fontWeight: 800,
+                    fontSize: 56,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.05,
+                    marginTop: 4,
+                    color: acordado ? VERDE_CLARO : BLANCO,
+                  }}
+                >
+                  {m}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ minHeight: 44, marginTop: 18 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              fontSize: 30,
+              fontWeight: 700,
+              color: VERDE_CLARO,
+              opacity: sello,
+              transform: `translateY(${(1 - sello) * 12}px)`,
+            }}
+          >
+            <Ico d={D.escudo} size={28} color={EXITO} /> Queda en el hilo
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```

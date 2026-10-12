@@ -8,12 +8,12 @@ import { API_BASE } from '../config';
 import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { mediaKitParaMolde } from '../lib/mediaKit';
-import { storyboardToMontaje, totalDuration, type MontajeState, type MontajePlan, type PalabraTiempo } from '../lib/montajePlan';
-import { afinarMontaje } from '../lib/montajista';
+import { totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
+import { armarMontaje } from '../lib/armarMontaje';
 
 // La vista previa exacta (Player de Remotion) se carga sólo cuando hay un plan v2: no entra al bundle inicial.
 const PlayerMontaje = lazy(() => import('../remotion/PlayerMontaje'));
-import type { QaResult } from '../lib/comercial';
+import { pasoHabilitado, type QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
 
 const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
@@ -70,41 +70,12 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   // Los avisos de "faltan clips" mandaban a importar en un paso que ese pipeline ni muestra.
   const esAnimado = comercial?.tipo === 'animado';
 
-  // Arma el plan desde el storyboard. FILMADO: el montajista lo afina con las palabras transcriptas de cada
-  // clip (recorta el aire, corta en frase, mete pantallas reales cuando la voz las nombra, placa final) y lo
-  // marca para el motor Remotion. ANIMADO: como antes (el reel ya viene renderizado), con el logo rasterizado.
+  // Arma el plan desde el storyboard con el montajista (lib/armarMontaje.ts, el mismo que usa el Auto-armar del editor).
   const armar = async () => {
     if (!comercial) return;
     setArmando(true); setError('');
     try {
-      const base = storyboardToMontaje(comercial);
-      let planFinal: MontajePlan = base;
-      const marca = { exacto: project.marcaKit?.nombreExacto || project.brandKit?.name, fonetica: project.marcaKit?.fonetica || project.brandKit?.phonetic };
-      if (esAnimado) {
-        // el video de mockups ya trae logo y placa final: acá sólo se le suman voz y música, sin acercamientos
-        const afinado = afinarMontaje(base, { palabrasPorToma: {}, marca });
-        planFinal = { ...afinado, scenes: afinado.scenes.map((s) => ({ ...s, punchFrom: 1, punchTo: 1 })) };
-      } else {
-        const refs = [...new Set(base.scenes.map((s) => s.src).filter(Boolean))];
-        const pares = await Promise.all(refs.map(async (ref) => {
-          try {
-            const r = await fetch(`${API_BASE}/api/transcribir`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileRef: ref }) });
-            const d = await r.json();
-            return [ref, r.ok ? (d.words as PalabraTiempo[]) : undefined] as const;
-          } catch { return [ref, undefined] as const; }
-        }));
-        const colores = project.marcaKit?.colores;
-        planFinal = afinarMontaje(base, {
-          palabrasPorToma: Object.fromEntries(pares),
-          pantallas: project.pantallasKit,
-          cta: project.cta,
-          logoUrl: project.marcaKit?.logoUrl || project.brandKit?.logoUrl,
-          marca,
-          estilo: colores?.primario
-            ? { primario: colores.primario, acento: colores.acento || '#F59E0B', fondo: colores.fondo || '#FAF7FF', texto: colores.texto || '#1E1B2E' }
-            : undefined,
-        });
-      }
+      const planFinal = await armarMontaje(project, comercial);
       setComercial((c) => ({
         ...c,
         montaje: { plan: planFinal, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
@@ -112,6 +83,19 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       }));
     } catch (e) { setError(errMsg(e)); } finally { setArmando(false); }
   };
+
+  // AUTO-ARMAR al entrar (Lucas, 2026-10-11: "primero debería crear una versión automática y después, si hace falta, el
+  // ajuste final manual en el multipista"): una sola vez, con el paso habilitado, sin montaje todavía y con material
+  // (clips de Flow o mockups; en animado, el reel renderizado). "Rearmar" sigue disponible a mano.
+  const hasAutoFired = useRef(false);
+  useEffect(() => {
+    const hayMaterial = esAnimado ? !!comercial?.renderRef : !!(comercial?.rodaje || []).length;
+    if (comercial && !plan && hayMaterial && pasoHabilitado(comercial, 'montaje') && !armando && !hasAutoFired.current) {
+      hasAutoFired.current = true;
+      void armar();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setMusica = (url: string) => setComercial((c) => {
     const m = c.montaje as MontajeState | undefined;
@@ -223,6 +207,14 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           <div className="pack-bar">
             <span className="pack-prog">{plan.scenes.length} escenas · {conClip} con clip · ~{totalDuration(plan).toFixed(1)}s{plan.motor === 'remotion' ? ` · ${plan.scenes.reduce((n, s) => n + (s.inserts?.length || 0), 0)} insertos de pantalla` : ''}</span>
           </div>
+
+          {/* lo que el montajista dejó afuera y por qué (una toma que repite la frase de otra, mockups que no entraron) */}
+          {!!plan.avisos?.length && (
+            <div className="paso-card">
+              <div className="paso-card-h"><Clapperboard size={12} /> Lo que decidió el armado</div>
+              {plan.avisos.map((a, i) => <div key={i} className="mont-sil">{a}</div>)}
+            </div>
+          )}
 
           {/* VISTA PREVIA EXACTA (plan v2): el Player corre la misma composición que renderiza el servidor */}
           {plan.motor === 'remotion' && conClip > 0 && (
@@ -404,12 +396,12 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
             <div className="paso-empty">
               {esAnimado
                 ? 'Falta el video: renderizá el reel animado primero (paso Render).'
-                : 'Faltan clips importados en el Rodaje: el render necesita al menos una escena con clip.'}
+                : 'Faltan clips: el render necesita al menos una escena con clip (videos en Pack Flow, mockups en Mockups).'}
             </div>
           )}
           {conClip > 0 && sinClip.length > 0 && (
             <div className="paso-empty">
-              Faltan clips en las escenas {sinClip.join(', ')} — {esAnimado ? 'renderizá el reel animado de nuevo' : 'importalos en Rodaje'} o sacalas del montaje antes de exportar.
+              Faltan clips en las escenas {sinClip.join(', ')} — {esAnimado ? 'renderizá el reel animado de nuevo' : 'bajalos en Pack Flow o poné un mockup en Mockups'} o sacalas del montaje antes de exportar.
             </div>
           )}
 
@@ -427,7 +419,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           )}
           </>
         ) : (
-          <PasoEmpty icon={Clapperboard}>Armá el montaje desde el storyboard. Necesitás {esAnimado ? 'el reel animado renderizado (paso Render)' : 'clips importados en el Rodaje'}.</PasoEmpty>
+          <PasoEmpty icon={Clapperboard}>Armá el montaje desde el storyboard. Necesitás {esAnimado ? 'el reel animado renderizado (paso Render)' : 'los videos de Pack Flow y los mockups'}.</PasoEmpty>
         )}
       </div>
       {/* PIE del panel: ir directo al Editor Multipista en Pantalla Completa */}

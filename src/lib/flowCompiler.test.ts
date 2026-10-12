@@ -36,7 +36,7 @@ describe('compileFlowPack — golden', () => {
     expect(pack.estilo).toMatch(/photorealistic/i);
     expect(pack.estilo).not.toMatch(/Darío|Beatriz/);
     expect(pack.personajes.map((p: { id: string }) => p.id)).toEqual(['p1', 'p2']);
-    expect(pack.escenas).toHaveLength(4);
+    expect(pack.escenas).toHaveLength(4);   // 3.x: la cta con una persona hablando se filma; sólo la cta SIN persona es la placa
     expect(pack.escenas.map((e: { escenaN: number }) => e.escenaN)).toEqual([1, 2, 3, 4]);
     expect(pack.escenas.every((e: { estado: string }) => e.estado === 'pendiente')).toBe(true);
     expect(pack.huecos).toEqual([]);
@@ -46,37 +46,67 @@ describe('compileFlowPack — golden', () => {
     expect(p.startsWith('Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine')).toBe(true);
     expect(p).toMatch(/no action, no dialogue/);
   });
-  it('talking head (escena 1): nombre corto + Argentine, plano medio, diálogo literal en rioplatense, entrega del hook, logo libre, sin fisicoEn largo', () => {
+  // flowpack/3.x (2026-10-11): el contenido primero — quién, dónde, qué hace, cómo dice la frase — y sin la receta fija de
+  // cara a cámara ni el "sigue hablando todo el clip"; la frase arranca en el primer segundo y después no hay más palabras.
+  it('escena con frase (escena 1): quién y dónde, la acción, la frase literal desde el primer segundo, sin relleno, logo libre', () => {
     const t = pack.escenas[0].prompt;
-    expect(t).toContain('Darío, ');
-    expect(t).toMatch(/Argentine/);
-    expect(t).toContain(VEO_REGLAS_EN.talkingHead);
-    expect(t).toContain("He speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: 'Traje una planta, eh. Por el turno. Capaz florece antes de que me llamen con Munifai.'");
-    expect(t).toMatch(/Energetic, hooking delivery/);
+    expect(t).toContain('Darío, an Argentine man');
+    expect(t).toContain('in Waiting hall of a small Argentine municipality');
+    expect(t).toContain('Darío raises the ticket');
+    expect(t).toContain("He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Traje una planta, eh. Por el turno. Capaz florece antes de que me llamen con Munifai.'");
+    expect(t).toContain(VEO_REGLAS_EN.despues);
+    expect(t).toMatch(/Energetic, hooking delivery/);   // sin accionEn del storyboard, la entrega por rol
+    expect(t).not.toContain(VEO_REGLAS_EN.talkingHead);
+    expect(t).not.toContain(VEO_REGLAS_EN.sinSilencio);
     expect(t).toContain(VEO_REGLAS_EN.logoLibre);
     expect(t).not.toContain('worn navy jacket');
-    expect(t).toContain('Darío raises the ticket');
+    expect(t.indexOf('Darío raises')).toBeLessThan(t.indexOf('starts speaking'));   // la acción antes que la técnica
   });
-  it('b-roll de pantalla (escena 2): sin diálogo, toma continua, pantalla no legible', () => {
+  it('con accionEn del storyboard: la usa tal cual, sin el lugar del cast ni la entrega fija; el vestuario viaja', () => {
+    const cast = { ...CAST, personajes: [{ ...CAST.personajes[0], vestuarioEn: 'worn navy jacket, plain t-shirt' }, CAST.personajes[1]] };
+    const t = promptEscena({ ...SB[0], accionEn: 'Already talking, Darío lifts his numbered ticket at the counter.' }, { cast, lugar: cast.lugar });
+    expect(t).toContain('Already talking, Darío lifts his numbered ticket at the counter.');
+    expect(t).toContain('wearing worn navy jacket, plain t-shirt');
+    expect(t).not.toContain('Waiting hall');
+    expect(t).not.toMatch(/Energetic, hooking delivery/);
+  });
+  it('si un paso intermedio vació "personajes", la escena no pierde a su persona', () => {
+    const t = promptEscena({ ...SB[0], personajes: [], personajesModelo: ['p1'] }, { cast: CAST, lugar: CAST.lugar });
+    expect(t).toContain('Darío, an Argentine man');
+    expect(t).toContain("exactly these words and nothing else: 'Traje una planta");
+  });
+  it('b-roll de pantalla (escena 2): sin diálogo, toma continua, la pantalla nunca a cámara (una sola regla, sin "poco legible")', () => {
     const t = pack.escenas[1].prompt;
     expect(t).toContain(VEO_REGLAS_EN.broll);
-    expect(t).toContain(VEO_REGLAS_EN.pantalla);
+    expect(t).toContain(VEO_REGLAS_EN.sinInterfaz);
+    expect(t).not.toContain(VEO_REGLAS_EN.pantalla);
     expect(t).not.toMatch(/speaks directly/);
   });
   it('personaje mujer (escena 3): pronombre She y entrega del gag', () => {
     const t = pack.escenas[2].prompt;
-    expect(t).toMatch(/She speaks directly/);
+    expect(t).toMatch(/She starts speaking within the first second/);
     expect(t).toMatch(/Playful, sharp delivery/);
   });
-  it('cierre (escena 4): el logo centrado arriba y entrega eufórica', () => {
-    const t = pack.escenas[3].prompt;
-    expect(t).toContain(VEO_REGLAS_EN.logoCierre);
-    expect(t).toMatch(/Euphoric/);
+  // 2026-10-10: la escena cta es la placa de cierre (la dibuja el montaje con logo, marca y CTA): no se filma en Flow,
+  // y ningún prompt le pide a Veo el logo ("logo.png" salía escrito en la imagen y costó créditos).
+  it('la cta SIN persona no entra al pack y ningún prompt pide el logo: sólo dejar libre el tercio superior', () => {
+    const sinPersona = compileFlowPack({ storyboard: [...SB.slice(0, 3), { ...SB[3], personajes: [], dialogo: '' }], cast: CAST });
+    expect(sinPersona.escenas.some((e: { rol: string }) => e.rol === 'cta')).toBe(false);
+    for (const e of pack.escenas as { prompt: string }[]) {
+      expect(e.prompt).not.toContain('logo.png');
+      expect(e.prompt).toContain(VEO_REGLAS_EN.logoLibre);
+    }
   });
-  it('el rol viene del storyboard (autoridad), y la locación se resume (primera oración)', () => {
+  it('el rol viene del storyboard (autoridad), y el lugar va ENTERO (antes se cortaba en la primera oración)', () => {
     expect(pack.escenas.map((e: { rol: string }) => e.rol)).toEqual(['hook', 'desarrollo', 'gag', 'cta']);
-    expect(pack.escenas[0].prompt).toContain('Location: Waiting hall of a small Argentine municipality: fluorescent light, plastic chairs, a ticket dispenser, posters on the wall');
-    expect(pack.escenas[0].prompt).not.toContain('old computer');
+    expect(pack.escenas[0].prompt).toContain('Waiting hall of a small Argentine municipality: fluorescent light, plastic chairs, a ticket dispenser, posters on the wall');
+    expect(pack.escenas[0].prompt).toContain('old computer');
+  });
+  it('el lugar propio del personaje (lugarEn) le gana a la locación general', () => {
+    const cast = { ...CAST, personajes: [CAST.personajes[0], { ...CAST.personajes[1], lugarEn: 'the counter of the municipal office, a stack of forms and a rubber stamp' }] };
+    const t = promptEscena(SB[2], { cast, lugar: cast.lugar });
+    expect(t).toContain('in the counter of the municipal office, a stack of forms and a rubber stamp');
+    expect(t).not.toContain('Waiting hall');
   });
   it('sin traducciones el pack igual sale, con la acción en español y los huecos marcados', () => {
     const p2 = compileFlowPack({ storyboard: SB, cast: CAST });
@@ -98,6 +128,12 @@ describe('traducción de acciones — lo único que se le pide al modelo', () =>
     expect(t).toContain('4| Darío sonríe a cámara');
     expect(t).toMatch(/EXACTAMENTE una línea/);
   });
+  it('con el cast, cada línea dice quién está en cuadro y su género; las escenas con accionEn no se traducen', () => {
+    const t = promptTraduccion([SB[0], SB[2], { ...SB[3], accionEn: 'already in English' }], CAST);
+    expect(t).toContain('1| Darío levanta el ticket y una planta frente a cámara (en cuadro: Darío, hombre)');
+    expect(t).toContain('3| Beatriz mira la planta y suspira (en cuadro: Beatriz, mujer)');
+    expect(t).not.toContain('4|');
+  });
   it('sin acciones el prompt es vacío (y run-function no llama a la IA)', () => {
     expect(promptTraduccion([{ n: 1, rol: 'hook', accion: '' }])).toBe('');
   });
@@ -118,9 +154,9 @@ describe('molde flowpack en functions.mjs — compilado', () => {
   it('parse arma el pack con las traducciones del modelo', () => {
     const out = parseFunctionResult('flowpack', '1| A\n2| B\n3| C\n4| D', body);
     expect(out.escenas).toHaveLength(4);
-    expect(out.escenas[0].prompt).toContain('Action: A.');
+    expect(out.escenas[0].prompt).toContain(' A. ');
     expect(out.huecos).toEqual([]);
-    expect(out.version).toBe('flowpack/2.0-compilado');
+    expect(out.version).toBe('flowpack/3.2-compilado');
   });
   it('parse con texto inútil: el pack sale igual y los huecos quedan marcados (nunca falla en silencio)', () => {
     const out = parseFunctionResult('flowpack', 'no entendí', body);

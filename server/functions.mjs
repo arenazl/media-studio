@@ -7,7 +7,7 @@
 
 import { scriptToText, scriptNarrations } from './scriptToText.mjs';
 import { buildProjectFacts, factsText } from './projectFacts.mjs';
-import { compileFlowPack, promptTraduccion, parseTraduccion } from './flowCompiler.mjs';
+import { compileFlowPack, promptTraduccion, parseTraduccion, promptEscena } from './flowCompiler.mjs';
 import { lintCommercial } from './lintCommercial.mjs';
 import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
 import { buildConceptPromptV3, CATALOGO_CONCEPTO_V3 } from './media-studio-concept-v3.mjs';
@@ -25,7 +25,7 @@ function bloqueEnfoque(piece = {}, etapa = 'guion') {
   }[etapa] || '';
   return `ENFOQUE Y TRATAMIENTO ELEGIDOS POR EL DUEÑO (vienen del concepto; respetalos)
 ENFOQUE: ${enfoque.label} [${enfoque.id}]
-${JSON.stringify(enfoque.ficha, null, 2)}
+${enfoque.fichaTexto || JSON.stringify(enfoque.ficha, null, 2)}
 ${trat ? `TRATAMIENTO: ${trat.label} [${trat.id}]. ${trat.instruccion}\n` : ''}${regla}
 `;
 }
@@ -57,19 +57,17 @@ export function extractJson(text) {
 // negocio a partir de su contexto (nombre, marca fonética, guion, pantallas, brief).
 const VEO_RULES = `REGLAS DE CADA prompt (battle-tested; van en INGLES salvo el dialogo, que va en español rioplatense):
 - Realismo que NO cante a IA: "photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive face, not over-rendered and not CGI-perfect".
-- POSICIONAMIENTO DE LOGO Y MARCA:
-  * En la escena de CIERRE/CTA: "The uploaded brand logo 'logo.png' from assets is displayed clearly and prominently centered in the upper third of the 9:16 vertical frame".
-  * En talking heads y b-rolls: "Keep the top center area of the frame uncluttered for top-centered brand logo overlay".
-- Persona ATRACTIVA, de belleza convencional/hegemonica pero creible (no cara de IA): "a striking, conventionally beautiful and charismatic [Argentine ...] in her late 20s to early 30s, polished and camera-ready, with long sleek hair, defined attractive features and a confident, magnetic presence". Vestida y ambientada SEGUN el rubro del negocio (ej. blazer en una oficina), nunca fuera de contexto.
+- LOGO: nunca se le pide un logo ni un texto al generador (lo dibujaba). El logo y la placa los pone el montaje; en cada prompt: "Leave some empty headroom at the top of the frame; nothing drawn or written there".
+- La PERSONA sale del pedido: quién es, su edad, su ropa y su lugar los decide la historia que se cuenta, nunca un tipo fijo. Creíble, no cara de IA.
 - TALKING HEAD (hook y cierre = los "videos iniciales") — reglas DURAS:
   * Plano MEDIO, de la cintura para arriba, camara a distancia conversacional (~2m): "medium shot, waist-up framing, she fills a good portion of the frame with strong, dominant presence". NUNCA wide full-body desde lejos, NUNCA la persona chica en el cuadro.
-  * Entorno real del negocio en soft-focus de fondo (ej. oficina moderna y luminosa con escritorios y colegas), adaptado al rubro.
+  * El lugar de la historia, en soft-focus de fondo.
   * Camara QUIETA o con un push-IN MUY sutil: "the camera holds steady or does a very subtle slow push-in as she speaks". PROHIBIDO alejar: nada de "zoom out / pull back / dolly back" (achica al sujeto y mata la presencia).
   * EXPRESIVIDAD de venta: "warm, confident and charming tone, realistic expressive face".
   * Dialogo LARGO que COMENTA el producto y LLENA el clip (NO un gancho suelto): el talking head dura 8s (MINIMO 8s, el maximo de Flow), asi que decí una frase ENTERA de ~24-30 palabras que engancha Y explica el beneficio concreto del producto, fluida: "speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: '<frase larga que engancha y comenta el producto, con una pausa actuada en el ...>'". Marca fonetica SIEMPRE la fonetica que te paso (nunca el nombre escrito).
   * SIN silencio de relleno: la persona habla durante TODO el clip. PROHIBIDO "stays quiet until the end".
   * La MISMA persona en hook y cierre: en el flujo con Personajes por imagen la identidad la fija la IMAGEN de referencia; en cada prompt se la nombra por su NOMBRE + "Argentine" + una descripcion CORTA (ropa, edad aproximada). NUNCA se repite la descripcion fisica larga (fisicoEn).
-- B-roll: "No spoken dialogue, ambient sound only" y "one single continuous take, same background, no cut". Si se ve una pantalla de app: "screen not clearly legible".
+- B-roll: "No spoken dialogue, ambient sound only" y "one single continuous take, same background, no cut". Ninguna pantalla de app mira a cámara.
 - Sin texto en pantalla dentro del prompt (el overlay se agrega en edicion).`;
 
 // extrae del context los campos comunes que usan los moldes (project + piece).
@@ -133,12 +131,33 @@ function screensText(project = {}) {
 // ── MEDIA KIT (WO-K4) — las piezas REALES de la app como insumo de los moldes ──────────────────
 // El front manda `context.piece.mediaKit` = { pantallas[], momentos[], cta } (src/lib/mediaKit.ts
 // ::mediaKitParaMolde). RETROCOMPAT DURA: sin kit devuelve '' y los prompts quedan byte-idénticos.
-function mediaKitText(piece = {}) {
+function mediaKitText(piece = {}, { uso = 'creativo' } = {}) {
   const mk = piece.mediaKit;
   if (!mk) return '';
   const pantallas = Array.isArray(mk.pantallas) ? mk.pantallas : [];
   const momentos = Array.isArray(mk.momentos) ? mk.momentos : [];
   const L = [];
+  // 2026-10-12 (Lucas: "las capturas son simplemente una referencia del flujo de la pantalla"): en los pasos creativos el
+  // kit entra como el RECORRIDO de la app — qué pantallas hay, qué hace la persona en cada una y cómo la usa cada lado —
+  // sin la micro-animación, que describía el caso de la demo ("se elige 'Humedad y filtraciones'…") y el modelo lo tomaba
+  // como el caso a contar. El molde de mockups (uso 'mockups') sí necesita la animación y sigue igual.
+  if (uso !== 'mockups') {
+    if (pantallas.length) {
+      L.push('RECORRIDO DE PANTALLAS DE LA APP: las capturas son la referencia del flujo de la app (qué pantallas existen, en qué orden se usan y qué hace la persona en cada una). En el video entran como insertos del montaje. Para nombrar una pantalla usá su NOMBRE EXACTO de esta lista:');
+      for (const p of pantallas) L.push(`- ${p.nombre}${p.queDemuestra ? `: ${p.queDemuestra}` : ''}`);
+    }
+    if (momentos.length) {
+      L.push('CÓMO USA LA APP CADA LADO (el flujo, paso a paso):');
+      for (const m of momentos) {
+        const pant = Array.isArray(m.pantallas) && m.pantallas.length ? ` [${m.pantallas.join(' → ')}]` : '';
+        L.push(`- ${m.nombre || 'flujo'}: ${m.historia || ''}${m.remate ? ` — lo que gana: ${m.remate}` : ''}${pant}`);
+      }
+    }
+    if (mk.cta && (mk.cta.principal || mk.cta.url)) {
+      L.push(`CTA VERIFICADO POR LA APP (usalo tal cual en el cierre): ${[mk.cta.principal, mk.cta.url].filter(Boolean).join(' · ')}`);
+    }
+    return L.length ? `${L.join('\n')}\n` : '';
+  }
   if (pantallas.length) {
     L.push('CAPTURAS REALES DE LA APP (es lo que se VE en el video — no hay que imaginarlas). Para referirte a una pantalla usá su NOMBRE EXACTO de esta lista:');
     for (const p of pantallas) {
@@ -156,6 +175,28 @@ function mediaKitText(piece = {}) {
     L.push(`CTA VERIFICADO POR LA APP (usalo tal cual en el cierre): ${[mk.cta.principal, mk.cta.url].filter(Boolean).join(' · ')}`);
   }
   return L.length ? `${L.join('\n')}\n` : '';
+}
+
+// De dónde sale cada cosa, por paso (2026-10-12, Lucas: "todo lo que es la generación de la campaña tiene que surgir de…
+// y le decís qué parámetros"). En vez de prohibir usar algo, cada pedido dice qué fuente alimenta qué.
+function deDondeSale(etapa) {
+  const t = {
+    concept: `DE DÓNDE SALE CADA COSA
+- La idea sale del mensaje y la dirección de esta pieza (los fijó la estrategia), del enfoque y el tratamiento elegidos, y de lo que la FICHA DEL NEGOCIO dice que resuelve, para quién y con qué dolores.
+- La situación, las personas y el lugar de la historia los creás vos a partir de eso: tienen que ser de la vida del público de la ficha.
+- El recorrido de pantallas de la app es la referencia de lo que el producto puede mostrar y del flujo que sigue la persona.`,
+    script: `DE DÓNDE SALE CADA COSA
+- La historia (la situación, quiénes son, qué les pasa, dónde y en qué orden se cuenta) sale del CONCEPTO ELEGIDO, con el enfoque y el tratamiento.
+- Lo que el negocio hace y promete sale de la FICHA DEL NEGOCIO (el BRIEF de abajo).
+- El recorrido de pantallas de la app dice qué pantalla puede probar cada momento del flujo.`,
+    cast: `DE DÓNDE SALE CADA COSA
+- Las personas, su edad, su ropa y el lugar salen del CONCEPTO y del GUION: son las de esa historia.
+- El rubro y el público de la ficha sirven para que sean creíbles.`,
+    storyboard: `DE DÓNDE SALE CADA COSA
+- Las escenas, lo que pasa en cada una y quién habla salen del GUION; las personas y sus lugares, del CAST.
+- Las pantallas salen del recorrido de pantallas de la app: se nombran tal cual y entran como insertos.`,
+  }[etapa];
+  return t ? `${t}\n` : '';
 }
 
 // Normaliza un label para matchear PANTALLA ↔ ESCENA. ESPEJO de src/lib/mediaKit.ts::normLabel (el
@@ -226,9 +267,12 @@ function propagarNarracion(escenas, guion) {
 
 // Duraciones por REGLA, no por lo que diga el modelo (2026-10-07, medido: Sonnet ponía 8s a todas las
 // escenas y la pieza de 20s salía de 48s; la reparación por prompt no lo corregía). Filmado:
-//   talking head (hay personajes y diálogo) → 8s, la regla dura de Flow;
-//   b-roll con voz en off (diálogo sin personajes) → lo que dura su texto a 2,7 palabras/seg, de 4 a 8s;
-//   b-roll mudo → 4s (o lo que dijo el modelo si está entre 4 y 6).
+//   escena con persona y frase → lo que tarda la frase a 2,7 palabras/seg + 1s de acción, de 3 a 7s (2026-10-11: antes
+//     era 8s fijo y una frase corta "era aire" y se convertía en b-roll sin la persona; el gancho de RepareHoy llegó a Flow
+//     sin la vecina y "sin diálogo". Flow igual genera 8s; el montajista corta en la frase);
+//   inserto de pantalla → 2 a 3s y sin frase (la frase la dice la persona en su escena; muda más tiempo parece tildada);
+//   b-roll con voz en off (diálogo sin personajes, sólo con locutor) → lo que dura su texto, de 4 a 8s;
+//   b-roll mudo → 4s (o lo que dijo el modelo si está entre 3 y 6).
 export function normalizarDuraciones(escenas) {
   const palabras = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
   const MAX_VO = Math.floor(8 * WPS);   // 21 palabras: lo que entra en un b-roll de 8s con voz en off
@@ -243,14 +287,20 @@ export function normalizarDuraciones(escenas) {
       if (vistos.some((v) => v.includes(t))) e = { ...e, dialogo: '', dialogoModelo: e0.dialogo, personajes: [], dialogoRepetido: true };   // parte de una anterior: b-roll mudo
       else vistos.push(t);
     }
+    // inserto de pantalla: sin frase y de 2 a 3s (si el modelo le puso una, nadie la iba a decir)
+    if (String(e.pantalla || '').trim() && !(e.personajes || []).length) {
+      const durSec = Number(e.durSec) > 0 ? Number(e.durSec) : 3;
+      const limpio = String(e.dialogo || '').trim() ? { ...e, dialogo: '', dialogoModelo: e.dialogo } : e;
+      out.push(durSec === Number(e.durSec) ? limpio : { ...limpio, durSec, durSecModelo: e.durSec });
+      continue;
+    }
     const w = palabras(e.dialogo), d = Number(e.durSec) || 0;
-    let th = esTalkingHead(e);
-    let extra = {};
-    // Un talking head de 8s con menos de 12 palabras es aire (medido: el modelo los deja y la reparación
-    // no los junta). Regla del dueño: "lo demás va como b-roll con voz en off" → se convierte acá.
-    if (th && w < 12) { th = false; extra = { personajes: [], personajesModelo: e.personajes, plano: e.plano || 'insert', talkingHeadConvertido: true }; }
-    if (th) { out.push(d === 8 ? e : { ...e, durSec: 8, durSecModelo: d }); continue; }
-    if (!w) { const durSec = d >= 4 && d <= 6 ? d : 4; out.push(durSec === d ? e : { ...e, durSec, durSecModelo: d }); continue; }
+    const th = esTalkingHead(e);
+    const extra = {};
+    // storyboard/3.8 (2026-10-12, estudio curado): la duración es la del guion, que el storyboard copia; no se recalcula por
+    // palabras. Sólo se completa si el modelo no la puso.
+    if (th) { const durSec = d > 0 ? d : Math.min(7, Math.max(3, Math.ceil(w / WPS) + 1)); out.push(durSec === d ? e : { ...e, durSec, durSecModelo: d }); continue; }
+    if (!w) { const durSec = d > 0 ? d : 4; out.push(durSec === d ? e : { ...e, durSec, durSecModelo: d }); continue; }
     // b-roll con voz en off: dura lo que dura su texto; si no entra en 8s, se divide en dos por oraciones
     if (w > MAX_VO) {
       const oraciones = String(e.dialogo).trim().split(/(?<=[.!?…])\s+/).filter(Boolean);
@@ -271,14 +321,26 @@ export function normalizarDuraciones(escenas) {
 // Cada escena → la CAPTURA real del kit que le toca (`archivoCaptura` = relpath). Match por el label
 // de pantalla que devolvió la IA (`screen`) contra el `nombre` de las capturas. Sin kit: no toca nada.
 
-function asignarCapturas(escenas, context = {}, piece = {}) {
+export function asignarCapturas(escenas, context = {}, piece = {}) {
   const project = context.project || {};
   const mkScreens = Array.isArray(piece.mediaKit?.pantallas) ? piece.mediaKit.pantallas : [];
   const projScreens = Array.isArray(project.screens) ? project.screens : [];
   const pantallas = mkScreens.length ? mkScreens : projScreens;
 
   if (!pantallas.length) return escenas;
+  const buscar = (txt) => {
+    const label = normLabel(txt);
+    if (!label) return null;
+    return pantallas.find((x) => normLabel(x.nombre || x.label) === label)
+      || pantallas.find((x) => label.startsWith(normLabel(x.nombre || x.label)))   // el modelo copia "nombre: descripción…"
+      || pantallas.find((x) => normLabel(x.nombre || x.label).includes(label) || label.includes(normLabel(x.nombre || x.label)));
+  };
   return escenas.map((e, idx) => {
+    // inserto de pantalla (storyboard/2.1): "pantalla" queda con el NOMBRE exacto de la captura del kit y su archivo
+    if (String(e.pantalla || '').trim()) {
+      const p = buscar(e.pantalla);
+      if (p) e = { ...e, pantalla: p.nombre || p.label, archivoCaptura: e.archivoCaptura || p.archivo || p.url || p.fileRef || p.image || '' };
+    }
     if (e.archivoCaptura) return e;
     const label = normLabel(e.screen);
     let p = label
@@ -359,6 +421,27 @@ CAMPOS:
 - durationSec: ${durEjemplo}.
 - format: "${fmtEjemplo}".
 
+JERARQUÍA DE LA PIEZA
+
+Cada pieza debe tener:
+1. Un mensaje principal.
+2. Una necesidad concreta.
+3. Una prueba o capacidad directamente vinculada al mensaje.
+4. Un beneficio observable.
+5. Un CTA consistente.
+
+Los supportingFacts no son una lista de todo lo verdadero.
+Incluí sólo hechos necesarios para demostrar el mensaje.
+
+No incorpores datos comerciales secundarios sólo porque
+estén disponibles en el brief.
+
+Distinguí siempre "hasta N" de "N garantizados".
+No conviertas capacidades posibles en resultados asegurados.
+
+La campaña puede cubrir múltiples beneficios.
+La pieza individual no debe intentar cubrirlos todos.
+
 NO ASUMIR:
 - clientes, reseñas, garantías, cifras, precios o resultados que el BRIEF no confirme;
 - una prueba social si no existe evidencia en el BRIEF;
@@ -422,10 +505,50 @@ Rioplatense, sin emojis, no inventes datos. Sé estricto con la brevedad. Si el 
       const objetivoScope = scope === 'brand-global'
         ? '- Esta pieza es brand-global (institucional / overview): acá SÍ se cuenta el sistema integral, ordenado alrededor de una idea.'
         : '- El espectador debe entender qué resuelve ${x.name} y por qué importa, pero el video NO tiene que enumerar toda la plataforma.\n- Elegí del BRIEF sólo los hechos y beneficios que sostienen este concepto (pueden ser varias funciones si sirven a una misma idea). No intentes meter todos los módulos ni todos los mensajes clave.';
+      // script/3.0 (2026-10-11, Lucas: "materia prima = buenos personajes, buen guion, buen storyboard"): en una pieza
+      // FILMADA no hay locutor: cada palabra la dice en cámara un personaje, y el guion tiene que decir quién. Antes el
+      // guion no lo decía, el storyboard adivinaba (le dio a la vecina una frase de la electricista) y las frases sin
+      // dueño terminaban como "voz en off" que nadie grababa.
+      const filmado = tipo !== 'animado';
+      // script/3.7 (2026-10-12): de lo agregado el 11/10 queda sólo lo técnico (sin locutor, una persona por bloque). El
+      // criterio narrativo es el del estudio curado (docs/17-orquestador/radiografias/nuevoestudio.md), con sus palabras.
+      const bloqueQuien = filmado ? `
+QUIÉN DICE CADA COSA (técnico: en esta pieza no hay locutor ni voz en off; sólo se oye lo que dicen las personas en cámara)
+- "quien" = la persona de la historia que dice esa frase en cámara, siempre con el mismo nombre en toda la pieza. El cierre lo muestra la PLACA del montaje: "quien" = "placa".
+- Una sola persona por bloque. Si hablan dos, son dos bloques.
+- Un bloque puede no tener voz (narration "") si la imagen cuenta sola ese momento; entonces "quien" es "".
+` : '';
+      const bloqueCalidad = filmado ? `
+CALIDAD DRAMÁTICA Y NATURALIDAD
+
+Antes de escribir el diálogo, identificá internamente qué quiere cada personaje en ese momento, qué acaba de suceder y qué provoca su siguiente reacción.
+
+Los personajes no son portavoces del negocio. Son personas viviendo una situación concreta.
+
+REGLAS
+- Ningún personaje debe pronunciar una frase que parezca extraída de la ficha comercial.
+- El diálogo debe responder a algo que ocurre o que otro personaje acaba de decir.
+- Permití interrupciones, preguntas genuinas, respuestas breves, pequeños malentendidos y reacciones inesperadas cuando resulten naturales.
+- No fuerces a los personajes a explicar el problema y la solución verbalmente. El espectador puede comprender una parte por lo que ve.
+- Una frase breve puede ser mejor que una explicación completa.
+- El humor puede surgir de una observación cotidiana, sin necesidad de construir un chiste.
+- No obligues a todos los personajes a hablar ni a realizar acciones continuamente.
+- Respetá el tono y el mecanismo del concepto elegido.
+
+CONTROL OBLIGATORIO
+Leé cada intervención como si fuera una conversación real entre esas personas, sin cámaras presentes.
+
+Si suena a publicidad, reformulala.
+
+Si una línea no revela carácter, no provoca una reacción, no aporta información necesaria ni hace avanzar la situación, eliminala.
+
+Evaluá internamente al menos dos formulaciones distintas de las intervenciones principales y conservá la más natural. No muestres alternativas en el JSON final.
+` : '';
+      const bloqueVisualFilmado = filmado ? `- quien: la persona que lo dice en cámara ("" si el bloque no tiene voz; "placa" en el cierre).` : '';
       return { mode: 'set', prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: escribí el GUION. No adelantes casting, planos ni decisiones técnicas del storyboard. Usá únicamente los hechos provistos; si un dato no está, no lo inventes.
 
 Actuás como promo-director. Convertí el CONCEPTO ELEGIDO en un comercial de ${dur}s para ${piezaDesc}, tono ${tono}${x.angulo ? ` (ángulo: "${x.angulo}")` : ''}.
-${regenPrompt}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo reemplaces por otra idea): ${concepto}\n` : ''}${bloqueEnfoque(piece, 'guion')}${bloqueTecnica}${bloqueKit}
+${regenPrompt}${tipo !== 'animado' ? deDondeSale('script') : ''}${concepto ? `CONCEPTO ELEGIDO (es la dirección creativa; no lo reemplaces por otra idea): ${concepto}\n` : ''}${bloqueEnfoque(piece, 'guion')}${bloqueTecnica}${bloqueKit}
 ${focoPieza}OBJETIVO NARRATIVO:
 - Mantené UNA idea central de principio a fin.
 ${objetivoScope.replace('${x.name}', x.name)}
@@ -433,15 +556,63 @@ ${objetivoScope.replace('${x.name}', x.name)}
 
 ESTRUCTURA EXACTA:
 hook -> desarrollo -> giro -> cta
-
+${filmado ? `- El orden en que se cuenta lo decide el CONCEPTO ELEGIDO: si empieza por la consecuencia o vuelve atrás, se respeta, siempre que respete los hechos del producto y se entienda la historia.
+- hook: el estímulo más interesante para el espectador; puede ser una pregunta, un contraste, una consecuencia, un problema o una revelación.
+- Se prohíbe el lenguaje de folleto, no el significado comercial: una persona puede contar lo que le pasó, siempre que suene a su forma de hablar.
+- Una escena dramatizada no es un resultado garantizado: no digas cantidades ni tiempos que el BRIEF no garantiza ("hasta tres" no es "tres"; que lleguen no es que lleguen ya).
+- cta: lo muestra la PLACA final del montaje (no se filma): "quien" = "placa" y "narration" = el CTA del BRIEF, tal cual.
+` : ''}${bloqueQuien}${bloqueCalidad}
 PRESUPUESTO HABLADO (contá palabras):
 ${presupuestoLista(dur)}
-Usá esos durSec; sólo podés mover 1 segundo entre bloques si la suma final sigue siendo ${dur}s.
+Esos durSec son una referencia: podés redistribuirlos entre bloques siempre que la suma final sea ${dur}s.
 
 CADA BLOQUE:
 - narration: sólo lo que se DICE. No describas actuación ni cámara.
 - visual: una sola frase breve con lo que se VE; tiene que apoyar esa narración, no repetirla.
-- durSec: duración del bloque.
+${bloqueVisualFilmado ? `${bloqueVisualFilmado}\n` : ''}- durSec: duración del bloque.
+
+PRINCIPIO DE GUION PUBLICITARIO
+
+Escribí para ser escuchado, no para ser leído.
+
+El guion debe convertir las funciones del producto en
+acciones y consecuencias comprensibles.
+
+No hagas que un personaje explique especificaciones,
+categorías, pantallas o atributos de marketing si puede
+demostrarlos visualmente.
+
+DIÁLOGOS
+- Usar expresiones naturales según personaje y situación.
+- Evitar repeticiones de la ficha comercial.
+- No convertir cada frase en un claim.
+- Priorizar un pensamiento claro por intervención.
+- Evitar narraciones que repitan exactamente lo visible.
+
+RELACIÓN AUDIO / IMAGEN
+La imagen puede demostrar una funcionalidad mientras
+la voz expresa la consecuencia humana.
+
+No describir acciones sobre pantallas como si tuvieran
+que ser generadas por un modelo de video.
+
+TIEMPO
+Los bloques indican tiempo de montaje, no duración
+obligatoria de los clips de generación.
+
+Calcular duración estimada del texto hablado.
+Reservar margen para pausas, respiración y transición.
+No ajustar el guion solamente al máximo teórico de
+palabras por segundo.
+
+RESULTADO
+No mostrar una consecuencia posterior que la historia
+no haya justificado.
+
+CTA
+Usar la marca fonética sólo en la pista hablada.
+En overlays, títulos, mockups y URL utilizar la
+representación gráfica oficial.
 
 NO ASUMIR:
 - datos, cifras, precios, integraciones, clientes o resultados que no estén en el BRIEF;
@@ -449,7 +620,7 @@ NO ASUMIR:
 - un CTA distinto del disponible en el BRIEF.
 
 Devolvé SOLO JSON:
-{ "blocks": [{ "role": "hook|desarrollo|giro|cta", "narration": "", "visual": "", "durSec": <segundos> }], "music": { "mood": "2-3 palabras" } }
+{ "blocks": [{ "role": "hook|desarrollo|giro|cta", ${filmado ? '"quien": "", ' : ''}"narration": "", "visual": "", "durSec": <segundos> }], "music": { "mood": "2-3 palabras" } }
 
 NEGOCIO: ${x.name}
 BRIEF (única fuente de hechos):
@@ -566,6 +737,7 @@ PANTALLAS DEL PRODUCTO: ${screensText(project) || '(sin pantallas en el KB: prop
         angulo && `ÁNGULO DE ESTA PIEZA (la estrategia ya lo decidió, respetalo): ${angulo}`,
         creativeBrief && `DIRECCIÓN CREATIVA DE ESTA PIEZA: ${creativeBrief}`,
         piece.primaryMessage && `MENSAJE PRINCIPAL DE ESTA PIEZA (la estrategia lo fijó; los tres conceptos lo demuestran de formas distintas): ${piece.primaryMessage}${piece.messageScope === 'brand-global' ? ' (pieza brand-global: acá sí se cuenta el sistema integral)' : ''}`,
+        tipo !== 'animado' && deDondeSale('concept').trim(),
       ].filter(Boolean).join('\n');
       // concept/3.0 (curación externa del 2026-10-10, guardada en base-compartida/mediastudio/curaciones/01-concepto-con-enfoque):
       // el dueño elige el ENFOQUE (cómo se organiza la historia) y el TRATAMIENTO (cómo se siente); el humor sólo entra si
@@ -649,7 +821,7 @@ Devolvé SOLO este JSON, sin texto antes ni después, sin markdown:
       return { prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: definí el CAST y la LOCACIÓN necesarios para producir el concepto y el guion. No agregues personajes decorativos ni reescribas la historia.
 ${regenNote ? regenNote + '\n' : ''}
 Sos casting director + location scout de un comercial ${asp}.
-
+${deDondeSale('cast')}
 CRITERIO:
 - Usá 1 personaje si alcanza; usá 2 sólo si el guion necesita dos roles reales.
 - Cada personaje debe tener una función narrativa identificable.
@@ -662,9 +834,12 @@ POR PERSONAJE:
 - fisicoEn: 25 a 45 palabras en INGLÉS. Descripción visual consistente para generación de imagen/video: edad aproximada, pelo, tono de piel, rasgos, vestuario y presencia. Sólo características visibles.
 - fisicoEs: máximo 18 palabras en español para la UI.
 - vestuario: máximo 10 palabras.
+- vestuarioEn: la misma ropa en INGLÉS, máximo 12 palabras (viaja en cada pedido al generador para que no cambie entre tomas).
 - personalidad: 1 a 3 palabras.
+- lugarEn: 20 a 40 palabras en INGLÉS. DÓNDE vemos a esta persona en el comercial, concreto y creíble, con la luz. Si el concepto junta a los personajes en un mismo lugar, es el mismo lugar para todos. Evitá decoraciones, acciones o biografías inventadas que no mejoren la escena.
+- quien: el nombre con el que el GUION la nombra en "dice:" (para unir cada frase con su persona).
 
-LOCACIÓN:
+LOCACIÓN (la general, para el retrato de referencia):
 - nombre: corto y específico.
 - descripcionEn: 25 a 50 palabras en INGLÉS. Espacio, mobiliario relevante, atmósfera y luz coherentes con el negocio y el guion.
 - luz: máximo 8 palabras.
@@ -675,7 +850,7 @@ NO ASUMIR:
 - cambios de personaje para distintas escenas: la identidad definida acá debe poder mantenerse en todo el comercial.
 
 Devolvé SOLO JSON:
-{ "personajes": [{ "id": "p1", "nombre": "...", "rol": "...", "fisicoEn": "...", "fisicoEs": "...", "vestuario": "...", "personalidad": "..." }], "lugar": { "nombre": "...", "descripcionEn": "...", "luz": "..." } }
+{ "personajes": [{ "id": "p1", "nombre": "...", "rol": "...", "fisicoEn": "...", "fisicoEs": "...", "vestuario": "...", "vestuarioEn": "...", "personalidad": "...", "lugarEn": "...", "quien": "..." }], "lugar": { "nombre": "...", "descripcionEn": "...", "luz": "..." } }
 
 ${bloqueEnfoque(piece, 'cast')}NEGOCIO: ${name}
 RUBRO: ${rubroNegocio}
@@ -746,26 +921,94 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       return { prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: convertí el GUION en un STORYBOARD FILMADO producible. No reescribas el concepto ni agregues mensajes comerciales nuevos. Usá únicamente el CAST y el GUION provistos.
 
 Sos director de un comercial FILMADO ${asp}.
-${bloqueKit}
+${deDondeSale('storyboard')}${bloqueKit}
 PRINCIPIO:
 Cada escena tiene una función visual concreta. No agregues escenas por variedad. Si dos escenas cuentan lo mismo, dejá una sola.
+
+${bloqueKit ? 'PANTALLAS (regla dura): nunca se filma una pantalla. Si un momento del guion tiene que mostrar la app, esa escena es un INSERTO: poné en "pantalla" el nombre EXACTO de una de las capturas de arriba, "personajes": [] y en "accion" qué se ve en esa pantalla; la arma el motor con el mockup real, no Flow. En las escenas filmadas, un teléfono o una computadora nunca muestran la interfaz: se ve la persona, su gesto y lo que le pasa.' : 'PANTALLAS (regla dura): nunca se filma una pantalla. Sin capturas de la app, ninguna escena muestra la interfaz: se ve la persona, su gesto y lo que le pasa. "pantalla" va siempre "".'}
+
+QUIÉN HABLA (técnico: en esta pieza no hay locutor ni voz en off)
+- Cada frase del GUION la dice EN CÁMARA la persona que figura en "dice:". Una escena filmada por cada bloque con voz:
+  "dialogo" = la frase de ese bloque, TAL CUAL; "personajes" = el id de quien la dice (el personaje del CAST cuyo "quien"
+  coincide).
+- Ninguna frase se repite en dos escenas.
+- Un bloque del guion sin voz que muestra a una persona haciendo algo es una escena filmada sin frase, no un inserto.
+
+DIRECCIÓN NARRATIVA DE ESCENAS
+
+Antes de definir plano, iluminación o movimiento, identificá el propósito dramático de cada escena.
+
+Cada escena debe tener:
+- Una situación reconocible.
+- Una intención humana concreta.
+- Una acción o interacción que tenga sentido dentro de esa situación.
+- Un pequeño cambio, descubrimiento o reacción, cuando la escena lo requiera.
+
+No agregues gestos sólo para evitar que el personaje esté quieto.
+
+Una conversación puede ser visualmente interesante sin que los personajes estén abriendo puertas, levantando objetos o caminando permanentemente.
+
+El entorno y los objetos deben apoyar la situación narrativa, no competir con ella.
+
+CONTROL OBLIGATORIO
+Antes de aprobar cada escena filmada, preguntate:
+
+«Si elimino la descripción de cámara, iluminación y vestuario, ¿todavía queda una situación humana interesante?»
+
+Si no, la escena necesita una acción, un conflicto o una interacción mejor. No más detalles cinematográficos.
+
+DIRECCIÓN ACTORAL (es lo que lee el generador de video: va en "accionEn")
+
+La prioridad de un prompt audiovisual debe ser:
+1. Qué está sucediendo entre los personajes.
+2. Qué quiere conseguir o expresar cada personaje.
+3. Cómo reacciona naturalmente ante la situación.
+4. Qué acción física concreta acompaña esa situación.
+5. Cómo se filma: cámara, luz, ambiente y estilo.
+
+Mantené todas las restricciones técnicas necesarias para continuidad, identidad visual, duración, diálogos exactos y pantallas verificadas.
+
+No conviertas la actuación en una secuencia mecánica de microgestos.
+
+Evitá instrucciones excesivamente coreografiadas como mover la cabeza, levantar una ceja, girar el teléfono, sonreír y volver a mirar, salvo que sean indispensables para la historia.
+
+Describí la intención actoral y la relación entre los personajes para que el generador tenga libertad de producir una interpretación natural.
+
+CONTROL OBLIGATORIO
+Un clip de ocho segundos debe contener un momento humano reconocible y realizable.
+
+La fotografía puede embellecer ese momento, pero nunca reemplazarlo.
+
+LO QUE EL GENERADOR DE VIDEO NO PUEDE HACER (técnico)
+- Nada de acciones finas de manos en plano cercano mientras alguien habla (tipear, enchufar, atornillar): el video
+  generado deforma los dedos.
+- La persona empieza a hablar en el primer segundo de la toma.
+- Si alguien le muestra el teléfono a otro, la pantalla mira al otro y nunca a cámara: lo que muestra lo cuenta el inserto
+  con la captura real.
 
 POR ESCENA:
 - n: consecutivo desde 1.
 - rol: hook|desarrollo|giro|cta (giro = el momento en que se ve el beneficio; remate gracioso sólo con tratamiento humor).
-- durSec: talking head mínimo 8s; b-roll entre 4 y 8s. Un b-roll CON voz en off dura lo que dura su texto a 2,7 palabras por segundo (10 palabras = 4s), nunca más; sin voz, 4 a 6s.
-- plano: para talking head, medium shot waist-up; evitá sujetos lejanos.
+- personajes: el id de quien está en cuadro ([] en un inserto de pantalla).
+- dialogo: la frase del guion que dice esa persona; "" si en esa escena nadie habla.
+- accion: en español, máximo 14 palabras; describe una sola acción visible (es lo que lee el dueño).
+- accionEn: en INGLÉS, de 35 a 70 palabras, para el generador de video, en el orden de la DIRECCIÓN ACTORAL: qué está
+  sucediendo, qué quiere la persona y a quién le habla (a alguien de la escena, a cámara o para sí); después la acción
+  física y el lugar (del CAST). Pronombres con el género correcto del personaje. Sin la frase (va aparte), sin marcas de
+  cámara ni lentes, sin texto en pantalla.
+- plano: close-up | medium close-up | medium shot | over-the-shoulder | low angle | high angle | handheld follow | wide shot.
 - angulo: breve.
-- personajes: sólo ids existentes en CAST; [] si no aparece nadie.
-- accion: máximo 14 palabras; describe una sola acción visible.
-- dialogo: "" si nadie habla a cámara. Si hay talking head, usá texto del GUION sin inventar claims y respetá máximo 2,7 palabras por segundo (8s = ${maxNarrationWords(8)} palabras).
 - continuidad: máximo 8 palabras; sólo lo que debe mantenerse respecto de la escena anterior.
+- pantalla: "" en las escenas filmadas; el nombre EXACTO de la captura en un inserto de pantalla.
+- durSec: la del bloque del GUION que cuenta esa escena (si un bloque se reparte entre una escena filmada y un inserto, se
+  reparte su duración).
 
-DURACIÓN Y TALKING HEADS (regla dura, medible):
-- Un talking head dura 8s y necesita ${maxNarrationWords(8) - 4} a ${maxNarrationWords(8)} palabras de diálogo: JUNTÁ bloques consecutivos del guion en un mismo talking head (por ejemplo hook + desarrollo) en vez de hacer un talking head por bloque. Un talking head con menos de ${Math.round((maxNarrationWords(8) - 4) * 0.7)} palabras es aire y no sirve.
-- Pieza de hasta 24s: como máximo ${durationSec <= 24 ? 'DOS' : 'TRES'} talking heads. Lo demás va como b-roll de 4 a 8s con la voz en off (dialogo con el texto del guion y personajes []).
-- Con UN solo talking head la pieza queda en ${durationSec}s (máximo ${Math.round(durationSec * 1.25)}s); con dos, pasa a 24 a 30s: no comprimas, extendé.
+DURACIÓN
+La duración final del storyboard coincide con la del GUION aprobado (${durationSec}s): no la recalcules libremente. Los
+ocho segundos que genera el video por toma no son los segundos que se usan en la edición.
 El giro (el momento en que se ve el beneficio; remate gracioso sólo con tratamiento humor) ocurre antes del CTA.
+El CTA es la PLACA del montaje: una escena con rol "cta", sin personajes, sin frase y sin pantalla, con el texto de la
+placa en "accion". No se filma.
 
 CONTINUIDAD:
 Usá siempre los mismos ids para el mismo personaje. No cambies ropa, edad, lugar o luz sin que el GUION lo justifique.
@@ -776,7 +1019,7 @@ NO ASUMIR:
 - locaciones o acciones que contradigan el concepto.
 
 Devolvé SOLO JSON:
-{ "escenas": [{ "n": 1, "rol": "hook", "durSec": 8, "plano": "medium shot waist-up", "angulo": "eye-level", "personajes": ["p1"], "accion": "...", "dialogo": "...", "continuidad": "..." }] }
+{ "escenas": [{ "n": 1, "rol": "hook", "durSec": 5, "plano": "...", "angulo": "...", "personajes": ["p1"], "accion": "...", "accionEn": "...", "dialogo": "...", "continuidad": "...", "pantalla": "" }] }
 
 NEGOCIO: ${name}
 MARCA FONÉTICA para cualquier diálogo: ${phonetic}
@@ -803,7 +1046,9 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
         const durSec = (esTalkingHead(e) && rawDur < 8) ? 8 : rawDur;
         return { ...e, durSec };
       });
-      escenas = propagarNarracion(escenas, piece.guion);
+      // la narración se reparte entre escenas mudas SÓLO en el animado (voz en off). En una pieza filmada cada frase la dice
+      // un personaje en su escena: repartir el sobrante le daba frases a los insertos de pantalla que nadie iba a decir.
+      if ((piece.tipo || 'filmado') === 'animado') escenas = propagarNarracion(escenas, piece.guion);
       if ((piece.tipo || 'filmado') === 'filmado') escenas = normalizarDuraciones(escenas);
       // La firma es (escenas, context, piece): pasar `piece` como context dejaba el kit afuera y
       // ninguna escena recibía su captura (test 'matchea el screen...' en rojo desde el WIP).
@@ -833,20 +1078,32 @@ GUION: ${guion || '(usá el brief del negocio)'}` };
       const asp = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
       if (regenerate && regenerate.escenaN != null) {
         const escena = storyboard.find((e) => Number(e.n) === Number(regenerate.escenaN)) || {};
-        return { mode: 'escena', prompt: `Sos el prompt-writer de Google Flow (Veo 3.1, flujo nuevo con Personajes por imagen). Rehacé SOLO el prompt de la ESCENA ${regenerate.escenaN} de un comercial ${asp}, con OTRA idea visual/encuadre.
-En el flujo nuevo los personajes YA tienen su IMAGEN de referencia: referílos por su NOMBRE del cast + nacionalidad "Argentine" (ej. "Ana, an Argentine woman in her late 20s") — CORTO, NUNCA pegues el fisicoEn largo. El diálogo va LITERAL en español rioplatense entre comillas; el resto del prompt en INGLÉS.
-${VEO_RULES}
-CAST (para tomar nombres de personajes y la locación — NO copies el fisicoEn en el prompt): ${castJson}
-ESCENA A REHACER: ${JSON.stringify(escena)}
-MARCA FONÉTICA: ${phonetic}
-Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "prompt": "el prompt en inglés, con el diálogo en español rioplatense entre comillas y la marca fonética" } }` };
+        // 2026-10-12: la regeneración pide sólo otra ACCIÓN (accionEn) con la dirección actoral del estudio curado y el
+        // pedido se compila igual que el pack (promptEscena). Antes reescribía el prompt entero con las reglas viejas de
+        // Veo: casting fijo, la frase del logo que Flow dibujaba y la cara hablando a cámara.
+        return { mode: 'escena', prompt: `Sos director de escena de un comercial filmado ${asp}. Rehacé SOLO la acción de la ESCENA ${regenerate.escenaN} para el generador de video, con otra puesta: la misma persona, la misma frase, el mismo lugar y el mismo momento de la historia.
+
+DIRECCIÓN ACTORAL
+La prioridad es:
+1. Qué está sucediendo entre los personajes.
+2. Qué quiere conseguir o expresar cada personaje.
+3. Cómo reacciona naturalmente ante la situación.
+4. Qué acción física concreta acompaña esa situación.
+5. Cómo se filma: cámara, luz, ambiente y estilo.
+No conviertas la actuación en una secuencia mecánica de microgestos. Describí la intención actoral y la relación entre los personajes. Un clip de ocho segundos debe contener un momento humano reconocible y realizable.
+
+LA ACCIÓN (accionEn): en INGLÉS, de 35 a 70 palabras, en ese orden. Pronombres con el género correcto del personaje. Sin la frase (va aparte), sin marcas de cámara ni lentes, sin texto en pantalla. Nada de acciones finas de manos mientras habla. Si alguien le muestra el teléfono a otro, la pantalla mira al otro y nunca a cámara.
+
+CAST: ${castJson}
+ESCENA ACTUAL: ${JSON.stringify(escena)}
+Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "accionEn": "..." } }` };
       }
       // Fase 5 (doc §4.6): el pack se COMPILA sin IA (server/flowCompiler.mjs) con la misma estructura
       // que pedía este prompt. Lo único que se le pide al modelo es traducir las acciones al inglés
       // (una línea por escena). Si no hay acciones, el prompt va vacío y run-function no llama a la IA.
       // Medido antes: 47 a 52 s y USD 0,12 a 0,17 por pack con Opus/Sonnet; ahora la traducción sola.
       void brandTxt;
-      return { mode: 'pack', prompt: promptTraduccion(storyboard), compilado: true };
+      return { mode: 'pack', prompt: promptTraduccion(storyboard, piece.cast), compilado: true };
     },
     // parse recibe el `body` (contrato extendido) para leer el storyboard y enriquecer las escenas
     // con su `rol` (autoridad = el storyboard, no la IA) + el estado inicial 'pendiente'.
@@ -854,8 +1111,17 @@ Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "prompt": "e
       // regen de UNA escena: sigue siendo IA (otra idea visual) y devuelve JSON.
       if (body && body.regenerate && body.regenerate.escenaN != null) {
         const o = extractJson(text);
+        const piezaR = (body.context && body.context.piece) || {};
+        const sbR = Array.isArray(piezaR.storyboard) ? piezaR.storyboard : [];
+        const escR = sbR.find((e) => Number(e.n) === Number(body.regenerate.escenaN));
+        if (o && o.escena && o.escena.accionEn && escR) {
+          const proyR = (body.context && body.context.project) || {};
+          const aspR = piezaR.formato ? (piezaR.formato.aspecto || '9:16') : '9:16';
+          const prompt = promptEscena({ ...escR, accionEn: String(o.escena.accionEn).trim() }, { cast: piezaR.cast, lugar: piezaR.cast && piezaR.cast.lugar, phonetic: proyR.phonetic || proyR.name || '', aspecto: aspR });
+          return { escena: { escenaN: Number(body.regenerate.escenaN), prompt } };
+        }
         if (o && o.escena && o.escena.prompt) return { escena: { escenaN: Number(o.escena.escenaN), prompt: o.escena.prompt } };
-        throw new Error('la regeneración de la escena no trajo prompt');
+        throw new Error('la regeneración de la escena no trajo la acción');
       }
       // Fase 5: pack compilado. `text` es la traducción de las acciones (o vacío).
       const piece = (body && body.context && body.context.piece) || {};
@@ -946,7 +1212,7 @@ ${brief}` };
       const piece = context.piece || {};
       const name = project.name || 'el producto';
       const asp = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
-      const bloqueKit = mediaKitText(piece);
+      const bloqueKit = mediaKitText(piece, { uso: 'mockups' });
       const cta = piece.mediaKit?.cta;
       const ctaTxt = cta && (cta.principal || cta.url) ? [cta.principal, cta.url].filter(Boolean).join(' · ') : '(no hay CTA verificado: el título de cierre sale de la descripción)';
       return { prompt: `Trabajás dentro de un pipeline audiovisual. Hacé sólo esta etapa: convertí la DESCRIPCIÓN DEL DUEÑO en las ESCENAS de un reel ANIMADO de mockups sobre las pantallas reales del producto. No inventes funciones ni pantallas.

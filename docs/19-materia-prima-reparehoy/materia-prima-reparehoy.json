@@ -1,0 +1,994 @@
+{
+  "generado": "11/10/2026, 09:34:49",
+  "proyecto": {
+    "nombre": "RepareHoy",
+    "web": "https://reparehoy.com.ar",
+    "cta": "Entrá a reparehoy.com.ar y contá qué hay que arreglar",
+    "comoSeDice": "reparé hoy",
+    "brief": "Contá el problema. Elegí entre 3 presupuestos de profesionales verificados.\n\n## La tesis (lo que se vende, en palabras de la app)\n- El fuerte: RepareHoy hace de juez entre el que necesita arreglar algo en su casa y el que sabe hacerlo: la seña queda retenida hasta que el trabajo está hecho, el plan de pagos lo acuerdan los dos en el chat y queda como registro, y la reputación sale sólo de trabajos terminados adentro.\n- Se entiende como: Un Mercado Libre de oficios con pago protegido: publicás lo que te pasa y te llegan los presupuestos, no perseguís a nadie.\n- Contra qué: El WhatsApp y la confianza a ciegas: el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó, y lo hablado que quedó en audios.\n- El momento mágico: Para el cliente, cuando abre la app y la tira dice 'Te esperan tus proveedores' con presupuestos que llegaron solos. Para el proveedor, cuando arma el plan de pagos a su manera y la app le dice hasta dónde puede pedir de adelanto porque ya se lo ganó.\n- A quién le hablamos primero: Al cliente con algo roto en casa, porque es quien tiene el dolor hoy y quien trae la plata; sin pedidos no hay proveedor que se quede. El proveedor viene después, con su propia pieza: la bandeja, el plan, los números.\n\n## El negocio\nMarketplace de oficios para el hogar en el AMBA. El cliente cuenta el problema en sus palabras, recibe hasta tres presupuestos de profesionales verificados de su zona, habla con el que elige por un chat dentro de la app y paga la seña desde ahí.\n\n- Qué vende: Intermediación entre quien necesita arregla",
+    "pantallas": [
+      {
+        "nombre": "Contar el problema",
+        "queMuestra": "pedir un arreglo es contar qué pasa, en tus palabras, en cuatro pasos cortos; sin saber qué oficio necesitás"
+      },
+      {
+        "nombre": "Te esperan tus proveedores",
+        "queMuestra": "los presupuestos llegan solos y la app te dice qué está esperando algo tuyo, ordenado por urgencia"
+      },
+      {
+        "nombre": "La conversación con el plan de pagos adentro",
+        "queMuestra": "se negocia cómo se paga en el mismo chat, y la propuesta queda en el hilo en el momento en que ocurrió"
+      },
+      {
+        "nombre": "Pagar la seña",
+        "queMuestra": "se paga sólo la seña por MercadoPago y queda retenida por la plataforma hasta que el trabajo está terminado"
+      },
+      {
+        "nombre": "Bandeja de solicitudes",
+        "queMuestra": "al proveedor los pedidos le llegan ya ordenados por estado, con el cliente, el servicio y el monto; no sale a buscarlos"
+      },
+      {
+        "nombre": "Armar el plan de pagos",
+        "queMuestra": "el proveedor elige cómo cobrar (todo al final, mitades, o contra avance por etapas) y la plataforma sólo le marca hasta dónde puede pedir de adelanto según su historial"
+      },
+      {
+        "nombre": "El panel del proveedor",
+        "queMuestra": "el proveedor ve su mes en números: solicitudes, confirmadas, ingresos comprometidos, conversión, rating y reseñas"
+      },
+      {
+        "nombre": "La reputación, hecha de trabajos reales",
+        "queMuestra": "la reputación del proveedor sale sólo de trabajos terminados en la app: cada reseña tiene nombre, contratación verificada y estrellas, y hay de cuatro además de cinco"
+      },
+      {
+        "nombre": "Mis solicitudes, con el progreso de cada trabajo",
+        "queMuestra": "cada trabajo muestra en qué paso está (Pedido, Presupuesto, Seña, Terminado) y qué le falta, sin tener que preguntarle a nadie"
+      }
+    ]
+  },
+  "piezas": [
+    {
+      "id": "v1",
+      "titulo": "Nadie te contesta",
+      "origen": "La pieza ORIGINAL (prompts del 10/10). Es la que tiene los clips que bajaron de Flow: abajo está lo que dice cada clip de verdad.",
+      "duracionObjetivo": 26,
+      "sumaStoryboard": 41,
+      "enfoque": "dos-lados",
+      "tratamiento": "aspiracional",
+      "angulo": "Nadie te contesta",
+      "mensajePrincipal": "Dejá de perseguir a alguien que te conteste: contá el problema una vez y los presupuestos llegan a tu pantalla.",
+      "concepto": {
+        "id": "c3",
+        "topico": "El pedido que llega",
+        "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+        "idea": "Una electricista de Villa Urquiza cuenta a cámara que antes dependía de que alguien la recomendara, mientras una vecina admite que mandaba mensajes a ciegas. En RepareHoy, el pedido de ella aparece en la bandeja de la profesional con zona y oficio, y en la pantalla de la vecina aparecen los presupuestos. Nadie persiguió a nadie.",
+        "tono": "Directo, profesional, orgulloso sin grandilocuencia; charla real",
+        "estetica": "Retratos a cámara con fondo de obra y de casa, luz suave, pantallas reales como prueba, acabado limpio y prolijo",
+        "referencia": "Testimonial ficcional de dos voces con demo de producto",
+        "porQueFunciona": "Dos voces explican el mismo alivio y la interfaz lo confirma al instante."
+      },
+      "personajes": [
+        {
+          "nombre": "Vecina",
+          "rol": "Destinataria del servicio: cuenta su necesidad y muestra en su pantalla los presupuestos que recibe",
+          "fisico": "Mujer de unos 35 años, pelo castaño oscuro a los hombros, expresión cálida y cercana",
+          "vestuario": "Ropa de entrecasa prolija, sweater claro",
+          "lugar": ""
+        },
+        {
+          "nombre": "Electricista",
+          "rol": "Profesional que recibe el pedido en su bandeja según zona y oficio, y cuenta su experiencia",
+          "fisico": "Mujer de unos 32 años, pelo oscuro atado, expresión segura y profesional",
+          "vestuario": "Camisa de trabajo, chaleco con bolsillos",
+          "lugar": ""
+        }
+      ],
+      "lugar": {
+        "nombre": "Casa en reforma y hogar de Villa Urquiza",
+        "descripcionEn": "Two connected real-life settings: a cozy home interior near a window with soft natural light for the testimonial, and a mid-renovation space with exposed wiring, tools and unfinished walls where the electrician works, both clean and realistic without staging.",
+        "luz": "Luz natural suave, ambiente cotidiano real"
+      },
+      "guion": [
+        {
+          "rol": "hook",
+          "quien": "",
+          "dice": "Mandaba mensajes a cinco plomeros. No contestaba ninguno.",
+          "seVe": "Retrato a cámara de la vecina en su casa, luz suave de ventana",
+          "seg": 4
+        },
+        {
+          "rol": "desarrollo",
+          "quien": "",
+          "dice": "Yo esperaba que alguien me recomendara. Ahora cuento qué me pasa, una vez, en mis palabras. Y el pedido me llega a la bandeja, con mi zona y mi oficio.",
+          "seVe": "Alternancia entre la electricista en obra y la pantalla Contar el problema avanzando hasta la Bandeja de solicitudes",
+          "seg": 12
+        },
+        {
+          "rol": "giro",
+          "quien": "",
+          "dice": "Abrí la app y ya tenía los presupuestos. No perseguí a nadie.",
+          "seVe": "La tira Te esperan tus proveedores apareciendo en la pantalla de inicio de la vecina",
+          "seg": 5
+        },
+        {
+          "rol": "cta",
+          "quien": "",
+          "dice": "Entrá a reparé hoy punto com punto ar y contá qué hay que arreglar.",
+          "seVe": "Las dos, cada una en su lugar, con el logo y la URL reparehoy.com.ar sobre fondo limpio",
+          "seg": 5
+        }
+      ],
+      "musica": "cálida, confiada",
+      "storyboard": [
+        {
+          "n": 1,
+          "rol": "hook",
+          "seg": 4,
+          "plano": "medium shot waist-up",
+          "enCuadro": "",
+          "accion": "Vecina mira el celular con gesto de resignación, luz de ventana",
+          "dice": "Mandaba mensajes a cinco plomeros. No contestaba ninguno.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 2,
+          "rol": "desarrollo",
+          "seg": 8,
+          "plano": "medium shot waist-up",
+          "enCuadro": "Vecina",
+          "accion": "Vecina sigue hablando, cambia de gesto a esperanza",
+          "dice": "Yo esperaba que alguien me recomendara. Ahora cuento qué me pasa, una vez.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 3,
+          "rol": "desarrollo",
+          "seg": 4,
+          "plano": "",
+          "enCuadro": "",
+          "accion": "Barra de pasos avanza: problema, superficie, zona, resumen final",
+          "dice": "En mis palabras.",
+          "pantalla": "Contar el problema",
+          "sobreEscena": null
+        },
+        {
+          "n": 4,
+          "rol": "desarrollo",
+          "seg": 8,
+          "plano": "medium shot",
+          "enCuadro": "Electricista",
+          "accion": "Electricista revisa su teléfono en la obra, gesto atento",
+          "dice": "Y el pedido me llega a la bandeja, con mi zona y mi oficio.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 5,
+          "rol": "desarrollo",
+          "seg": 6,
+          "plano": "",
+          "enCuadro": "",
+          "accion": "Pedido nuevo entra como pendiente en la bandeja del proveedor",
+          "dice": "Yo esperaba que alguien me recomendara. Ahora cuento qué me pasa, una vez, en mis palabras.",
+          "pantalla": "Bandeja de solicitudes",
+          "sobreEscena": null
+        },
+        {
+          "n": 6,
+          "rol": "giro",
+          "seg": 5,
+          "plano": "",
+          "enCuadro": "",
+          "accion": "Vecina sonríe mirando el celular con alivio, mensaje de presupuestos recibidos en pantalla",
+          "dice": "Abrí la app y ya tenía los presupuestos. No perseguí a nadie.",
+          "pantalla": "Presupuestos recibidos",
+          "sobreEscena": null
+        },
+        {
+          "n": 7,
+          "rol": "cta",
+          "seg": 6,
+          "plano": "wide shot",
+          "enCuadro": "",
+          "accion": "Logo y URL sobre fondo limpio, voz en off invita a entrar a la app",
+          "dice": "Entrá a reparé hoy punto com punto ar y contá qué hay que arreglar.",
+          "pantalla": "",
+          "sobreEscena": null
+        }
+      ],
+      "flow": {
+        "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+        "retratos": [
+          {
+            "nombre": "Vecina",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman around 35 years old, light olive skin, dark brown shoulder-length hair, natural everyday makeup, warm approachable expression, medium build, relaxed posture, sitting near a window in her home, standing and looking at the camera, natural pose, neutral background with a hint of two connected real-life settings: a cozy home interior near a window with soft natural. A still photo, no action, no dialogue."
+          },
+          {
+            "nombre": "Electricista",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman around 32 years old, tan skin, dark hair tied back in a practical ponytail, confident calm expression, athletic build, wearing visible work attire, standing in a construction or renovation setting, standing and looking at the camera, natural pose, neutral background with a hint of two connected real-life settings: a cozy home interior near a window with soft natural. A still photo, no action, no dialogue."
+          }
+        ],
+        "escenas": [
+          {
+            "escena": 1,
+            "rol": "hook",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Location: Two connected real-life settings: a cozy home interior near a window with soft natural light for the testimonial. Neighbor looks at her phone with a gesture of resignation, window light. No spoken dialogue, ambient sound only. One single continuous take, same background, no cut. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text."
+          },
+          {
+            "escena": 2,
+            "rol": "desarrollo",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Location: Two connected real-life settings: a cozy home interior near a window with soft natural light for the testimonial. Vecina, an Argentine Woman around 35 years old, light olive skin, dark brown shoulder-length hair, natural everyday makeup, warm approachable expression. Medium shot, waist-up framing, the person fills a good portion of the frame with strong, dominant presence. The camera holds steady or does a very subtle slow push-in while speaking. Action: Neighbor keeps talking, shifts her expression to hope. She speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: 'Yo esperaba que alguien me recomendara. Ahora cuento qué me pasa, una vez.' Warm and assured delivery, explaining with confidence. The person keeps talking for the whole clip, warm, confident and charming tone, realistic expressive face. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text."
+          },
+          {
+            "escena": 4,
+            "rol": "desarrollo",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Location: Two connected real-life settings: a cozy home interior near a window with soft natural light for the testimonial. Electricista, an Argentine Woman around 32 years old, tan skin, dark hair tied back in a practical ponytail, confident calm expression. Medium shot, waist-up framing, the person fills a good portion of the frame with strong, dominant presence. The camera holds steady or does a very subtle slow push-in while speaking. Action: Electrician checks his phone at the job site, attentive gesture. She speaks directly to camera in Argentine Rioplatense Spanish (voseo), fluently and naturally, only once and without repeating any words: 'Y el pedido me llega a la bandeja, con mi zona y mi oficio.' Warm and assured delivery, explaining with confidence. The person keeps talking for the whole clip, warm, confident and charming tone, realistic expressive face. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text."
+          }
+        ]
+      },
+      "tomas": [
+        {
+          "escena": 1,
+          "tipo": "clip de Flow",
+          "dice": "Yo esperaba que alguien me recomendara. Ahora cuento qué me pasa. Una vez",
+          "archivo": "1791711216319-esc1-esc1-flow-1791711191940.mp4"
+        },
+        {
+          "escena": 2,
+          "tipo": "clip de Flow",
+          "dice": "Y el pedido me llega a la bandeja con mi zona y mi oficio.",
+          "archivo": "1791711222452-esc2-esc2-flow-1791711191940.mp4"
+        },
+        {
+          "escena": 4,
+          "tipo": "clip de Flow",
+          "dice": "Y el pedido me llega a la bandeja con mi zona y mi oficio",
+          "archivo": "1791711228019-esc4-esc4-flow-1791711191940.mp4"
+        },
+        {
+          "escena": 3,
+          "tipo": "mockup de la app (sin sonido)",
+          "archivo": "1791711504663-mockup-repareya-contar-el-problema-1791711504663.mp4"
+        },
+        {
+          "escena": 5,
+          "tipo": "mockup de la app (sin sonido)",
+          "archivo": "1791711553466-mockup-repareya-bandeja-de-solicitudes-1791711553466.mp4"
+        }
+      ]
+    },
+    {
+      "id": "v4",
+      "titulo": "Nadie te contesta · materia prima nueva",
+      "origen": "La materia prima NUEVA del pipeline afinado (prompts 3.x, después de siete vueltas). Todavía no se generó en Flow.",
+      "duracionObjetivo": 26,
+      "sumaStoryboard": 28,
+      "enfoque": "dos-lados",
+      "tratamiento": "aspiracional",
+      "angulo": "Nadie te contesta",
+      "mensajePrincipal": "Dejá de perseguir a alguien que te conteste: contá el problema una vez y los presupuestos llegan a tu pantalla.",
+      "concepto": {
+        "id": "c3",
+        "topico": "El pedido que llega",
+        "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+        "idea": "Una electricista de Villa Urquiza cuenta a cámara que antes dependía de que alguien la recomendara, mientras una vecina admite que mandaba mensajes a ciegas. En RepareHoy, el pedido de ella aparece en la bandeja de la profesional con zona y oficio, y en la pantalla de la vecina aparecen los presupuestos. Nadie persiguió a nadie.",
+        "tono": "Directo, profesional, orgulloso sin grandilocuencia; charla real",
+        "estetica": "Retratos a cámara con fondo de obra y de casa, luz suave, pantallas reales como prueba, acabado limpio y prolijo",
+        "referencia": "Testimonial ficcional de dos voces con demo de producto",
+        "porQueFunciona": "Dos voces explican el mismo alivio y la interfaz lo confirma al instante."
+      },
+      "personajes": [
+        {
+          "nombre": "Mariela",
+          "rol": "La vecina: muestra el problema eléctrico sin resolver y el alivio de recibir presupuestos sin perseguir a nadie",
+          "fisico": "Mujer de 42, pelo castaño ondulado atado, piel oliva, pecas suaves, mirada cansada y cálida.",
+          "vestuario": "Buzo gris de algodón, remera blanca abajo",
+          "lugar": "Her own ground-floor apartment in Villa Urquiza: tiled kitchen with a formica table, mate gourd and thermos, and the hallway breaker panel she keeps resetting. A hand-painted ceramic tile from Mar del Plata hangs by the door. Grey afternoon light through a patio window."
+        },
+        {
+          "nombre": "Vanina",
+          "rol": "La electricista: recibe el pedido con zona y oficio en su bandeja y cotiza el mismo día",
+          "fisico": "Mujer de 35, pelo negro recogido, piel morena, cejas marcadas, manos de trabajo, mirada segura.",
+          "vestuario": "Camisa de trabajo azul arremangada, pantalón cargo",
+          "lugar": "Her work van's open side door parked on a plane-tree street in Villa Urquiza: cable spools, an amperometric clamp meter hanging from a hook, and a labelled drawer of breakers. A small crocheted taxi-charm from her grandmother dangles by the handle. Clear morning light."
+        }
+      ],
+      "lugar": {
+        "nombre": "Vereda y tablero en Villa Urquiza",
+        "descripcionEn": "A quiet Buenos Aires residential street with plane trees and low brick-and-tile houses. An open work van with cable spools and tools faces a building's hallway breaker panel and tiled kitchen doorway. Mate, phones and a clamp meter in frame. Soft daylight, clean practical finish.",
+        "luz": "Luz natural suave de mañana, sin dureza"
+      },
+      "guion": [
+        {
+          "rol": "hook",
+          "quien": "la vecina",
+          "dice": "Tres electricistas, ninguno contesta. Y la térmica sigue saltando.",
+          "seVe": "La vecina sostiene el celular con el chat sin respuesta mientras vuelve a levantar la térmica del tablero del pasillo.",
+          "seg": 4
+        },
+        {
+          "rol": "desarrollo",
+          "quien": "",
+          "dice": "",
+          "seVe": "Sus manos tipean en la mesa de la cocina y la pantalla Contar el problema avanza los cuatro pasos hasta el aviso de solicitud publicada.",
+          "seg": 5
+        },
+        {
+          "rol": "desarrollo",
+          "quien": "la electricista",
+          "dice": "Me entró el corte de Villa Urquiza. Le paso el precio hoy.",
+          "seVe": "La electricista baja la pinza amperométrica y abre la Bandeja de solicitudes, donde el pedido pendiente pasa a cotizado.",
+          "seg": 7
+        },
+        {
+          "rol": "giro",
+          "quien": "la vecina",
+          "dice": "Abro y ya tengo los presupuestos. No perseguí a nadie.",
+          "seVe": "La vecina con el mate en la mano ve aparecer la tira Te esperan tus proveedores en su pantalla de inicio.",
+          "seg": 5
+        },
+        {
+          "rol": "cta",
+          "quien": "placa",
+          "dice": "RepareHoy: contá qué hay que arreglar.",
+          "seVe": "Placa final limpia con la marca sobre fondo claro y la dirección web.",
+          "seg": 5
+        }
+      ],
+      "musica": "cálida, sobria, luminosa",
+      "storyboard": [
+        {
+          "n": 1,
+          "rol": "hook",
+          "seg": 5,
+          "plano": "medium shot",
+          "enCuadro": "Mariela",
+          "accion": "Mariela, con el celular en una mano y el chat sin respuesta, estira el brazo y levanta la térmica del tablero del pasillo; vuelve a saltar.",
+          "dice": "Tres electricistas, ninguno contesta. Y la térmica sigue saltando.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 2,
+          "rol": "desarrollo",
+          "seg": 3,
+          "plano": "medium close-up",
+          "enCuadro": "",
+          "accion": "La solicitud avanza los cuatro pasos: tipo de problema, datos, zona y descripción, y el resumen; al publicar aparece el aviso de solicitud publicada.",
+          "dice": "",
+          "pantalla": "Contar el problema",
+          "sobreEscena": null
+        },
+        {
+          "n": 3,
+          "rol": "desarrollo",
+          "seg": 6,
+          "plano": "handheld follow",
+          "enCuadro": "Vanina",
+          "accion": "Vanina apoya la pinza amperométrica en el cajón de la camioneta, se gira hacia su ayudante fuera de cuadro y avisa que cotiza hoy.",
+          "dice": "Me entró el corte de Villa Urquiza. Le paso el precio hoy.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 4,
+          "rol": "desarrollo",
+          "seg": 3,
+          "plano": "medium shot",
+          "enCuadro": "",
+          "accion": "En la bandeja entra arriba el pedido nuevo como pendiente de cotizar y, al cotizarlo, pasa a la pastilla COTIZADO con su monto.",
+          "dice": "",
+          "pantalla": "Bandeja de solicitudes",
+          "sobreEscena": null
+        },
+        {
+          "n": 5,
+          "rol": "giro",
+          "seg": 5,
+          "plano": "close-up",
+          "enCuadro": "Mariela",
+          "accion": "Mariela, sentada con el mate en la mano, baja la vista al celular apoyado en la mesa, ve los presupuestos y pasa del cansancio al alivio.",
+          "dice": "Abro y ya tengo los presupuestos. No perseguí a nadie.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 6,
+          "rol": "giro",
+          "seg": 3,
+          "plano": "medium close-up",
+          "enCuadro": "",
+          "accion": "En la home aparece la tira TE ESPERAN TUS PROVEEDORES con la primera tarjeta y se enciende el aviso rojo; llega la segunda y se suma al lado.",
+          "dice": "",
+          "pantalla": "Te esperan tus proveedores",
+          "sobreEscena": null
+        },
+        {
+          "n": 7,
+          "rol": "cta",
+          "seg": 3,
+          "plano": "medium shot",
+          "enCuadro": "",
+          "accion": "Placa final sobre fondo claro: RepareHoy. Entrá a reparehoy.com.ar y contá qué hay que arreglar · https://reparehoy.com.ar",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        }
+      ],
+      "flow": {
+        "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+        "retratos": [
+          {
+            "nombre": "Mariela",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine woman around 42, shoulder-length dark brown wavy hair tied back loosely, olive skin, light freckles on cheeks, tired but warm eyes, no makeup, reading glasses pushed up on her head, relaxed everyday posture, standing and looking at the camera, natural pose, neutral background with a hint of a quiet buenos aires residential street with plane trees and low brick-and-tile houses. A still photo, no action, no dialogue."
+          },
+          {
+            "nombre": "Vanina",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine woman around 35, black hair in a tight low bun, medium brown skin, strong eyebrows, small scar on left hand, calm confident gaze, broad shoulders, work-worn hands, standing with steady weight, standing and looking at the camera, natural pose, neutral background with a hint of a quiet buenos aires residential street with plane trees and low brick-and-tile houses. A still photo, no action, no dialogue."
+          }
+        ],
+        "escenas": [
+          {
+            "escena": 1,
+            "rol": "hook",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Mariela, an Argentine woman around 42, shoulder-length dark brown wavy hair tied back loosely, olive skin, light freckles on cheeks, wearing Grey cotton sweatshirt over a plain white tee. Mariela stands in her building's dim hallway in front of the open breaker panel, her phone already in her left hand showing a chat of sent messages with no replies. She glances down at it, speaks straight to camera with tired frankness, then reaches up with her right hand and pushes the breaker lever back up. It snaps down again on its own. She lowers her arm and looks at the panel, annoyed. Faint hum of the building, a distant street. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Tres electricistas, ninguno contesta. Y la térmica sigue saltando.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never recreate the brand app interface. A generic messaging chat may be visible on the phone (sent bubbles with no replies) but its text is never legible. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 3,
+            "rol": "desarrollo",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vanina, an Argentine woman around 35, black hair in a tight low bun, medium brown skin, strong eyebrows, wearing Rolled-up blue work shirt and dark cargo trousers. Vanina stands at the open side door of her work van on the plane-tree street, the amperometric clamp meter already in her right hand. She lays it into the labelled breaker drawer, turns her shoulders toward someone off camera to her left and speaks to them with calm pride, tilting her head toward the street as if pointing out the job's neighbourhood. She closes the drawer with her knee. Morning birds, a car passing. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Me entró el corte de Villa Urquiza. Le paso el precio hoy.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Handheld camera following the movement, natural handheld feel, shallow depth of field. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 5,
+            "rol": "giro",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Mariela, an Argentine woman around 42, shoulder-length dark brown wavy hair tied back loosely, olive skin, light freckles on cheeks, wearing Grey cotton sweatshirt over a plain white tee. Mariela sits at the formica kitchen table with the mate gourd in her right hand, her phone lying flat on the table beside the thermos. She looks down at the screen as new quotes appear, her face shifting from tired to relieved, then lifts her eyes to camera and speaks with a small satisfied shrug before sipping the mate. Grey patio light, a kettle ticking. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Abro y ya tengo los presupuestos. No perseguí a nadie.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Close-up on the face and hands, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          }
+        ]
+      },
+      "tomas": []
+    },
+    {
+      "id": "v2",
+      "titulo": "La seña al alias",
+      "origen": "La escribió ChatGPT con el contrato de materia prima, de una pasada. Todavía no se generó en Flow.",
+      "duracionObjetivo": 26,
+      "sumaStoryboard": 38,
+      "enfoque": "dos-lados",
+      "tratamiento": "aspiracional",
+      "angulo": "La seña al alias",
+      "mensajePrincipal": "La seña no se la mandás a un alias: queda retenida en la plataforma hasta que el trabajo esté hecho.",
+      "concepto": {
+        "id": "chatgpt",
+        "topico": "",
+        "idea": "Martín tiene una cerradura que no funciona y necesita un cerrajero. Cuando recibe un pedido de seña por transferencia a un alias, frena: no quiere adelantar plata a ciegas. En RepareHoy encuentra otra forma de avanzar: la seña queda retenida hasta que el trabajo está terminado y el adelanto máximo depende del historial del profesional. La protección es una regla visible, no una promesa verbal.",
+        "tono": "Tensión cotidiana, resolución serena y concreta.",
+        "estetica": "Realismo urbano, tonos sobrios, contraste entre transferencia incierta y proceso claro.",
+        "porQueFunciona": "Materializa el miedo de transferirle plata a un desconocido y lo reemplaza por dos reglas concretas que el espectador puede entender.",
+        "referencia": "curado por ChatGPT (contrato de materia prima)"
+      },
+      "personajes": [
+        {
+          "nombre": "Martín",
+          "rol": "Cliente que necesita arreglar una cerradura y busca una forma de pagar la seña con respaldo.",
+          "fisico": "Hombre de 38 años, pelo castaño oscuro, piel clara, anteojos redondos, barba corta.",
+          "vestuario": "Buzo gris, pantalón negro, zapatillas blancas.",
+          "lugar": "His rented apartment entrance in Buenos Aires. A wooden front door has a visibly loose metal lock plate. A canvas shopping bag hangs from a wall hook. A tiny cactus sits on a narrow entrance shelf. Cool daylight filters through the hallway."
+        },
+        {
+          "nombre": "Carla",
+          "rol": "Profesional que prepara un plan de pagos dentro de las reglas de adelanto de RepareHoy.",
+          "fisico": "Mujer de 46 años, pelo negro recogido, piel morena clara, ojos oscuros, rostro anguloso.",
+          "vestuario": "Chomba bordó, pantalón de trabajo beige, reloj negro.",
+          "lugar": "Her organized locksmith workshop in Greater Buenos Aires. A pegboard holds neatly arranged keys and lock components. A small blue radio sits beside a closed metal tool case. Bright natural light illuminates the workbench and the clean concrete floor."
+        }
+      ],
+      "lugar": {
+        "nombre": "Entrada del departamento de Martín y taller de Carla, AMBA",
+        "descripcionEn": "A believable Buenos Aires apartment entrance with an aging wooden door, loose lock hardware, hallway shelf and personal belongings. The second location is a tidy locksmith workshop with organized tools and spare lock components. Both environments feel functional and authentic, with natural light and restrained colors.",
+        "luz": "Diurna, natural, ligeramente fría al inicio."
+      },
+      "guion": [
+        {
+          "rol": "hook",
+          "quien": "inquilino",
+          "dice": "¡No cierra la puerta y me piden seña a un alias!",
+          "seVe": "La cerradura queda floja. Martín tiene un pedido de transferencia en el celular y mira la puerta con desconfianza.",
+          "seg": 6
+        },
+        {
+          "rol": "desarrollo",
+          "quien": "",
+          "dice": "",
+          "seVe": "Martín decide avanzar con RepareHoy. En su taller, Carla revisa las opciones para proponer cómo cobrar.",
+          "seg": 5
+        },
+        {
+          "rol": "giro",
+          "quien": "cerrajera",
+          "dice": "Acá el adelanto tiene un límite según mis trabajos.",
+          "seVe": "Carla consulta el plan. Una escalera gráfica del montaje explica los máximos: 20% sin trabajos previos, 40% con cinco finalizados y 60% con veinte. La app muestra un adelanto ajustado al límite.",
+          "seg": 7
+        },
+        {
+          "rol": "giro",
+          "quien": "inquilino",
+          "dice": "Y la seña queda protegida hasta terminar el trabajo.",
+          "seVe": "Martín ve el proceso de pago dentro de RepareHoy. La pantalla animada muestra la seña protegida y su confirmación.",
+          "seg": 5
+        },
+        {
+          "rol": "cta",
+          "quien": "placa",
+          "dice": "Tu seña, protegida hasta terminar el trabajo.",
+          "seVe": "Logo RepareHoy, mensaje central y reparehoy.com.ar.",
+          "seg": 3
+        }
+      ],
+      "musica": "Tensión, confianza",
+      "storyboard": [
+        {
+          "n": 1,
+          "rol": "hook",
+          "seg": 4,
+          "plano": "close-up",
+          "enCuadro": "Martín",
+          "accion": "La placa metálica de la cerradura está floja; Martín comprueba que la puerta no cierra correctamente.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 2,
+          "rol": "hook",
+          "seg": 6,
+          "plano": "medium shot",
+          "enCuadro": "Martín",
+          "accion": "Martín sostiene el teléfono frente a la puerta abierta y protesta al ver un pedido de transferencia.",
+          "dice": "¡No cierra la puerta y me piden seña a un alias!",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 3,
+          "rol": "desarrollo",
+          "seg": 4,
+          "plano": "medium close-up",
+          "enCuadro": "Martín",
+          "accion": "Martín mira el pedido de transferencia, bloquea el celular y deja la puerta entornada.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 4,
+          "rol": "desarrollo",
+          "seg": 3,
+          "plano": "wide shot",
+          "enCuadro": "Carla",
+          "accion": "Carla revisa desde su taller una propuesta de pago para el trabajo de cerrajería.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 5,
+          "rol": "giro",
+          "seg": 5,
+          "plano": "medium shot",
+          "enCuadro": "Carla",
+          "accion": "Carla mira su teléfono junto al banco de herramientas y comenta el límite antes de enviar el plan.",
+          "dice": "Acá el adelanto tiene un límite según mis trabajos.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 6,
+          "rol": "giro",
+          "seg": 4,
+          "plano": "close-up",
+          "enCuadro": "",
+          "accion": "Una escalera gráfica superpuesta muestra 20%, 40% y 60%, vinculados a cero, cinco y veinte trabajos finalizados.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": 5
+        },
+        {
+          "n": 7,
+          "rol": "giro",
+          "seg": 2,
+          "plano": "close-up",
+          "enCuadro": "",
+          "accion": "El plan pasa de Mitad y mitad, que supera el máximo del 40%, a Contra avance con un primer pago del 20%.",
+          "dice": "",
+          "pantalla": "Armar el plan de pagos",
+          "sobreEscena": null
+        },
+        {
+          "n": 8,
+          "rol": "giro",
+          "seg": 5,
+          "plano": "medium close-up",
+          "enCuadro": "Martín",
+          "accion": "Martín sostiene el teléfono junto a la puerta, consulta el pago de la seña y asiente.",
+          "dice": "Y la seña queda protegida hasta terminar el trabajo.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 9,
+          "rol": "giro",
+          "seg": 2,
+          "plano": "close-up",
+          "enCuadro": "",
+          "accion": "El checkout muestra Seña protegida; se procesa el pago y aparece la confirmación de recepción.",
+          "dice": "",
+          "pantalla": "Pagar la seña",
+          "sobreEscena": 8
+        },
+        {
+          "n": 10,
+          "rol": "cta",
+          "seg": 3,
+          "plano": "medium shot",
+          "enCuadro": "",
+          "accion": "Placa final con logo RepareHoy, mensaje de seña protegida y dirección web.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        }
+      ],
+      "flow": {
+        "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+        "retratos": [
+          {
+            "nombre": "Martín",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine man, 38 years old, short dark brown hair, fair skin, round dark-framed glasses, short beard and brown eyes. Average build, thoughtful face, slightly tense posture. An ordinary Buenos Aires apartment resident with an understated, contemporary appearance, standing and looking at the camera, natural pose, neutral background with a hint of a believable buenos aires apartment entrance with an aging wooden door, loose lock hardware. A still photo, no action, no dialogue."
+          },
+          {
+            "nombre": "Carla",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine woman, 46 years old, black hair tied back in a low ponytail, light brown skin, dark eyes, angular face and strong hands. Medium build, composed expression and attentive gaze. Her appearance suggests an experienced, careful tradesperson without exaggerated occupational stereotypes, standing and looking at the camera, natural pose, neutral background with a hint of a believable buenos aires apartment entrance with an aging wooden door, loose lock hardware. A still photo, no action, no dialogue."
+          }
+        ],
+        "escenas": [
+          {
+            "escena": 1,
+            "rol": "hook",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Martín, an Argentine man, 38 years old, short dark brown hair, fair skin, round dark-framed glasses, wearing Gray sweatshirt, black trousers, white sneakers. Martin stands in the entrance of his Buenos Aires apartment. The wooden front door is partially open, with a visibly loose metal lock plate. He gently tries to close it, but the latch fails to engage. He stops without forcing it. His canvas shopping bag hangs nearby. Natural hallway sounds, no speech. No dialogue: ambient sound only. Close-up on the face and hands, natural handheld feel, shallow depth of field. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 2,
+            "rol": "hook",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Martín, an Argentine man, 38 years old, short dark brown hair, fair skin, round dark-framed glasses, wearing Gray sweatshirt, black trousers, white sneakers. Martin stands beside his faulty apartment door, holding his phone in one hand. He is already looking at a generic message requesting an advance payment. No phone writing is readable. He immediately speaks in Argentine Spanish, addressing himself with frustration and disbelief. The door remains partially open behind him. Simple gesture, synchronized speech, quiet hallway ambience. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: '¡No cierra la puerta y me piden seña a un alias!' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never recreate the brand app interface. A generic messaging chat may be visible on the phone (sent bubbles with no replies) but its text is never legible. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 3,
+            "rol": "desarrollo",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Martín, an Argentine man, 38 years old, short dark brown hair, fair skin, round dark-framed glasses, wearing Gray sweatshirt, black trousers, white sneakers. Martin remains near his apartment entrance. He looks at the generic transfer request on his phone, hesitates and switches the phone screen off. The text remains unreadable. The faulty wooden door stays ajar beside him. His expression is cautious rather than panicked. Natural apartment ambience, no dialogue. No dialogue: ambient sound only. Medium close-up, chest up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never recreate the brand app interface. A generic messaging chat may be visible on the phone (sent bubbles with no replies) but its text is never legible. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 4,
+            "rol": "desarrollo",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Carla, an Argentine woman, 46 years old, black hair tied back in a low ponytail, light brown skin, dark eyes, wearing Burgundy polo shirt, beige work trousers, black wristwatch. Carla stands in her organized locksmith workshop. Keys and spare lock components are arranged on the wall. She holds her phone and calmly reviews the payment options for Martin's lock repair. Her closed metal tool case remains on the workbench. She makes a small thoughtful nod. Workshop room tone, no dialogue or readable phone writing. No dialogue: ambient sound only. Wide shot that shows the whole place, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 5,
+            "rol": "giro",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Carla, an Argentine woman, 46 years old, black hair tied back in a low ponytail, light brown skin, dark eyes, wearing Burgundy polo shirt, beige work trousers, black wristwatch. Carla stands beside her locksmith workbench, already holding her phone. She looks at the payment plan and immediately speaks in natural Argentine Spanish, as if explaining her decision to a colleague outside the frame. She remains composed, with one simple gesture toward the phone. No intricate finger actions. Natural workshop ambience and synchronized dialogue. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Acá el adelanto tiene un límite según mis trabajos.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 6,
+            "rol": "giro",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Location: A believable Buenos Aires apartment entrance with an aging wooden door, loose lock hardware, hallway shelf and personal belongings. The second location is a tidy locksmith workshop with organized tools and spare lock components. Both environments feel functional and authentic, with natural light and restrained. An overlaid graphic ladder shows 20%, 40%, and 60%, linked to zero, five, and twenty completed jobs. No spoken dialogue, ambient sound only. One single continuous take, same background, no cut. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 8,
+            "rol": "giro",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Martín, an Argentine man, 38 years old, short dark brown hair, fair skin, round dark-framed glasses, wearing Gray sweatshirt, black trousers, white sneakers. Martin stands in the entrance of his apartment, with the faulty door visible behind him. He holds his phone and looks at the payment process. He immediately speaks in Argentine Spanish, calmly acknowledging that the advance payment remains protected until the job is finished. His expression becomes reassured. Simple natural movement, synchronized voice and hallway ambience. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Y la seña queda protegida hasta terminar el trabajo.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          }
+        ]
+      },
+      "tomas": []
+    },
+    {
+      "id": "v3",
+      "titulo": "Juez entre las partes",
+      "origen": "La escribió ChatGPT con el contrato de materia prima, de una pasada. Todavía no se generó en Flow.",
+      "duracionObjetivo": 26,
+      "sumaStoryboard": 31,
+      "enfoque": "dos-lados",
+      "tratamiento": "aspiracional",
+      "angulo": "Juez entre las partes",
+      "mensajePrincipal": "RepareHoy es el marketplace de oficios del AMBA que hace de juez entre quien necesita arreglar algo y quien sabe hacerlo.",
+      "concepto": {
+        "id": "chatgpt",
+        "topico": "",
+        "idea": "Sofía necesita pintar su departamento, pero el pintor con el que está hablando le manda audios interminables sobre cómo organizar el trabajo y los pagos. Ella no encuentra dónde quedó lo acordado. En RepareHoy, su pedido conecta con un pintor verificado y el acuerdo se construye dentro de un chat: propuesta, respuesta y dos firmas. Las reseñas también tienen un origen verificable, porque corresponden a trabajos terminados dentro de la app.",
+        "tono": "Caos cotidiano que encuentra orden y claridad.",
+        "estetica": "Realismo contemporáneo, departamento porteño, montaje dinámico, interfaces protagonistas y composición ordenada.",
+        "porQueFunciona": "Presenta a RepareHoy como un lugar donde encontrar profesionales y dejar acuerdos registrados, contraponiendo el caos de los audios con una negociación visible.",
+        "referencia": "curado por ChatGPT (contrato de materia prima)"
+      },
+      "personajes": [
+        {
+          "nombre": "Sofía",
+          "rol": "Cliente que necesita pintar su departamento y quiere saber exactamente qué acuerda con el profesional.",
+          "fisico": "Mujer de 49 años, pelo castaño con canas, piel clara, ojos verdes, rostro expresivo.",
+          "vestuario": "Camisa blanca arremangada, pantalón terracota, zapatillas negras.",
+          "lugar": "Her Buenos Aires apartment living room, prepared for repainting. A sofa is covered with an old white bedsheet, framed pictures lean against a wall, and a purple watering can sits beside a large indoor plant. Late afternoon daylight fills the room."
+        },
+        {
+          "nombre": "Gabriel",
+          "rol": "Profesional verificado que responde al pedido de Sofía y propone un plan de pagos que ambos pueden acordar.",
+          "fisico": "Hombre de 53 años, pelo gris corto, piel trigueña, bigote fino, ojos marrones.",
+          "vestuario": "Remera azul oscuro, pantalón de trabajo beige, zapatillas grises.",
+          "lugar": "His small painting workshop in Buenos Aires. Clean paint rollers hang from hooks, sealed paint buckets stand against the wall, and a vintage green thermos rests on a wooden shelf. The room is orderly, with warm afternoon light entering through a side window."
+        }
+      ],
+      "lugar": {
+        "nombre": "Departamento de Sofía y taller de Gabriel, Ciudad de Buenos Aires",
+        "descripcionEn": "An inhabited Buenos Aires apartment being prepared for interior painting, with furniture protected by a bedsheet, pictures removed from the wall and everyday personal objects. The painter's workshop is tidy and functional, with stored rollers and sealed paint containers. Natural textures, realistic interiors and warm afternoon sunlight.",
+        "luz": "Tarde cálida, contrastes suaves, interiores naturales."
+      },
+      "guion": [
+        {
+          "rol": "hook",
+          "quien": "propietaria",
+          "dice": "¡Tengo que pintar y no encuentro qué acordamos!",
+          "seVe": "Sofía está rodeada de muebles preparados para pintar. Busca entre una larga sucesión de audios de WhatsApp.",
+          "seg": 5
+        },
+        {
+          "rol": "desarrollo",
+          "quien": "",
+          "dice": "",
+          "seVe": "Sofía usa RepareHoy para contar lo que necesita. El montaje conecta su pedido con Gabriel, que lo recibe desde su taller y responde.",
+          "seg": 5
+        },
+        {
+          "rol": "giro",
+          "quien": "pintor",
+          "dice": "Te propongo cómo pagar, y queda acá escrito.",
+          "seVe": "Gabriel prepara el acuerdo. En el chat aparece la propuesta de pagos, el cliente la acepta y ambas firmas dejan el plan acordado.",
+          "seg": 7
+        },
+        {
+          "rol": "giro",
+          "quien": "propietaria",
+          "dice": "Presupuesto, acuerdo y reseñas de trabajos terminados. Todo junto.",
+          "seVe": "Sofía consulta el acuerdo dentro de la app y las reseñas de contrataciones verificadas. La información está organizada y disponible.",
+          "seg": 6
+        },
+        {
+          "rol": "cta",
+          "quien": "placa",
+          "dice": "Arreglos y acuerdos, en un mismo lugar.",
+          "seVe": "Logo RepareHoy, frase institucional y reparehoy.com.ar.",
+          "seg": 3
+        }
+      ],
+      "musica": "Moderna, resolutiva",
+      "storyboard": [
+        {
+          "n": 1,
+          "rol": "hook",
+          "seg": 4,
+          "plano": "over-the-shoulder",
+          "enCuadro": "Sofía",
+          "accion": "Sofía busca un acuerdo entre muchos audios de WhatsApp, con el sillón cubierto para pintar detrás.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 2,
+          "rol": "hook",
+          "seg": 4,
+          "plano": "medium shot",
+          "enCuadro": "Sofía",
+          "accion": "Sofía sostiene el teléfono entre los muebles cubiertos y expresa su frustración.",
+          "dice": "¡Tengo que pintar y no encuentro qué acordamos!",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 3,
+          "rol": "desarrollo",
+          "seg": 4,
+          "plano": "wide shot",
+          "enCuadro": "Sofía",
+          "accion": "Sofía se sienta junto al sillón cubierto y consulta RepareHoy para organizar el trabajo de pintura.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 4,
+          "rol": "desarrollo",
+          "seg": 3,
+          "plano": "medium shot",
+          "enCuadro": "Gabriel",
+          "accion": "Gabriel revisa desde su taller el pedido de pintura que recibió y prepara una respuesta.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 5,
+          "rol": "giro",
+          "seg": 4,
+          "plano": "medium close-up",
+          "enCuadro": "Gabriel",
+          "accion": "Gabriel mira el celular junto a sus herramientas y explica su propuesta de pago.",
+          "dice": "Te propongo cómo pagar, y queda acá escrito.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 6,
+          "rol": "giro",
+          "seg": 2,
+          "plano": "close-up",
+          "enCuadro": "",
+          "accion": "La propuesta aparece dentro del chat y cambia a Plan de pagos acordado cuando ambas partes firman.",
+          "dice": "",
+          "pantalla": "La conversación con el plan de pagos adentro",
+          "sobreEscena": 5
+        },
+        {
+          "n": 7,
+          "rol": "giro",
+          "seg": 5,
+          "plano": "medium shot",
+          "enCuadro": "Sofía",
+          "accion": "Sofía consulta el celular junto al sillón cubierto. Sonríe al encontrar la información organizada.",
+          "dice": "Presupuesto, acuerdo y reseñas de trabajos terminados. Todo junto.",
+          "pantalla": "",
+          "sobreEscena": null
+        },
+        {
+          "n": 8,
+          "rol": "giro",
+          "seg": 2,
+          "plano": "close-up",
+          "enCuadro": "",
+          "accion": "Aparece una reseña de un trabajo terminado con estrellas y la etiqueta Contratación Verificada.",
+          "dice": "",
+          "pantalla": "La reputación, hecha de trabajos reales",
+          "sobreEscena": 7
+        },
+        {
+          "n": 9,
+          "rol": "cta",
+          "seg": 3,
+          "plano": "medium shot",
+          "enCuadro": "",
+          "accion": "Placa final institucional con logo RepareHoy, mensaje de acuerdos registrados y web.",
+          "dice": "",
+          "pantalla": "",
+          "sobreEscena": null
+        }
+      ],
+      "flow": {
+        "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+        "retratos": [
+          {
+            "nombre": "Sofía",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine woman, 49 years old, shoulder-length brown hair with visible gray strands, fair skin, green eyes and expressive facial features. Average build, slightly angular jaw, natural appearance. She has an alert, practical presence and a thoughtful expression, standing and looking at the camera, natural pose, neutral background with a hint of an inhabited buenos aires apartment being prepared for interior painting. A still photo, no action, no dialogue."
+          },
+          {
+            "nombre": "Gabriel",
+            "prompt": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine man, 53 years old, short gray hair, medium tan skin, thin mustache, brown eyes and pronounced smile lines. Lean build, steady posture and calm expression. He looks like an experienced, detail-oriented professional with a friendly but understated presence, standing and looking at the camera, natural pose, neutral background with a hint of an inhabited buenos aires apartment being prepared for interior painting. A still photo, no action, no dialogue."
+          }
+        ],
+        "escenas": [
+          {
+            "escena": 1,
+            "rol": "hook",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Sofía, an Argentine woman, 49 years old, shoulder-length brown hair with visible gray strands, fair skin, wearing White shirt with rolled sleeves, terracotta trousers, black sneakers. Sofia stands in her Buenos Aires living room, surrounded by furniture prepared for painting. The sofa is covered with a white bedsheet and pictures lean against the wall. She looks through a long conversation containing numerous indistinct voice-message bubbles on her phone. Nothing is legible. She stops searching, visibly irritated. Quiet indoor ambience. No dialogue: ambient sound only. Over-the-shoulder shot, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never recreate the brand app interface. A generic messaging chat may be visible on the phone (sent bubbles with no replies) but its text is never legible. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 2,
+            "rol": "hook",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Sofía, an Argentine woman, 49 years old, shoulder-length brown hair with visible gray strands, fair skin, wearing White shirt with rolled sleeves, terracotta trousers, black sneakers. Sofia stands beside her covered sofa, holding her phone. The apartment is visibly ready for painting, with empty wall spaces and framed pictures on the floor. She immediately speaks in natural Argentine Spanish, frustrated because she cannot find the agreement. She addresses herself rather than the viewer. Minimal gestures, synchronized dialogue and authentic apartment ambience. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: '¡Tengo que pintar y no encuentro qué acordamos!' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 3,
+            "rol": "desarrollo",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Sofía, an Argentine woman, 49 years old, shoulder-length brown hair with visible gray strands, fair skin, wearing White shirt with rolled sleeves, terracotta trousers, black sneakers. Sofia sits beside the covered sofa in her apartment. She looks at her phone with a focused expression, preparing to arrange the painting job through a different service. The purple watering can remains beside her indoor plant. Her posture becomes more relaxed as she reviews the process. No dialogue, no readable phone text, soft indoor ambience. No dialogue: ambient sound only. Wide shot that shows the whole place, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never recreate the brand app interface. A generic messaging chat may be visible on the phone (sent bubbles with no replies) but its text is never legible. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 4,
+            "rol": "desarrollo",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Gabriel, an Argentine man, 53 years old, short gray hair, medium tan skin, thin mustache, wearing Dark blue T-shirt, beige work trousers, gray sneakers. Gabriel stands in his small painting workshop in Buenos Aires. Clean rollers hang neatly behind him, beside sealed paint containers. He holds his phone and studies an incoming painting request. His vintage green thermos rests on a nearby shelf. He nods thoughtfully, ready to respond. No speech or readable phone text. Soft workshop ambience. No dialogue: ambient sound only. Medium shot, waist up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never recreate the brand app interface. A generic messaging chat may be visible on the phone (sent bubbles with no replies) but its text is never legible. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 5,
+            "rol": "giro",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Gabriel, an Argentine man, 53 years old, short gray hair, medium tan skin, thin mustache, wearing Dark blue T-shirt, beige work trousers, gray sneakers. Gabriel stands beside the workbench in his painting workshop. He already holds his phone and looks at the proposed payment arrangement. He immediately speaks in Argentine Spanish, addressing Sofia as though explaining the proposal to her directly. His manner is calm and practical. He makes one small gesture toward the phone. Synchronized dialogue, workshop ambience. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Te propongo cómo pagar, y queda acá escrito.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          },
+          {
+            "escena": 7,
+            "rol": "giro",
+            "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Sofía, an Argentine woman, 49 years old, shoulder-length brown hair with visible gray strands, fair skin, wearing White shirt with rolled sleeves, terracotta trousers, black sneakers. Sofia stands in her apartment beside the covered sofa, already holding her phone. She looks at the organized job information and immediately speaks in Argentine Spanish, as if commenting to someone nearby. Her expression shows quiet satisfaction rather than excitement. The room remains prepared for painting, with no work completed. Synchronized dialogue, natural indoor ambience. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Presupuesto, acuerdo y reseñas de trabajos terminados. Todo junto.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. If an app screen is visible, the screen is not clearly legible. Keep the top center area of the frame uncluttered for top-centered brand logo overlay. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions."
+          }
+        ]
+      },
+      "tomas": []
+    }
+  ],
+  "crudos": [
+    {
+      "tipo": "flow",
+      "titulo": "Clip de Flow de la escena 1",
+      "archivo": "flow-escena-1.mp4",
+      "dice": "Yo esperaba que alguien me recomendara. Ahora cuento qué me pasa. Una vez"
+    },
+    {
+      "tipo": "flow",
+      "titulo": "Clip de Flow de la escena 2",
+      "archivo": "flow-escena-2.mp4",
+      "dice": "Y el pedido me llega a la bandeja con mi zona y mi oficio."
+    },
+    {
+      "tipo": "flow",
+      "titulo": "Clip de Flow de la escena 4",
+      "archivo": "flow-escena-4.mp4",
+      "dice": "Y el pedido me llega a la bandeja con mi zona y mi oficio"
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "Contar el problema",
+      "archivo": "pantalla-contar-el-problema.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "Te esperan tus proveedores",
+      "archivo": "pantalla-te-esperan-tus-proveedores.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "La conversación con el plan de pagos adentro",
+      "archivo": "pantalla-la-conversacion-con-el-plan-de-pagos-adentro.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "Pagar la seña",
+      "archivo": "pantalla-pagar-la-sena.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "Bandeja de solicitudes",
+      "archivo": "pantalla-bandeja-de-solicitudes.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "Armar el plan de pagos",
+      "archivo": "pantalla-armar-el-plan-de-pagos.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "El panel del proveedor",
+      "archivo": "pantalla-el-panel-del-proveedor.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "La reputación, hecha de trabajos reales",
+      "archivo": "pantalla-la-reputacion-hecha-de-trabajos-reales.mp4",
+      "dice": ""
+    },
+    {
+      "tipo": "mockup",
+      "titulo": "Mis solicitudes, con el progreso de cada trabajo",
+      "archivo": "pantalla-mis-solicitudes-con-el-progreso-de-cada-trabajo.mp4",
+      "dice": ""
+    }
+  ]
+}

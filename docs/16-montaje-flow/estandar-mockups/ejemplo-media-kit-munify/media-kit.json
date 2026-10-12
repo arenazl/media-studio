@@ -1,0 +1,81 @@
+{
+  "id": "munify",
+  "app": "Munify",
+  "generado": "2026-10-10",
+  "ambiente": "https://app.munify.com.ar (capturas de la interfaz anterior; el branding nuevo de Munify está pendiente de entrega)",
+  "notas": "Carpeta de EJEMPLO armada por Media Studio con lo que llegó por el KSP y las capturas disponibles. Los valores marcados 'verificar' se completan con el kit real de la app.",
+
+  "negocio": {
+    "queEs": "Sistema de gestión municipal: el vecino reclama, tramita y paga desde el celular; el municipio recibe, deriva, resuelve y notifica en tiempo real",
+    "queVende": "Un único sistema con login único para atender al vecino (reclamos con foto y GPS, trámites con validación biométrica RENAPER, pago de tasas) y para gobernar puertas adentro (órdenes de pago, tesorería, sueldos), reemplazando el Excel",
+    "aQuien": ["intendentes, secretarios y jefes de área de municipios de la provincia de Buenos Aires", "vecinos que reclaman, tramitan y pagan"],
+    "zona": "Provincia de Buenos Aires (ciudad de ejemplo para los textos: Chacabuco)",
+    "diferenciales": [
+      "el reclamo entra con foto y GPS y la IA lo clasifica y lo deriva solo a la dependencia correcta",
+      "el vecino recibe el aviso de cada cambio de estado: recibido, en tratamiento, resuelto",
+      "trámites con identidad validada con RENAPER (DNI y selfie) y pago online, sin ir al municipio",
+      "la plata del municipio ordenada y trazable: orden de pago, autorización, tesorería, sin doble carga"
+    ],
+    "numerosReales": [],
+    "dolorDelCliente": [
+      "el reclamo entra por un papelito, un llamado o un mensaje reenviado y nadie sabe dónde quedó",
+      "el vecino tiene que cerrar el negocio para ir a hacer un trámite al municipio",
+      "fin de mes en Contaduría con el Excel y la doble carga"
+    ],
+    "queNoDecir": ["cifras de municipios clientes que no estén en la ficha", "plazos de resolución garantizados"],
+    "audienciaPrioritaria": "el decisor municipal (intendente, secretario)",
+    "sugerencias": ["el momento en que el aviso 'tu caso se resolvió' le llega al vecino con la foto del después"]
+  },
+
+  "cta": {
+    "principal": "Pedí una demo para tu municipio",
+    "url": "https://munify.com.ar",
+    "secundario": "Probalo tres meses gratis, sin compromiso ni tarjeta (verificar vigencia con Munify)"
+  },
+
+  "pruebaSocial": [],
+
+  "marca": {
+    "nombreExacto": "Munify",
+    "fonetica": "Munifai",
+    "logo": { "principal": "logo.svg" },
+    "colores": {
+      "primario": "#18a24d",
+      "acento": "#F2B84B",
+      "fondo": "#060B16",
+      "texto": "#F5F7FA",
+      "exito": "#22c55e",
+      "alerta": "#ef4444",
+      "modoNativo": "claro (verificar: la interfaz nueva de Munify podría ser oscura)"
+    },
+    "tipografias": {
+      "titulos": "Sora (Google Fonts)",
+      "texto": "Nunito (Google Fonts)",
+      "fallback": "sans-serif del sistema"
+    },
+    "estiloUI": {
+      "bordes": "tarjetas redondeadas radio 16 a 20px",
+      "sombras": "suaves, elevación baja",
+      "botones": "sólidos verdes con texto blanco; dorado para el llamado a la acción en las piezas de noche",
+      "densidad": "aireada",
+      "rasgoDistintivo": "chips de estado de color (recibido, en tratamiento, resuelto) y la tipografía Sora en los títulos"
+    },
+    "tono": "institucional, directo, rioplatense, sin solemnidad",
+    "claim": "Munify, para vos (verificar con Munify)"
+  },
+
+  "pantallas": [
+    { "archivo": "screens/01-dashboard.png", "viewport": "desktop", "nombre": "Dashboard municipal", "ruta": "/dashboard", "queDemuestra": "el municipio ve todo en una pantalla", "zonaClave": "fila de KPIs arriba y reclamos por estado", "datosVisibles": ["reclamos del mes", "trámites en curso", "pagos", "reclamos por estado", "actividad reciente"], "microAnimacion": "los números de los KPIs suben desde cero y entra un reclamo nuevo en la actividad reciente" },
+    { "archivo": "screens/02-reclamos.png", "viewport": "desktop", "nombre": "Reclamos vecinales", "ruta": "/reclamos", "queDemuestra": "cada reclamo tiene estado, categoría y responsable", "zonaClave": "la lista con el chip de estado por fila", "datosVisibles": ["número de reclamo", "categoría (bache, alumbrado, residuos)", "estado", "dependencia responsable", "fecha"], "microAnimacion": "un reclamo pasa de 'recibido' a 'en tratamiento' y después a 'resuelto' (semáforo)" },
+    { "archivo": "screens/03-tramites.png", "viewport": "desktop", "nombre": "Trámites municipales", "ruta": "/tramites", "queDemuestra": "el trámite avanza por etapas con identidad validada", "zonaClave": "la grilla de trámites con el badge RENAPER", "datosVisibles": ["tipo de trámite (habilitación, licencia)", "etapa: ingresado, en revisión, aprobado", "badge de validación biométrica"], "microAnimacion": "el trámite avanza de etapa en etapa hasta 'aprobado'" },
+    { "archivo": "screens/04-tesoreria.png", "viewport": "desktop", "nombre": "Tesorería - Pagos", "ruta": "/tesoreria", "queDemuestra": "la plata ordenada: cajas, pagos y conciliación", "zonaClave": "totales por caja arriba y la grilla de pagos", "datosVisibles": ["saldo por caja", "pagos del día", "estado de cada pago"], "microAnimacion": "una orden de pago se autoriza y el saldo de la caja se actualiza" },
+    { "archivo": "screens/05-turnos.png", "viewport": "desktop", "nombre": "Agenda de turnos", "ruta": "/turnos", "queDemuestra": "los turnos presenciales ordenados por dependencia y hora", "zonaClave": "la columna horaria del día", "datosVisibles": ["dependencia", "horario", "vecino", "estado del turno"], "microAnimacion": "se confirma un turno y aparece en la columna del día" },
+    { "archivo": "screens/06-contaduria.png", "viewport": "desktop", "nombre": "Contaduría", "ruta": "/contaduria", "queDemuestra": "órdenes de pago y gasto por rubro sin Excel", "zonaClave": "las órdenes de pago con su estado", "datosVisibles": ["número de orden", "proveedor", "importe", "estado"], "microAnimacion": "se carga una orden de pago con la factura adjunta y pasa a 'autorizada'" },
+    { "archivo": "screens/07-sueldos.png", "viewport": "desktop", "nombre": "Sueldos", "ruta": "/sueldos", "queDemuestra": "las liquidaciones del mes en el mismo sistema", "zonaClave": "la liquidación del mes", "datosVisibles": ["período", "cantidad de agentes", "total liquidado", "estado"], "microAnimacion": "la liquidación del mes se cierra y queda 'liquidada'" }
+  ],
+
+  "momentos": [
+    { "nombre": "Del poste apagado al aviso de resuelto", "pantallas": ["screens/02-reclamos.png", "screens/01-dashboard.png"], "historia": "el vecino manda la foto, el reclamo entra clasificado, la cuadrilla lo resuelve y el vecino recibe el aviso", "remate": "el aviso 'tu caso se resolvió' con la foto del después" },
+    { "nombre": "El trámite sin pisar el municipio", "pantallas": ["screens/03-tramites.png"], "historia": "una comerciante inicia la habilitación desde el celular, valida identidad con RENAPER y paga online", "remate": "el trámite llega aprobado sin que haya cerrado el local" }
+  ]
+}

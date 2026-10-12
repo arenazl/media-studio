@@ -62,9 +62,13 @@ describe('storyboard', () => {
     expect(codes(r)).toContain('storyboard.personaje-inexistente');
     expect(codes(r)).toContain('storyboard.rol-invalido');
   });
-  it('talking head de menos de 8 s', () => {
-    const r = lintCommercial({ ...base, storyboard: [{ ...SB_OK[0], durSec: 5 }, SB_OK[1], SB_OK[2]] });
-    expect(codes(r)).toContain('storyboard.talking-head-corto');
+  // 2026-10-11 (storyboard/3.x): en el filmado no hay locutor. Una escena de 5 s con su persona ya no es "talking head
+  // corto" (el montajista corta en la frase); lo que se marca es una frase que nadie en cuadro puede decir.
+  it('una escena con persona y frase de 5 s ya no se marca; una frase sin nadie en cuadro sí', () => {
+    const corta = lintCommercial({ ...base, storyboard: [{ ...SB_OK[0], durSec: 5 }, SB_OK[1], SB_OK[2]] });
+    expect(codes(corta)).not.toContain('storyboard.talking-head-corto');
+    const sinPersona = lintCommercial({ ...base, storyboard: [{ ...SB_OK[0], personajes: [] }, SB_OK[1], SB_OK[2]] });
+    expect(codes(sinPersona)).toContain('storyboard.frase-sin-persona');
   });
   it('animado: pantalla que no está en el kit y escena sin captura', () => {
     const r = lintCommercial({ ...base, tipo: 'animado', cast: null, mediaKit: { pantallas: [{ nombre: 'Home' }, { nombre: 'Detalle' }] },
@@ -94,7 +98,7 @@ describe('pack flow', () => {
 
 describe('severidad', () => {
   it('ok es false con cualquier issue alta, y cuenta errores y avisos', () => {
-    const r = lintCommercial({ ...base, storyboard: [{ ...SB_OK[0], durSec: 5 }, SB_OK[1], SB_OK[2]], durationSec: 40 });
+    const r = lintCommercial({ ...base, storyboard: [{ ...SB_OK[0], personajes: ['p9'] }, SB_OK[1], SB_OK[2]], durationSec: 40 });
     expect(r.ok).toBe(false);
     expect(r.errores).toBeGreaterThanOrEqual(1);
     expect(r.avisos).toBeGreaterThanOrEqual(1);

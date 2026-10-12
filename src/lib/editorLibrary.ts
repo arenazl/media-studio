@@ -17,6 +17,7 @@ export interface LibItem {
   fileRef?: string;   // asset real (server/storage) o URL de música — presente cuando el item es "soltable"
   durSec?: number;    // WO-6a: duración real del clip (para poblar el clip al soltarlo en la timeline)
   tab?: LibTab;       // WO-6a: de qué pista viene el item — decide en qué pista de la timeline se dropea
+  pista?: 'pantallas';   // un mockup de la app: al soltarlo va a la pista Mockups (encima), no a la de Video
 }
 
 export const LIB_TABS: { id: LibTab; label: string }[] = [
@@ -53,15 +54,34 @@ function buildClipsBin(comercial: Comercial | undefined): LibItem[] {
       ? [{ id: 'clip-render', label: 'Render animado', meta: 'motion graphics · mp4', color: '#00B37E', fileRef: comercial.renderRef, tab: 'clips' }]
       : [];
   }
-  return (comercial.rodaje || []).map((t) => ({
-    id: `clip-${t.id}`,
-    label: `Escena ${t.escenaN}`,
-    meta: `${t.durSec.toFixed(1)}s · toma importada`,
-    color: '#7C5CFF',
-    fileRef: t.fileRef,
-    durSec: t.durSec,
+  // lo filmado (tomas de Flow) por escena, y después TODOS los mockups de la app de la pieza (Lucas, 2026-10-11: "todo
+  // lo disponible"): los que el armado no usó se arrastran desde acá a la pista Mockups. Una toma que salió de un mockup
+  // aparece una sola vez, como mockup.
+  const mockups = comercial.mockups || [];
+  const refsMockup = new Set(mockups.map((m) => m.fileRef));
+  const filmadas: LibItem[] = (comercial.rodaje || [])
+    .filter((t) => t.origen !== 'mockup' && !refsMockup.has(t.fileRef))
+    .sort((a, b) => a.escenaN - b.escenaN)
+    .map((t) => ({
+      id: `clip-${t.id}`,
+      label: `Escena ${t.escenaN}`,
+      meta: `${t.durSec.toFixed(1)}s · ${t.origen === 'archivo' ? 'archivo importado' : 'clip filmado'}`,
+      color: '#7C5CFF',
+      fileRef: t.fileRef,
+      durSec: t.durSec,
+      tab: 'clips' as LibTab,
+    }));
+  const deApp: LibItem[] = mockups.map((m) => ({
+    id: `mockup-${m.id}`,
+    label: m.nombre,
+    meta: `${m.durSec.toFixed(1)}s · mockup de la app`,
+    color: '#22C3E6',
+    fileRef: m.fileRef,
+    durSec: m.durSec,
     tab: 'clips' as LibTab,
+    pista: 'pantallas' as const,
   }));
+  return [...filmadas, ...deApp];
 }
 
 function buildAudioBin(reel: ProjectReel | undefined): LibItem[] {

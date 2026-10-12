@@ -47,11 +47,11 @@ export function estadoDelPaso(paso: PasoId, c: Comercial | undefined): string {
       return c?.renderRef ? 'Reel animado renderizado' : 'Generá el render desde el storyboard';
     }
     case 'rodaje': {
-      const rodaje = c?.rodaje ?? [];
-      if (!rodaje.length) return 'Importá los clips que bajaste de Flow';
-      const escenas = c?.storyboard?.length ?? 0;
-      const conClip = new Set(rodaje.map((t) => t.escenaN)).size;
-      return `${conClip}/${escenas} escenas con clip`;
+      // paso Mockups (id interno 'rodaje', 2026-10-11): los crudos de los mockups animados de la app
+      const mk = c?.mockups ?? [];
+      if (!mk.length) return 'Hacé los mockups de la app';
+      const enEscenas = new Set((c?.rodaje ?? []).filter((t) => t.origen === 'mockup').map((t) => t.escenaN)).size;
+      return `${mk.length} mockups · ${enEscenas} en sus escenas`;
     }
     case 'montaje': {
       const m = c?.montaje as MontajeState | undefined;

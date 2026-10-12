@@ -7,7 +7,7 @@ import { AbsoluteFill, Audio, Easing, Img, OffthreadVideo, Sequence, interpolate
 import { loadFont as loadSans } from '@remotion/google-fonts/PlusJakartaSans';
 import { loadFont as loadSerif } from '@remotion/google-fonts/InstrumentSerif';
 import type { MontajePlan } from '../lib/montajePlan';
-import { derivarRender, volumenMusica, type InsertoRender, type PaginaSubtitulo, type PlanRender, type SegmentoRender } from './derivar';
+import { derivarRender, rampaFades, volumenMusica, type InsertoRender, type PaginaSubtitulo, type PlanRender, type SegmentoRender } from './derivar';
 import { Semaforo, Tramite, Mapa, Dashboard } from './munify/Tarjetas';
 
 const { fontFamily: sans } = loadSans('normal', { weights: ['600', '700', '800'], subsets: ['latin', 'latin-ext'] });
@@ -17,17 +17,28 @@ const { fontFamily: serifItalic } = loadSerif('italic', { weights: ['400'], subs
 // type (no interface): el Player y la Composition exigen props asignables a Record<string, unknown>.
 export type ComercialProps = { plan: MontajePlan; base?: string };
 
+// la entrada del segmento sobre el anterior: fundido (disolvencia cruzada), deslizar desde la derecha, o zoom que se asienta
+function estiloEntrada(seg: SegmentoRender, frame: number): { opacity: number; dx: number; zoom: number } {
+  if (!seg.entrada) return { opacity: 1, dx: 0, zoom: 1 };
+  const t = interpolate(frame, [0, seg.entrada.frames], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.inOut(Easing.cubic) });
+  if (seg.entrada.tipo === 'deslizar') return { opacity: 1, dx: (1 - t) * 100, zoom: 1 };
+  if (seg.entrada.tipo === 'zoom') return { opacity: t, dx: 0, zoom: 1 + (1 - t) * 0.12 };
+  return { opacity: t, dx: 0, zoom: 1 };
+}
+
 const Segmento: React.FC<{ seg: SegmentoRender }> = ({ seg }) => {
   const frame = useCurrentFrame();
   const p = Math.min(1, frame / Math.max(1, seg.dur - 1));
-  const scale = seg.scaleFrom + (seg.scaleTo - seg.scaleFrom) * p;
+  const scale = (seg.scaleFrom + (seg.scaleTo - seg.scaleFrom) * p);
+  const e = estiloEntrada(seg, frame);
+  const fade = rampaFades(frame, seg.dur, seg.fadeIn, seg.fadeOut);   // fade in/out del clip: imagen a negro y sonido
   return (
-    <AbsoluteFill style={{ transform: `scale(${scale})`, transformOrigin: '50% 30%' }}>
+    <AbsoluteFill style={{ opacity: e.opacity * fade, transform: `translateX(${e.dx}%) scale(${scale * e.zoom})`, transformOrigin: '50% 30%' }}>
       <OffthreadVideo
         src={seg.src}
         startFrom={seg.startFrom}
         muted={seg.audio !== 'keep'}
-        volume={seg.audio === 'keep' ? seg.gain : 0}
+        volume={seg.audio === 'keep' ? (f) => seg.gain * rampaFades(f, seg.dur, seg.fadeIn, seg.fadeOut) : 0}
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       />
     </AbsoluteFill>
@@ -38,10 +49,7 @@ const Segmento: React.FC<{ seg: SegmentoRender }> = ({ seg }) => {
 // Inserto con TARJETA diseñada (la del sistema de Munify): fondo de noche y la tarjeta actuando, nada de capturas.
 const InsertoTarjeta: React.FC<{ ins: InsertoRender; width: number; height: number }> = ({ ins, width, height }) => {
   const frame = useCurrentFrame();
-  const a = Math.min(
-    interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' }),
-    interpolate(frame, [ins.dur - 8, ins.dur], [1, 0], { extrapolateLeft: 'clamp' }),
-  );
+  const a = rampaFades(frame, ins.dur, ins.fadeIn, ins.fadeOut);
   const sx = width / 1080, sy = height / 1920;
   const T = ins.tarjeta === 'tramite' ? <Tramite f={frame} dur={ins.dur} /> : ins.tarjeta === 'mapa' ? <Mapa f={frame} /> : ins.tarjeta === 'dashboard' ? <Dashboard f={frame} /> : <Semaforo f={frame} dur={ins.dur} />;
   return (
@@ -51,12 +59,20 @@ const InsertoTarjeta: React.FC<{ ins: InsertoRender; width: number; height: numb
   );
 };
 
+// el mockup animado de la app como inserto: el clip entero a pantalla completa, con fundido de entrada y salida
+const InsertoVideo: React.FC<{ ins: InsertoRender }> = ({ ins }) => {
+  const frame = useCurrentFrame();
+  const a = rampaFades(frame, ins.dur, ins.fadeIn, ins.fadeOut);
+  return (
+    <AbsoluteFill style={{ opacity: a, background: '#000' }}>
+      <OffthreadVideo src={ins.src} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    </AbsoluteFill>
+  );
+};
+
 const Inserto: React.FC<{ ins: InsertoRender; estilo: PlanRender['estilo']; width: number; height: number }> = ({ ins, estilo, width, height }) => {
   const frame = useCurrentFrame();
-  const a = Math.min(
-    interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' }),
-    interpolate(frame, [ins.dur - 8, ins.dur], [1, 0], { extrapolateLeft: 'clamp' }),
-  );
+  const a = rampaFades(frame, ins.dur, ins.fadeIn, ins.fadeOut);
   const kb = 1 + 0.07 * (frame / Math.max(1, ins.dur));
   const u = width / 1080;                       // todo en unidades del lienzo de referencia 1080x1920
   return (
@@ -164,7 +180,7 @@ export const Comercial: React.FC<ComercialProps> = ({ plan, base = '' }) => {
       ))}
       {r.inserts.map((ins, i) => (
         <Sequence key={`ins-${i}`} from={ins.from} durationInFrames={ins.dur} name={`inserto ${i + 1}`}>
-          {ins.tarjeta ? <InsertoTarjeta ins={ins} width={r.width} height={r.height} /> : <Inserto ins={ins} estilo={r.estilo} width={r.width} height={r.height} />}
+          {ins.video ? <InsertoVideo ins={ins} /> : ins.tarjeta ? <InsertoTarjeta ins={ins} width={r.width} height={r.height} /> : <Inserto ins={ins} estilo={r.estilo} width={r.width} height={r.height} />}
         </Sequence>
       ))}
       {r.logo ? (
@@ -180,7 +196,7 @@ export const Comercial: React.FC<ComercialProps> = ({ plan, base = '' }) => {
       ) : null}
       {r.voice ? (
         <Sequence from={r.voice.from} name="voz en off">
-          <Audio src={r.voice.src} />
+          <Audio src={r.voice.src} volume={(f) => r.voice!.volume * rampaFades(f, r.totalFrames - r.voice!.from, r.voice!.fadeIn, r.voice!.fadeOut)} />
         </Sequence>
       ) : null}
       {r.music ? <Audio src={r.music.src} volume={(f) => volumenMusica(f, r)} /> : null}

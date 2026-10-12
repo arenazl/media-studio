@@ -82,7 +82,7 @@ export const COPILOTO: Record<PasoId, CopilotoStep> = {
     hace: [
       'Creá cada personaje en Flow y generá su IMAGEN con el prompt de acá (sección Personaje, Nano Banana).',
       'Creá una escena por clip y animala con su prompt: Flow ya conoce al personaje por su imagen — llamalo por nombre.',
-      'Bajá los videos de cada escena e importalos en Rodaje.',
+      'Los videos de cada escena quedan abajo, en Los crudos de Flow (la rutina los baja sola; si bajaste uno a mano, arrastralo a su escena).',
     ],
     tip: 'No pegues la descripción física en las escenas: Flow mantiene la cara por la imagen del personaje. Si querés otra idea visual, usá el botón Regenerar de la escena.',
     nota: 'Descargá el logo (bloque Marca) si querés subirlo a Flow como referencia. Ojo: el logo FINAL se quema en el Montaje —el render lo sobreimprime en el mp4—, así que no dependas de que Flow lo dibuje exacto.',
@@ -96,14 +96,16 @@ export const COPILOTO: Record<PasoId, CopilotoStep> = {
     ],
     tip: 'El render anima las pantallas del KB: cuanto mejor el storyboard, mejor el resultado.',
   },
+  // paso Mockups (id interno 'rodaje', 2026-10-11): los crudos de los mockups animados de la app
   rodaje: {
-    queEs: 'Importás acá los clips que bajaste de Flow, escena por escena.',
+    queEs: 'Los mockups animados de la app: uno por pantalla del media kit, hechos por el agente mirando las capturas.',
+    hizoIA: 'El agente miró cada captura con sus estados y escribió el mockup; la plantilla puso la marca, las medidas y la animación.',
     hace: [
-      'En cada escena, importá su clip.',
-      'Mirá el aviso si un clip quedó más corto que la escena.',
-      'Elegí la mejor toma cuando subas varias.',
+      'Tocá "Hacer los mockups": escribe uno por pantalla (unos 3 minutos, con barra de progreso) y los pasa a video.',
+      'Los de las escenas de pantalla entran solos; revisá que cada uno esté en la escena que corresponde.',
+      'Si querés otro mockup en una escena, elegila en "Usar en la escena…".',
     ],
-    tip: 'En escenas con diálogo, el audio del clip es el audio del comercial: elegí la toma con voz más limpia.',
+    tip: 'Los mockups se escriben una vez por app: en otra pieza de la misma app alcanza con pasarlos a video.',
   },
   montaje: {
     queEs: 'Se arma el comercial completo y se exporta el mp4 final.',
@@ -169,11 +171,6 @@ function tieneContenido(paso: PasoId, c: Comercial | undefined): boolean {
 }
 
 // cuántas escenas del storyboard ya tienen al menos un clip importado (rodaje).
-function escenasConClip(c: Comercial | undefined): number {
-  const conClip = new Set((c?.rodaje ?? []).map((t) => t.escenaN));
-  return conClip.size;
-}
-
 // ── Progreso dinámico del paso ────────────────────────────────────────────────
 // Deriva `avance` (ítems cumplidos desde arriba) del estado REAL. Para pack/rodaje usa los
 // contadores concretos; para el resto: generado = arrancaste (avance 1), aprobado = terminaste.
@@ -191,14 +188,15 @@ export function copilotoDinamico(paso: PasoId, c: Comercial | undefined): Copilo
     progreso = { label: 'escenas copiadas', done: pr.copiados, total: pr.total };
     if (!hasContent) avance = 0;                                   // sin pack: generalo primero (CTA del header)
     else if (pr.copiados < pr.total) avance = 1;                   // pack listo → creá personajes + animá escenas
-    else if (pr.importados < pr.total) avance = 2;                 // todo copiado → seguí importando en Rodaje
+    else if (pr.importados < pr.total) avance = 2;                 // todo copiado → falta bajar los clips (Los crudos de Flow)
     else avance = total;                                           // todo importado
   } else if (paso === 'rodaje') {
-    const conClip = escenasConClip(c);
-    const escenas = c?.storyboard?.length ?? 0;
-    progreso = { label: 'escenas con clip', done: conClip, total: escenas };
-    if (conClip === 0) avance = 0;
-    else if (conClip < escenas) avance = 1;
+    // Mockups: hechos (0) · en sus escenas (1) · elegidos (2)
+    const pantallas = (c?.storyboard ?? []).filter((e) => e.pantalla).length;
+    const enEscenas = new Set((c?.rodaje ?? []).filter((t) => t.origen === 'mockup').map((t) => t.escenaN)).size;
+    progreso = { label: 'escenas de pantalla con mockup', done: enEscenas, total: pantallas };
+    if (!(c?.mockups ?? []).length) avance = 0;
+    else if (enEscenas < pantallas) avance = 1;
     else avance = aprobado ? total : 2;
   } else if (paso === 'concepto') {
     // generá(0) · compará(1) · elegí(2) · definí tipo(3). Elegir un concepto implica que comparaste.

@@ -6,7 +6,7 @@
 // icono y la nota descriptiva por id. `FORMATOS` se DERIVA de `FORMATOS_DEF` mergeando esa capa, para
 // que ambas pantallas usen la misma fuente sin duplicar aspectos/plataformas/duraciones.
 import type { LucideIcon } from 'lucide-react';
-import { Smartphone, Wand2, Square, RectangleVertical, Youtube, Tv } from 'lucide-react';
+import { Smartphone, Wand2, Square, RectangleVertical, Youtube, Tv, Layers } from 'lucide-react';
 import { FORMATOS_DEF, type Aspecto } from './formato';
 
 export interface FormatoCard {
@@ -19,11 +19,15 @@ interface Presentacion { accent: string; Icon: LucideIcon; nota: string }
 const PRESENTACION: Record<string, Presentacion> = {
   'reel-9-16': {
     accent: 'var(--rd-green)', Icon: Smartphone,
-    nota: 'El formato base: presentador a cámara + b-roll. Cast + Pack Flow + rodaje.',
+    nota: 'Todo filmado en Google Flow: personajes, escenas y la placa de cierre del motor. Cast + Pack + rodaje automático.',
   },
   'reel-animado-9-16': {
     accent: 'var(--rd-blue)', Icon: Wand2,
-    nota: 'Sin cast ni rodaje: motion graphics de las pantallas reales del producto (Playwright).',
+    nota: 'Sin cast ni rodaje: mockups animados de las pantallas reales de la app, dibujados por el motor.',
+  },
+  'reel-hibrido-9-16': {
+    accent: 'var(--rd-gold)', Icon: Layers,
+    nota: 'La rutina genera los crudos filmados en Flow y los mockups de la app; en el montaje elegís qué entra.',
   },
   'meta-feed-1-1': {
     accent: 'var(--rd-gold)', Icon: Square,
@@ -49,7 +53,7 @@ const rangoDuracion = (d: { min: number; max: number }) => `${d.min}–${d.max}s
 const tecnicaLabel = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 // Los formatos para la UI: entidad (fuente única) + capa de presentación por id.
-export const FORMATOS: FormatoCard[] = FORMATOS_DEF.map((f) => {
+export const FORMATOS: FormatoCard[] = FORMATOS_DEF.filter((f) => !f.oculto).map((f) => {
   const pres = PRESENTACION[f.id];
   return {
     id: f.id, nombre: f.nombre, aspecto: f.aspecto, plataforma: f.plataforma,

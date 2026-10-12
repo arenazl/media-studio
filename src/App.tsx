@@ -19,12 +19,16 @@ import type { Route } from './lib/routes';
 import { API_BASE } from './config';
 import './App.css';
 
+// La demo de grabación va aparte: con el `return` antes de los hooks, la app los llamaba de forma condicional
+// (rules-of-hooks, 12 errores de lint desde el 07/10).
 export default function App() {
+  const demorec = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('demorec') === '1';
+  return demorec ? <DemoReels /> : <AppPrincipal />;
+}
+
+function AppPrincipal() {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const embed = params.get('embed') === '1';
-  if (params.get('demorec') === '1') {
-    return <DemoReels />;
-  }
 
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   // audio generado por reel (objectURL del mp3): sólo se escribe (cache de sesión para VoiceStudio/
@@ -78,14 +82,15 @@ export default function App() {
   // WO-4: el editor guarda su MontajePlan invertido. App (dueño único) lo escribe en el comercial del
   // primer reel (el que el editor edita) + avanza el estado 'montaje'→'editado'. Preserva los exports
   // previos (renders ya hechos). Flush inmediato: es una acción puntual del usuario (botón Guardar).
-  const saveMontaje = (plan: MontajePlan) => {
+  // automatico: el armado que el editor hace al entrar queda 'generado' (sigue siendo el automático, se puede rearmar).
+  const saveMontaje = (plan: MontajePlan, opts?: { automatico?: boolean }) => {
     updateProject((prev) => ({
       ...prev,
       reels: prev.reels.map((r, i) => {
         if (i !== 0 || !r.comercial) return r;
         const prevState = r.comercial.montaje as MontajeState | undefined;
         const montaje: MontajeState = { plan, exports: prevState?.exports ?? [] };
-        const c: Comercial = avanzarEstado({ ...r.comercial, montaje }, 'montaje', 'editado');
+        const c: Comercial = avanzarEstado({ ...r.comercial, montaje }, 'montaje', opts?.automatico ? 'generado' : 'editado');
         return { ...r, comercial: c };
       }),
     }), 'flush');
@@ -118,7 +123,21 @@ export default function App() {
   };
 
   // abrir/cambiar de proyecto: flush lo pendiente del anterior, hacé del nuevo el proyecto dueño y navegá a su workspace.
-  const openProject = (p: Project) => { flushPending(); projectRef.current = p; setActiveProject(p); setRoute('project'); };
+  // el id del proyecto va en la URL (?p=<id>): se puede copiar, compartir entre ventanas y volver con F5 al mismo proyecto
+  const openProject = (p: Project) => {
+    flushPending(); projectRef.current = p; setActiveProject(p); setRoute('project');
+    try { const u = new URL(window.location.href); u.searchParams.set('p', p.id); window.history.replaceState(null, '', u.toString()); } catch { /* sin historial */ }
+  };
+  // al cargar con ?p=<id>, se abre ese proyecto apenas la lista lo tiene (una sola vez)
+  const abiertoDesdeUrl = useRef(false);
+  useEffect(() => {
+    if (abiertoDesdeUrl.current) return;
+    const pedido = params.get('p');
+    if (!pedido) { abiertoDesdeUrl.current = true; return; }
+    const p = projects.find((x) => x.id === pedido);
+    if (p) { abiertoDesdeUrl.current = true; openProject(p); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects]);
 
   // guiones del proyecto ABIERTO → VoiceStudio (memoizado: estable mientras no cambie el proyecto).
   // La ruta global 'audio' del rail (Fase 1) queda project-aware CUANDO hay un proyecto abierto —
@@ -133,7 +152,10 @@ export default function App() {
   // hacía el botón Home de la Topbar vieja) — las demás rutas no lo tocan (podés volver a él).
   const goRoute = (r: Route) => {
     flushPending();
-    if (r === 'home') { projectRef.current = null; setActiveProject(null); }
+    if (r === 'home') {
+      projectRef.current = null; setActiveProject(null);
+      try { const u = new URL(window.location.href); u.searchParams.delete('p'); window.history.replaceState(null, '', u.toString()); } catch { /* sin historial */ }
+    }
     setRoute(r);
   };
 
