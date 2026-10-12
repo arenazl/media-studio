@@ -268,7 +268,8 @@
       await espera(4000);
       let ultimoPct = null, desdePct = Date.now(), vioPct = false, sinPctDesde = null;
       while (Date.now() - t0 < maxSeg * 1000) {
-        if (tileConError()) return { seg: seg(), terminado: false, conError: true };
+        // con el texto que muestra Flow en el tile, así se sabe por qué lo rechazó (2026-10-12)
+        if (tileConError()) return { seg: seg(), terminado: false, conError: true, texto: textoDe(q(SEL.tile)[0]).slice(0, 240) };
         if (porcentajeEnPantalla()) {
           vioPct = true; sinPctDesde = null;
           const p = pctActual();

@@ -18,7 +18,7 @@ interface Grilla { tiles: string[] }   // del más viejo al más nuevo: una URL 
 
 // Corre una rutina de Flow entera contra una extensión simulada. `generar(n, intento)` decide qué pasa con cada pedido de
 // la escena n: 'error-antes' (no llegó a enviar), 'error-flow' (Flow deja un tile con error) o 'ok'.
-async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number } = {}) {
+async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number; rechazaConReferenciasEn?: number } = {}) {
   const clip = path.join(os.tmpdir(), 'clip-prueba-media-studio.mp4');
   fs.writeFileSync(clip, 'clip');
   const grilla: Grilla = { tiles: [''] };   // la imagen del personaje
@@ -43,7 +43,8 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
       case 'generar': {
         const n = Number(/escena (\d+)/.exec(String(p.args.prompt))![1]); ultima = n;
         intentos[n] = (intentos[n] || 0) + 1;
-        const r = generar(n, intentos[n]);
+        const conRefs = Array.isArray(p.args.personajes) && (p.args.personajes as unknown[]).length > 0;
+        const r = opciones.rechazaConReferenciasEn === n && conRefs ? 'error-flow' : generar(n, intentos[n]);
         if (r === 'error-antes') throw new Error('[antes de enviar] no pude mencionar a @Ana: no apareció "Añadir a petición" en 15 s');
         const antes = grilla.tiles.length;
         grilla.tiles.push(r === 'error-flow' ? 'ERR' : `https://clip/esc${n}`);
@@ -108,6 +109,13 @@ describe('rutina de Flow: los incidentes del 12/10', () => {
     expect(importadas).toEqual([1]);
     expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'falló']);
     expect(job.fallas.join(' ')).toMatch(/no dice la frase/);
+  }, 30000);
+
+  it('si Flow rechaza el clip con las referencias @, el último intento va sin ellas y sale (prueba real del 12/10)', async () => {
+    const { job, bajadas } = await correrRutina([1, 2], () => 'ok', { rechazaConReferenciasEn: 2 });
+    expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'importada']);
+    expect(bajadas.map((b) => b[0])).toEqual([1, 2]);
+    expect(job.escenas[1].aviso).toMatch(/sin las referencias/);
   }, 30000);
 });
 

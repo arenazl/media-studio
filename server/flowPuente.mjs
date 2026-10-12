@@ -209,23 +209,29 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       } else if (!g.disparado) log(`escena ${esc.escenaN}: no vi el tile nuevo, sigo igual`);
       let e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
       if (!e.terminado || e.conError || e.atascado) {
-        log(`escena ${esc.escenaN}: el clip quedó ${e.conError ? 'con error' : e.atascado ? `clavado en ${e.pct ?? '?'}%` : 'cargando'} a los ${e.seg} s · refresco la pestaña de Flow`);
+        log(`escena ${esc.escenaN}: el clip quedó ${e.conError ? 'con error' : e.atascado ? `clavado en ${e.pct ?? '?'}%` : 'cargando'} a los ${e.seg} s${e.texto ? ` (Flow dice: "${e.texto}")` : ''} · refresco la pestaña de Flow`);
         await pedir(job, 'recargar', {}, 90000);
         await pedir(job, 'apagarAgente').catch(() => {});
         await pedirConReintentos(job, 'irAContenido', {}, 120000, 3, 4000, log).catch(() => {});
         e = await pedir(job, 'esperarGeneracion', { maxSeg: 240 }, 260000);
       }
       // se vuelve a generar SÓLO si Flow muestra error (gasta un clip más). Si sigue cargando, se deja: se baja al final si terminó.
-      if (e.conError) {
-        log(`escena ${esc.escenaN}: Flow muestra error en el clip · la vuelvo a generar una vez`);
+      // Flow rechazó el clip: se vuelve a pedir una vez igual y, si lo rechaza de nuevo, una última sin las referencias @
+      // (prueba real del 12/10: Flow rechazaba siempre la escena de un personaje; el prompt igual describe a la persona)
+      for (const [k, conRefs] of [[1, true], [2, false]]) {
+        if (!e.conError) break;
+        if (!conRefs && !quienes.length) break;
+        log(`escena ${esc.escenaN}: Flow rechazó el clip${e.texto ? ` ("${e.texto}")` : ''} · ${conRefs ? 'la vuelvo a pedir una vez' : 'pruebo una última vez sin las referencias @ de personaje'}`);
         await pedir(job, 'limpiar', {}, 30000).catch(() => {});
-        const g2 = await pedir(job, 'generar', { prompt: esc.prompt, personajes: quienes }, 120000)
+        const g2 = await pedir(job, 'generar', { prompt: esc.prompt, personajes: conRefs ? quienes : [] }, 120000)
           .catch(() => pedir(job, 'generar', { prompt: esc.prompt, personajes: [] }, 120000));
         if (Number.isFinite(g2.antes)) reg.pos = g2.antes;
         if (Number.isFinite(g2.antes) && g2.tiles > g2.antes) reg.salidas = g2.tiles - g2.antes;
         e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
-        if (e.conError) throw new Error('Flow devolvió error también al volver a generarlo');
+        if (!e.conError && !conRefs) { reg.aviso = 'salió sin las referencias de personaje: revisá que se parezca'; log(`escena ${esc.escenaN}: salió sin las referencias @; revisá que la persona se parezca`); }
+        void k;
       }
+      if (e.conError) throw new Error(`Flow rechazó el clip también sin las referencias de personaje${e.texto ? ` (Flow dice: "${e.texto}")` : ''}`);
       if (!e.terminado) { log(`escena ${esc.escenaN}: sigue terminándose en Flow; la bajo al final si ya está`); return; }
       // el video de ESTA escena es el más nuevo de la grilla ahora: se guarda para bajarlo al final sin depender de posiciones.
       // Primero la pestaña tiene que estar en la grilla del proyecto (después de recargar quedó en otra y se tomó un ejemplo)
