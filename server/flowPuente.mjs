@@ -192,6 +192,8 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
           else { await pedir(job, 'recargar', {}, 90000).catch(() => {}); await pedir(job, 'apagarAgente').catch(() => {}); }
         }
       }
+      // la posición del clip en la grilla contada desde el más viejo: con ella se baja el clip justo aunque otra escena falle
+      if (Number.isFinite(g.antes)) reg.pos = g.antes;
       if (Number.isFinite(g.antes) && g.tiles > g.antes) {
         reg.salidas = g.tiles - g.antes;
         if (reg.salidas > 1) log(`escena ${esc.escenaN}: Flow dejó ${reg.salidas} clips para este pedido; se baja uno`);
@@ -207,17 +209,21 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         log(`escena ${esc.escenaN}: el clip quedó ${e.conError ? 'con error' : e.atascado ? `clavado en ${e.pct ?? '?'}%` : 'cargando'} a los ${e.seg} s · refresco la pestaña de Flow`);
         await pedir(job, 'recargar', {}, 90000);
         await pedir(job, 'apagarAgente').catch(() => {});
-        e = await pedir(job, 'esperarGeneracion', { maxSeg: 180 }, 200000);
+        await pedirConReintentos(job, 'irAContenido', {}, 120000, 3, 4000, log).catch(() => {});
+        e = await pedir(job, 'esperarGeneracion', { maxSeg: 240 }, 260000);
       }
-      if (!e.terminado || e.conError) {
-        log(`escena ${esc.escenaN}: sigue ${e.conError ? 'con error' : 'cargando'} después de refrescar · la vuelvo a generar una vez`);
+      // se vuelve a generar SÓLO si Flow muestra error (gasta un clip más). Si sigue cargando, se deja: se baja al final si terminó.
+      if (e.conError) {
+        log(`escena ${esc.escenaN}: Flow muestra error en el clip · la vuelvo a generar una vez`);
         await pedir(job, 'limpiar', {}, 30000).catch(() => {});
         const g2 = await pedir(job, 'generar', { prompt: esc.prompt, personajes: quienes }, 120000)
           .catch(() => pedir(job, 'generar', { prompt: esc.prompt, personajes: [] }, 120000));
+        if (Number.isFinite(g2.antes)) reg.pos = g2.antes;
         if (Number.isFinite(g2.antes) && g2.tiles > g2.antes) reg.salidas = g2.tiles - g2.antes;
         e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
-        if (!e.terminado || e.conError) throw new Error(`el clip quedó ${e.conError ? 'con error' : 'cargando'} en Flow también al volver a generarlo`);
+        if (e.conError) throw new Error('Flow devolvió error también al volver a generarlo');
       }
+      if (!e.terminado) log(`escena ${esc.escenaN}: sigue terminándose en Flow; la bajo al final si ya está`);
     };
     // 1) GENERAR todas, una atrás de otra (Lucas, 2026-10-11: "primero generá todo y después hacé la descarga")
     for (const [i, esc] of escenas.entries()) {
@@ -262,11 +268,23 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       clips = await pedir(job, 'urlsDeClips', {}, 90000);
       await pedir(job, 'devolverPestana', {}, 20000).catch(() => {});
     }
-    const enOrden = indices.map((k) => (k >= 0 ? (clips.urls || [])[k] : null));
-    if (faltan(clips)) throw new Error(`en Flow veo ${clips.total || 0} clip(s) y a ${faltan(clips)} no les pude sacar el video: mirá el proyecto de Flow y volvé a tocar "Automatizar" (retoma sin volver a generar lo que ya está)`);
+    // por la posición que tuvo cada clip cuando se pidió (contada desde el más viejo); sin ella, el reparto relativo de antes
+    const porPosicion = (i) => {
+      const r = job.escenas[i];
+      if (!Array.isArray(clips.todos) || !Number.isFinite(r?.pos)) return undefined;
+      const k = clips.todos.length - 1 - r.pos;
+      return k >= 0 ? (clips.todos[k] || '') : '';
+    };
+    const enOrden = escenas.map((_, i) => { if (!salio(i)) return null; const p = porPosicion(i); return p !== undefined ? p : (clips.urls || [])[indices[i]]; });
     for (const [i, esc] of escenas.entries()) {
       const reg = job.escenas[i];
       if (!salio(i)) continue;
+      if (!enOrden[i]) {
+        reg.estado = 'falló'; reg.motivo = 'Flow no dio el video del clip (¿sigue generándose o quedó con error?)';
+        job.fallas.push(`escena ${esc.escenaN}: ${reg.motivo}`);
+        log(`escena ${esc.escenaN}: no encontré su video en Flow; la salteo`);
+        continue;
+      }
       setPaso(`bajando la escena ${esc.escenaN} (${i + 1} de ${escenas.length})`);
       const info = await pedir(job, 'descargarUrl', { url: enOrden[i], nombre: `esc${esc.escenaN}-${job.id}.mp4` }, 200000);
       log(`escena ${esc.escenaN}: bajada a ${info.filename}`);

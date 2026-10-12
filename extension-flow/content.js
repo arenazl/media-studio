@@ -257,23 +257,30 @@
 
     // Lucas (2026-10-10): a veces el clip queda "cargando" y Flow tira error; con refrescar la pestaña aparece bien. Acá se
     // detecta el tile con error o el porcentaje clavado; el servidor refresca (acción "recargar") y vuelve a esperar.
+    // 2026-10-12: "terminado" recién cuando el porcentaje se fue y no vuelve en 8 s, habiéndolo visto (o pasados 45 s sin
+    // verlo nunca). Antes cortaba a los 4 s si el porcentaje todavía no había aparecido y daba por trabado un clip que
+    // estaba arrancando (la escena 1 de "El reclamo perdido" quedó pedida dos veces en Flow).
     async esperarGeneracion({ maxSeg = 300, atascadoSeg = 150 } = {}) {
       const t0 = Date.now();
       const seg = () => Math.round((Date.now() - t0) / 1000);
       const pctActual = () => { const m = (document.body.innerText || '').match(/\b(\d{1,2})\s?%/); return m ? Number(m[1]) : null; };
       const tileConError = () => { const t = q(SEL.tile)[0]; return !!t && /\berror\b|no se pudo|volver a intentar|algo sali[oó] mal|try again|failed/i.test(textoDe(t)); };
       await espera(4000);
-      let ultimoPct = null, desdePct = Date.now();
+      let ultimoPct = null, desdePct = Date.now(), vioPct = false, sinPctDesde = null;
       while (Date.now() - t0 < maxSeg * 1000) {
         if (tileConError()) return { seg: seg(), terminado: false, conError: true };
-        if (!porcentajeEnPantalla()) break;
-        const p = pctActual();
-        if (p !== ultimoPct) { ultimoPct = p; desdePct = Date.now(); }
-        else if (Date.now() - desdePct > atascadoSeg * 1000) return { seg: seg(), terminado: false, atascado: true, pct: p };
+        if (porcentajeEnPantalla()) {
+          vioPct = true; sinPctDesde = null;
+          const p = pctActual();
+          if (p !== ultimoPct) { ultimoPct = p; desdePct = Date.now(); }
+          else if (Date.now() - desdePct > atascadoSeg * 1000) return { seg: seg(), terminado: false, atascado: true, pct: p };
+        } else {
+          if (sinPctDesde === null) sinPctDesde = Date.now();
+          if (Date.now() - sinPctDesde > 8000 && (vioPct || seg() > 45)) return { seg: seg(), terminado: true, conError: tileConError(), vioPct };
+        }
         await espera(2000);
       }
-      await espera(1500);
-      return { seg: seg(), terminado: !porcentajeEnPantalla(), conError: tileConError() };
+      return { seg: seg(), terminado: false, cargando: true, pct: ultimoPct };
     },
 
     // las URLs de los archivos de video de los clips de la grilla, del más nuevo al más viejo. Sin menú ni clicks: la
@@ -284,19 +291,23 @@
       const urlDe = (t) => { const v = t.querySelector('video'); if (!v) return ''; const src = v.currentSrc || v.src || (v.querySelector('source') || {}).src || ''; return /^https?:/.test(src) ? src : ''; };
       // Flow arma el <video> de un clip recién cuando el mouse pasa por encima: se simula el paso del mouse en el tile
       const pasar = (t, tipos) => { for (const el of [t, ...t.querySelectorAll('*')].slice(0, 15)) for (const tipo of tipos) el.dispatchEvent(new MouseEvent(tipo, { bubbles: /over|out/.test(tipo), cancelable: true, view: window })); };
-      const tiles = q(SEL.tile).filter(esVideo);
-      const urls = [];
-      for (const t of tiles) {
+      // todos los tiles de la grilla, del más nuevo al más viejo: '' en los que no son video (imágenes, clips con error o
+      // sin terminar). `todos` permite bajar cada escena por la posición que tuvo cuando se pidió (2026-10-12).
+      const todosTiles = q(SEL.tile);
+      const todos = [];
+      for (const t of todosTiles) {
+        if (!esVideo(t)) { todos.push(''); continue; }
         let u = urlDe(t);
         if (!u) {
           pasar(t, ['pointerover', 'pointerenter', 'mouseover', 'mouseenter']);
           for (let i = 0; i < 12 && !(u = urlDe(t)); i++) await espera(300);
           pasar(t, ['pointerout', 'pointerleave', 'mouseout', 'mouseleave']);
         }
-        urls.push(u);
+        todos.push(u || '');
       }
+      const urls = todosTiles.map((t, i) => (esVideo(t) ? todos[i] : null)).filter((u) => u !== null);
       // del más nuevo al más viejo; '' donde Flow no dio el video
-      return { total: tiles.length, urls, sinUrl: urls.filter((u) => !u).length };
+      return { total: urls.length, urls, sinUrl: urls.filter((u) => !u).length, todos, totalTiles: todosTiles.length };
     },
   };
 
