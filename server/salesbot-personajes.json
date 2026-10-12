@@ -1,65 +1,75 @@
 {
-  "_nota": "Personajes FICTICIOS de SalesBot para los que Media Studio fabrica medios (2026-10-12: Lucas confirmó que ninguna personalidad es real). Nada de levante/sexting. Cada uno: slug de SalesBot → { nombre, retratoEn (cara y cuerpo, en inglés, para el retrato de referencia de Flow), vestuarioEn, lugarEn }. Físico y ropa los inventó Media Studio; se mantienen iguales en todos los medios.",
+  "_nota": "Las caras de las personalidades de SalesBot (2026-10-12, Lucas: todas pueden aparecer, las de antes y las nuevas; ninguna es real). Cada una: slug de SalesBot -> { nombre, retratoEn, vestuarioEn, lugarEn, flowNombre, categoria }. La primera vez Media Studio la inventa a partir de quién es y queda fija, para que todas sus imágenes muestren a la misma persona. Las de levante/sexting no llevan medios.",
   "personajes": {
     "intendente-bouwer": {
       "nombre": "Gustavo",
       "retratoEn": "man in his mid 50s, short salt-and-pepper hair, trimmed grey beard, kind brown eyes, slightly weathered skin, medium build, an ordinary everyday face",
       "vestuarioEn": "light blue button-down shirt with rolled sleeves, dark trousers",
-      "lugarEn": "a modest small-town municipal office in Córdoba province, wooden desk with folders, a window to a quiet plaza with trees"
+      "lugarEn": "a modest small-town municipal office in Córdoba province, wooden desk with folders, a window to a quiet plaza with trees",
+      "categoria": "intendentes"
     },
     "intendente-naschel": {
       "nombre": "Gianfranco",
       "retratoEn": "man in his early 30s, short dark wavy hair, clean-shaven, energetic expression, slim athletic build, an ordinary everyday face",
       "vestuarioEn": "navy quarter-zip sweater over a white t-shirt, jeans",
-      "lugarEn": "a bright small municipal office in a San Luis town, a laptop on the desk and a provincial map on the wall"
+      "lugarEn": "a bright small municipal office in a San Luis town, a laptop on the desk and a provincial map on the wall",
+      "categoria": "intendentes"
     },
     "intendente-la-caldera": {
       "nombre": "Diego",
       "retratoEn": "man in his late 40s, black hair with a little grey at the temples, short moustache, warm smile, tanned skin, sturdy build, an ordinary everyday face",
       "vestuarioEn": "beige linen shirt, light brown vest, dark jeans",
-      "lugarEn": "a small town hall in the hills near Salta, green mountains visible through the window, simple wooden furniture"
+      "lugarEn": "a small town hall in the hills near Salta, green mountains visible through the window, simple wooden furniture",
+      "categoria": "intendentes"
     },
     "intendente-barrancas": {
       "nombre": "Gustavo",
       "retratoEn": "man in his early 60s, thinning grey hair combed back, round glasses, calm thoughtful look, fair skin, medium build, an ordinary everyday face",
       "vestuarioEn": "grey V-neck sweater over a checked shirt, chinos",
-      "lugarEn": "a quiet municipal office in a Santa Fe river town, shelves with binders, the river barely visible outside"
+      "lugarEn": "a quiet municipal office in a Santa Fe river town, shelves with binders, the river barely visible outside",
+      "categoria": "intendentes"
     },
     "intendente-aldea-valle-maria": {
       "nombre": "Mario",
       "retratoEn": "man in his late 50s of Volga German descent, light blond-grey hair neatly parted, blue eyes, fair skin with ruddy cheeks, tall and lean, an ordinary everyday face",
       "vestuarioEn": "crisp white shirt buttoned to the top, dark grey cardigan",
-      "lugarEn": "a tidy, orderly municipal office in a small Entre Ríos village of German colonists, everything in its place, a brick church tower outside"
+      "lugarEn": "a tidy, orderly municipal office in a small Entre Ríos village of German colonists, everything in its place, a brick church tower outside",
+      "categoria": "intendentes"
     },
     "intendente-paclin": {
       "nombre": "Eduardo",
       "retratoEn": "man in his mid 50s, dark hair with grey streaks, thick eyebrows, friendly squint, olive tanned skin, broad shoulders, an ordinary everyday face",
       "vestuarioEn": "dark green polo shirt, khaki trousers",
-      "lugarEn": "a simple adobe-style municipal building in a Catamarca valley, dry hills and blue sky through the window"
+      "lugarEn": "a simple adobe-style municipal building in a Catamarca valley, dry hills and blue sky through the window",
+      "categoria": "intendentes"
     },
     "intendente-bermejito": {
       "nombre": "Vicente",
       "retratoEn": "man in his mid 40s, short black hair, clean-shaven, open friendly face, brown skin, stocky build, an ordinary everyday face",
       "vestuarioEn": "short-sleeved light cotton shirt, beige trousers",
-      "lugarEn": "a small municipal office in a hot Chaco town by the river, a ceiling fan turning and lush green trees outside"
+      "lugarEn": "a small municipal office in a hot Chaco town by the river, a ceiling fan turning and lush green trees outside",
+      "categoria": "intendentes"
     },
     "intendente-pozo-del-tigre": {
       "nombre": "Alfredo",
       "retratoEn": "man in his early 60s, white hair cut short, white moustache, deep laugh lines, sun-browned skin, heavy-set, an ordinary everyday face",
       "vestuarioEn": "white short-sleeved shirt, dark trousers, a straw hat on the desk",
-      "lugarEn": "a municipal office on the edge of a Formosa town beside a long straight highway, palm trees and red earth outside"
+      "lugarEn": "a municipal office on the edge of a Formosa town beside a long straight highway, palm trees and red earth outside",
+      "categoria": "intendentes"
     },
     "intendente-alvear": {
       "nombre": "Eduardo",
       "retratoEn": "man in his late 50s, short light brown hair going grey, clean-shaven, steady gaze, fair sun-reddened skin, broad build, an ordinary everyday face",
       "vestuarioEn": "plaid flannel shirt under a navy quilted vest, jeans",
-      "lugarEn": "a farm-country municipal office in northeastern La Pampa, wide flat fields and a grain silo seen through the window"
+      "lugarEn": "a farm-country municipal office in northeastern La Pampa, wide flat fields and a grain silo seen through the window",
+      "categoria": "intendentes"
     },
     "intendente-riachuelo": {
       "nombre": "Nicolás",
       "retratoEn": "man in his late 30s, short dark hair with a neat fade, light stubble, confident smile, olive skin, fit build, an ordinary everyday face",
       "vestuarioEn": "white shirt with the sleeves rolled up, dark blue trousers",
-      "lugarEn": "a modern small municipal office in a town next to Corrientes city, a busy road and trees outside the window"
+      "lugarEn": "a modern small municipal office in a town next to Corrientes city, a busy road and trees outside the window",
+      "categoria": "intendentes"
     }
   },
   "proyectos": {}

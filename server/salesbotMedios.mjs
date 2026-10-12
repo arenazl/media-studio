@@ -1,10 +1,10 @@
 // Integración con SalesBot (2026-10-12, Lucas: "habilitale la integración a SalesBot"). Contrato v1 en
 // base-compartida/salesbot/PEDIDO-A-MEDIA-STUDIO-medios-para-las-personalidades-2026-10-12.md, sección 6.
 // Media Studio corre en la PC de Lucas, así que es el que llama: cada 25 s consulta los pedidos pendientes de SalesBot.
-// - Un pedido de un personaje que está en la lista de ficticios acordados (server/salesbot-personajes.json) se fabrica
-//   (función `fabricar`, que da la URL pública del archivo) y se contesta con el resultado.
-// - Un pedido de cualquier otro personaje se contesta con {error} y el motivo: no se fabrican medios de personas reales
-//   ni de las personalidades de levante/sexting (lo que acordó Lucas).
+// - Cualquier personalidad puede aparecer, las de antes y las nuevas (Lucas, 2026-10-12). Cada una tiene su cara, que se
+//   inventa la primera vez a partir de quién es y queda en server/salesbot-personajes.json (`personajeDe`, de index.mjs).
+// - Las personalidades de levante/sexting quedan afuera: se contesta con {error} y el motivo (así se cerró el contrato).
+// - Los pedidos libres los escribe Lucas en el panel (origen "panel").
 // La clave (MEDIA_STUDIO_KEY, Secret Manager de salesbot-prod) se lee con gcloud al arrancar y queda sólo en memoria.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -45,7 +45,11 @@ let libreLocal = null;
 export const pedidoLibreLocal = (contexto, kind) => (libreLocal ? libreLocal(contexto, kind) : Promise.reject(new Error('la integración con SalesBot no está activa')));
 
 const estado = { activo: false, conectado: false, ultimaConsulta: null, ultimoError: '', atendidos: 0, rechazados: 0, enCurso: null };
-export const estadoSalesbot = () => ({ ...estado, permitidos: Object.keys(leerPermitidos().personajes || {}) });
+export const estadoSalesbot = () => ({ ...estado, conCara: Object.keys(leerPermitidos().personajes || {}) });
+// las categorías de SalesBot que no llevan medios
+const SIN_MEDIOS = /sexting|levante/i;
+// la categoría con la que se le inventó la cara (undefined si todavía no tiene cara)
+const categoriaGuardada = (slugPersonalidad) => leerPermitidos().personajes?.[slugPersonalidad]?.categoria;
 
 // nombre de carpeta para Cloudinary: minúsculas, sin acentos, guiones
 const slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
@@ -64,7 +68,7 @@ function leerClave() {
   });
 }
 
-export function iniciarSalesbotMedios({ fabricar, fabricarLibre, ocupado = () => false, log = (m) => console.log('[media-studio] salesbot:', m) } = {}) {
+export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, ocupado = () => false, log = (m) => console.log('[media-studio] salesbot:', m) } = {}) {
   if (process.env.SALESBOT_MEDIOS === '0') { log('integración apagada (SALESBOT_MEDIOS=0)'); return; }
   let clave = '';
   const api = async (ruta, opciones = {}) => {
@@ -84,61 +88,49 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, ocupado = () =>
     if (!r.ok || !d.url) throw new Error(`no se pudo subir el archivo a SalesBot: ${r.status} ${d.error || ''}`.trim());
     return d;
   };
-  const atender = async (pedido) => {
-    // pedido libre (2026-10-12, Lucas usa el bot como intermediario): lo escribe Lucas en el panel de SalesBot (origen
-    // "panel"), con o sin personalidad; el texto manda. Si la personalidad es un personaje ficticio de la lista, puede
-    // aparecer con su cara y su ropa. Los pedidos del bot (personalidad + situación) siguen por el camino de abajo.
-    const libre = String(pedido.contexto || '').trim() && (pedido.personalidad || pedido.proyecto === 'libre' || pedido.proyecto === 'munify');
-    if (libre && !pedido.personalidad && !/^(panel|lucas)/i.test(String(pedido.origen || ''))) {
-      await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
-      await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: 'Los pedidos libres son sólo de Lucas, desde el panel.' }) });
-      estado.rechazados += 1;
-      return;
-    }
-    if (libre && /^(panel|lucas)/i.test(String(pedido.origen || ''))) {
-      if (!fabricarLibre) return;
-      if (ocupado()) { log(`pedido ${pedido.id}: Flow está ocupado; lo tomo en la próxima vuelta`); return; }
-      await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
-      estado.enCurso = pedido.id;
-      try {
-        const ficticio = pedido.personalidad ? leerPermitidos().personajes?.[pedido.personalidad] || null : null;
-        const archivo = await fabricarLibre({ pedido, personaje: ficticio, log, subir });
-        await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify(archivo.error ? { error: archivo.error } : { archivo }) });
-        if (archivo.error) estado.rechazados += 1; else estado.atendidos += 1;
-        log(`pedido libre ${pedido.id}: ${archivo.error ? `no se hace (${archivo.error})` : `entregado (${archivo.url})`}`);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: `Media Studio no pudo fabricarlo: ${msg}` }) }).catch(() => {});
-        log(`pedido libre ${pedido.id}: no salió (${msg})`);
-      } finally { estado.enCurso = null; }
-      return;
-    }
-    const permitidos = leerPermitidos();
-    const personaje = pedido.personalidad ? permitidos.personajes?.[pedido.personalidad] : null;
-    const proyecto = !pedido.personalidad && pedido.proyecto ? permitidos.proyectos?.[pedido.proyecto] : null;
-    if (!personaje && !proyecto) {
-      await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
-      const quien = pedido.personalidad || pedido.proyecto || '(sin personaje)';
-      await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: `Media Studio sólo fabrica medios de personajes ficticios acordados con Lucas; "${quien}" no está en su lista. No se hacen fotos ni videos de personas reales ni de levante/sexting.` }) });
-      estado.rechazados += 1;
-      log(`pedido ${pedido.id} (${quien} · ${pedido.situacion}): no está en la lista de ficticios; contestado con el motivo`);
-      return;
-    }
-    if (!fabricar) { log(`pedido ${pedido.id}: el personaje está permitido pero todavía no hay cómo fabricarlo; queda pendiente`); return; }
+  const tomar = (id) => api(`/pedidos/${id}/tomar`, { method: 'POST' });
+  const contestar = (id, cuerpo) => api(`/pedidos/${id}/resultado`, { method: 'POST', body: JSON.stringify(cuerpo) });
+  const rechazar = async (pedido, motivo) => { await tomar(pedido.id); await contestar(pedido.id, { error: motivo }); estado.rechazados += 1; log(`pedido ${pedido.id}: ${motivo}`); };
+  const avisados = new Set();
+  // fabrica y contesta; `hacer` devuelve el archivo o {error} con el motivo
+  const fabricarYContestar = async (pedido, etiqueta, hacer) => {
     // Flow hace una cosa por vez en la pestaña de Lucas: si está ocupado (una pieza de la app), el pedido espera
     if (ocupado()) { log(`pedido ${pedido.id}: Flow está ocupado; lo tomo en la próxima vuelta`); return; }
-    await api(`/pedidos/${pedido.id}/tomar`, { method: 'POST' });
+    await tomar(pedido.id);
     estado.enCurso = pedido.id;
     try {
-      const archivo = await fabricar({ pedido, personaje, proyecto, log, subir });
-      await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ archivo }) });
-      estado.atendidos += 1;
-      log(`pedido ${pedido.id}: entregado (${archivo.url})`);
+      const archivo = await hacer();
+      await contestar(pedido.id, archivo.error ? { error: archivo.error } : { archivo });
+      if (archivo.error) estado.rechazados += 1; else estado.atendidos += 1;
+      log(`${etiqueta} ${pedido.id}: ${archivo.error ? `no se hace (${archivo.error})` : `entregado (${archivo.url})`}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      await api(`/pedidos/${pedido.id}/resultado`, { method: 'POST', body: JSON.stringify({ error: `Media Studio no pudo fabricarlo: ${msg}` }) }).catch(() => {});
-      log(`pedido ${pedido.id}: no salió (${msg})`);
+      await contestar(pedido.id, { error: `Media Studio no pudo fabricarlo: ${msg}` }).catch(() => {});
+      log(`${etiqueta} ${pedido.id}: no salió (${msg})`);
     } finally { estado.enCurso = null; }
+  };
+  const atender = async (pedido) => {
+    // levante/sexting queda afuera (así se cerró el contrato con SalesBot, 2026-10-12)
+    const categoria = pedido.categoria ?? (pedido.personalidad ? categoriaGuardada(pedido.personalidad) : null);
+    if (SIN_MEDIOS.test(String(categoria || ''))) return rechazar(pedido, 'Media Studio no fabrica medios para las personalidades de levante/sexting.');
+    // una personalidad que todavía no tiene cara: sin su categoría no se sabe si es de levante/sexting; espera
+    if (pedido.personalidad && categoria === undefined) {
+      if (!avisados.has(pedido.id)) { avisados.add(pedido.id); log(`pedido ${pedido.id}: SalesBot todavía no manda la categoría de "${pedido.personalidad}"; queda pendiente`); }
+      return;
+    }
+    // pedido libre (2026-10-12, Lucas usa el bot como intermediario): lo escribe Lucas en el panel de SalesBot (origen
+    // "panel"), con o sin personalidad; el texto manda y, si hay personalidad, puede aparecer con su cara. Los pedidos
+    // del bot (personalidad + situación) siguen por el camino de abajo.
+    const desdeElPanel = /^(panel|lucas)/i.test(String(pedido.origen || ''));
+    const libre = String(pedido.contexto || '').trim() && (pedido.personalidad || pedido.proyecto === 'libre' || pedido.proyecto === 'munify');
+    if (libre && !pedido.personalidad && !desdeElPanel) return rechazar(pedido, 'Los pedidos libres son sólo de Lucas, desde el panel.');
+    if (libre && desdeElPanel) {
+      if (!fabricarLibre) return;
+      return fabricarYContestar(pedido, 'pedido libre', async () => fabricarLibre({ pedido, personaje: pedido.personalidad ? await personajeDe(pedido) : null, log, subir }));
+    }
+    if (!pedido.personalidad) return rechazar(pedido, `Media Studio necesita la personalidad para saber a quién mostrar ("${pedido.proyecto || 'sin proyecto'}").`);
+    if (!fabricar) { log(`pedido ${pedido.id}: todavía no hay cómo fabricarlo; queda pendiente`); return; }
+    return fabricarYContestar(pedido, 'pedido', async () => fabricar({ pedido, personaje: await personajeDe(pedido), log, subir }));
   };
   const vuelta = async () => {
     try {
