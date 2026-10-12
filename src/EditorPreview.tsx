@@ -2,8 +2,8 @@
 // un plan armado, el frame es el Player de Remotion con la MISMA composición del render (lib remotion/Comercial.tsx):
 // suena el audio de los clips y la música, se ven los mockups de su pista, las transiciones, los subtítulos y la placa.
 // Antes era un <video> mudo del clip de la pista Video, sin nada de lo demás. Sin plan, queda el placeholder.
-import { lazy, Suspense } from 'react';
-import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2 } from 'lucide-react';
 import type { EditorClip } from './lib/editorTracks';
 import type { MontajePlan } from './lib/montajePlan';
 import type { PlayerRef } from '@remotion/player';
@@ -40,10 +40,23 @@ export default function EditorPreview({
     ? `${currentVideoClip.label} · ${fmt(currentVideoClip.startSec)}–${fmt(currentVideoClip.startSec + currentVideoClip.durSec)}`
     : 'Sin clip en este instante';
   const conPlayer = !!plan?.scenes.some((s) => s.src);
+  // ver el trabajo final en pantalla completa (Lucas, 2026-10-12: "no tengo manera de maximizar el laburo final"). Va el
+  // cuadro entero (el video y el botón de play), no sólo el Player: así se puede pausar sin salir. Esc vuelve.
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [enGrande, setEnGrande] = useState(false);
+  useEffect(() => {
+    const cambio = () => setEnGrande(!!frameRef.current && document.fullscreenElement === frameRef.current);
+    document.addEventListener('fullscreenchange', cambio);
+    return () => document.removeEventListener('fullscreenchange', cambio);
+  }, []);
+  const alternarGrande = () => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+    else void frameRef.current?.requestFullscreen().catch(() => {});
+  };
 
   return (
     <div className="editor-stage">
-      <div className="ed-frame">
+      <div className="ed-frame" ref={frameRef}>
         {conPlayer ? (
           <div className="ed-frame-video">
             <Suspense fallback={<div className="ed-frame-placeholder" />}>
@@ -71,6 +84,9 @@ export default function EditorPreview({
         </button>
         <span className="ed-frame-badge ed-frame-badge--tl">{sceneRange}</span>
         <span className="ed-frame-badge ed-frame-badge--tr">{aspect}</span>
+        <button className="ed-frame-max" onClick={alternarGrande} title={enGrande ? 'Salir de pantalla completa (Esc)' : 'Ver en pantalla completa'}>
+          {enGrande ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+        </button>
       </div>
 
       <div className="ed-transport">
@@ -80,6 +96,7 @@ export default function EditorPreview({
         </button>
         <button className="ed-transport-step" onClick={() => onStepScene(1)} title="Escena siguiente"><SkipForward size={14} /></button>
         <span className="ed-transport-time">{fmt(playheadSec)} <span className="ed-transport-total">/ {fmt(totalSec)}</span></span>
+        <button className="ed-transport-step ed-transport-max" onClick={alternarGrande} title="Ver en pantalla completa"><Maximize2 size={14} /></button>
       </div>
     </div>
   );

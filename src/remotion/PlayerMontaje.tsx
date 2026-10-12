@@ -18,6 +18,7 @@ export default function PlayerMontaje({ plan }: { plan: MontajePlan }) {
       compositionWidth={r.width}
       compositionHeight={r.height}
       controls
+      allowFullscreen
       acknowledgeRemotionLicense
       style={{ width: '100%', aspectRatio: `${r.width} / ${r.height}`, borderRadius: 12, overflow: 'hidden', background: '#000' }}
     />
