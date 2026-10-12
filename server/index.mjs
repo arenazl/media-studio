@@ -507,31 +507,34 @@ const guardarEstadoSb = (cambios) => { fs.mkdirSync(path.dirname(SALESBOT_ESTADO
 const SALESBOT_PERSONAJES = path.resolve('server/salesbot-personajes.json');
 const leerPersonajesSb = () => { try { return JSON.parse(fs.readFileSync(SALESBOT_PERSONAJES, 'utf8')); } catch { return { personajes: {} }; } };
 // el nombre del personaje en Flow: una sola palabra y único por personalidad (hay dos Gustavo y dos Eduardo)
-const nombreEnFlow = (slugPersonalidad, nombre) => `${String(nombre || 'Personaje').split(/\s+/)[0]}${String(slugPersonalidad).replace(/^intendente-/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`
-  .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 24);
-const CARA_DE_PERSONALIDAD = (pedido) => `Inventá cómo se ve un personaje ficticio para fotos y videos realistas. Es una personalidad de un bot de WhatsApp:
-- nombre: ${pedido.nombre_agente || pedido.personalidad}
-- categoría: ${pedido.categoria || '(sin categoría)'}
-- quién es: ${String(pedido.quien_es || '').slice(0, 1500) || '(sin descripción)'}
-
-Que encaje con quién es (edad, estilo, de qué lugar de la Argentina si corresponde) y que sea una cara común, que no se parezca a nadie famoso. Respondé SOLO un JSON (en inglés, salvo el nombre):
-{ "nombre": "<su nombre de pila; si arriba tiene uno, ese>", "retratoEn": "<edad, pelo, rasgos, piel, contextura; termina con: an ordinary everyday face>", "vestuarioEn": "<la ropa de siempre>", "lugarEn": "<el lugar donde se lo ve habitualmente>" }`;
+// (el slug suele empezar con el nombre: "mili--compania-del-gimnasio" da MiliCompaniaDelGimnasio, no MiliMili...)
+const nombreEnFlow = (slugPersonalidad, nombre) => {
+  const pila = String(nombre || 'Personaje').split(/\s+/)[0].normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]/g, '') || 'Personaje';
+  const resto = String(slugPersonalidad).replace(/^intendente-/, '').replace(new RegExp(`^${pila.toLowerCase()}-*`), '');
+  return `${pila}${resto.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`.replace(/[^A-Za-z0-9]/g, '').slice(0, 24);
+};
+// La cara no se inventa a partir de la personalidad (Lucas, 2026-10-12: "es contraproducente; lo genero yo"): una
+// personalidad sin cara la recibe de la primera foto que Lucas le pide y que la muestra; de ahí en adelante es esa.
 async function personajeDeSalesbot(pedido) {
   const ya = leerPersonajesSb().personajes?.[pedido.personalidad];
-  if (ya) return { ...ya, flowNombre: ya.flowNombre || nombreEnFlow(pedido.personalidad, ya.nombre) };
-  const { text } = await runAI({ prompt: CARA_DE_PERSONALIDAD(pedido), model: 'sonnet', functionId: 'cast' });
-  const p = extractJson(text);
-  if (!String(p.retratoEn || '').trim()) throw new Error(`no pude inventarle la cara a "${pedido.personalidad}"`);
-  const nombre = String(p.nombre || pedido.nombre_agente || 'Personaje').trim();
-  const nuevo = { nombre, retratoEn: String(p.retratoEn).trim(), vestuarioEn: String(p.vestuarioEn || '').trim(), lugarEn: String(p.lugarEn || '').trim(), flowNombre: nombreEnFlow(pedido.personalidad, nombre), categoria: pedido.categoria ?? null, inventado: new Date().toISOString().slice(0, 10) };
+  if (ya?.retratoEn) return { ...ya, flowNombre: ya.flowNombre || nombreEnFlow(pedido.personalidad, ya.nombre) };
+  // sin cara todavía (o regenerada): en Flow va con otro nombre, si no Flow reusa el retrato viejo
+  const caraNro = ya?.caraNro || 1;
+  const nombre = String(pedido.nombre_agente || String(pedido.personalidad).split('-')[0] || 'Personaje').trim();
+  const base = nombreEnFlow(pedido.personalidad, nombre);
+  return { sinCara: true, nombre, flowNombre: caraNro > 1 ? `${base.slice(0, 21)}${caraNro}` : base, ...(caraNro > 1 ? { caraNro } : {}) };
+}
+// la primera foto que muestra a la personalidad fija su cara: lo que el pedido de Lucas dijo de cómo se ve
+function guardarCaraSb(slugPersonalidad, personaje) {
   const todo = leerPersonajesSb();
-  todo.personajes = { ...(todo.personajes || {}), [pedido.personalidad]: nuevo };
-  fs.writeFileSync(SALESBOT_PERSONAJES, JSON.stringify(todo, null, 2));
-  return nuevo;
+  const { sinCara, ...cara } = personaje;
+  todo.personajes = { ...(todo.personajes || {}), [slugPersonalidad]: { ...cara, fijada: new Date().toISOString().slice(0, 10) } };
+  fs.writeFileSync(SALESBOT_PERSONAJES, JSON.stringify(todo, null, 2) + '\n');
 }
 
 async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
-  const p1 = { id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn };
+  if (personaje.sinCara) return { error: `${personaje.nombre} todavía no tiene cara: la primera foto se la genera Lucas desde el panel.` };
+  const p1 ={ id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn };
   const cast = { personajes: [p1], lugar: { descripcionEn: personaje.lugarEn } };
   const escena = { n: 1, rol: 'desarrollo', personajes: ['p1'], dialogo: '', accionEn: `${accionDeSituacion(pedido.situacion, personaje.flowNombre)} The setting: ${personaje.lugarEn}.`, plano: pedido.situacion === 'selfie' ? 'medium close-up' : 'medium shot' };
   const pack = { estilo: estiloPara('9:16'), personajes: [{ id: 'p1', nombre: personaje.flowNombre, promptImagen: promptImagen(p1, cast.lugar) }], escenas: [{ escenaN: 1, rol: 'desarrollo', prompt: promptEscena(escena, { cast, lugar: cast.lugar, aspecto: '9:16' }) }] };
@@ -559,7 +562,7 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
   const etiquetas = [...new Set([...visto.etiquetas, personaje.nombre.toLowerCase(), String(pedido.situacion || '').replace(/_/g, ' ')].filter(Boolean))];
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'personalidades', producto: pedido.personalidad, nombre: pedido.situacion });
-  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion: `${personaje.nombre}: ${visto.descripcion}`, etiquetas, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
+  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion: `${personaje.nombre}: ${visto.descripcion}`, etiquetas, _muestraLaCara: true, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
 }
 
 // Antes de entregar a SalesBot se mira el cuadro real (2026-10-12: la prueba de la taza entregó el video de los perros de
@@ -579,7 +582,7 @@ Tipo pedido: ${kind || 'video'}.
 ${contextoPersona}
 
 Convertilo en UN pedido para el generador de video. Respondé SOLO un JSON:
-{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "rechazo": "" }
+{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "muestra": <true si en el medio aparece la personalidad sobre la que se pidió; si no, false>, "retratoEn": "", "rechazo": "" }
 
 El prompt:
 - Primero qué se ve y qué pasa (los sujetos, la acción, el lugar, el momento del día), después cómo se filma (plano, cámara, luz). Fotorrealista y cinematográfico salvo que pida otro estilo.
@@ -588,12 +591,13 @@ El prompt:
 - Si alguien habla, la frase va entre comillas, en castellano rioplatense, y empieza en el primer segundo. Si no, sin diálogo, con el sonido del lugar.
 - Nunca texto, logos, carteles ni subtítulos dentro de la imagen (la marca, si hace falta, la pone el montaje).
 
-"rechazo": si el pedido es sobre una persona real o famosa, o tiene contenido sexual, escribí el motivo en una frase y dejá el resto vacío. Si no, "".`;
+"rechazo": si el pedido es sobre una persona real o famosa, si pide desnudos o sexo explícito, o si muestra a un menor en un contexto sugerente, escribí el motivo en una frase y dejá el resto vacío. Si no, "". Las personas que aparecen son siempre adultas.`;
 async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
-  // parado sobre una personalidad: si es un personaje ficticio de la lista, puede aparecer (con su descripción); si no,
-  // el medio no muestra a esa persona (puede ser alguien real)
+  // parado sobre una personalidad: si el pedido la muestra, va con su cara; si todavía no tiene, esta foto se la fija
   const contextoPersona = !personaje ? ''
-    : `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} (así el generador usa su cara) y describilo así: ${personaje.retratoEn}, con ${personaje.vestuarioEn}. Si el pedido es de otra cosa, no lo pongas.
+    : personaje.sinCara ? `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio que todavía no tiene cara. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} y completá además "retratoEn": cómo se ve según el pedido (edad, pelo, rasgos, piel, contextura), en inglés, completando de forma común lo que el pedido no diga; esa va a ser su cara de ahí en adelante. Si el pedido es de otra cosa, no lo pongas y dejá "retratoEn" vacío.
+`
+    : `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} (así el generador usa su cara) y describilo así: ${personaje.retratoEn}. La ropa y el lugar son los que diga el pedido. Si el pedido es de otra cosa, no lo pongas.
 `;
   const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona), model: 'sonnet', functionId: 'flowpack' });
   const plan = extractJson(text);
@@ -601,10 +605,14 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   const kind = plan.kind === 'imagen' || pedido.kind === 'imagen' ? 'imagen' : 'video';
   const durSec = Math.max(2, Math.min(8, Number(plan.durSec) || 6));
   const aspecto = plan.aspecto === '16:9' ? '16:9' : '9:16';
-  const prompt = `${estiloPara(aspecto)} ${String(plan.prompt || '').trim()} Leave some empty headroom at the top of the frame; nothing drawn or written there. No on-screen text. No subtitles, no captions.`;
+  let prompt = `${estiloPara(aspecto)} ${String(plan.prompt || '').trim()} Leave some empty headroom at the top of the frame; nothing drawn or written there. No on-screen text. No subtitles, no captions.`;
   log(`pedido libre ${pedido.id}: "${String(pedido.contexto).slice(0, 80)}" → ${kind} de ${durSec} s, ${aspecto}`);
-  // si el pedido muestra a la personalidad, va su retrato como referencia en Flow (la misma cara en todas sus imágenes)
-  const conCara = !!personaje && new RegExp(`\\b${personaje.flowNombre}\\b`).test(prompt);
+  // si el pedido muestra a la personalidad, va su retrato como referencia en Flow (la misma cara en todas sus imágenes).
+  // Sin cara todavía: el retrato sale de este pedido y, si la foto se entrega, queda como su cara.
+  if (personaje?.sinCara && plan.muestra === true && String(plan.retratoEn || '').trim()) personaje = { ...personaje, retratoEn: String(plan.retratoEn).trim(), vestuarioEn: '', lugarEn: '' };
+  const conCara = !!personaje?.retratoEn && plan.muestra === true;
+  // en el pedido a Flow la persona va con su nombre de Flow (el de la referencia @), aunque el modelo haya puesto el de pila
+  if (conCara && !new RegExp(`\\b${personaje.flowNombre}\\b`).test(prompt)) prompt = new RegExp(`\\b${personaje.nombre}\\b`).test(prompt) ? prompt.replace(new RegExp(`\\b${personaje.nombre}\\b`, 'g'), personaje.flowNombre) : prompt.replace(String(plan.prompt || '').trim(), `${personaje.flowNombre}: ${String(plan.prompt || '').trim()}`);
   const personajes = conCara ? [{ id: 'p1', nombre: personaje.flowNombre, promptImagen: promptImagen({ id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn }, { descripcionEn: personaje.lugarEn }) }] : [];
   const pack = { estilo: estiloPara(aspecto), personajes, escenas: [{ escenaN: 1, rol: 'desarrollo', prompt }] };
   const dir = path.join(STORAGE_DIR, 'salesbot');
@@ -636,8 +644,9 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   const visto = await mirarMedio(cuadro, String(pedido.contexto || ''));
   if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
   const { descripcion, etiquetas } = visto;
+  if (conCara && personaje.sinCara) guardarCaraSb(pedido.personalidad, personaje);
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'libre', producto: pedido.producto || pedido.personalidad || '', nombre: etiquetas.slice(0, 3).join(' ') || descripcion });
-  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion, etiquetas, nota: `${descripcion}${etiquetas.length ? ` · ${etiquetas.join(', ')}` : ''} · pedido: ${String(pedido.contexto).slice(0, 160)}` };
+  return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion, etiquetas, _muestraLaCara: conCara, nota: `${descripcion}${etiquetas.length ? ` · ${etiquetas.join(', ')}` : ''} · pedido: ${String(pedido.contexto).slice(0, 160)}` };
 }
 
 // Duración real de un video/audio con ffprobe (segundos, o null si falla). La usa el upload de tomas
@@ -1822,7 +1831,7 @@ ${src}`;
     if (p === '/api/salesbot/libre' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
       if (!String(body.contexto || '').trim()) return json(res, 400, { error: 'falta el pedido (contexto)' });
-      try { return json(res, 200, await pedidoLibreLocal(String(body.contexto), body.kind)); }
+      try { return json(res, 200, await pedidoLibreLocal(String(body.contexto), body.kind, { personalidad: body.personalidad, nombre_agente: body.nombre_agente, categoria: body.categoria, proyecto: body.proyecto })); }
       catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo' }); }
     }
     if (p.startsWith('/api/flow/jobs/') && req.method === 'GET') {

@@ -1,9 +1,10 @@
 // Integración con SalesBot (2026-10-12, Lucas: "habilitale la integración a SalesBot"). Contrato v1 en
 // base-compartida/salesbot/PEDIDO-A-MEDIA-STUDIO-medios-para-las-personalidades-2026-10-12.md, sección 6.
 // Media Studio corre en la PC de Lucas, así que es el que llama: cada 25 s consulta los pedidos pendientes de SalesBot.
-// - Cualquier personalidad puede aparecer, las de antes y las nuevas (Lucas, 2026-10-12). Cada una tiene su cara, que se
-//   inventa la primera vez a partir de quién es y queda en server/salesbot-personajes.json (`personajeDe`, de index.mjs).
-// - Las personalidades de levante/sexting quedan afuera: se contesta con {error} y el motivo (así se cerró el contrato).
+// - Todas las personalidades tienen imágenes, sin filtro por categoría (Lucas, 2026-10-12: "no tiene que haber
+//   restricción en nada"). Cada una tiene su cara, que se inventa la primera vez y queda en server/salesbot-personajes.json
+//   (`personajeDe`, de index.mjs). Lo que vale para todas por igual lo controla el pedido a Flow: nada de desnudos ni
+//   sexo explícito, nada de personas reales, siempre adultos.
 // - Los pedidos libres los escribe Lucas en el panel (origen "panel").
 // La clave (MEDIA_STUDIO_KEY, Secret Manager de salesbot-prod) se lee con gcloud al arrancar y queda sólo en memoria.
 import { spawn } from 'node:child_process';
@@ -42,17 +43,32 @@ export const accionDeSituacion = (situacion, nombre) => `${nombre} ${ACCION_POR_
 
 // un pedido libre hecho desde la app (sin pasar por WhatsApp): lo arma iniciarSalesbotMedios cuando arranca
 let libreLocal = null;
-export const pedidoLibreLocal = (contexto, kind) => (libreLocal ? libreLocal(contexto, kind) : Promise.reject(new Error('la integración con SalesBot no está activa')));
+export const pedidoLibreLocal = (contexto, kind, extra = {}) => (libreLocal ? libreLocal(contexto, kind, extra) : Promise.reject(new Error('la integración con SalesBot no está activa')));
 
 const estado = { activo: false, conectado: false, ultimaConsulta: null, ultimoError: '', atendidos: 0, rechazados: 0, enCurso: null };
 export const estadoSalesbot = () => ({ ...estado, conCara: Object.keys(leerPermitidos().personajes || {}) });
-// las categorías de SalesBot que no llevan medios
-const SIN_MEDIOS = /sexting|levante/i;
-// la categoría con la que se le inventó la cara (undefined si todavía no tiene cara)
-const categoriaGuardada = (slugPersonalidad) => leerPermitidos().personajes?.[slugPersonalidad]?.categoria;
+
 
 // nombre de carpeta para Cloudinary: minúsculas, sin acentos, guiones
 const slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
+
+// La primera foto que muestra a una personalidad fija su cara (Lucas, 2026-10-12). Se guarda qué medio de SalesBot fue:
+// si Lucas regenera ESA foto, la personalidad pierde la cara y la próxima foto le hace una nueva; si regenera otra, la
+// cara se mantiene.
+function guardarMedioCara(slugPersonalidad, medioId) {
+  const todo = leerPermitidos();
+  const p = todo.personajes?.[slugPersonalidad];
+  if (!p || p.medioCara || medioId == null) return;
+  p.medioCara = medioId;
+  fs.writeFileSync(PERSONAJES, JSON.stringify(todo, null, 2) + '\n');
+}
+function olvidarCara(slugPersonalidad) {
+  const todo = leerPermitidos();
+  const p = todo.personajes?.[slugPersonalidad];
+  if (!p) return;
+  todo.personajes[slugPersonalidad] = { categoria: p.categoria, caraNro: (p.caraNro || 1) + 1 };
+  fs.writeFileSync(PERSONAJES, JSON.stringify(todo, null, 2) + '\n');
+}
 
 function leerPermitidos() {
   try { return JSON.parse(fs.readFileSync(PERSONAJES, 'utf8')); } catch { return { personajes: {}, proyectos: {} }; }
@@ -91,7 +107,6 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
   const tomar = (id) => api(`/pedidos/${id}/tomar`, { method: 'POST' });
   const contestar = (id, cuerpo) => api(`/pedidos/${id}/resultado`, { method: 'POST', body: JSON.stringify(cuerpo) });
   const rechazar = async (pedido, motivo) => { await tomar(pedido.id); await contestar(pedido.id, { error: motivo }); estado.rechazados += 1; log(`pedido ${pedido.id}: ${motivo}`); };
-  const avisados = new Set();
   // fabrica y contesta; `hacer` devuelve el archivo o {error} con el motivo
   const fabricarYContestar = async (pedido, etiqueta, hacer) => {
     // Flow hace una cosa por vez en la pestaña de Lucas: si está ocupado (una pieza de la app), el pedido espera
@@ -99,8 +114,17 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
     await tomar(pedido.id);
     estado.enCurso = pedido.id;
     try {
+      // regenerar la foto que fijó la cara: la personalidad pierde esa cara y esta foto le hace una nueva
+      const ya = pedido.personalidad ? leerPermitidos().personajes?.[pedido.personalidad] : null;
+      if (pedido.regenerar_medio != null && ya?.medioCara != null && String(ya.medioCara) === String(pedido.regenerar_medio)) {
+        olvidarCara(pedido.personalidad);
+        log(`pedido ${pedido.id}: regenera la foto que fijó la cara de "${pedido.personalidad}"; le hago una cara nueva`);
+      }
       const archivo = await hacer();
-      await contestar(pedido.id, archivo.error ? { error: archivo.error } : { archivo });
+      // _muestraLaCara es nuestro (si la foto muestra a la personalidad): no viaja a SalesBot
+      const { _muestraLaCara, ...paraSalesbot } = archivo;
+      const r = await contestar(pedido.id, archivo.error ? { error: archivo.error } : { archivo: paraSalesbot });
+      if (!archivo.error && _muestraLaCara && pedido.personalidad) guardarMedioCara(pedido.personalidad, r?.medio_id);
       if (archivo.error) estado.rechazados += 1; else estado.atendidos += 1;
       log(`${etiqueta} ${pedido.id}: ${archivo.error ? `no se hace (${archivo.error})` : `entregado (${archivo.url})`}`);
     } catch (e) {
@@ -110,14 +134,6 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
     } finally { estado.enCurso = null; }
   };
   const atender = async (pedido) => {
-    // levante/sexting queda afuera (así se cerró el contrato con SalesBot, 2026-10-12)
-    const categoria = pedido.categoria ?? (pedido.personalidad ? categoriaGuardada(pedido.personalidad) : null);
-    if (SIN_MEDIOS.test(String(categoria || ''))) return rechazar(pedido, 'Media Studio no fabrica medios para las personalidades de levante/sexting.');
-    // una personalidad que todavía no tiene cara: sin su categoría no se sabe si es de levante/sexting; espera
-    if (pedido.personalidad && categoria === undefined) {
-      if (!avisados.has(pedido.id)) { avisados.add(pedido.id); log(`pedido ${pedido.id}: SalesBot todavía no manda la categoría de "${pedido.personalidad}"; queda pendiente`); }
-      return;
-    }
     // pedido libre (2026-10-12, Lucas usa el bot como intermediario): lo escribe Lucas en el panel de SalesBot (origen
     // "panel"), con o sin personalidad; el texto manda y, si hay personalidad, puede aparecer con su cara. Los pedidos
     // del bot (personalidad + situación) siguen por el camino de abajo.
@@ -148,7 +164,19 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
     }
   };
   estado.activo = true;
-  libreLocal = async (contexto, kind) => { if (!clave) clave = await leerClave(); return fabricarLibre({ pedido: { id: `local-${Date.now().toString(36)}`, contexto, kind: kind || 'video', proyecto: 'libre' }, log, subir }); };
+  // un pedido desde la app; con personalidad, el medio queda en su banco de SalesBot (POST /api/medios) y, si la muestra
+  // por primera vez, le fija la cara
+  libreLocal = async (contexto, kind, extra = {}) => {
+    if (!clave) clave = await leerClave();
+    const pedido = { id: `local-${Date.now().toString(36)}`, contexto, kind: kind || 'video', proyecto: extra.proyecto || (extra.personalidad ? null : 'libre'), personalidad: extra.personalidad || null, nombre_agente: extra.nombre_agente, categoria: extra.categoria };
+    const personaje = pedido.personalidad ? await personajeDe(pedido) : null;
+    const archivo = await fabricarLibre({ pedido, personaje, log, subir });
+    if (archivo.error || !pedido.personalidad) return archivo;
+    const { _muestraLaCara, ...medio } = archivo;
+    const r = await api('', { method: 'POST', body: JSON.stringify({ ...medio, kind: /^(jpe?g|png|webp)$/i.test(String(medio.formato || '')) ? 'imagen' : 'video', personalidad: pedido.personalidad, proyecto: pedido.proyecto, situacion: 'libre' }) });
+    if (_muestraLaCara) guardarMedioCara(pedido.personalidad, r?.id);
+    return { ...medio, medio_id: r?.id };
+  };
   log(`integración activa: consulta los pedidos de SalesBot cada ${CADA_MS / 1000} s`);
   setTimeout(vuelta, 3000);
 }
