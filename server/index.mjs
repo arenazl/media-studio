@@ -48,6 +48,7 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
+import { iniciarSalesbotMedios, estadoSalesbot } from './salesbotMedios.mjs';
 import { generarMockupsApp, catalogoDeApp } from './mockupsApp.mjs';
 import { escribirTarjetasPlantilla, progresoDe } from './tarjetasPlantilla.mjs';
 import { capasDe } from './orquestador.mjs';
@@ -1670,6 +1671,8 @@ ${src}`;
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudieron generar los mockups' }); }
     }
     if (p === '/api/flow/jobs' && req.method === 'GET') return json(res, 200, { jobs: puente.listarJobs(), extension: puente.extensionViva() });
+    // integración con SalesBot (2026-10-12): estado de la consulta de pedidos
+    if (p === '/api/salesbot/estado' && req.method === 'GET') return json(res, 200, estadoSalesbot());
     if (p.startsWith('/api/flow/jobs/') && req.method === 'GET') {
       const job = puente.verJob(decodeURIComponent(p.slice('/api/flow/jobs/'.length)));
       return job ? json(res, 200, { job }) : json(res, 404, { error: 'job no existe' });
@@ -1743,6 +1746,8 @@ ${src}`;
 
 server.listen(PORT, () => {
   console.log(`[media-studio] backend en http://localhost:${PORT} (${IS_PROD ? 'PROD/Gemini' : 'LOCAL/Claude'})`);
+  // SalesBot: Media Studio consulta sus pedidos de medios (sin `fabricar` todavía: falta cómo subir el archivo)
+  if (!IS_PROD) iniciarSalesbotMedios();
   if (!IS_PROD) console.log(`[media-studio] videos dir: ${VIDEOS_DIR}`);
   if (CLD_CLOUD) console.log(`[media-studio] cloudinary: ${CLD_CLOUD}/${CLD_FOLDER}`);
   console.log(`[media-studio] sqlite: ${DB_PATH}`);
