@@ -23,7 +23,7 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
   fs.writeFileSync(clip, 'clip');
   const grilla: Grilla = { tiles: [''] };   // la imagen del personaje
   const intentos: Record<number, number> = {};
-  let ultima = 0, ultimoResultado: string = 'ok', ultimoTexto = '';
+  let ultima = 0, ultimoResultado: string = 'ok', ultimoTexto = '', rechazoBorrado = false;
   const creados = new Set<string>();
   const pedidosPorEscena: Record<number, string[][]> = {};
   const bajadas: [number, string][] = [];
@@ -60,9 +60,10 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
         return { disparado: true, antes, tiles: grilla.tiles.length };
       }
       // 'cargando': la rutina lo ve sin terminar, pero en Flow termina igual (el clip queda como video): el caso de la escena 1
-      case 'esperarGeneracion': return ultimoResultado === 'error-flow' ? { seg: 30, terminado: false, conError: true, texto: ultimoTexto } : ultimoResultado === 'cargando' ? { seg: 6, terminado: false, cargando: true } : { seg: 60, terminado: true };
+      // Flow real: después de refrescar, el clip rechazado ya no está y la espera no ve ni error ni porcentaje (prueba real 5)
+      case 'esperarGeneracion': if (ultimoResultado === 'error-flow' && rechazoBorrado) { rechazoBorrado = false; return { seg: 60, terminado: true }; } return ultimoResultado === 'error-flow' ? { seg: 30, terminado: false, conError: true, texto: ultimoTexto } : ultimoResultado === 'cargando' ? { seg: 6, terminado: false, cargando: true } : { seg: 60, terminado: true };
       // Flow saca de la grilla el clip con error al recargar la pestaña (prueba real del 12/10)
-      case 'recargar': grilla.tiles = grilla.tiles.filter((t) => t !== 'ERR'); return { ok: true };
+      case 'recargar': rechazoBorrado = grilla.tiles.includes('ERR'); grilla.tiles = grilla.tiles.filter((t) => t !== 'ERR'); return { ok: true };
       case 'urlDelMasNuevo': { if (opciones.videoAjenoEn === ultima) return { url: 'https://ejemplo-de-flow/ajeno' }; const v = [...grilla.tiles].reverse().find((t) => t.startsWith('https://')); return { url: v || '' }; }
       case 'urlsDeClips': {
         const todos = [...grilla.tiles].reverse().map((t) => (t.startsWith('https://') ? t : ''));

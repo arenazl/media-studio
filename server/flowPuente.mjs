@@ -189,9 +189,12 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
     // el 3º sin las menciones @ (el prompt describe a la persona). Después de enviar: si el clip queda con error o clavado,
     // se refresca; si sigue mal, se vuelve a generar una sola vez (eso sí gasta un clip más).
     const generarEscena = async (esc, quienes, reg) => {
+      // el video más nuevo de la grilla justo antes de pedir: al terminar, el de esta escena tiene que ser OTRO
+      const anotarPrevio = async () => { reg.previo = (await pedir(job, 'urlDelMasNuevo', {}, 60000).catch(() => ({ url: '' }))).url || ''; };
       let g = null;
       for (let intento = 1; intento <= 3 && !g; intento++) {
         const personajes = intento === 3 ? [] : quienes;
+        await anotarPrevio();
         try { g = await pedir(job, 'generar', { prompt: esc.prompt, personajes }, 120000); }
         catch (e) {
           if (!/antes de enviar|no apareció|no encontré/i.test(e.message) || intento === 3) throw e;
@@ -215,7 +218,9 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         await pedir(job, 'devolverPestana', {}, 20000).catch(() => {});
       } else if (!g.disparado) log(`escena ${esc.escenaN}: no vi el tile nuevo, sigo igual`);
       let e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
-      if (!e.terminado || e.conError || e.atascado) {
+      // refrescar sólo para un clip trabado o cargando: un rechazo de Flow se maneja abajo (al refrescar, el clip rechazado
+      // desaparece y la rutina lo tomaba por terminado: prueba real del 12/10)
+      if (!e.conError && (!e.terminado || e.atascado)) {
         log(`escena ${esc.escenaN}: el clip quedó ${e.conError ? 'con error' : e.atascado ? `clavado en ${e.pct ?? '?'}%` : 'cargando'} a los ${e.seg} s${e.texto ? ` (Flow dice: "${e.texto}")` : ''} · refresco la pestaña de Flow`);
         await pedir(job, 'recargar', {}, 90000);
         await pedir(job, 'apagarAgente').catch(() => {});
@@ -259,6 +264,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         else if (intento >= 2 && refs.length) { refs = []; que = 'sin las referencias @'; }
         log(`escena ${esc.escenaN}: Flow rechazó el clip${texto ? ` ("${texto.slice(0, 140)}")` : ''} · ${que}`);
         await pedir(job, 'limpiar', {}, 30000).catch(() => {});
+        await anotarPrevio();
         const g2 = await pedir(job, 'generar', { prompt: esc.prompt, personajes: refs }, 120000)
           .catch(() => pedir(job, 'generar', { prompt: esc.prompt, personajes: [] }, 120000));
         if (Number.isFinite(g2.antes)) reg.pos = g2.antes;
@@ -277,6 +283,8 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       }
       const u = await pedir(job, 'urlDelMasNuevo', {}, 60000).catch(() => ({ url: '' }));
       const yaUsada = job.escenas.some((x) => x !== reg && x.url && x.url === u.url);
+      // si el más nuevo es el mismo que había antes de pedir, el clip de esta escena no apareció: no se toma ninguno
+      if (u.url && reg.previo && u.url === reg.previo) throw new Error('Flow no dejó un clip nuevo para esta escena (el más nuevo de la grilla es el de antes)');
       if (u.url && !yaUsada) reg.url = u.url;
       else log(`escena ${esc.escenaN}: no pude tomar su video al terminar; al final lo busco por posición`);
     };
