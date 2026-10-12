@@ -17,7 +17,7 @@ export function latido() { ultimoLatido = Date.now(); }
 export function extensionViva() { return Date.now() - ultimoLatido < 20000; }
 export function verJob(id) { const j = jobs.get(id); return j ? resumen(j) : null; }
 export function listarJobs() { return [...jobs.values()].map(resumen); }
-function resumen(j) { return { id: j.id, estado: j.estado, paso: j.paso, log: j.log.slice(-80), escenas: j.escenas, error: j.error, flowProjectUrl: j.flowProjectUrl, inicio: j.inicio, fin: j.fin, extension: extensionViva(), pestanas: pestanasFlow }; }
+function resumen(j) { return { id: j.id, estado: j.estado, paso: j.paso, log: j.log.slice(-80), escenas: j.escenas, fallas: j.fallas || [], error: j.error, flowProjectUrl: j.flowProjectUrl, inicio: j.inicio, fin: j.fin, extension: extensionViva(), pestanas: pestanasFlow }; }
 
 // la pestaña pide el próximo paso
 export function estadoPuente() { return { extension: extensionViva(), pestanas: pestanasFlow, version: versionExtension }; }
@@ -70,10 +70,10 @@ async function pedirConReintentos(job, accion, args, timeoutMs, intentos = 3, pa
 }
 const slug = (s) => (String(s || '').trim().split(/\s+/)[0] || 'Personaje').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '').slice(0, 24) || 'Personaje';
 
-export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, guardarClip, agregarToma, guardarFlowUrl, generarMockups }) {
+export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups }) {
   const id = `flow-${Date.now()}`;
   // soloDescargar: el clip ya está generado en Flow (una corrida anterior se cortó después de generar); se baja sin volver a gastar créditos
-  const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, inicio: Date.now(), fin: null };
+  const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], fallas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, inicio: Date.now(), fin: null };
   jobs.set(id, job);
   const log = (m) => { job.log.push(`${new Date().toTimeString().slice(0, 8)} ${m}`); console.log('[media-studio] puente-flow:', m); };
   const setPaso = (p) => { job.paso = p; log(p); };
@@ -125,28 +125,37 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       if (existe) { log(`personaje ${nombre}: ya existía`); continue; }
       // 1) editor abierto con el prompt escrito → 2) click REAL en la flecha (el programado no dispara) → 3) esperar →
       // 4) volver a la grilla y ponerle el nombre desde "Cambiar nombre" (el título del editor no acepta tipeo programado)
-      const prep = await pedirConReintentos(job, 'prepararPersonaje', { prompt: p.promptImagen }, 60000, 3, 5000, log);
-      await pedir(job, 'clickReal', { x: prep.x, y: prep.y }, 30000);
-      let esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
-      if (!esp.arranco) {
-        log(`personaje ${nombre}: el click no disparó la generación, pruebo una vez más`);
-        const prep2 = await pedir(job, 'prepararPersonaje', { prompt: p.promptImagen }, 60000);
-        await pedir(job, 'clickReal', { x: prep2.x, y: prep2.y }, 30000);
-        esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
-        if (!esp.arranco) throw new Error(`Flow no empezó a generar el personaje ${nombre} (la flecha no respondió al click real)`);
+      // 2026-10-12: un personaje que no se pudo crear no corta la rutina; sus escenas salen sin @ (el prompt lo describe)
+      try {
+        const prep = await pedirConReintentos(job, 'prepararPersonaje', { prompt: p.promptImagen }, 60000, 3, 5000, log);
+        await pedir(job, 'clickReal', { x: prep.x, y: prep.y }, 30000);
+        let esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
+        if (!esp.arranco) {
+          log(`personaje ${nombre}: el click no disparó la generación, pruebo una vez más`);
+          const prep2 = await pedirConReintentos(job, 'prepararPersonaje', { prompt: p.promptImagen }, 60000, 3, 5000, log);
+          await pedir(job, 'clickReal', { x: prep2.x, y: prep2.y }, 30000);
+          esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
+          if (!esp.arranco) throw new Error('la flecha no respondió al click real');
+        }
+        log(`personaje ${nombre}: imagen generada en ${esp.seg} s`);
+        await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch((e) => log(`ir: ${e.message}`));
+        const ren = await pedirConReintentos(job, 'renombrarUltimoPersonaje', { nombre }, 60000, 3, 4000, log);
+        if (!ren.ok) log(`personaje ${nombre}: generado pero sin nombre (en la grilla: ${(ren.tiles || []).join(' | ')}); ponéselo a mano en Flow`);
+        log(`personaje ${nombre}: ${ren.ok ? 'creado y nombrado' : 'creado'} en ${Math.round((Date.now() - tPer) / 1000)} s`);
+      } catch (e) {
+        if (/no respondió/.test(e.message)) throw e;   // la pestaña de Flow no contesta: no tiene sentido seguir
+        delete nombres[p.id];
+        job.fallas.push(`personaje ${nombre}: ${e.message}`);
+        log(`personaje ${nombre}: no se pudo crear (${e.message}); sus escenas van sin @ y el prompt lo describe`);
+        await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch(() => {});
       }
-      log(`personaje ${nombre}: imagen generada en ${esp.seg} s`);
-      await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch((e) => log(`ir: ${e.message}`));
-      const ren = await pedirConReintentos(job, 'renombrarUltimoPersonaje', { nombre }, 60000, 3, 4000, log);
-      if (!ren.ok) log(`personaje ${nombre}: generado pero sin nombre (en la grilla: ${(ren.tiles || []).join(' | ')}); ponéselo a mano en Flow`);
-      log(`personaje ${nombre}: ${ren.ok ? 'creado y nombrado' : 'creado'} en ${Math.round((Date.now() - tPer) / 1000)} s`);
     }
     // crear personajes trae la pestaña de Flow al frente (Flow ignora el click si no está a la vista); se devuelve la anterior
     await pedir(job, 'devolverPestana', {}, 20000).catch(() => {});
     await pedirConReintentos(job, 'irAContenido', {}, 120000, 3, 4000, log);
     await pedir(job, 'apagarAgente').catch(() => {});
     setPaso('ajustes de video');
-    const aj = await pedir(job, 'ajustes', {}, 60000);
+    const aj = await pedirConReintentos(job, 'ajustes', {}, 60000, 3, 4000, log);
     log(`ajustes: ${String(aj.pastilla || '').replace(/\s+/g, ' ')}${aj.res720 === false || aj.dur8 === false ? ' · OJO: no veo 720p / 8 s en la pastilla, revisalo en Flow' : ''}`);
     // 2026-10-11 (RepareHoy "Nadie te contesta"): con Flow en x2 cada pedido deja DOS clips en la grilla y el reparto de uno
     // por escena se corría: la escena 1 recibió el clip de la 2, y la 2 y la 4 el de la 4 (lo mostró la transcripción). La
@@ -155,12 +164,61 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
     if (salidasPastilla > 1) log(`OJO: Flow está generando ${salidasPastilla} variantes por pedido (x${salidasPastilla}); se baja una por escena, la más nueva de cada grupo`);
 
     const sb = Object.fromEntries((escenasStoryboard || []).map((e) => [e.n, e]));
-    const escenas = (pack.escenas || []).filter((e) => e.rol !== 'cta');
-    // retomar: si el proyecto de Flow ya tiene clips (una corrida anterior se cortó), esas primeras escenas ya están
-    // generadas y no se vuelven a pagar (los personajes son imágenes: no cuentan como clip)
-    const previos = (await pedir(job, 'urlsDeClips', {}, 60000).catch(() => ({ total: 0 }))).total || 0;
+    // 2026-10-12: retomar por escena — las que ya tienen su crudo de Flow en la pieza no se vuelven a generar ni a bajar
+    const conCrudo = new Set((escenasConCrudo || []).map(Number));
+    const todas = (pack.escenas || []).filter((e) => e.rol !== 'cta');
+    const escenas = todas.filter((e) => !conCrudo.has(Number(e.escenaN)));
+    if (conCrudo.size) log(`retomo: ${todas.length - escenas.length} escena(s) ya tienen su crudo en la pieza; quedan ${escenas.length}`);
+    if (!escenas.length) { job.estado = 'listo'; job.fin = Date.now(); setPaso('todas las escenas ya tenían su crudo de Flow'); return; }
+    // retomar sin crudos: si el proyecto de Flow ya tiene clips (una corrida anterior se cortó después de generar), esas
+    // primeras escenas ya están generadas y no se vuelven a pagar (los personajes son imágenes: no cuentan como clip)
+    const previos = conCrudo.size ? 0 : ((await pedir(job, 'urlsDeClips', {}, 60000).catch(() => ({ total: 0 }))).total || 0);
     const yaHechas = job.soloDescargar ? escenas.length : Math.min(Math.floor(previos / (salidasPastilla || 1)), escenas.length);
     if (yaHechas) log(`retomo: Flow ya tiene ${previos} clip(s); ${yaHechas} escena(s) no se vuelven a generar`);
+    // UNA escena con sus reintentos (2026-10-12, Lucas: "la automatización tiene que manejar errores y reintentos").
+    // Antes de tocar la flecha ("[antes de enviar]": no se gastó nada): hasta 3 intentos, el 2º con la pestaña recargada y
+    // el 3º sin las menciones @ (el prompt describe a la persona). Después de enviar: si el clip queda con error o clavado,
+    // se refresca; si sigue mal, se vuelve a generar una sola vez (eso sí gasta un clip más).
+    const generarEscena = async (esc, quienes, reg) => {
+      let g = null;
+      for (let intento = 1; intento <= 3 && !g; intento++) {
+        const personajes = intento === 3 ? [] : quienes;
+        try { g = await pedir(job, 'generar', { prompt: esc.prompt, personajes }, 120000); }
+        catch (e) {
+          if (!/antes de enviar|no apareció|no encontré/i.test(e.message) || intento === 3) throw e;
+          log(`escena ${esc.escenaN}: ${e.message} · reintento ${intento} de 2${intento === 2 ? ' (el último va sin las menciones @)' : ''}`);
+          await pedir(job, 'limpiar', {}, 30000).catch(() => {});
+          if (intento === 1) await new Promise((r) => setTimeout(r, 3000));
+          else { await pedir(job, 'recargar', {}, 90000).catch(() => {}); await pedir(job, 'apagarAgente').catch(() => {}); }
+        }
+      }
+      if (Number.isFinite(g.antes) && g.tiles > g.antes) {
+        reg.salidas = g.tiles - g.antes;
+        if (reg.salidas > 1) log(`escena ${esc.escenaN}: Flow dejó ${reg.salidas} clips para este pedido; se baja uno`);
+      }
+      if (!g.disparado && g.enviar) {
+        log(`escena ${esc.escenaN}: el click programado no disparó, hago un click real`);
+        await pedir(job, 'clickReal', g.enviar, 30000).catch((e) => log(`clickReal: ${e.message}`));
+        await new Promise((r) => setTimeout(r, 2500));
+        await pedir(job, 'devolverPestana', {}, 20000).catch(() => {});
+      } else if (!g.disparado) log(`escena ${esc.escenaN}: no vi el tile nuevo, sigo igual`);
+      let e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
+      if (!e.terminado || e.conError || e.atascado) {
+        log(`escena ${esc.escenaN}: el clip quedó ${e.conError ? 'con error' : e.atascado ? `clavado en ${e.pct ?? '?'}%` : 'cargando'} a los ${e.seg} s · refresco la pestaña de Flow`);
+        await pedir(job, 'recargar', {}, 90000);
+        await pedir(job, 'apagarAgente').catch(() => {});
+        e = await pedir(job, 'esperarGeneracion', { maxSeg: 180 }, 200000);
+      }
+      if (!e.terminado || e.conError) {
+        log(`escena ${esc.escenaN}: sigue ${e.conError ? 'con error' : 'cargando'} después de refrescar · la vuelvo a generar una vez`);
+        await pedir(job, 'limpiar', {}, 30000).catch(() => {});
+        const g2 = await pedir(job, 'generar', { prompt: esc.prompt, personajes: quienes }, 120000)
+          .catch(() => pedir(job, 'generar', { prompt: esc.prompt, personajes: [] }, 120000));
+        if (Number.isFinite(g2.antes) && g2.tiles > g2.antes) reg.salidas = g2.tiles - g2.antes;
+        e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
+        if (!e.terminado || e.conError) throw new Error(`el clip quedó ${e.conError ? 'con error' : 'cargando'} en Flow también al volver a generarlo`);
+      }
+    };
     // 1) GENERAR todas, una atrás de otra (Lucas, 2026-10-11: "primero generá todo y después hacé la descarga")
     for (const [i, esc] of escenas.entries()) {
       const porSb = (sb[esc.escenaN]?.personajes || []).map((pid) => nombres[pid]).filter(Boolean);
@@ -171,30 +229,17 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       if (i < yaHechas) { log(`escena ${esc.escenaN}: ya estaba en Flow, no la vuelvo a generar`); continue; }
       setPaso(`escena ${esc.escenaN} (${i + 1} de ${escenas.length})${quienes.length ? ` con @${quienes.join(' @')}` : ''}`);
       const tEsc = Date.now();
-      const g = await pedir(job, 'generar', { prompt: esc.prompt, personajes: quienes }, 120000);
-      // cuántos clips dejó ESTE pedido en la grilla (la extensión ≥0.4.2 manda cuántos había antes)
-      if (Number.isFinite(g.antes) && g.tiles > g.antes) {
-        reg.salidas = g.tiles - g.antes;
-        if (reg.salidas > 1) log(`escena ${esc.escenaN}: Flow dejó ${reg.salidas} clips para este pedido; se baja uno`);
+      try {
+        await generarEscena(esc, quienes, reg);
+        log(`escena ${esc.escenaN}: generada en ${Math.round((Date.now() - tEsc) / 1000)} s (desde el disparo hasta el clip listo)`);
+        reg.estado = 'generada';
+      } catch (e) {
+        if (/no respondió/.test(e.message)) throw e;   // la pestaña de Flow no contesta: no tiene sentido seguir
+        reg.estado = 'falló'; reg.motivo = e.message;
+        job.fallas.push(`escena ${esc.escenaN}: ${e.message}`);
+        log(`escena ${esc.escenaN}: NO SALIÓ después de los reintentos (${e.message}); sigo con la próxima`);
+        await pedir(job, 'limpiar', {}, 30000).catch(() => {});
       }
-      if (!g.disparado && g.enviar) {
-        log(`escena ${esc.escenaN}: el click programado no disparó, hago un click real`);
-        await pedir(job, 'clickReal', g.enviar, 30000).catch((e) => log(`clickReal: ${e.message}`));
-        await new Promise((r) => setTimeout(r, 2500));
-        await pedir(job, 'devolverPestana', {}, 20000).catch(() => {});
-      }
-      else if (!g.disparado) log(`escena ${esc.escenaN}: no vi el tile nuevo, sigo igual`);
-      let e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
-      if (!e.terminado || e.conError || e.atascado) {
-        // el clip quedó "cargando" o con error: refrescar la pestaña lo muestra bien (lo vio Lucas); una sola vez
-        log(`escena ${esc.escenaN}: el clip quedó ${e.conError ? 'con error' : e.atascado ? `clavado en ${e.pct ?? '?'}%` : 'cargando'} a los ${e.seg} s · refresco la pestaña de Flow`);
-        await pedir(job, 'recargar', {}, 90000);
-        await pedir(job, 'apagarAgente').catch(() => {});
-        e = await pedir(job, 'esperarGeneracion', { maxSeg: 180 }, 200000);
-        if (!e.terminado || e.conError) throw new Error(`la escena ${esc.escenaN} quedó ${e.conError ? 'con error' : 'cargando'} en Flow después de refrescar; miralo en Flow y volvé a disparar (las bajadas ya hechas quedaron en el Rodaje)`);
-      }
-      log(`escena ${esc.escenaN}: generada en ${Math.round((Date.now() - tEsc) / 1000)} s (desde el disparo hasta el clip listo)`);
-      reg.estado = 'generada';
     }
     // 2) BAJAR todas, directo por la URL del archivo de cada clip: sin menú de clic derecho, así anda con la pestaña de
     // Flow al fondo o con la ventana movida (2026-10-11: el menú no apareció y se cortó la rutina entera)
@@ -205,9 +250,11 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
     let clips = await pedir(job, 'urlsDeClips', {}, 90000);
     // la grilla va del más nuevo al más viejo y las escenas se generaron en orden; cada escena ocupa `salidas` lugares
     // seguidos (x1 = uno, x2 = dos). Se cuenta desde la última generada y se toma el primero de cada grupo.
+    // una escena que falló no dejó clip: no ocupa lugar en la grilla y no se baja
+    const salio = (i) => job.escenas[i] && job.escenas[i].estado !== 'falló';
     const indices = [];
-    for (let i = escenas.length - 1, pos = 0; i >= 0; i--) { indices[i] = pos; pos += job.escenas[i]?.salidas || 1; }
-    const faltan = (c) => indices.filter((k) => !(c.urls || [])[k]).length;
+    for (let i = escenas.length - 1, pos = 0; i >= 0; i--) { if (!salio(i)) { indices[i] = -1; continue; } indices[i] = pos; pos += job.escenas[i]?.salidas || 1; }
+    const faltan = (c) => indices.filter((k) => k >= 0 && !(c.urls || [])[k]).length;
     if (faltan(clips)) {
       // Flow no armó el video de algún clip con la pestaña al fondo: se trae al frente un momento y se reintenta
       log(`a ${faltan(clips)} clip(s) Flow no les cargó el video con la pestaña al fondo; la traigo al frente un momento`);
@@ -215,10 +262,11 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       clips = await pedir(job, 'urlsDeClips', {}, 90000);
       await pedir(job, 'devolverPestana', {}, 20000).catch(() => {});
     }
-    const enOrden = indices.map((k) => (clips.urls || [])[k]);
+    const enOrden = indices.map((k) => (k >= 0 ? (clips.urls || [])[k] : null));
     if (faltan(clips)) throw new Error(`en Flow veo ${clips.total || 0} clip(s) y a ${faltan(clips)} no les pude sacar el video: mirá el proyecto de Flow y volvé a tocar "Automatizar" (retoma sin volver a generar lo que ya está)`);
     for (const [i, esc] of escenas.entries()) {
       const reg = job.escenas[i];
+      if (!salio(i)) continue;
       setPaso(`bajando la escena ${esc.escenaN} (${i + 1} de ${escenas.length})`);
       const info = await pedir(job, 'descargarUrl', { url: enOrden[i], nombre: `esc${esc.escenaN}-${job.id}.mp4` }, 200000);
       log(`escena ${esc.escenaN}: bajada a ${info.filename}`);
@@ -236,7 +284,10 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       catch (e) { log(`mockups de la app: ${e instanceof Error ? e.message : e}`); }
     }
     job.estado = 'listo'; job.fin = Date.now();
-    setPaso(`clips de Flow bajados · ${escenas.length} escena(s) en ${Math.round((job.fin - job.inicio) / 1000)} s en total`);
+    const bajadas = job.escenas.filter((x) => x.estado === 'importada').length;
+    setPaso(job.fallas.length
+      ? `${bajadas} de ${escenas.length} escena(s) bajadas en ${Math.round((job.fin - job.inicio) / 1000)} s · no salieron: ${job.fallas.join(' · ')} · volvé a tocar "Automatizar": retoma sólo lo que falta`
+      : `clips de Flow bajados · ${escenas.length} escena(s) en ${Math.round((job.fin - job.inicio) / 1000)} s en total`);
   })().catch((e) => {
     job.estado = 'error'; job.error = e instanceof Error ? e.message : String(e); job.fin = Date.now();
     log(`ERROR: ${job.error}`);

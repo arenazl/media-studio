@@ -1552,7 +1552,10 @@ ${src}`;
         saveProject({ id: projectId, name: proj.name, data });
       };
       // los mockups ya no los hace la rutina de Flow: tienen su paso propio (Mockups, 2026-10-11)
-      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, guardarClip, agregarToma, guardarFlowUrl });
+      // retomar por escena (2026-10-12): las escenas que ya tienen su crudo de Flow en la pieza no se vuelven a generar
+      const reelAhora = ((getProject(projectId)?.data?.reels) || []).find((r) => r.id === reelId);
+      const escenasConCrudo = ((reelAhora?.comercial?.rodaje) || []).filter((t) => t.origen !== 'mockup' && t.fileRef).map((t) => t.escenaN);
+      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, escenasConCrudo, guardarClip, agregarToma, guardarFlowUrl });
       return json(res, 200, { job });
     }
     // ── Mockups de la app (paso de la orquestación, 2026-10-10): renderiza las tarjetas del catálogo de la app como

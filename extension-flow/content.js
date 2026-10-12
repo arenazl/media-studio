@@ -197,22 +197,54 @@
       return { pastilla, res720: /720p/.test(pastilla), dur8: /\b8\s?s\b/.test(pastilla), modelo: combo ? textoDe(combo).replace(/arrow_drop_down/, '').trim() : null };
     },
 
+    // cierra menús y ventanitas que quedaron abiertas (el buscador de @, un desplegable) y vacía la caja de prompt
+    async limpiar() {
+      for (let i = 0; i < 3; i++) { const f = q('.cdk-overlay-backdrop')[0]; if (!f) break; f.click(); await espera(300); }
+      document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+      await espera(300);
+      const c = caja(); if (c) await vaciar(c);
+      return { ok: true };
+    },
+
+    // 2026-10-12: la mención @personaje se reintenta (hasta 3 veces) y vale también si Flow agrega el personaje a la caja
+    // sin mostrar el botón "Añadir a petición". Todo error antes de tocar la flecha sale marcado "[antes de enviar]": no se
+    // generó nada, el servidor lo puede reintentar sin gastar créditos.
     async generar({ prompt, personajes = [] }) {
-      const c = await esperar(() => caja(), 15000, 'la caja de prompt');
-      await vaciar(c);
-      for (const nombre of personajes) {
-        await escribir(c, '@');
-        await esperar(() => q(SEL.buscador)[0], 15000, 'el buscador de recursos');
+      const BOTON_ANADIR = /A[ñn]adir a (la )?petici[oó]n|Agregar a (la )?petici[oó]n|Add to prompt/i;
+      const mencionar = async (c, nombre) => {
         const re = new RegExp(`^${nombre}$`, 'i');
-        const op = await esperar(() => q(SEL.opcion).find((o) => [...o.querySelectorAll('span')].some((s) => re.test(textoDe(s)))), 15000, `el personaje ${nombre} en la lista`);
-        op.click(); await espera(600);
-        (await esperar(() => botonTexto(/Añadir a petición|Add to prompt/i), 15000, '"Añadir a petición"')).click();
+        let ultimo = null;
+        for (let intento = 1; intento <= 3; intento++) {
+          try {
+            const largoAntes = textoDe(c).length;
+            await escribir(c, '@');
+            await esperar(() => q(SEL.buscador)[0], 15000, 'el buscador de recursos');
+            const op = await esperar(() => q(SEL.opcion).find((o) => [...o.querySelectorAll('span')].some((s) => re.test(textoDe(s)))), 15000, `el personaje ${nombre} en la lista`);
+            op.click(); await espera(600);
+            // o aparece el botón para confirmarlo, o Flow ya lo puso en la caja
+            const listo = await esperar(() => botonTexto(BOTON_ANADIR) || (new RegExp(nombre, 'i').test(textoDe(c)) && textoDe(c).length > largoAntes ? 'en-la-caja' : null), 15000, '"Añadir a petición"');
+            if (listo !== 'en-la-caja') { listo.click(); await espera(600); }
+            return;
+          } catch (e) {
+            ultimo = e;
+            // se cierra lo que quedó abierto y se borra el "@" suelto antes de reintentar
+            for (let i = 0; i < 3; i++) { const f = q('.cdk-overlay-backdrop')[0]; if (!f) break; f.click(); await espera(300); }
+            c.focus(); if (/@\s*$/.test(textoDe(c))) { document.execCommand('delete', false, null); await espera(200); }
+            await espera(800 * intento);
+          }
+        }
+        throw new Error(`no pude mencionar a @${nombre}: ${ultimo ? ultimo.message : 'sin detalle'}`);
+      };
+      let c, antes, enviar;
+      try {
+        c = await esperar(() => caja(), 15000, 'la caja de prompt');
+        await vaciar(c);
+        for (const nombre of personajes) await mencionar(c, nombre);
+        await escribir(c, (personajes.length ? ' ' : '') + prompt);
         await espera(600);
-      }
-      await escribir(c, (personajes.length ? ' ' : '') + prompt);
-      await espera(600);
-      const antes = q(SEL.tile).length;
-      const enviar = await esperar(() => q(SEL.enviar)[0], 10000, 'la flecha de generar');
+        antes = q(SEL.tile).length;
+        enviar = await esperar(() => q(SEL.enviar)[0], 10000, 'la flecha de generar');
+      } catch (e) { throw new Error(`[antes de enviar] ${e.message}`); }
       enviar.click();
       await espera(2500);
       let disparado = porcentajeEnPantalla() || q(SEL.tile).length > antes;

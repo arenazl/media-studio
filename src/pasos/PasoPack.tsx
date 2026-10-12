@@ -24,7 +24,7 @@ function downloadTxt(name: string, text: string) {
 }
 
 // Job de la rutina automática Media Studio → Flow (server/flowDriver.mjs): el front lo arranca y lo sigue por polling.
-interface FlowJob { id: string; estado: string; paso: string; log: string[]; escenas: { escenaN: number; estado: string; fileRef: string | null }[]; error: string | null; flowProjectUrl: string | null; extension?: boolean; pestanas?: number }
+interface FlowJob { id: string; estado: string; paso: string; log: string[]; escenas: { escenaN: number; estado: string; fileRef: string | null; motivo?: string }[]; fallas?: string[]; error: string | null; flowProjectUrl: string | null; extension?: boolean; pestanas?: number }
 
 export default function PasoPack({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
   const [avisoCur, setAvisoCur] = useState('');
@@ -202,14 +202,14 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
             <div className={`pack-job pack-job--${job.estado}`}>
               <div className="pack-job-h">
                 <Clapperboard size={13} />
-                <b>{job.estado === 'listo' ? 'Clips de Flow bajados' : job.estado === 'error' ? 'La rutina se detuvo' : 'Generando en Flow…'}</b>
+                <b>{job.estado === 'listo' ? (job.fallas?.length ? 'Terminó, con partes que no salieron' : 'Clips de Flow bajados') : job.estado === 'error' ? 'La rutina se detuvo' : 'Generando en Flow…'}</b>
                 <span className="pack-job-paso">{job.paso}</span>
                 <button className="rodaje-var" onClick={() => setVerLog((v) => !v)}>{verLog ? 'ocultar detalle' : 'ver detalle'}</button>
               </div>
               {job.error && <div className="paso-error" style={{ marginTop: 6 }}>{job.error}</div>}
               {!!job.escenas.length && (
                 <div className="pack-job-escenas">
-                  {job.escenas.map((e) => <span key={e.escenaN} className={`tag ${e.estado === 'importada' ? 'pack-job-ok' : 'pack-job-run'}`}>Escena {e.escenaN} · {e.estado === 'importada' ? 'bajada' : e.estado}</span>)}
+                  {job.escenas.map((e) => <span key={e.escenaN} className={`tag ${e.estado === 'importada' ? 'pack-job-ok' : 'pack-job-run'}`} title={e.motivo || ''}>Escena {e.escenaN} · {e.estado === 'importada' ? 'bajada' : e.estado === 'falló' ? 'no salió (tocá Automatizar de nuevo)' : e.estado}</span>)}
                 </div>
               )}
               {job.estado === 'corriendo' && job.extension === false && (
