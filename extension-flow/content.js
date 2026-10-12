@@ -286,6 +286,24 @@
     // las URLs de los archivos de video de los clips de la grilla, del más nuevo al más viejo. Sin menú ni clicks: la
     // descarga la hace el background con chrome.downloads, esté o no la pestaña a la vista (2026-10-11: el menú de clic
     // derecho no apareció con la ventana de Flow al fondo y se cortó la rutina entera)
+    // el video del clip más nuevo de la grilla (el que acaba de terminar): se toma apenas termina cada escena, así la
+    // bajada no depende de la posición (un clip con error que desaparece al recargar corría el reparto, 2026-10-12)
+    async urlDelMasNuevo() {
+      const esVideo = (t) => /play_circle/.test(textoDe(t)) || !!t.querySelector('video');
+      const urlDe = (t) => { const v = t.querySelector('video'); if (!v) return ''; const src = v.currentSrc || v.src || (v.querySelector('source') || {}).src || ''; return /^https?:/.test(src) ? src : ''; };
+      const pasar = (t, tipos) => { for (const el of [t, ...t.querySelectorAll('*')].slice(0, 15)) for (const tipo of tipos) el.dispatchEvent(new MouseEvent(tipo, { bubbles: /over|out/.test(tipo), cancelable: true, view: window })); };
+      for (let i = 0; i < 10 && !q(SEL.tile).some(esVideo); i++) await espera(500);
+      const t = q(SEL.tile).find(esVideo);
+      if (!t) return { url: '' };
+      let u = urlDe(t);
+      if (!u) {
+        pasar(t, ['pointerover', 'pointerenter', 'mouseover', 'mouseenter']);
+        for (let i = 0; i < 15 && !(u = urlDe(t)); i++) await espera(300);
+        pasar(t, ['pointerout', 'pointerleave', 'mouseout', 'mouseleave']);
+      }
+      return { url: u || '', esElPrimero: q(SEL.tile)[0] === t };
+    },
+
     async urlsDeClips() {
       const esVideo = (t) => /play_circle/.test(textoDe(t)) || !!t.querySelector('video');
       const urlDe = (t) => { const v = t.querySelector('video'); if (!v) return ''; const src = v.currentSrc || v.src || (v.querySelector('source') || {}).src || ''; return /^https?:/.test(src) ? src : ''; };

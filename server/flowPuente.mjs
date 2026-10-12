@@ -128,6 +128,8 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       // 2026-10-12: un personaje que no se pudo crear no corta la rutina; sus escenas salen sin @ (el prompt lo describe)
       try {
         const prep = await pedirConReintentos(job, 'prepararPersonaje', { prompt: p.promptImagen }, 60000, 3, 5000, log);
+        // prueba real 12/10: el primer clic no disparaba en ningún personaje (el editor todavía estaba tomando el texto)
+        await new Promise((r) => setTimeout(r, 2500));
         await pedir(job, 'clickReal', { x: prep.x, y: prep.y }, 30000);
         let esp = await pedir(job, 'esperarPersonaje', { maxSeg: 240 }, 270000);
         if (!esp.arranco) {
@@ -188,7 +190,8 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
           if (!/antes de enviar|no apareció|no encontré/i.test(e.message) || intento === 3) throw e;
           log(`escena ${esc.escenaN}: ${e.message} · reintento ${intento} de 2${intento === 2 ? ' (el último va sin las menciones @)' : ''}`);
           await pedir(job, 'limpiar', {}, 30000).catch(() => {});
-          if (intento === 1) await new Promise((r) => setTimeout(r, 3000));
+          // una mención @ que no se completa no se arregla esperando: en la prueba real del 12/10 salió recién recargando
+          if (intento === 1 && !/mencionar/i.test(e.message)) await new Promise((r) => setTimeout(r, 3000));
           else { await pedir(job, 'recargar', {}, 90000).catch(() => {}); await pedir(job, 'apagarAgente').catch(() => {}); }
         }
       }
@@ -223,7 +226,12 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         e = await pedir(job, 'esperarGeneracion', { maxSeg: 300 }, 330000);
         if (e.conError) throw new Error('Flow devolvió error también al volver a generarlo');
       }
-      if (!e.terminado) log(`escena ${esc.escenaN}: sigue terminándose en Flow; la bajo al final si ya está`);
+      if (!e.terminado) { log(`escena ${esc.escenaN}: sigue terminándose en Flow; la bajo al final si ya está`); return; }
+      // el video de ESTA escena es el más nuevo de la grilla ahora: se guarda para bajarlo al final sin depender de posiciones
+      const u = await pedir(job, 'urlDelMasNuevo', {}, 60000).catch(() => ({ url: '' }));
+      const yaUsada = job.escenas.some((x) => x !== reg && x.url && x.url === u.url);
+      if (u.url && !yaUsada) reg.url = u.url;
+      else log(`escena ${esc.escenaN}: no pude tomar su video al terminar; al final lo busco por posición`);
     };
     // 1) GENERAR todas, una atrás de otra (Lucas, 2026-10-11: "primero generá todo y después hacé la descarga")
     for (const [i, esc] of escenas.entries()) {
@@ -275,7 +283,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       const k = clips.todos.length - 1 - r.pos;
       return k >= 0 ? (clips.todos[k] || '') : '';
     };
-    const enOrden = escenas.map((_, i) => { if (!salio(i)) return null; const p = porPosicion(i); return p !== undefined ? p : (clips.urls || [])[indices[i]]; });
+    const enOrden = escenas.map((_, i) => { if (!salio(i)) return null; if (job.escenas[i]?.url) return job.escenas[i].url; const p = porPosicion(i); return p !== undefined ? p : (clips.urls || [])[indices[i]]; });
     for (const [i, esc] of escenas.entries()) {
       const reg = job.escenas[i];
       if (!salio(i)) continue;

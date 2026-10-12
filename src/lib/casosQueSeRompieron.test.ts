@@ -42,14 +42,17 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
         const r = generar(n, intentos[n]);
         if (r === 'error-antes') throw new Error('[antes de enviar] no pude mencionar a @Ana: no apareció "Añadir a petición" en 15 s');
         const antes = grilla.tiles.length;
-        grilla.tiles.push(r === 'error-flow' ? '' : `https://clip/esc${n}`);
+        grilla.tiles.push(r === 'error-flow' ? 'ERR' : `https://clip/esc${n}`);
         ultimoResultado = r;
         return { disparado: true, antes, tiles: grilla.tiles.length };
       }
       // 'cargando': la rutina lo ve sin terminar, pero en Flow termina igual (el clip queda como video): el caso de la escena 1
       case 'esperarGeneracion': return ultimoResultado === 'error-flow' ? { seg: 30, terminado: false, conError: true } : ultimoResultado === 'cargando' ? { seg: 6, terminado: false, cargando: true } : { seg: 60, terminado: true };
+      // Flow saca de la grilla el clip con error al recargar la pestaña (prueba real del 12/10)
+      case 'recargar': grilla.tiles = grilla.tiles.filter((t) => t !== 'ERR'); return { ok: true };
+      case 'urlDelMasNuevo': { const v = [...grilla.tiles].reverse().find((t) => t.startsWith('https://')); return { url: v || '' }; }
       case 'urlsDeClips': {
-        const todos = [...grilla.tiles].reverse();
+        const todos = [...grilla.tiles].reverse().map((t) => (t.startsWith('https://') ? t : ''));
         return { total: todos.filter(Boolean).length, urls: todos.filter(Boolean), todos, totalTiles: todos.length };
       }
       case 'descargarUrl': bajadas.push([Number(/esc(\d+)-/.exec(String(p.args.nombre))![1]), String(p.args.url)]); return { filename: clip };
@@ -89,6 +92,12 @@ describe('rutina de Flow: los incidentes del 12/10', () => {
     expect(intentos[2]).toBe(1);
     expect(bajadas).toEqual([[1, 'https://clip/esc1'], [2, 'https://clip/esc2'], [3, 'https://clip/esc3']]);
     expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'importada', 'importada']);
+  }, 30000);
+
+  it('una escena que sale al segundo pedido se baja con su clip aunque el clip con error desaparezca al recargar (prueba real del 12/10)', async () => {
+    const { job, bajadas } = await correrRutina([1, 2, 3], (n, intento) => (n === 2 && intento === 1 ? 'error-flow' : 'ok'));
+    expect(job.escenas.map((e: { estado: string }) => e.estado)).toEqual(['importada', 'importada', 'importada']);
+    expect(bajadas).toEqual([[1, 'https://clip/esc1'], [2, 'https://clip/esc2'], [3, 'https://clip/esc3']]);
   }, 30000);
 });
 
