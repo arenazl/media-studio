@@ -58,7 +58,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
       const eleccion = Object.fromEntries(ELECCIONES.map((e) => [e.id, comercial?.[e.id] || e.def])) as Record<Eleccion, string>;
       const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, durationSec: 20, tipo, ...eleccion, cierreMarca: comercial?.cierreMarca || '', ...(mediaKit ? { mediaKit } : {}) };
-      const res = await runMolde('concept', project, piece, { perfil: 'campaña', ...eleccion }, undefined, comercial, provider);
+      const res = await runMolde('concept', project, piece, { perfil: comercial?.perfilCampana === 'solo-mockups' ? 'demo' : comercial?.perfilCampana || 'campaña', ...eleccion }, undefined, comercial, provider);
       setOpciones((res.conceptos as Concepto[]) || []);
       setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
@@ -111,7 +111,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   return (
     <PasoShell
       titulo="Concepto"
-      sub="La idea del comercial: 2-3 propuestas con tono y estética. Elegí una para seguir."
+      sub="Elegí qué historia querés contar y con qué clima. La IA propone tres ideas diferentes dentro del objetivo comercial de la pieza."
       hasContent={opciones.length > 0}
       busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
@@ -140,6 +140,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
         )}
       </div>
 
+      <p className="paso-sub" style={{ margin: '10px 0 8px' }}>Tipo de historia = estructura del relato (caso, producto, antes/después…). Clima = cómo se siente (cotidiano, sobrio, cálido…). Son independientes del objetivo comercial. El humor sólo entra si lo elegís.</p>
       {ELECCIONES.filter((e) => !e.soloHumor || conHumor).map((e) => {
         const opt = opcionesConcept.find((o) => o.id === e.id);
         const actual = comercial?.[e.id] || e.def;
