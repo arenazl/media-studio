@@ -84,7 +84,7 @@ function leerClave() {
   });
 }
 
-export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, ocupado = () => false, log = (m) => console.log('[media-studio] salesbot:', m) } = {}) {
+export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, ocupado = () => false, flowListo = () => true, log = (m) => console.log('[media-studio] salesbot:', m) } = {}) {
   if (process.env.SALESBOT_MEDIOS === '0') { log('integración apagada (SALESBOT_MEDIOS=0)'); return; }
   let clave = '';
   const api = async (ruta, opciones = {}) => {
@@ -108,9 +108,13 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
   const contestar = (id, cuerpo) => api(`/pedidos/${id}/resultado`, { method: 'POST', body: JSON.stringify(cuerpo) });
   const rechazar = async (pedido, motivo) => { await tomar(pedido.id); await contestar(pedido.id, { error: motivo }); estado.rechazados += 1; log(`pedido ${pedido.id}: ${motivo}`); };
   // fabrica y contesta; `hacer` devuelve el archivo o {error} con el motivo
+  const sinFlowAvisado = new Set();
   const fabricarYContestar = async (pedido, etiqueta, hacer) => {
     // Flow hace una cosa por vez en la pestaña de Lucas: si está ocupado (una pieza de la app), el pedido espera
     if (ocupado()) { log(`pedido ${pedido.id}: Flow está ocupado; lo tomo en la próxima vuelta`); return; }
+    // sin una pestaña de Flow abierta el pedido NO se toma: queda pendiente hasta que Lucas la abra (2026-10-13: el
+    // pedido 28 esperó 10 minutos tomado y se cerró con error justo antes de que se abriera la pestaña)
+    if (!flowListo()) { if (!sinFlowAvisado.has(pedido.id)) { sinFlowAvisado.add(pedido.id); log(`pedido ${pedido.id}: no hay una pestaña de Flow abierta; queda pendiente`); } return; }
     await tomar(pedido.id);
     estado.enCurso = pedido.id;
     try {

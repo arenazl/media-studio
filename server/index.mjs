@@ -1950,7 +1950,7 @@ ${src}`;
 server.listen(PORT, () => {
   console.log(`[media-studio] backend en http://localhost:${PORT} (${IS_PROD ? 'PROD/Gemini' : 'LOCAL/Claude'})`);
   // SalesBot: Media Studio consulta sus pedidos y fabrica los de sus personajes ficticios con Flow
-  if (!IS_PROD) iniciarSalesbotMedios({ fabricar: fabricarParaSalesbot, fabricarLibre: fabricarLibreParaSalesbot, personajeDe: personajeDeSalesbot, ocupado: () => puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando') });
+  if (!IS_PROD) iniciarSalesbotMedios({ fabricar: fabricarParaSalesbot, fabricarLibre: fabricarLibreParaSalesbot, personajeDe: personajeDeSalesbot, flowListo: () => { const e = puente.estadoPuente(); return e.extension && e.pestanas > 0; }, ocupado: () => puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando') });
   if (!IS_PROD) console.log(`[media-studio] videos dir: ${VIDEOS_DIR}`);
   if (CLD_CLOUD) console.log(`[media-studio] cloudinary: ${CLD_CLOUD}/${CLD_FOLDER}`);
   console.log(`[media-studio] sqlite: ${DB_PATH}`);
