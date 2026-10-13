@@ -144,6 +144,17 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
       if (!fabricarLibre) return;
       return fabricarYContestar(pedido, 'pedido libre', async () => fabricarLibre({ pedido, personaje: pedido.personalidad ? await personajeDe(pedido) : null, log, subir }));
     }
+    // la personalidad pide en la charla una foto suya que no tiene (SalesBot, 2026-10-12: "fue a andar a caballo y le
+    // piden la foto"): el mismo motor que los libres, siempre con ella en la foto y con su cara. Sin cara todavía, se
+    // contesta con el motivo: la primera foto la genera Lucas desde el panel. La foto va sola a esa charla.
+    if (libre && pedido.personalidad) {
+      if (!fabricarLibre) return;
+      return fabricarYContestar(pedido, 'pedido del bot', async () => {
+        const personaje = await personajeDe(pedido);
+        if (personaje.sinCara) return { error: `${personaje.nombre} todavía no tiene cara: la primera foto se la genera Lucas desde el panel.` };
+        return fabricarLibre({ pedido, personaje: { ...personaje, esElla: true }, log, subir });
+      });
+    }
     if (!pedido.personalidad) return rechazar(pedido, `Media Studio necesita la personalidad para saber a quién mostrar ("${pedido.proyecto || 'sin proyecto'}").`);
     if (!fabricar) { log(`pedido ${pedido.id}: todavía no hay cómo fabricarlo; queda pendiente`); return; }
     return fabricarYContestar(pedido, 'pedido', async () => fabricar({ pedido, personaje: await personajeDe(pedido), log, subir }));

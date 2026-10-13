@@ -576,7 +576,7 @@ async function mirarMedio(cuadro, loPedido) {
 }
 
 // Un pedido LIBRE de Lucas desde el panel de SalesBot (2026-10-12): Claude lo convierte en un pedido de Flow y Flow lo genera.
-const PEDIDO_LIBRE = (texto, kind, contextoPersona = '') => `Sos director de fotografía y prompt-writer de Google Flow (Veo 3). Lucas, el dueño, pidió este medio:
+const PEDIDO_LIBRE = (texto, kind, contextoPersona = '', quien = 'Lucas, el dueño,') => `Sos director de fotografía y prompt-writer de Google Flow (Veo 3). ${quien} pidió este medio:
 "${texto}"
 Tipo pedido: ${kind || 'video'}.
 ${contextoPersona}
@@ -595,11 +595,13 @@ El prompt:
 async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   // parado sobre una personalidad: si el pedido la muestra, va con su cara; si todavía no tiene, esta foto se la fija
   const contextoPersona = !personaje ? ''
+    : personaje.esElla ? `Es una foto de ${personaje.nombre}, un personaje ficticio, que la pidió en una charla: aparece en el medio, haciendo lo que dice el pedido, como una foto que se sacó o le sacaron. En el prompt llamalo exactamente ${personaje.flowNombre} (así el generador usa su cara) y describilo así: ${personaje.retratoEn}. "muestra" es true.
+`
     : personaje.sinCara ? `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio que todavía no tiene cara. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} y completá además "retratoEn": cómo se ve según el pedido (edad, pelo, rasgos, piel, contextura), en inglés, completando de forma común lo que el pedido no diga; esa va a ser su cara de ahí en adelante. Si el pedido es de otra cosa, no lo pongas y dejá "retratoEn" vacío.
 `
     : `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} (así el generador usa su cara) y describilo así: ${personaje.retratoEn}. La ropa y el lugar son los que diga el pedido. Si el pedido es de otra cosa, no lo pongas.
 `;
-  const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona), model: 'sonnet', functionId: 'flowpack' });
+  const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona, personaje?.esElla ? `${personaje.nombre}, en una charla,` : undefined), model: 'sonnet', functionId: 'flowpack' });
   const plan = extractJson(text);
   if (plan.rechazo) return { error: `No lo hago: ${plan.rechazo}` };
   const kind = plan.kind === 'imagen' || pedido.kind === 'imagen' ? 'imagen' : 'video';
@@ -610,7 +612,7 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   // si el pedido muestra a la personalidad, va su retrato como referencia en Flow (la misma cara en todas sus imágenes).
   // Sin cara todavía: el retrato sale de este pedido y, si la foto se entrega, queda como su cara.
   if (personaje?.sinCara && plan.muestra === true && String(plan.retratoEn || '').trim()) personaje = { ...personaje, retratoEn: String(plan.retratoEn).trim(), vestuarioEn: '', lugarEn: '' };
-  const conCara = !!personaje?.retratoEn && plan.muestra === true;
+  const conCara = !!personaje?.retratoEn && (plan.muestra === true || !!personaje.esElla);
   // en el pedido a Flow la persona va con su nombre de Flow (el de la referencia @), aunque el modelo haya puesto el de pila
   if (conCara && !new RegExp(`\\b${personaje.flowNombre}\\b`).test(prompt)) prompt = new RegExp(`\\b${personaje.nombre}\\b`).test(prompt) ? prompt.replace(new RegExp(`\\b${personaje.nombre}\\b`, 'g'), personaje.flowNombre) : prompt.replace(String(plan.prompt || '').trim(), `${personaje.flowNombre}: ${String(plan.prompt || '').trim()}`);
   const personajes = conCara ? [{ id: 'p1', nombre: personaje.flowNombre, promptImagen: promptImagen({ id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn }, { descripcionEn: personaje.lugarEn }) }] : [];
