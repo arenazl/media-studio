@@ -55,9 +55,9 @@ describe('recortes de aire', () => {
 });
 
 describe('acercamientos y transiciones', () => {
-  it('escala distinta por corte, lento en el remate, fijo en el cierre, y todo a corte seco', () => {
+  it('escala distinta por corte, lento en el remate, fijo en el cierre, y un asentamiento entre tomas (2026-10-13: antes corte seco)', () => {
     const out = afinarMontaje(planBase(), { palabrasPorToma: {} });
-    expect(out.scenes.map((s) => s.transition)).toEqual(['cut', 'cut', 'cut', 'cut']);
+    expect(out.scenes.map((s) => s.transition)).toEqual(['zoom', 'zoom', 'zoom', 'cut']);
     expect(out.scenes[0]).toMatchObject({ punchFrom: 1.0, punchTo: 1.03 });
     expect(out.scenes[1]).toMatchObject({ punchFrom: 1.06, punchTo: 1.06 });
     expect(out.scenes[2]).toMatchObject({ punchFrom: 1.0, punchTo: 1.12 });

@@ -524,7 +524,7 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
       <div className="vs-music-vol">
         <div className="vs-music-vol-row"><span className="vs-music-vol-label">Volumen</span><span className="vs-music-vol-val">{Math.round(musicVol * 100)}%</span></div>
         <input type="range" min={0} max={1} step={0.05} value={musicVol} onChange={(e) => { const v = Number(e.target.value); setMusicVol(v); const m = musicRef.current; if (m) m.volume = v; }} className="vs-range-cyan" />
-        <div className="vs-music-vol-hint">baja sola mientras suena la voz · Kevin MacLeod · incompetech.com (CC-BY)</div>
+        <div className="vs-music-vol-hint">baja sola mientras suena la voz · canciones compuestas para Media Studio, por estilo</div>
       </div>
       <button onClick={stopMusic} title="Silenciar música (escuchar solo la voz)" className="vs-track vs-silence"><VolumeX size={11} /> Silencio</button>
     </>

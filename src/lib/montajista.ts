@@ -347,11 +347,12 @@ export function afinarMontaje(plan: MontajePlan, insumos: InsumosMontajista): Mo
     const afuera = mockups.filter((m) => !usados.has(m.fileRef)).map((m) => m.nombre);
     if (afuera.length) avisos.push(`${afuera.length} mockups no entraron sin tapar la cara de la persona: ${afuera.join(', ')}. Están en la biblioteca del editor para sumarlos a mano.`);
   }
-  // transiciones: corte seco entre tomas filmadas (es un relato a cámara); disolvencia cuando cambia el material
-  // (de la persona a la pantalla de la app y de vuelta). La placa entra con su propio fundido.
+  // transiciones (Lucas, 2026-10-13: "con una mínima transición ya cambia el tema"): entre tomas de la persona, un
+  // asentamiento corto (fundido con un zoom que se asienta, 0,4 s) en vez del corte seco; disolvencia cuando cambia el
+  // material (de la persona a la pantalla de la app y de vuelta). La placa entra con su propio fundido.
   const scenes: MontajeScene[] = recortadas.map((s, i) => ({
     ...s,
-    transition: i < recortadas.length - 1 && esMockup(s) !== esMockup(recortadas[i + 1]) ? 'crossfade' : 'cut',
+    transition: i === recortadas.length - 1 ? 'cut' : esMockup(s) !== esMockup(recortadas[i + 1]) ? 'crossfade' : 'zoom',
     ...(esMockup(s) ? { punchFrom: 1, punchTo: 1 } : escalas(i, s, recortadas)),
     inserts: insertos[i].length ? insertos[i] : undefined,
   }));

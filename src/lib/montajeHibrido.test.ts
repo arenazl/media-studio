@@ -47,9 +47,9 @@ describe('híbrido: todo el material, sin huecos', () => {
     expect(out.scenes[0].inserts).toBeUndefined();
     expect(out.scenes.flatMap((s) => s.inserts || []).length).toBeGreaterThanOrEqual(2);
   });
-  it('disolvencia cuando cambia el material, corte entre tomas del mismo material', () => {
+  it('disolvencia cuando cambia el material, asentamiento entre tomas del mismo material (2026-10-13: antes corte seco)', () => {
     const tr = out.scenes.map((s) => s.transition);
-    expect(tr[0]).toBe('cut');          // f1 → f2
+    expect(tr[0]).toBe('zoom');         // f1 → f2: asentamiento con fundido, no corte seco
     expect(tr[1]).toBe('crossfade');    // f2 → mk0
     expect(tr[2]).toBe('crossfade');    // mk0 → f4
   });
