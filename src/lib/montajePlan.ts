@@ -105,10 +105,9 @@ export function gananciaDePista(plan: Pick<MontajePlan, 'mezcla'>, pista: PistaA
 
 // base: el armado del montajista; variante: la versión elegida en el paso Montaje (variantesMontaje.ts), que se aplica sobre la base
 // armadoCon: con qué material se armó (tomas y mockups): si llega material nuevo, el montaje automático se rearma solo
-export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[]; base?: MontajePlan; variante?: string; armadoCon?: string }
+export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[]; base?: MontajePlan; variante?: string; armadoCon?: string; direccion?: { diagnostico: string; aplicadas: Array<{ recurso: string; escenaN: number; cuando: string; durSec: number; motivo: string }>; rechazadas: string[]; anterior: MontajePlan } }
 
 export const DUCK_GAIN = 0.4;              // igual que el preview (montageAudio.ts)
-const SILENCE_ANTES_GAG = 0.8;            // el "toque final" del workflow de referencia
 export const MUSIC_GAIN = 0.28;
 const CUT_DUR = 0.03;                      // "corte" = xfade mínimo (uniforma la cadena xfade)
 const XFADE_DUR = 0.4;
@@ -197,7 +196,6 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
       screen: e.screen,
     };
   });
-  const gag = escenas.find((e) => e.rol === 'gag');
   // En versiones nuevas la pausa de música la decide el director, no cualquier escena llamada gag.
   // Mantener el lector de silencios antiguos para los planes ya persistidos.
   const silences: MontajePlan['silences'] = [];
