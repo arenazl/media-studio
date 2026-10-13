@@ -689,6 +689,12 @@ la voz expresa la consecuencia humana.
 No describir acciones sobre pantallas como si tuvieran
 que ser generadas por un modelo de video.
 
+INTENCIÓN PARA EL MONTAJE (no es una orden de efectos):
+Si el sentido de una escena depende de una MIRADA, REACCIÓN o RESPIRO, mencioná esa intención en "visual" de forma breve.
+El director de montaje puede decidir si conviene sostener imagen, cortar la música, continuar la voz sobre otra escena o no intervenir.
+No inventes una pausa en cada "giro"; las pausas cómicas NO son obligatorias aunque la pieza sea graciosa.
+No pongas instrucciones técnicas de edición ni nombres de efectos en "narration": el guion define acciones y palabras, no keyframes.
+
 TIEMPO
 Los bloques indican tiempo de montaje, no duración
 obligatoria de los clips de generación.
