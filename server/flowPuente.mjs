@@ -72,6 +72,19 @@ async function pedirConReintentos(job, accion, args, timeoutMs, intentos = 3, pa
 const CARA_COMUN = 'An ordinary, everyday face that does not resemble any celebrity, actor or public figure: natural asymmetry, plain features, real-life imperfections.';
 const slug = (s) => (String(s || '').trim().split(/\s+/)[0] || 'Personaje').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '').slice(0, 24) || 'Personaje';
 
+// Una CONSULTA a la pestaña de Flow, sin generar nada (2026-10-13: ver qué personajes tiene el proyecto de la modelo de
+// Munify). Corre como un trabajo más, así nadie más usa la pestaña mientras tanto. pasos = [{ accion, args, timeoutMs }]
+export async function consultar(flowProjectUrl, pasos) {
+  const id = `consulta-${Date.now()}`;
+  const job = { id, estado: 'corriendo', paso: 'consulta', log: [], escenas: [], fallas: [], error: null, flowProjectUrl, inicio: Date.now(), fin: null };
+  jobs.set(id, job);
+  const salida = [];
+  try {
+    for (const p of pasos) salida.push({ accion: p.accion, data: await pedir(job, p.accion, p.args || {}, p.timeoutMs || 90000).catch((e) => ({ error: e.message })) });
+    return salida;
+  } finally { job.estado = 'listo'; job.fin = Date.now(); }
+}
+
 export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, retomar = true, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip }) {
   const id = `flow-${Date.now()}`;
   // soloDescargar: el clip ya está generado en Flow (una corrida anterior se cortó después de generar); se baja sin volver a gastar créditos

@@ -1889,6 +1889,13 @@ ${src}`;
       return json(res, 200, { ok: true });
     }
     if (p === '/api/flow/puente/estado' && req.method === 'GET') return json(res, 200, puente.estadoPuente());
+    // una consulta a la pestaña de Flow sin generar nada: body = { url, pasos: [{ accion, args, timeoutMs }] }
+    if (p === '/api/flow/puente/consultar' && req.method === 'POST') {
+      const b = JSON.parse((await readBody(req)) || '{}');
+      if (puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando')) return json(res, 409, { error: 'Flow está ocupado con otro trabajo' });
+      try { return json(res, 200, { pasos: await puente.consultar(b.url || null, Array.isArray(b.pasos) ? b.pasos : []) }); }
+      catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo consultar' }); }
+    }
     if (p === '/api/flow/puente/comando' && req.method === 'GET') return json(res, 200, { paso: puente.proximoComando({ origen: url.searchParams.get('origen') || '', version: url.searchParams.get('v') || '', pestanas: url.searchParams.has('pestanas') ? Number(url.searchParams.get('pestanas')) : undefined }) });
     if (p === '/api/flow/puente/resultado' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
