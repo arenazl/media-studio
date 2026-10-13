@@ -30,7 +30,7 @@ describe('presupuesto de palabras (Regla 5)', () => {
     expect(prompt).toContain('PRESUPUESTO HABLADO (contá palabras):\n- hook: 3s, máximo 8 palabras');
     expect(prompt).toContain('Total: 20s, máximo 52 palabras');
     expect(prompt).not.toContain('SÉ MUY CONCISO');
-    expect(promptVersion).toBe('script/3.9');
+    expect(promptVersion).toBe('script/3.10');
   });
   it('el storyboard filmado acota el diálogo por segundo y el total', () => {
     const { prompt } = buildFunctionPrompt({ functionId: 'storyboard', context: { project: { name: 'X' }, piece: { tipo: 'filmado', durationSec: 20, guion: { blocks: [] } } }, options: {} });
