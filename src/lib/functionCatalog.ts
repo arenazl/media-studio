@@ -85,6 +85,15 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
 
   // ── NIVEL PIEZA ──────────────────────────────────────────────────────────────
   {
+    id: 'montageDirection',
+    label: 'Director de montaje',
+    icon: 'Clapperboard',
+    level: 'piece',
+    description: 'Sugiere pausas de música, cortes y efectos según escenas reales del comercial; no inventa material.',
+    taskClass: 'creativo',
+    options: [],
+  },
+  {
     id: 'script',
     label: 'Guion',
     icon: 'FileText',
