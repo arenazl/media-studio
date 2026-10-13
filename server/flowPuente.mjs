@@ -372,7 +372,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       const toma = await guardarClip(buffer, `esc${esc.escenaN}-${path.basename(info.filename, path.extname(info.filename))}.mp4`);
       // la red (2026-10-12): el clip tiene que decir la frase de su escena. Si no la dice, no entra a la pieza (un clip ajeno
       // o una frase inventada por Flow) y queda para volver a generar.
-      const dialogo = String(sb[esc.escenaN]?.dialogo || '').trim();
+      const dialogo = String(sb[esc.escenaN]?.dialogo || esc.dialogo || '').trim();   // esc.dialogo: la presentadora del cierre
       if (verificarClip && dialogo) {
         const v = await verificarClip(toma.fileRef, dialogo).catch((e) => ({ error: e instanceof Error ? e.message : String(e) }));
         if (v.error) log(`escena ${esc.escenaN}: no pude verificar la frase (${v.error}); entra igual, revisala`);

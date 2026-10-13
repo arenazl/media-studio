@@ -1159,7 +1159,13 @@ Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "accionEn": 
       if (!storyboard.length) throw new Error('el pack necesita un storyboard con escenas');
       const traducciones = parseTraduccion(text);
       const aspecto = piece.formato ? (piece.formato.aspecto || '9:16') : '9:16';
-      const pack = compileFlowPack({ storyboard, cast: piece.cast, phonetic: project.phonetic || project.name || '', traducciones, aspecto });
+      // la presentadora del cierre va con los demás clips (no en las animadas): dice la frase del locutor si ya hay una, si
+      // no la firma de la marca, si no la marca y el cierre del guion
+      const ctaGuion = ((piece.guion && piece.guion.blocks) || []).find((b) => b.role === 'cta');
+      const marca = (project.marcaKit && project.marcaKit.nombreExacto) || project.name || '';
+      const frase = (piece.cierre && piece.cierre.locutor && piece.cierre.locutor.texto) || piece.cierreMarca || [marca && `${marca}.`, ctaGuion && ctaGuion.narration].filter(Boolean).join(' ');
+      const presentadora = piece.tipo !== 'animado' && String(frase || '').trim() ? { frase } : null;
+      const pack = compileFlowPack({ storyboard, cast: piece.cast, phonetic: project.phonetic || project.name || '', traducciones, aspecto, presentadora });
       if (pack.huecos.length) console.warn(`[media-studio] flowpack: ${pack.huecos.length} escena(s) con la acción sin traducir (quedó en español): ${pack.huecos.join(', ')}`);
       return { estilo: pack.estilo, personajes: pack.personajes, escenas: pack.escenas, huecos: pack.huecos, version: pack.version };
     },

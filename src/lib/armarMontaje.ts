@@ -35,6 +35,11 @@ export const materialDe = (comercial: Comercial): string => [
   comercial.renderRef || '',
 ].filter(Boolean).sort().join('|');
 
+// el clip de la PRESENTADORA del cierre: Flow lo genera junto con las demás escenas, como la escena 90 (flowCompiler.mjs,
+// ESCENA_PRESENTADORA). El cierre "Presentadora" lo usa si no se eligió otro video a mano.
+export const ESCENA_PRESENTADORA = 90;
+export const tomaPresentadora = (comercial: Comercial) => [...(comercial.rodaje || [])].reverse().find((t) => t.escenaN === ESCENA_PRESENTADORA);
+
 // los mockups de la pieza, como los usan el montajista y las versiones
 export const mockupsDe = (comercial: Comercial) => (comercial.mockups || []).map((m) => ({ nombre: m.nombre, fileRef: m.fileRef, durSec: m.durSec }));
 
@@ -84,7 +89,12 @@ async function armarSinMusica(project: Project, comercial: Comercial): Promise<M
   const mkCierre = elegido?.tipo === 'pantalla'
     ? (mockups.find((m) => m.fileRef === elegido.mockup) || mockups.find((m) => ultimaPantalla && m.nombre === ultimaPantalla) || mockups[mockups.length - 1])
     : undefined;
-  const cierre = elegido ? { tipo: elegido.tipo, videoRef: elegido.tipo === 'pantalla' ? mkCierre?.fileRef : elegido.video, videoDurSec: mkCierre?.durSec } : undefined;
+  const presentadora = tomaPresentadora(comercial);
+  const cierre = elegido
+    ? elegido.tipo === 'pantalla'
+      ? { tipo: elegido.tipo, videoRef: mkCierre?.fileRef, videoDurSec: mkCierre?.durSec }
+      : { tipo: elegido.tipo, videoRef: elegido.video || presentadora?.fileRef, videoDurSec: elegido.video ? undefined : presentadora?.durSec }
+    : undefined;
   // la placa va sobre fondo oscuro: el logo para fondo oscuro del kit (en PNG, que trae la tipografía real)
   const kitId = (project as { mediaKitId?: string }).mediaKitId;
   const raster = (project.marcaKit as { logo?: { paraFondoOscuroRaster?: string } } | undefined)?.logo?.paraFondoOscuroRaster;

@@ -9,7 +9,7 @@ import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { mediaKitParaMolde } from '../lib/mediaKit';
 import { totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
-import { armarBase, materialDe, mockupsDe } from '../lib/armarMontaje';
+import { armarBase, materialDe, mockupsDe, tomaPresentadora } from '../lib/armarMontaje';
 import { aplicarVariante, variantesDisponibles } from '../lib/variantesMontaje';
 
 // La vista previa exacta (Player de Remotion) se carga sólo cuando hay un plan v2: no entra al bundle inicial.
@@ -277,13 +277,14 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
         <div className="paso-head-actions">
           {/* el cierre (2026-10-12): placa grande, la pantalla clave de la app o la presentadora (su clip sale de "Generar pieza") */}
           <div className="veo-chips" title="Cómo termina el comercial">
-            {([['logo', 'Placa grande'], ['pantalla', 'Pantalla de la app'], ['presentadora', 'Presentadora']] as const).map(([tipo, label]) => {
+            {/* nombres que se entienden solos (Lucas, 2026-10-13: "vi los botones, no los entiendo") */}
+            {([['logo', 'Final: logo y frase'], ['pantalla', 'Final: pantalla de la app'], ['presentadora', 'Final: presentadora']] as const).map(([tipo, label]) => {
               const actual = comercial?.cierre?.tipo || 'logo';
-              const sinVideo = tipo === 'presentadora' && !comercial?.cierre?.video;
+              const sinVideo = tipo === 'presentadora' && !comercial?.cierre?.video && !(comercial && tomaPresentadora(comercial));
               const sinMockups = tipo === 'pantalla' && !(comercial?.mockups || []).length;
               return (
                 <button key={tipo} type="button" className={actual === tipo ? 'veo-chip veo-chip--on' : 'veo-chip'} disabled={armando || rendering || sinVideo || sinMockups}
-                  title={sinVideo ? 'La presentadora se genera desde "Generar pieza" en el multipista' : sinMockups ? 'Esta pieza todavía no tiene mockups' : `Cerrar con ${label.toLowerCase()}`}
+                  title={sinVideo ? 'La presentadora sale de Flow junto con las demás escenas: generá el pack de nuevo para tenerla' : sinMockups ? 'Esta pieza todavía no tiene mockups' : `Cerrar con ${label.toLowerCase()}`}
                   onClick={() => { if (!comercial) return; const c1 = { ...comercial, cierre: { ...(comercial.cierre || {}), tipo } }; setComercial((c) => ({ ...c, cierre: { ...(c.cierre || {}), tipo } })); void armar(c1); }}>
                   {label}
                 </button>

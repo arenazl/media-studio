@@ -155,9 +155,26 @@ export function promptEscena(e, { cast, lugar, phonetic, accionEn, aspecto = '9:
   return L.join(' ').replace(/\.\./g, '.').replace(/\s+/g, ' ').trim();
 }
 
+// La PRESENTADORA del cierre (2026-10-13, Lucas: "metela junto con los demás clips; vos tenés que preparar el prompt"): una
+// escena más del pack que dice la frase de cierre a cámara. Es el personaje "Presentadora" del proyecto de Flow (la modelo
+// que Lucas carga ahí con ese nombre); si no existe, Flow la crea desde este retrato. El montaje la usa en el cierre
+// "Presentadora".
+export const ESCENA_PRESENTADORA = 90;
+export const PRESENTADORA = { id: 'presentadora', nombre: 'Presentadora', fisicoEn: 'a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face', vestuarioEn: 'smart casual clothes' };
+export function promptPresentadora(frase, aspecto = '9:16') {
+  return [
+    estiloPara(aspecto),
+    'Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background.',
+    `She looks straight into the camera, smiles and ${VEO_REGLAS_EN.dice} '${S(frase)}'`,
+    `Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. ${VEO_REGLAS_EN.despues}`,
+    'Medium close-up, chest up, eye level, static camera with a very subtle slow push-in.',
+    VEO_REGLAS_EN.logoLibre, VEO_REGLAS_EN.sinInterfaz, `${VEO_REGLAS_EN.sinTexto} ${VEO_REGLAS_EN.sinSubtitulos}`,
+  ].join(' ').replace(/\s+/g, ' ').trim();
+}
+
 // El pack entero, sin IA. `traducciones` = { [n]: accionEn } (lo que devolvió el paso de traducción,
 // puede venir vacío). Devuelve también `huecos`: escenas cuya acción quedó en español.
-export function compileFlowPack({ storyboard = [], cast, phonetic = '', traducciones = {}, aspecto = '9:16' } = {}) {
+export function compileFlowPack({ storyboard = [], cast, phonetic = '', traducciones = {}, aspecto = '9:16', presentadora = null } = {}) {
   const lugar = cast?.lugar;
   const personajes = (cast?.personajes || []).map((p) => ({ id: p.id, nombre: S(p.nombre) || p.id, promptImagen: promptImagen(p, lugar) }));
   const huecos = [];
@@ -172,6 +189,11 @@ export function compileFlowPack({ storyboard = [], cast, phonetic = '', traducci
     if (accionEn == null && S(e.accion) && !S(e.accionEn)) huecos.push(n);
     return { escenaN: n, rol: S(e.rol) || 'desarrollo', prompt: promptEscena(e, { cast, lugar, phonetic, accionEn, aspecto }), estado: 'pendiente' };
   });
+  // la presentadora del cierre, al final del pack (con su frase, que también se verifica al bajar el clip)
+  if (S(presentadora?.frase)) {
+    personajes.push({ id: PRESENTADORA.id, nombre: PRESENTADORA.nombre, promptImagen: promptImagen(PRESENTADORA, null) });
+    escenas.push({ escenaN: ESCENA_PRESENTADORA, rol: 'cierre', prompt: promptPresentadora(presentadora.frase, aspecto), dialogo: S(presentadora.frase), estado: 'pendiente' });
+  }
   return { estilo: estiloPara(aspecto), personajes, escenas, huecos, version: FLOW_COMPILER_VERSION };
 }
 

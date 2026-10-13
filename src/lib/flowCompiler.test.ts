@@ -153,15 +153,28 @@ describe('molde flowpack en functions.mjs — compilado', () => {
   });
   it('parse arma el pack con las traducciones del modelo', () => {
     const out = parseFunctionResult('flowpack', '1| A\n2| B\n3| C\n4| D', body);
-    expect(out.escenas).toHaveLength(4);
+    expect(out.escenas.filter((e: { escenaN: number }) => e.escenaN !== 90)).toHaveLength(4);
     expect(out.escenas[0].prompt).toContain(' A. ');
     expect(out.huecos).toEqual([]);
     expect(out.version).toBe('flowpack/3.2-compilado');
   });
   it('parse con texto inútil: el pack sale igual y los huecos quedan marcados (nunca falla en silencio)', () => {
     const out = parseFunctionResult('flowpack', 'no entendí', body);
-    expect(out.escenas).toHaveLength(4);
+    expect(out.escenas.filter((e: { escenaN: number }) => e.escenaN !== 90)).toHaveLength(4);
     expect(out.huecos).toEqual([1, 2, 3, 4]);
+  });
+  // 2026-10-13 (Lucas: "metela junto con los demás clips"): la presentadora del cierre va al final del pack, con su frase
+  it('la presentadora del cierre va al final del pack, dice la frase de la marca y es un personaje más', () => {
+    const conFirma = { ...body, context: { ...body.context, piece: { ...body.context.piece, cierreMarca: 'Munify, para vos.' } } };
+    const out = parseFunctionResult('flowpack', '1| A\n2| B\n3| C\n4| D', conFirma);
+    const ultima = out.escenas[out.escenas.length - 1];
+    expect(ultima.escenaN).toBe(90);
+    expect(ultima.dialogo).toBe('Munify, para vos.');
+    expect(ultima.prompt).toContain("'Munify, para vos.'");
+    expect(out.personajes.map((p: { nombre: string }) => p.nombre)).toContain('Presentadora');
+    // en una pieza animada no hay presentadora
+    const animada = { ...conFirma, context: { ...conFirma.context, piece: { ...conFirma.context.piece, tipo: 'animado' } } };
+    expect(parseFunctionResult('flowpack', '', animada).escenas.some((e: { escenaN: number }) => e.escenaN === 90)).toBe(false);
   });
   it('sin storyboard falla fuerte', () => {
     expect(() => parseFunctionResult('flowpack', '', { ...body, context: { project: {}, piece: {} } })).toThrow(/storyboard/);
