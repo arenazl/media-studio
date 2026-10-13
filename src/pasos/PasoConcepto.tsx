@@ -5,7 +5,7 @@ import { KitTira } from '../components/KitCapturas';
 import { mediaKitParaMolde } from '../lib/mediaKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
-import { pasoHabilitado, type Concepto, type TipoComercial } from '../lib/comercial';
+import { pasoHabilitado, type Comercial, type Concepto, type TipoComercial } from '../lib/comercial';
 import { getFunction } from '../lib/functionCatalog';
 import { ENFOQUES_EXPLICADOS, TRATAMIENTOS_EXPLICADOS } from '../lib/guiaCampana';
 
@@ -17,6 +17,30 @@ const ELECCIONES: { id: Eleccion; label: string; def: string; soloHumor?: boolea
   { id: 'intensidadHumor', label: 'Intensidad del humor', def: 'sutil', soloHumor: true },
   { id: 'recursoHumorId', label: 'Mecanismo de humor', def: 'auto', soloHumor: true },
 ];
+
+// Al cambiar la dirección hay que cortar la dependencia: dejar artefactos viejos marcados
+// "pendientes" pero todavía presentes permite que el paso siguiente use una historia anterior.
+function invalidarDesdeConcepto(c: Comercial): Comercial {
+  const estados = { ...c.estados };
+  for (const id of ['concepto','guion','cast','storyboard','pack','render','rodaje','montaje','publicar'] as const) {
+    estados[id] = 'pendiente';
+  }
+  return {
+    ...c, concepto: undefined, guion: undefined, cast: undefined, storyboard: undefined,
+    packFlow: undefined, renderRef: undefined, renderDurSec: undefined,
+    mockups: undefined, rodaje: undefined, montaje: undefined, qa: undefined,
+    estados,
+  };
+}
+
+function confirmarCambioDeHistoria(c?: Comercial): boolean {
+  const tieneTrabajo = !!(c?.guion || c?.cast || c?.storyboard?.length || c?.packFlow ||
+    c?.mockups?.length || c?.rodaje?.length || c?.montaje || c?.renderRef);
+  return !tieneTrabajo || window.confirm(
+    'Cambiar de concepto o enfoque descarta el guion, storyboard, clips vinculados y montaje de ESTA pieza. ' +
+    'Los archivos originales del proyecto no se borran. ¿Continuar?'
+  );
+}
 
 export default function PasoConcepto({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
@@ -54,6 +78,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   }, []);
 
   const generar = async (provider?: 'claude' | 'gemini') => {
+    if (comercial?.concepto && !confirmarCambioDeHistoria(comercial)) return;
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
@@ -61,7 +86,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       const piece = { angulo: comercial?.angulo || comercial?.titulo || '', creativeBrief: comercial?.creativeBrief || '', messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, durationSec: 20, tipo, ...eleccion, cierreMarca: comercial?.cierreMarca || '', ...(mediaKit ? { mediaKit } : {}) };
       const res = await runMolde('concept', project, piece, { perfil: 'campaña', ...eleccion }, undefined, comercial, provider);
       setOpciones((res.conceptos as Concepto[]) || []);
-      setComercial((c) => ({ ...c, estados: { ...c.estados, concepto: c.estados.concepto === 'aprobado' ? 'aprobado' : 'generado' } }));
+      setComercial((c) => { const limpio = c.concepto ? invalidarDesdeConcepto(c) : c; return { ...limpio, estados: { ...limpio.estados, concepto: 'generado' } }; });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
 
@@ -70,39 +95,42 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   const [editando, setEditando] = useState<Concepto | null>(null);
   const guardarEdicion = () => {
     if (!editando) return;
+    if (elegido?.id === editando.id && !confirmarCambioDeHistoria(comercial)) return;
     const editado: Concepto = { ...editando, editadoAMano: true };
     setOpciones((os) => os.map((o) => (o.id === editado.id ? editado : o)));
     if (elegido?.id === editado.id) {
-      setComercial((c) => ({ ...c, concepto: editado, estados: { ...c.estados, concepto: 'editado' } }));
-      if (comercial?.guion) setAviso('Retocaste el concepto elegido: el guion y lo que sigue se armaron con la versión anterior. Si el cambio importa para la historia, regeneralos.');
+      setComercial((c) => {
+        const limpio = invalidarDesdeConcepto(c);
+        return { ...limpio, concepto: editado, estados: { ...limpio.estados, concepto: 'editado' } };
+      });
+      setAviso('Se actualizaron las dependencias de la pieza. Guion y montaje deberán generarse desde este nuevo concepto.');
     }
     setEditando(null);
   };
-  const elegir = (cpt: Concepto) =>
-    setComercial((c) => ({ ...c, concepto: cpt, estados: { ...c.estados, concepto: 'editado' } }));
-
-  const setTipo = (t: TipoComercial) => {
-    if (t === tipo) return;
-    setComercial((c) => ({ ...c, tipo: t }));
-    setOpciones([]);   // las propuestas eran para la otra técnica: se vuelven a pedir
+  const elegir = (cpt: Concepto) => {
+    if (elegido?.id === cpt.id && elegido.idea === cpt.idea) return;
+    if (!confirmarCambioDeHistoria(comercial)) return;
+    setComercial((c) => {
+      const limpio = invalidarDesdeConcepto(c);
+      return { ...limpio, concepto: cpt, estados: { ...limpio.estados, concepto: 'editado' } };
+    });
   };
 
-  // cambiar enfoque o tratamiento invalida las propuestas (eran para otra forma de contar) y también el concepto ya
-  // elegido y lo que se construyó encima: el guion, el cast, el storyboard y el pack quedan "pendiente" (los textos no
-  // se borran, pero el pipeline exige regenerarlos). Revisión externa 2026-10-10: si no, se producía un comercial con el
-  // enfoque anterior.
+  const setTipo = (t: TipoComercial) => {
+    if (t === tipo || !confirmarCambioDeHistoria(comercial)) return;
+    setComercial((c) => ({ ...invalidarDesdeConcepto(c), tipo: t }));
+    setOpciones([]);
+  };
+
+  // Enfoque y tratamiento son decisiones del concepto. Si cambian, todos los derivados se invalidan.
   const [aviso, setAviso] = useState('');
   const elegirOpcion = (k: Eleccion, v: string) => {
     if ((comercial?.[k] || ELECCIONES.find((e) => e.id === k)?.def) === v) return;
-    const habiaConcepto = !!comercial?.concepto;
-    setComercial((c) => {
-      const estados = { ...c.estados };
-      if (habiaConcepto) for (const p of ['concepto', 'guion', 'cast', 'storyboard', 'pack'] as const) if (p in estados) estados[p] = 'pendiente';
-      return { ...c, [k]: v, ...(habiaConcepto ? { concepto: undefined, estados } : {}) };
-    });
+    if (!confirmarCambioDeHistoria(comercial)) return;
+    setComercial((c) => ({ ...invalidarDesdeConcepto(c), [k]: v }));
     setOpciones([]);
     setPreviewCptId(null);
-    if (habiaConcepto) setAviso('Cambiaste cómo se cuenta la pieza: el concepto elegido y lo que seguía (guion, cast, storyboard, pack) se hicieron con la elección anterior. Pedí propuestas nuevas y regeneralos.');
+    setAviso('Cambiaste la dirección de la historia: pedí conceptos nuevos antes de continuar.');
   };
   const conHumor = (comercial?.enfoque || 'caso') === 'humor' || (comercial?.tratamiento || 'natural') === 'humor';
   const opcionesConcept = getFunction('concept')?.options || [];
