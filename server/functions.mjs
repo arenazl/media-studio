@@ -14,6 +14,8 @@ import { buildConceptPromptV3, CATALOGO_CONCEPTO_V3 } from './media-studio-conce
 import fs from 'node:fs';
 import path from 'node:path';
 
+const PATRONES_MONTAJE = JSON.parse(fs.readFileSync(new URL('./montaje-patrones.json', import.meta.url), 'utf8'));
+
 // la modelo de Lucas como presentadora del cierre (server/presentadora.json): su proyecto de Flow y su nombre ahí
 function leerPresentadora() {
   try { const j = JSON.parse(fs.readFileSync(path.resolve('server/presentadora.json'), 'utf8')); return { flowProjectUrl: String(j.flowProjectUrl || '').trim(), nombre: String(j.nombre || '').trim() }; } catch { return { flowProjectUrl: '', nombre: '' }; }
@@ -400,6 +402,8 @@ const RUNNERS = {
       if (!escenas.length) throw new Error('Director de montaje: todavía no hay escenas.');
       const tieneMusica = !!piece.tieneMusica;
       const tieneSfx = !!piece.tieneSfx;
+      const patrones = PATRONES_MONTAJE.patrones.filter((p) =>
+        p.aplica?.enfoques?.includes(piece.enfoque) || p.aplica?.tratamientos?.includes(piece.tratamiento));
       return { prompt: `ROL: Director/a de montaje publicitario y mezclador/a de sonido. Recibís un spot YA FILMADO/COMPUESTO. Proponé decisiones precisas para el montaje INICIAL, sin modificar el guion ni inventar tomas. La creatividad es elegir muy pocos momentos significativos, NO aplicar todos los efectos.
 
 OBJETIVO: ${piece.objetivo || 'comunicar el beneficio de la marca'}
@@ -416,6 +420,9 @@ MÚSICA DISPONIBLE: ${tieneMusica ? 'sí' : 'NO: no propongas music_*'}
 SFX DISPONIBLES: ${tieneSfx ? 'sí' : 'NO: no propongas sfx_off'}
 ESCENAS DISPONIBLES (material real; sólo estos números):
 ${JSON.stringify(escenas)}
+
+PATRONES EDITORIALES PERTINENTES (heurísticas, NO escenas ni pausas obligatorias):
+${JSON.stringify(patrones.length ? patrones : PATRONES_MONTAJE.patrones.slice(0, 1))}
 
 GRAMÁTICA DE RECURSOS REALES:
 - music_drop: cortar la música brevemente para una revelación, reacción o remate. NO corta las voces.
