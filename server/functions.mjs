@@ -667,6 +667,11 @@ CADA BLOQUE:
 - visual: una sola frase breve con lo que se VE; tiene que apoyar esa narración, no repetirla.
 ${bloqueVisualFilmado ? `${bloqueVisualFilmado}\n` : ''}- durSec: duración del bloque.
 
+ENTREGA AL DIRECTOR DE MONTAJE (sin editar todavía):
+- Si una reacción, mirada, gesto o revelación importa, describí QUÉ se ve en "visual". No ordenes un silencio musical, whoosh o fundido: eso se decide con el clip real después del rodaje.
+- "music.mood" es el CLIMA de música buscado, no volúmenes ni cortes: la mezcla se resuelve en Montaje.
+- En un spot sin humor no inventes un remate gracioso. El "giro" muestra el beneficio y no obliga a cortar la música.
+
 PRINCIPIO DE GUION PUBLICITARIO
 
 Escribí para ser escuchado, no para ser leído.
