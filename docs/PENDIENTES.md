@@ -148,6 +148,6 @@ Una línea por pendiente, con el dato que lo justifica y dónde está el detalle
   "El presupuesto fantasma" ya están generadas en Flow; recargar la extensión y tocar Automatizar).
 - (2026-10-13, Lucas: "acordate canciones") CANCIONES en el montaje: hoy la música se compone a medida e instrumental
   (`src/lib/musicaGenerada.ts`, ElevenLabs Music). Falta ver si quiere temas con letra o más estilos para elegir.
-- (2026-10-13) LA MODELO DE MUNIFY como presentadora del cierre: es un personaje de Flow en el proyecto
-  `1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972`. Lucas: "habría que exportarla como modelo" para usarla en los proyectos de
-  cada campaña. La escena de la presentadora va en el mismo pedido a Flow que las demás.
+- HECHO (2026-10-13): la modelo de Munify es el personaje "Presentadora" del proyecto de Flow `1c6046c1…`
+  (`server/presentadora.json`); su escena de cierre se genera ahí, en un segundo trabajo después del pack principal.
+  FALTA verificar con una corrida real (sale en la próxima generación de un pack).
