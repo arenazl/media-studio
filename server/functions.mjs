@@ -11,6 +11,7 @@ import { compileFlowPack, promptTraduccion, parseTraduccion, promptEscena } from
 import { lintCommercial } from './lintCommercial.mjs';
 import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
 import { buildConceptPromptV3, CATALOGO_CONCEPTO_V3 } from './media-studio-concept-v3.mjs';
+import { patronesDeMontaje } from './patronesMontaje.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -513,7 +514,8 @@ ${factsText(x.facts)}` };
         mensajePrincipal: piece.primaryMessage || '', tipo: piece.tipo || 'filmado',
         concepto: piece.concepto || {}, guion: piece.guion || {},
         formatoCierre: piece.cierre || 'logo',
-        hayMusica: !!piece.hayMusica, escenas: scenes.map((s) => ({
+        hayMusica: !!piece.hayMusica, referenciasEditoriales: patronesDeMontaje(piece.enfoque, piece.tratamiento),
+        escenas: scenes.map((s) => ({
           escenaN: s.escenaN, rol: s.rol, dialogo: s.dialogo || '', src: s.src || '',
           durSec: s.durSec, palabras: s.palabras || [], mockups: s.mockups || 0,
         })),
@@ -538,6 +540,7 @@ GRAMÁTICA DE MONTAJE EJECUTABLE (seleccioná entre 0 y 7 operaciones):
 
 CRITERIO PUBLICITARIO:
 - El OBJETIVO comercial define qué debe comprender o hacer el público. El ENFOQUE define cómo avanza el relato. El TRATAMIENTO define su registro emocional. No los confundas con efectos.
+- Las referencias editoriales del contexto son un BANCO de posibilidades, nunca una obligación. Pueden coexistir patrones de dos familias, o ninguno.
 - No uses todos los recursos ni agregues efectos para llenar espacio. Un corte limpio puede ser más profesional que una transición llamativa.
 - Humor: si hay un verdadero momento de reacción o contraste, podés sugerir pausa musical. Si no está en la historia, NO inventes una pausa.
 - Demo: priorizá claridad y sincronía con pantallas reales. Institucional: evitar golpes y transiciones indiscriminadas. Aspiracional: respirar sin caer en lentitud artificial. Testimonial: conservar continuidad de voz.
