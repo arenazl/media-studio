@@ -101,7 +101,7 @@ export function gananciaDePista(plan: Pick<MontajePlan, 'mezcla'>, pista: PistaA
 
 // base: el armado del montajista; variante: la versión elegida en el paso Montaje (variantesMontaje.ts), que se aplica sobre la base
 // armadoCon: con qué material se armó (tomas y mockups): si llega material nuevo, el montaje automático se rearma solo
-export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[]; base?: MontajePlan; variante?: string; armadoCon?: string }
+export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[]; base?: MontajePlan; variante?: string; armadoCon?: string; direccionIA?: { diagnostico: string; aplicadas: string[]; descartadas: string[] } }
 
 export const DUCK_GAIN = 0.4;              // igual que el preview (montageAudio.ts)
 const SILENCE_ANTES_GAG = 0.8;            // el "toque final" del workflow de referencia
