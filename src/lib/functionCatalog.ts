@@ -141,7 +141,6 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     description: 'Propone 3 conceptos de comercial para el ángulo de esta pieza, dentro del enfoque y el tratamiento elegidos.',
     taskClass: 'creativo',
     options: [
-      {
       // concept/3.0 (curación 2026-10-10): ids = server/media-studio-enfoques-v3.json. El enfoque organiza la historia;
       // el tratamiento decide el registro; la intensidad y el mecanismo sólo aparecen cuando hay humor.
       { id: 'enfoque', label: 'Tipo de historia', type: 'choice', default: 'caso', choices: ENFOQUES },
