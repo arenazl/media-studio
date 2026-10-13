@@ -68,13 +68,13 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     taskClass: 'creativo',
     options: [
       {
-        id: 'perfil', label: 'Tipo de campaña', type: 'choice', default: 'campaña',
+        id: 'perfil', label: 'Objetivo de campaña', type: 'choice', default: 'campaña',
         choices: [
-          c('awareness', 'Awareness'),
-          c('demo', 'Demo de producto'),
-          c('conversion', 'Conversión'),
+          c('awareness', 'Presentar la marca'),
+          c('demo', 'Mostrar el producto'),
+          c('conversion', 'Conseguir consultas'),
           c('campaña', 'Campaña completa'),
-          c('solo-mockups', 'Solo mockups'),
+          c('solo-mockups', 'Solo pantallas animadas'),
         ],
       },
       // El asistente estampa el enfoque y el tratamiento en cada pieza; después se pueden cambiar por pieza en Concepto.
@@ -89,27 +89,11 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     label: 'Guion',
     icon: 'FileText',
     level: 'piece',
-    description: 'Escribe el guion por bloques (hook → dolor → solución → prueba → CTA).',
+    description: 'Transforma el concepto elegido en diálogo/acción: respeta enfoque, tratamiento y duración real del formato.',
     taskClass: 'creativo',
-    options: [
-      {
-        id: 'tono', label: 'Tono', type: 'choice', default: 'cercano',
-        choices: [c('cercano', 'Cercano'), c('serio', 'Serio'), c('urgente', 'Urgente'), c('divertido', 'Divertido')],
-      },
-      {
-        id: 'duracion', label: 'Duración', type: 'choice', default: '20', unit: 's',
-        choices: [c('15'), c('20'), c('25')],
-      },
-      {
-        id: 'estructura', label: 'Ángulo', type: 'choice', default: 'dolor-solucion',
-        choices: [
-          c('dolor-solucion', 'Dolor → solución'),
-          c('dato', 'Dato / autoridad'),
-          c('fomo', 'FOMO / oferta'),
-          c('como-funciona', 'Cómo funciona'),
-        ],
-      },
-    ],
+    // No ofrecer Tono/Duración/Ángulo ficticios: PasoGuion hereda esos datos de la pieza;
+    // el molde del backend todavía admite los options legacy para llamadas antiguas.
+    options: [],
   },
   {
     id: 'publish',
@@ -161,10 +145,7 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     description: 'Propone 3 conceptos de comercial para el ángulo de esta pieza, dentro del enfoque y el tratamiento elegidos.',
     taskClass: 'creativo',
     options: [
-      {
-        id: 'perfil', label: 'Perfil', type: 'choice', default: 'campaña',
-        choices: [c('campaña', 'Campaña completa'), c('awareness', 'Awareness'), c('demo', 'Demo de producto'), c('conversion', 'Conversión')],
-      },
+      // El objetivo de campaña se eligió una sola vez en Strategy. La pieza recibe su primaryMessage.
       // concept/3.0 (curación 2026-10-10): ids = server/media-studio-enfoques-v3.json. El enfoque organiza la historia;
       // el tratamiento decide el registro; la intensidad y el mecanismo sólo aparecen cuando hay humor.
       { id: 'enfoque', label: 'Enfoque', type: 'choice', default: 'caso', choices: ENFOQUES },
