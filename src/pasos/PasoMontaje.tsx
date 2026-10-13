@@ -106,7 +106,8 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     setComercial((c) => {
       const mm = c.montaje as MontajeState | undefined;
       if (!mm?.base) return c;
-      return { ...c, montaje: { ...mm, variante: id, plan: aplicarVariante(mm.base, id, mockupsDe(c)) } };
+      const { direccion: _direccionDescartada, ...resto } = mm;
+      return { ...c, montaje: { ...resto, variante: id, plan: aplicarVariante(mm.base, id, mockupsDe(c)) } };
     });
   };
 
