@@ -340,7 +340,9 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       const k = clips.todos.length - 1 - r.pos;
       return k >= 0 ? (clips.todos[k] || '') : '';
     };
-    const enOrden = escenas.map((_, i) => { if (!salio(i)) return null; if (job.escenas[i]?.url) return job.escenas[i].url; const p = porPosicion(i); return p !== undefined ? p : (clips.urls || [])[indices[i]]; });
+    // en un proyecto compartido entre pedidos (retomar=false, SalesBot) NO se adivina por posición: si al terminar no se
+    // pudo identificar el video nuevo, la escena falla. Una foto equivocada va directo a una charla (2026-10-13)
+    const enOrden = escenas.map((_, i) => { if (!salio(i)) return null; if (job.escenas[i]?.url) return job.escenas[i].url; if (!job.retomar) return ''; const p = porPosicion(i); return p !== undefined ? p : (clips.urls || [])[indices[i]]; });
     for (const [i, esc] of escenas.entries()) {
       const reg = job.escenas[i];
       if (!salio(i)) continue;

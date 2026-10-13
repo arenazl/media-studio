@@ -18,7 +18,7 @@ interface Grilla { tiles: string[] }   // del más viejo al más nuevo: una URL 
 
 // Corre una rutina de Flow entera contra una extensión simulada. `generar(n, intento)` decide qué pasa con cada pedido de
 // la escena n: 'error-antes' (no llegó a enviar), 'error-flow' (Flow deja un tile con error) o 'ok'.
-async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number; rechazaConReferenciasEn?: number; famoso?: string; clipDeOtroPedido?: boolean; retomar?: boolean } = {}) {
+async function correrRutina(escenas: number[], generar: (n: number, intento: number) => 'error-antes' | 'error-flow' | 'cargando' | 'ok', opciones: { videoAjenoEn?: number; rechazaConReferenciasEn?: number; famoso?: string; clipDeOtroPedido?: boolean; retomar?: boolean; sinUrlDelNuevo?: boolean } = {}) {
   const clip = path.join(os.tmpdir(), 'clip-prueba-media-studio.mp4');
   fs.writeFileSync(clip, 'clip');
   // la imagen del personaje; con clipDeOtroPedido, además un video que dejó un pedido anterior en el mismo proyecto de Flow
@@ -65,7 +65,7 @@ async function correrRutina(escenas: number[], generar: (n: number, intento: num
       case 'esperarGeneracion': if (ultimoResultado === 'error-flow' && rechazoBorrado) { rechazoBorrado = false; return { seg: 60, terminado: true }; } return ultimoResultado === 'error-flow' ? { seg: 30, terminado: false, conError: true, texto: ultimoTexto } : ultimoResultado === 'cargando' ? { seg: 6, terminado: false, cargando: true } : { seg: 60, terminado: true };
       // Flow saca de la grilla el clip con error al recargar la pestaña (prueba real del 12/10)
       case 'recargar': rechazoBorrado = grilla.tiles.includes('ERR'); grilla.tiles = grilla.tiles.filter((t) => t !== 'ERR'); return { ok: true };
-      case 'urlDelMasNuevo': { if (opciones.videoAjenoEn === ultima) return { url: 'https://ejemplo-de-flow/ajeno' }; const v = [...grilla.tiles].reverse().find((t) => t.startsWith('https://')); return { url: v || '' }; }
+      case 'urlDelMasNuevo': { if (opciones.sinUrlDelNuevo) return { url: '' }; if (opciones.videoAjenoEn === ultima) return { url: 'https://ejemplo-de-flow/ajeno' }; const v = [...grilla.tiles].reverse().find((t) => t.startsWith('https://')); return { url: v || '' }; }
       case 'urlsDeClips': {
         const todos = [...grilla.tiles].reverse().map((t) => (t.startsWith('https://') ? t : ''));
         return { total: todos.filter(Boolean).length, urls: todos.filter(Boolean), todos, totalTiles: todos.length };
@@ -141,6 +141,12 @@ describe('rutina de Flow: los incidentes del 12/10', () => {
     expect(intentos[1]).toBe(1);
     expect(bajadas).toEqual([[1, 'https://clip/esc1']]);
     expect(job.escenas[0].estado).toBe('importada');
+  }, 30000);
+
+  it('en el proyecto compartido, si no se identifica el video nuevo no se adivina por posición: la escena falla (pedido 28, 13/10)', async () => {
+    const { job, bajadas } = await correrRutina([1], () => 'ok', { clipDeOtroPedido: true, retomar: false, sinUrlDelNuevo: true });
+    expect(bajadas).toEqual([]);
+    expect(job.escenas[0].estado).toBe('falló');
   }, 30000);
 });
 
