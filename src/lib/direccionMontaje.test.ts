@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { aplicarPropuestaMontaje, factorMusica, intervalosMusica, validarPropuestaMontaje } from './direccionMontaje';
 import { derivarRender, volumenMusica } from '../remotion/derivar';
 import type { MontajePlan } from './montajePlan';
+import { nuevoComercial } from './comercial';
+import { buildEditorTimeline } from './editorTracks';
+import { tracksToMontaje } from './montajeFromTracks';
 
 function base(): MontajePlan {
   return {
@@ -77,6 +80,15 @@ describe('Director de montaje: decisiones ejecutables', () => {
     expect(c).toBeCloseTo(0.35, 2);
     expect(d).toBeGreaterThan(c);
   });
+  it('el editor multipista conserva la automatización de la IA al guardar las pistas', () => {
+    const p = base();
+    p.musicCues = [{ escenaN: 2, cuando: 'antes', durSec: 0.4, nivel: 0, motivo: 'reacción real' }];
+    const comercial = { ...nuevoComercial('test', 'filmado'), montaje: { plan: p, exports: [] } };
+    const tracks = buildEditorTimeline(comercial).tracks;
+    const roundTrip = tracksToMontaje(tracks, p);
+    expect(roundTrip.musicCues).toEqual(p.musicCues);
+  });
+
   it('reduce o elimina música, no la voz del clip', () => {
     const p = base();
     p.musicCues = [{ escenaN: 2, cuando: 'inicio', durSec: 0.5, nivel: 0 }];
