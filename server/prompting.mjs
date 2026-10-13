@@ -9,13 +9,14 @@
 import { validateConceptResponseV3 } from './media-studio-concept-v3.mjs';
 
 export const PROMPT_VERSIONS = {
+  montageDirection: 'montageDirection/1.0', // IA propone operaciones del motor, no edita el material
   strategy: 'strategy/2.1',       // 2.1: curación 02 (2026-10-11): jerarquía de la pieza, "hasta N" no es "N"
   // strategy/2.0:       // 2.0: curado 2026-10-07 (la campaña cubre la propuesta; cada pieza UNA cosa)
   concept: 'concept/3.3',         // 3.3: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo: no se replican
   // concept/3.2:         // 3.2: (2026-10-12) dice de dónde sale la idea; el kit entra como recorrido de pantallas, sin el caso de la demo
   // concept/3.1:         // 3.1: curación 02 (2026-10-11): fidelidad al ángulo; ficha curada del enfoque caso
   // concept/3.0:         // 3.0: curación externa 2026-10-10 (ENFOQUE + TRATAMIENTO elegidos por el dueño; humor sólo a pedido; spots de marca, no sketches)
-  script: 'script/3.9',           // 3.9: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo
+  script: 'script/3.10',  // 3.10: intención de actuación/pausa en visual, sin imponer efectos           // 3.9: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo
   // script/3.8:           // 3.8: (2026-10-12) dice de dónde sale la historia; el kit entra como recorrido de pantallas
   // script/3.7:           // 3.7: (2026-10-12) se van las reglas narrativas del 11/10; entra el estudio curado (calidad dramática, el concepto manda el orden, folleto no, beneficio sí)
   // script/3.6:           // 3.6: (2026-10-11) ninguna frase explica la publicidad
@@ -96,6 +97,32 @@ export const esTalkingHead = (e) => !!(String(e?.dialogo || '').trim() && Array.
 const ROLES = ['hook', 'desarrollo', 'giro', 'cta'];
 const OPCIONALES = new Set(['giro']);   // un comercial sin giro es válido: no se fuerza un remate
 export const VALIDADORES = {
+  montageDirection(o, body) {
+    const E = [];
+    if (!o || typeof o.diagnostico !== 'string') E.push('falta diagnostico');
+    if (!Array.isArray(o?.decisiones) || o.decisiones.length > 7) E.push('se requieren de 0 a 7 decisiones');
+    const permitidos = new Set(['pausa_musical','bajar_musica','subir_musica','corte_seco','fundido','zoom_sutil','sin_zoom']);
+    const escenas = new Map((body?.context?.piece?.scenes || []).filter((s) => s.src).map((s) => [Number(s.escenaN), s]));
+    const vistos = new Set(), porEscena = new Map();
+    let musicales = 0;
+    for (const [i, d] of (Array.isArray(o?.decisiones) ? o.decisiones : []).entries()) {
+      if (!escenas.has(Number(d?.escenaN))) E.push('decisión ' + i + ': escena sin clip');
+      if (!permitidos.has(d?.recurso)) E.push('decisión ' + i + ': recurso no ejecutable');
+      if (typeof d?.motivo !== 'string' || !d.motivo.trim() || d.motivo.split(/\s+/).length > 18) E.push('decisión ' + i + ': motivo vacío o largo');
+      if (d?.recurso === 'pausa_musical' && (Number(d.durSec) < 0.2 || Number(d.durSec) > 0.8)) E.push('decisión ' + i + ': pausa entre 0.2 y 0.8s');
+      if (['pausa_musical','bajar_musica','subir_musica'].includes(d?.recurso)) {
+        musicales++;
+        if (!body?.context?.piece?.hayMusica) E.push('decisión ' + i + ': no hay música');
+      }
+      const k = d?.escenaN + ':' + d?.recurso;
+      if (vistos.has(k)) E.push('decisión repetida ' + k);
+      vistos.add(k);
+      porEscena.set(d?.escenaN, (porEscena.get(d?.escenaN) || 0) + 1);
+    }
+    if (musicales > 3) E.push('demasiadas decisiones musicales (máximo 3)');
+    if ([...porEscena.values()].some((n) => n > 2)) E.push('máximo 2 decisiones por escena');
+    return E;
+  },
   concept(o) {
     // concept/3.0: el validador vino con la curación (estructura, ids, largos por campo, mayúsculas en tipoGancho,
     // sin segundos ni planos en la idea). La veracidad y la diversidad real las mira el dueño.

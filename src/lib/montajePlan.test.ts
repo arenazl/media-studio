@@ -34,9 +34,10 @@ describe('storyboardToMontaje', () => {
     expect(plan.scenes[1].transition).toBe('cut');
   });
 
-  it('sugiere un silencio de 0.8s antes del gag', () => {
+  it('sugiere silencio antes del gag sólo cuando la pieza pide humor', () => {
     const c = comercialCon([esc(1, 'hook', 8, 'a'), esc(2, 'gag', 5, ''), esc(3, 'cta', 8, 'c')], []);
-    expect(storyboardToMontaje(c).silences).toEqual([{ antesDeEscena: 2, durSec: 0.8 }]);
+    expect(storyboardToMontaje(c).silences).toEqual([]);
+    expect(storyboardToMontaje({ ...c, tratamiento: 'humor' }).silences).toEqual([{ antesDeEscena: 2, durSec: 0.8 }]);
   });
 
   it('usa el fileRef de la toma activa (la última importada)', () => {

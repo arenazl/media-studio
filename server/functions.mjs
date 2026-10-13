@@ -11,6 +11,7 @@ import { compileFlowPack, promptTraduccion, parseTraduccion, promptEscena } from
 import { lintCommercial } from './lintCommercial.mjs';
 import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
 import { buildConceptPromptV3, CATALOGO_CONCEPTO_V3 } from './media-studio-concept-v3.mjs';
+import { patronesDeMontaje } from './patronesMontaje.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -498,6 +499,67 @@ ${factsText(x.facts)}` };
   // ── GUION (nivel pieza) — adaptado al rework: GuionEstructurado (hook|desarrollo|gag|cta + durSec) ──
   // Lee `context.piece.concepto` (el elegido) como dirección creativa. Conserva: regla GLOBAL,
   // calibración TTS ~2.7 pal/seg, regen por bloque, music.mood. El shape lo consume PasoGuion (Fase 2).
+  // Dirección de montaje: la IA NO inventa material; propone operaciones sobre escenas reales.
+  // El compilador TS del cliente valida/ejecuta las operaciones y muestra las descartadas.
+  montageDirection: {
+    build({ context = {} }) {
+      const project = context.project || {};
+      const piece = context.piece || {};
+      const scenes = Array.isArray(piece.scenes) ? piece.scenes.slice(0, 30) : [];
+      if (!scenes.some((s) => s.src && s.escenaN != null)) throw new Error('La dirección de montaje requiere escenas con clips importados.');
+      const facts = factsText(buildProjectFacts(project));
+      const contexto = {
+        marca: project.name || 'la marca', objetivo: piece.objetivo || '',
+        enfoque: piece.enfoque || 'caso', tratamiento: piece.tratamiento || 'natural',
+        mensajePrincipal: piece.primaryMessage || '', tipo: piece.tipo || 'filmado',
+        concepto: piece.concepto || {}, guion: piece.guion || {},
+        formatoCierre: piece.cierre || 'logo',
+        hayMusica: !!piece.hayMusica, referenciasEditoriales: patronesDeMontaje(piece.enfoque, piece.tratamiento),
+        escenas: scenes.map((s) => ({
+          escenaN: s.escenaN, rol: s.rol, dialogo: s.dialogo || '', src: s.src || '',
+          durSec: s.durSec, palabras: s.palabras || [], mockups: s.mockups || 0,
+        })),
+      };
+      return { mode: 'set', prompt: `Sos director de montaje de anuncios cortos. Diseñá una PRIMERA EDICIÓN precisa, profesional y totalmente reversible. NO escribas un comercial nuevo.
+No inventes clips, música, diálogos, escenas, personajes, UI ni funcionalidades. Los clips, el storyboard y las decisiones de dirección vienen dados. Las capacidades del negocio se verifican en la ficha; una estética no es prueba de un resultado.
+
+FICHA DEL NEGOCIO:
+${facts}
+
+CONTEXTO REAL DE ESTA PIEZA:
+${JSON.stringify(contexto, null, 2)}
+
+GRAMÁTICA DE MONTAJE EJECUTABLE (seleccioná entre 0 y 7 operaciones):
+- pausa_musical: baja SÓLO la música a silencio por 0.2-0.8 s alrededor del inicio de una escena; no calla la voz. Para reacción, contraste o giro que necesita aire. SOLO si hay música.
+- bajar_musica: reduce por un momento la música en una escena para enfatizar voz, prueba o emoción. SOLO si hay música.
+- subir_musica: subida breve en la entrada de una escena con suficiente margen; suele acompañar resolución/cierre. SOLO si hay música.
+- corte_seco: cambia a corte directo la transición DESPUÉS de una escena; para contraste, diálogo o punchline, no necesariamente humor.
+- fundido: disolvencia corta DESPUÉS de una escena; para continuidad emocional o cambio suave. No abusar.
+- zoom_sutil: acercamiento digital moderado sobre una escena filmada, cuando refuerza el foco.
+- sin_zoom: deja una escena sin acercamiento, útil para demostración o planos cuidados.
+
+CRITERIO PUBLICITARIO:
+- El OBJETIVO comercial define qué debe comprender o hacer el público. El ENFOQUE define cómo avanza el relato. El TRATAMIENTO define su registro emocional. No los confundas con efectos.
+- Las referencias editoriales del contexto son un BANCO de posibilidades, nunca una obligación. Pueden coexistir patrones de dos familias, o ninguno.
+- No uses todos los recursos ni agregues efectos para llenar espacio. Un corte limpio puede ser más profesional que una transición llamativa.
+- Humor: si hay un verdadero momento de reacción o contraste, podés sugerir pausa musical. Si no está en la historia, NO inventes una pausa.
+- Demo: priorizá claridad y sincronía con pantallas reales. Institucional: evitar golpes y transiciones indiscriminadas. Aspiracional: respirar sin caer en lentitud artificial. Testimonial: conservar continuidad de voz.
+- La audiencia debe recordar qué resuelve la MARCA. No inventes métricas ni testimonios.
+- No sugieras operaciones para escenas sin src ni fundido/corte después de la última escena.
+- Máximo 2 decisiones por escena y máximo 3 musicales para evitar sobreedición.
+- Si la evidencia narrativa es débil, devolver 0 decisiones está permitido; explicá por qué.
+
+Devolvé SOLO JSON válido:
+{"diagnostico":"qué le falta a esta edición en <=35 palabras","decisiones":[{"escenaN":2,"recurso":"pausa_musical","durSec":0.4,"motivo":"razón editorial específica de <=18 palabras"}]}
+No metas otras claves ni texto alrededor. El campo durSec SOLO para pausa_musical.` };
+    },
+    parse(text) {
+      const o = extractJson(text);
+      if (!o || !Array.isArray(o.decisiones)) throw new Error('el montajista IA no devolvió decisiones');
+      return o;
+    },
+  },
+
   script: {
     build({ context, options = {}, regenerate }) {
       const x = ctx(context);
@@ -629,6 +691,12 @@ la voz expresa la consecuencia humana.
 
 No describir acciones sobre pantallas como si tuvieran
 que ser generadas por un modelo de video.
+
+INTENCIÓN PARA EL MONTAJE (no es una orden de efectos):
+Si el sentido de una escena depende de una MIRADA, REACCIÓN o RESPIRO, mencioná esa intención en "visual" de forma breve.
+El director de montaje puede decidir si conviene sostener imagen, cortar la música, continuar la voz sobre otra escena o no intervenir.
+No inventes una pausa en cada "giro"; las pausas cómicas NO son obligatorias aunque la pieza sea graciosa.
+No pongas instrucciones técnicas de edición ni nombres de efectos en "narration": el guion define acciones y palabras, no keyframes.
 
 TIEMPO
 Los bloques indican tiempo de montaje, no duración

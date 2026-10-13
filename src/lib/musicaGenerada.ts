@@ -24,7 +24,7 @@ export async function componerMusica(mood: string, durSec: number, nombre?: stri
 export const moodDe = (comercial: Comercial): string => comercial.guion?.music?.mood?.trim() || '';
 
 export function musicaDelPlan(m: MusicaCompuesta, previa?: MontajePlan['music']): NonNullable<MontajePlan['music']> {
-  return { src: m.src, gain: previa?.gain ?? MUSIC_GAIN, duck: previa?.duck ?? true, fadeOut: 1.5, generada: true, durSec: m.durSec, mood: m.mood };
+  return { src: m.src, gain: previa?.gain ?? MUSIC_GAIN, duck: previa?.duck ?? true, fadeOut: 1.5, generada: true, durSec: m.durSec, mood: m.mood, ...(previa?.automation ? { automation: [...previa.automation] } : {}) };
 }
 
 // El plan con su música compuesta: la que ya tenía la pieza si alcanza, si no una nueva. Si no se puede componer, sin

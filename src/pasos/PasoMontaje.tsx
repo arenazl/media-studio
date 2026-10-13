@@ -19,6 +19,7 @@ import { pasoHabilitado, type QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
 import { componerMusica, moodDe, musicaDelPlan } from '../lib/musicaGenerada';
 import { resolverSrc } from '../remotion/derivar';
+import { aplicarDireccionMontaje, type PropuestaDireccion } from '../lib/direccionMontaje';
 
 
 const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
@@ -27,6 +28,7 @@ const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url =
 export default function PasoMontaje({ project, reelId, comercial, setComercial, onGoEditor }: PasoProps & { onGoEditor?: () => void }) {
   const [rendering, setRendering] = useState(false);
   const [armando, setArmando] = useState(false);
+  const [dirigiendo, setDirigiendo] = useState(false);
   const [error, setError] = useState('');
   const qa = comercial?.qa ?? null;   // C9: el QA vive en el comercial (persiste); antes era useState y se perdía al salir del paso
   const [qaBusy, setQaBusy] = useState(false);
@@ -89,7 +91,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       const planFinal = aplicarVariante(base, variante, mockupsDe(c0));
       setComercial((c) => ({
         ...c,
-        montaje: { plan: planFinal, base, variante, armadoCon: materialDe(c0), exports: (c.montaje as MontajeState | undefined)?.exports || [] },
+        montaje: { plan: planFinal, base, variante, direccionIA: undefined, armadoCon: materialDe(c0), exports: (c.montaje as MontajeState | undefined)?.exports || [] },
         estados: { ...c.estados, montaje: c.estados.montaje === 'aprobado' ? 'aprobado' : 'generado' },
       }));
     } catch (e) { setError(errMsg(e)); } finally { setArmando(false); }
@@ -103,7 +105,54 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     setComercial((c) => {
       const mm = c.montaje as MontajeState | undefined;
       if (!mm?.base) return c;
-      return { ...c, montaje: { ...mm, variante: id, plan: aplicarVariante(mm.base, id, mockupsDe(c)) } };
+      return { ...c, montaje: { ...mm, variante: id, direccionIA: undefined, plan: aplicarVariante(mm.base, id, mockupsDe(c)) } };
+    });
+  };
+
+  // El modelo sólo decide intenciones. El compilador local aplica operaciones respaldadas por el material real;
+  // una decisión no ejecutable queda registrada como descartada, nunca como si hubiera ocurrido.
+  const proponerDireccion = async () => {
+    if (!comercial || !plan || dirigiendo || armando) return;
+    setDirigiendo(true); setError('');
+    try {
+      const pieza = {
+        enfoque: comercial.enfoque, tratamiento: comercial.tratamiento,
+        objetivo: reel?.objetivo || comercial.angulo || '',
+        primaryMessage: comercial.primaryMessage, concepto: comercial.concepto,
+        guion: comercial.guion, tipo: comercial.tipo,
+        cierre: comercial.cierre?.tipo || 'logo',
+        hayMusica: !!plan.music?.src,
+        scenes: plan.scenes.map((s) => ({
+          escenaN: s.escenaN, src: s.src, rol: s.rol,
+          durSec: Number((s.out - s.in).toFixed(2)),
+          dialogo: s.dialogo, mockups: s.inserts?.length || 0,
+          palabras: (s.words || []).filter((w) => w.text && w.start >= s.in && w.end <= s.out)
+            .slice(0, 45).map((w) => w.text).join(' '),
+        })),
+      };
+      const respuesta = await runMolde('montageDirection', project, pieza, {}, undefined, comercial, 'claude');
+      const r = aplicarDireccionMontaje(plan, respuesta as unknown as PropuestaDireccion);
+      setComercial((c) => {
+        const actual = c.montaje as MontajeState | undefined;
+        if (!actual?.plan || JSON.stringify(actual.plan) !== JSON.stringify(plan)) return c; // proteger cambios hechos durante la llamada, incluso si el estado fue rehidratado
+        return {
+          ...c,
+          montaje: { ...actual, plan: r.plan, variante: undefined,
+            direccionIA: { diagnostico: String(respuesta.diagnostico || ''), aplicadas: r.aplicadas, descartadas: r.descartadas, varianteAnterior: actual.direccionIA?.varianteAnterior ?? actual.variante } },
+          estados: { ...c.estados, montaje: 'editado' },
+        };
+      });
+    } catch (e) { setError(errMsg(e)); } finally { setDirigiendo(false); }
+  };
+
+  // Deshacer la propuesta sin llamar a ElevenLabs ni reconstruir el storyboard.
+  const volverAlMontajeAnterior = () => {
+    setComercial((c) => {
+      const m = c.montaje as MontajeState | undefined;
+      if (!m?.base || !m.direccionIA) return c;
+      const anterior = m.direccionIA.varianteAnterior;
+      return { ...c, montaje: { ...m, plan: aplicarVariante(m.base, anterior, mockupsDe(c)), variante: anterior, direccionIA: undefined },
+        estados: { ...c.estados, montaje: 'generado' } };
     });
   };
 
@@ -305,6 +354,26 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       <div className="paso-body">
         {plan ? (
           <>
+          {/* Opt-in: el primer montaje ya está armado. La IA trabaja SOBRE ese plan; todo es editable en multipista. */}
+          <div className="paso-card">
+            <div className="paso-card-h"><Clapperboard size={12} /> Dirección creativa de la edición</div>
+            <p className="mont-sil">La IA usa el concepto, el enfoque y el material disponible para proponer hasta siete ajustes ejecutables. No genera escenas ni reemplaza el multipista.</p>
+            <button type="button" className="rodaje-import mont-qa-btn" disabled={dirigiendo || armando || rendering || !conClip || !!montaje?.direccionIA}
+              onClick={() => void proponerDireccion()}>
+              {dirigiendo ? <Loader2 size={14} className="paso-spin" /> : <Clapperboard size={14} />}
+              {dirigiendo ? 'Dirigiendo la edición…' : montaje?.direccionIA ? 'Propuesta IA aplicada' : 'Proponer montaje con IA'}
+            </button>
+            {montaje?.direccionIA && (
+              <div style={{ marginTop: 10 }}>
+                <p className="mont-sil"><strong>Criterio:</strong> {montaje.direccionIA.diagnostico}</p>
+                {montaje.direccionIA.aplicadas.map((a, i) => <div key={'ap-' + i} className="mont-sil">✓ {a}</div>)}
+                {montaje.direccionIA.descartadas.map((d, i) => <div key={'de-' + i} className="mont-sil">No aplicada: {d}</div>)}
+                <p className="mont-sil">Los ajustes están en el plan real. Los cambios de escena y sus transiciones son editables en el multipista.</p>
+                <button type="button" className="rodaje-import mont-qa-btn" onClick={volverAlMontajeAnterior}
+                  disabled={dirigiendo || armando || rendering || !montaje.base}>Deshacer dirección IA</button>
+              </div>
+            )}
+          </div>
           {/* las versiones del montaje (Lucas, 2026-10-12): la misma pieza contada de 4 o 5 maneras, para elegir antes del multipista */}
           {montaje?.base && (
             <div className="paso-card">
@@ -330,6 +399,21 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
             <div className="paso-card">
               <div className="paso-card-h"><Clapperboard size={12} /> Lo que decidió el armado</div>
               {plan.avisos.map((a, i) => <div key={i} className="mont-sil">{a}</div>)}
+            </div>
+          )}
+
+          {!!plan.music?.automation?.length && (
+            <div className="paso-card">
+              <div className="paso-card-h"><Music2 size={12} /> Automatización musical · editable</div>
+              {plan.music.automation.map((p, i) => (
+                <div key={i} className="mont-sil">
+                  {p.atSec.toFixed(2)}s · nivel {Math.round(p.gain * 100)}% · rampa {(p.rampSec || 0).toFixed(2)}s
+                  <button type="button" style={{ marginLeft: 8 }} disabled={dirigiendo || rendering}
+                    onClick={() => patch((pl) => pl.music ? { ...pl, music: { ...pl.music,
+                      automation: (pl.music.automation || []).filter((_, j) => j !== i) } } : pl)}>Quitar punto</button>
+                </div>
+              ))}
+              <p className="mont-sil">Estos puntos son la primera propuesta de sonido; si los quitás se recupera el nivel previo.</p>
             </div>
           )}
 

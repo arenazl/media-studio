@@ -1,0 +1,182 @@
+{
+  "version": "1.0",
+  "politica": "Son referencias editoriales y no reglas de cantidad, duración o identidad visual. La pieza puede elegir cero operaciones y mantener un corte limpio.",
+  "patrones": [
+    {
+      "id": "caso_causal",
+      "nombre": "Caso con resolución",
+      "enfoques": [
+        "caso"
+      ],
+      "tratamientos": [],
+      "narrativa": "Se comprende quién necesita qué, cuál es la acción comprobable del producto y qué cambia.",
+      "priorizar": [
+        "continuidad de acciones",
+        "puente de voz entre imagen humana y pantalla",
+        "mantener la reacción tras la resolución"
+      ],
+      "evitar": [
+        "recorrer todas las funciones",
+        "cortar cada frase con un whoosh",
+        "exigir un gag"
+      ]
+    },
+    {
+      "id": "demo_clara",
+      "nombre": "Demostración útil",
+      "enfoques": [
+        "producto"
+      ],
+      "tratamientos": [],
+      "narrativa": "El producto se ve operar; cada inserto debe demostrar la frase que lo contextualiza.",
+      "priorizar": [
+        "cortes discretos",
+        "bajar música bajo explicación",
+        "dejar legible la pantalla"
+      ],
+      "evitar": [
+        "zoom sobre UI innecesario",
+        "textos que repiten la voz",
+        "música tapando instrucciones"
+      ]
+    },
+    {
+      "id": "doble_perspectiva",
+      "nombre": "Dos puntos de vista",
+      "enfoques": [
+        "dos-lados"
+      ],
+      "tratamientos": [],
+      "narrativa": "La edición conecta dos roles a través de un mismo hecho; importa el vínculo, no la cantidad de intercambios.",
+      "priorizar": [
+        "cortes por pregunta y respuesta",
+        "continuidad sonora",
+        "contraste claro"
+      ],
+      "evitar": [
+        "cambiar de actor sin motivo",
+        "gag automático",
+        "transiciones para cada réplica"
+      ]
+    },
+    {
+      "id": "comparativa",
+      "nombre": "Contraste antes/después",
+      "enfoques": [
+        "antes-despues"
+      ],
+      "tratamientos": [],
+      "narrativa": "Dos estados contrastan con acciones equivalentes, sin inventar resultados cuantificables.",
+      "priorizar": [
+        "contraste de ritmo",
+        "corte comparativo",
+        "cambio musical con causa"
+      ],
+      "evitar": [
+        "humillar al cliente",
+        "efectos en todas las escenas",
+        "atribuir milagros al producto"
+      ]
+    },
+    {
+      "id": "testimonio",
+      "nombre": "Voz humana",
+      "enfoques": [
+        "testimonio"
+      ],
+      "tratamientos": [],
+      "narrativa": "La credibilidad depende de la continuidad de una persona y de que la imagen demuestre algo real.",
+      "priorizar": [
+        "prioridad de la voz",
+        "cortes naturales de respiración",
+        "insertos que acompañan y no tapan"
+      ],
+      "evitar": [
+        "falsas reseñas",
+        "énfasis artificial",
+        "exceso de zoom o whooshes"
+      ]
+    },
+    {
+      "id": "marca",
+      "nombre": "Institucional y confianza",
+      "enfoques": [
+        "institucional"
+      ],
+      "tratamientos": [
+        "sobrio"
+      ],
+      "narrativa": "Se percibe una promesa de marca verificable y un cierre que la fija en la memoria.",
+      "priorizar": [
+        "ritmo estable",
+        "sonido limpio",
+        "cierre inequívoco"
+      ],
+      "evitar": [
+        "efectos de interfaz indiscriminados",
+        "claims vacíos",
+        "sobremontaje"
+      ]
+    },
+    {
+      "id": "comedia",
+      "nombre": "Comedia de situación",
+      "enfoques": [
+        "humor"
+      ],
+      "tratamientos": [
+        "humor"
+      ],
+      "narrativa": "Si la historia contiene una reacción real, la música puede detenerse momentáneamente para dejarla funcionar.",
+      "priorizar": [
+        "corte a reacción",
+        "pausa musical SÓLO cuando aporta",
+        "recuperación tras el giro"
+      ],
+      "evitar": [
+        "pausa fija antes de todo giro",
+        "risa enlatada",
+        "humillar a actores o compradores"
+      ]
+    },
+    {
+      "id": "premium",
+      "nombre": "Aspiracional y atmosférico",
+      "enfoques": [],
+      "tratamientos": [
+        "aspiracional"
+      ],
+      "narrativa": "La experiencia audiovisual comunica cuidado mediante una selección consciente de imágenes y sonido.",
+      "priorizar": [
+        "respiración entre ideas",
+        "acento musical reservado",
+        "transiciones por cambio emocional"
+      ],
+      "evitar": [
+        "flash gratis",
+        "música grandilocuente sin sustento",
+        "sobreexplicación"
+      ]
+    },
+    {
+      "id": "humano",
+      "nombre": "Cálido y cercano",
+      "enfoques": [],
+      "tratamientos": [
+        "calido",
+        "natural"
+      ],
+      "narrativa": "Cuidar la naturalidad y el vínculo humano por encima de una coreografía de efectos.",
+      "priorizar": [
+        "reacciones plausibles",
+        "música subordinada a voz",
+        "continuidad"
+      ],
+      "evitar": [
+        "montaje de stock",
+        "infantilización",
+        "dramatización artificial"
+      ]
+    }
+  ]
+}
