@@ -70,16 +70,14 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
       {
         id: 'perfil', label: 'Tipo de campaña', type: 'choice', default: 'campaña',
         choices: [
-          c('awareness', 'Awareness'),
-          c('demo', 'Demo de producto'),
-          c('conversion', 'Conversión'),
-          c('campaña', 'Campaña completa'),
-          c('solo-mockups', 'Solo mockups'),
+          c('awareness', 'Dar a conocer la marca · 1 spot'),
+          c('demo', 'Mostrar cómo funciona · 1 spot'),
+          c('conversion', 'Conseguir consultas · 1 spot'),
+          c('campaña', 'Campaña completa · varias piezas'),
+          c('solo-mockups', 'Solo pantallas animadas'),
         ],
       },
-      // El asistente estampa el enfoque y el tratamiento en cada pieza; después se pueden cambiar por pieza en Concepto.
-      { id: 'enfoque', label: 'Enfoque', type: 'choice', default: 'caso', choices: ENFOQUES },
-      { id: 'tratamiento', label: 'Tratamiento', type: 'choice', default: 'natural', choices: TRATAMIENTOS },
+      // Cómo se cuenta y cómo se siente se decide POR PIEZA en Concepto, no para toda la campaña.
     ],
   },
 
@@ -98,27 +96,10 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     label: 'Guion',
     icon: 'FileText',
     level: 'piece',
-    description: 'Escribe el guion por bloques (hook → dolor → solución → prueba → CTA).',
+    description: 'Desarrolla el concepto elegido en acciones, diálogos y cierre de marca; respeta el tratamiento.',
     taskClass: 'creativo',
-    options: [
-      {
-        id: 'tono', label: 'Tono', type: 'choice', default: 'cercano',
-        choices: [c('cercano', 'Cercano'), c('serio', 'Serio'), c('urgente', 'Urgente'), c('divertido', 'Divertido')],
-      },
-      {
-        id: 'duracion', label: 'Duración', type: 'choice', default: '20', unit: 's',
-        choices: [c('15'), c('20'), c('25')],
-      },
-      {
-        id: 'estructura', label: 'Ángulo', type: 'choice', default: 'dolor-solucion',
-        choices: [
-          c('dolor-solucion', 'Dolor → solución'),
-          c('dato', 'Dato / autoridad'),
-          c('fomo', 'FOMO / oferta'),
-          c('como-funciona', 'Cómo funciona'),
-        ],
-      },
-    ],
+    options: [], // los parámetros reales vienen del concepto, el formato y la pieza; no ofrecer controles fantasma
+
   },
   {
     id: 'publish',
@@ -161,13 +142,10 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     taskClass: 'creativo',
     options: [
       {
-        id: 'perfil', label: 'Perfil', type: 'choice', default: 'campaña',
-        choices: [c('campaña', 'Campaña completa'), c('awareness', 'Awareness'), c('demo', 'Demo de producto'), c('conversion', 'Conversión')],
-      },
       // concept/3.0 (curación 2026-10-10): ids = server/media-studio-enfoques-v3.json. El enfoque organiza la historia;
       // el tratamiento decide el registro; la intensidad y el mecanismo sólo aparecen cuando hay humor.
-      { id: 'enfoque', label: 'Enfoque', type: 'choice', default: 'caso', choices: ENFOQUES },
-      { id: 'tratamiento', label: 'Tratamiento', type: 'choice', default: 'natural', choices: TRATAMIENTOS },
+      { id: 'enfoque', label: 'Tipo de historia', type: 'choice', default: 'caso', choices: ENFOQUES },
+      { id: 'tratamiento', label: 'Clima del spot', type: 'choice', default: 'natural', choices: TRATAMIENTOS },
       { id: 'intensidadHumor', label: 'Intensidad del humor', type: 'choice', default: 'sutil', choices: [c('sutil', 'Sutil'), c('media', 'Media'), c('alta', 'Alta')] },
       {
         id: 'recursoHumorId', label: 'Mecanismo de humor', type: 'choice', default: 'auto',
