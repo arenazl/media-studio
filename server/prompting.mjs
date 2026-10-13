@@ -16,7 +16,7 @@ export const PROMPT_VERSIONS = {
   // concept/3.2:         // 3.2: (2026-10-12) dice de dónde sale la idea; el kit entra como recorrido de pantallas, sin el caso de la demo
   // concept/3.1:         // 3.1: curación 02 (2026-10-11): fidelidad al ángulo; ficha curada del enfoque caso
   // concept/3.0:         // 3.0: curación externa 2026-10-10 (ENFOQUE + TRATAMIENTO elegidos por el dueño; humor sólo a pedido; spots de marca, no sketches)
-  script: 'script/3.9',           // 3.9: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo
+  script: 'script/3.10',          // 3.10: acciones observables y sonido dirigido en Montaje
   // script/3.8:           // 3.8: (2026-10-12) dice de dónde sale la historia; el kit entra como recorrido de pantallas
   // script/3.7:           // 3.7: (2026-10-12) se van las reglas narrativas del 11/10; entra el estudio curado (calidad dramática, el concepto manda el orden, folleto no, beneficio sí)
   // script/3.6:           // 3.6: (2026-10-11) ninguna frase explica la publicidad
