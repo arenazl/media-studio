@@ -40,13 +40,23 @@ export function aplicarDireccionMontaje(base: MontajePlan, propuesta: PropuestaD
   const aplicadas: string[] = [], descartadas: string[] = [];
   const starts = sceneStarts(plan);
   const usado = new Set<string>();
-  const decisiones = Array.isArray(propuesta?.decisiones) ? propuesta.decisiones.slice(0, 10) : [];
+  const porEscena = new Map<number, number>();
+  let decisionesMusicales = 0;
+  const decisiones = Array.isArray(propuesta?.decisiones) ? propuesta.decisiones.slice(0, 7) : [];
   for (const d of decisiones) {
+    if (!d || typeof d !== 'object') { descartadas.push('Decisión inválida'); continue; }
     const ix = plan.scenes.findIndex((s) => s.escenaN === d.escenaN && !!s.src);
     if (ix < 0 || !RECURSOS.has(d.recurso)) { descartadas.push('Escena/recurso inexistente'); continue; }
-    const clave = d.escenaN + ':' + d.recurso;
-    if (usado.has(clave)) { descartadas.push('Repetida: ' + clave); continue; }
+    const clase = ['corte_seco','fundido'].includes(d.recurso) ? 'transicion'
+      : ['zoom_sutil','sin_zoom'].includes(d.recurso) ? 'encuadre' : 'musica';
+    const clave = d.escenaN + ':' + clase;
+    if (usado.has(clave) || (porEscena.get(d.escenaN) || 0) >= 2) {
+      descartadas.push('Conflicto o demasiados ajustes en escena ' + d.escenaN); continue;
+    }
+    if (clase === 'musica' && decisionesMusicales >= 3) { descartadas.push('Máximo tres cambios musicales'); continue; }
     usado.add(clave);
+    porEscena.set(d.escenaN, (porEscena.get(d.escenaN) || 0) + 1);
+    if (clase === 'musica') decisionesMusicales++;
     const s = plan.scenes[ix];
     const at = starts[ix];
     const dur = Math.max(0, s.out - s.in);
