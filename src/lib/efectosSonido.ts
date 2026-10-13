@@ -29,16 +29,19 @@ const GAIN_LOGO = 0.7;
 // el plan con sus efectos: whoosh un poco antes de cada cambio de material, golpe suave justo cuando aterriza el logo (el
 // momento en que arranca la voz del cierre, o medio segundo después de que entra la placa). Un plan que ya trae efectos
 // (editado en el multipista) no se toca.
-export function conEfectosDeSonido(plan: MontajePlan, mockups: { fileRef: string }[] = []): MontajePlan {
+export function conEfectosDeSonido(plan: MontajePlan, mockups: { fileRef: string }[] = [], contexto: { enfoque?: string; tratamiento?: string } = {}): MontajePlan {
   if (!SFX_EFECTOS.length || plan.sfx?.length) return plan;
   const whoosh = buscar('transicion', 'whoosh-corto');
   const golpe = buscar('logo', 'impacto-suave');
+  // Sonido de transición no es un requisito técnico. En un testimonial, institucional o spot sobrio,
+  // priorizar la continuidad y la voz. El sello sonoro discreto del logo sí puede permanecer.
+  const usaWhoosh = contexto.tratamiento !== 'sobrio' && !['testimonio', 'institucional'].includes(contexto.enfoque || '');
   const refs = new Set(mockups.map((m) => m.fileRef));
   const esPantalla = (s: MontajePlan['scenes'][number]) => refs.has(s.src) || s.rol === 'pantalla';
   const starts = sceneStarts(plan);
   const sfx: NonNullable<MontajePlan['sfx']> = [];
   plan.scenes.forEach((s, i) => {
-    if (i === 0 || !whoosh) return;
+    if (i === 0 || !whoosh || !usaWhoosh) return;
     if (esPantalla(s) !== esPantalla(plan.scenes[i - 1])) sfx.push({ src: whoosh.src, at: Math.max(0, Math.round((starts[i] - 0.25) * 100) / 100), durSec: whoosh.durSec, gain: GAIN_TRANSICION, nombre: whoosh.nombre });
   });
   if (plan.endCard && golpe) {
