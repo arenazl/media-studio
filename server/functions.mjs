@@ -405,6 +405,8 @@ const RUNNERS = {
 OBJETIVO: ${piece.objetivo || 'comunicar el beneficio de la marca'}
 PIEZA: ${piece.titulo || ''}
 MARCA: ${project.name || ''}
+RUBRO: ${project.type || 'no declarado'}
+FICHA DEL NEGOCIO (sólo datos de contexto, no suponer resultados): ${String(project.brief || '').slice(0, 3500)}
 ENFOQUE NARRATIVO: ${piece.enfoque || 'caso'}
 TRATAMIENTO: ${piece.tratamiento || 'natural'}
 CONCEPTO: ${JSON.stringify(piece.concepto || {})}
