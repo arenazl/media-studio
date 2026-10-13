@@ -7,12 +7,13 @@ import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import { pasoHabilitado, type Concepto, type TipoComercial } from '../lib/comercial';
 import { getFunction } from '../lib/functionCatalog';
+import { ENFOQUES_EXPLICADOS, TRATAMIENTOS_EXPLICADOS } from '../lib/guiaCampana';
 
 // concept/3.0 (curación 2026-10-10): lo que el dueño elige antes de pedir propuestas. Intensidad y mecanismo sólo con humor.
 type Eleccion = 'enfoque' | 'tratamiento' | 'intensidadHumor' | 'recursoHumorId';
 const ELECCIONES: { id: Eleccion; label: string; def: string; soloHumor?: boolean }[] = [
-  { id: 'enfoque', label: 'Enfoque', def: 'caso' },
-  { id: 'tratamiento', label: 'Tratamiento', def: 'natural' },
+  { id: 'enfoque', label: 'Cómo contamos la historia', def: 'caso' },
+  { id: 'tratamiento', label: 'Qué sensación queremos transmitir', def: 'natural' },
   { id: 'intensidadHumor', label: 'Intensidad del humor', def: 'sutil', soloHumor: true },
   { id: 'recursoHumorId', label: 'Mecanismo de humor', def: 'auto', soloHumor: true },
 ];
@@ -111,7 +112,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   return (
     <PasoShell
       titulo="Concepto"
-      sub="La idea del comercial: 2-3 propuestas con tono y estética. Elegí una para seguir."
+      sub="El objetivo ya se decidió en la campaña. Ahora elegí cómo contar ESTA historia y con qué tono; después recibís tres conceptos diferentes."
       hasContent={opciones.length > 0}
       busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
@@ -151,6 +152,11 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
                 <button key={ch.value} className={actual === ch.value ? 'paso-chip paso-chip--on' : 'paso-chip'} disabled={busy} onClick={() => elegirOpcion(e.id, ch.value)}>{ch.label}</button>
               ))}
             </div>
+            {(e.id === 'enfoque' || e.id === 'tratamiento') && (
+              <p className="paso-sub" style={{ marginTop: 5 }}>
+                {e.id === 'enfoque' ? ENFOQUES_EXPLICADOS[actual] : TRATAMIENTOS_EXPLICADOS[actual]}
+              </p>
+            )}
           </div>
         );
       })}
