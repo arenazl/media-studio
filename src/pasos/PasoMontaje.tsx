@@ -134,7 +134,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       const r = aplicarDireccionMontaje(plan, respuesta as unknown as PropuestaDireccion);
       setComercial((c) => {
         const actual = c.montaje as MontajeState | undefined;
-        if (!actual?.plan || actual.plan !== plan) return c; // no pisar una edición iniciada durante la llamada
+        if (!actual?.plan || JSON.stringify(actual.plan) !== JSON.stringify(plan)) return c; // proteger cambios hechos durante la llamada, incluso si el estado fue rehidratado
         return {
           ...c,
           montaje: { ...actual, plan: r.plan, variante: undefined,
