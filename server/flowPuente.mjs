@@ -10,6 +10,8 @@ const jobs = new Map();
 const cola = [];                 // pasos pendientes para la pestaña
 const esperando = new Map();     // pasoId → { resolve, reject }
 let ultimoLatido = 0;
+const ARRANQUE = Date.now();     // para no abrir Chrome apenas arranca el backend: la extensión tarda unos segundos en avisar
+let ultimoConPestana = 0;        // la última vez que la extensión vio una pestaña de Flow
 let pestanasFlow = 1;            // cuántas pestañas de Flow ve la extensión (la v3 lo manda en cada consulta)
 let versionExtension = null;     // versión de la extensión que está consultando (para saber si el dueño ya recargó)
 let seq = 0;
@@ -21,12 +23,21 @@ export function listarJobs() { return [...jobs.values()].map(resumen); }
 function resumen(j) { return { id: j.id, estado: j.estado, paso: j.paso, log: j.log.slice(-80), escenas: j.escenas, fallas: j.fallas || [], error: j.error, flowProjectUrl: j.flowProjectUrl, inicio: j.inicio, fin: j.fin, extension: extensionViva(), pestanas: pestanasFlow }; }
 
 // la pestaña pide el próximo paso
+// ¿hace falta abrir Flow? Sólo si pasó la gracia del arranque (45 s) y, con la extensión viva, lleva 30 s sin ver una
+// pestaña; o si la extensión no avisa hace más de 60 s (Chrome cerrado). Antes se abría en cada reinicio (2026-10-13)
+export function faltaFlow() {
+  const t = Date.now();
+  if (t - ARRANQUE < 45000) return false;
+  if (extensionViva()) return pestanasFlow === 0 && t - ultimoConPestana > 30000;
+  return t - ultimoLatido > 60000;
+}
 export function estadoPuente() { return { extension: extensionViva(), pestanas: pestanasFlow, version: versionExtension }; }
 export function proximoComando({ pestanas, origen, version } = {}) {
   if (origen !== 'background') return null;   // un content script viejo (v2) que quedó huérfano en la pestaña no recibe pasos
   latido();
   if (version) versionExtension = String(version);
   if (Number.isFinite(pestanas)) pestanasFlow = pestanas;
+  if (pestanasFlow > 0) ultimoConPestana = Date.now();
   if (pestanasFlow === 0) return null;   // la extensión está, pero no hay pestaña de Flow donde ejecutar: el paso espera
   const paso = cola.shift();
   return paso || null;
@@ -80,7 +91,7 @@ export async function consultar(flowProjectUrl, pasos) {
   const job = { id, estado: 'corriendo', paso: 'consulta', log: [], escenas: [], fallas: [], error: null, flowProjectUrl, inicio: Date.now(), fin: null };
   jobs.set(id, job);
   const salida = [];
-  if (!extensionViva() || pestanasFlow === 0) abrirFlow(flowProjectUrl || 'https://flow.google.com/');
+  if (faltaFlow()) abrirFlow(flowProjectUrl || 'https://flow.google.com/');
   try {
     for (const p of pasos) salida.push({ accion: p.accion, data: await pedir(job, p.accion, p.args || {}, p.timeoutMs || 90000).catch((e) => ({ error: e.message })) });
     return salida;
@@ -98,7 +109,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
   (async () => {
     job.estado = 'corriendo';
     // sin extensión o sin pestaña de Flow: se abre Chrome solo con el perfil de Lucas (abrirFlow.mjs, 2026-10-13)
-    if (!extensionViva() || pestanasFlow === 0) {
+    if (faltaFlow()) {
       const r = abrirFlow(job.flowProjectUrl || 'https://flow.google.com/');
       setPaso(r.abierto ? `abro Flow solo: ${r.motivo}` : `no pude abrir Flow solo (${r.motivo}); abrí flow.google.com en tu Chrome`);
     }
