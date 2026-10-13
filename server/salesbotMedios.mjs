@@ -1,10 +1,10 @@
 // Integración con SalesBot (2026-10-12, Lucas: "habilitale la integración a SalesBot"). Contrato v1 en
 // base-compartida/salesbot/PEDIDO-A-MEDIA-STUDIO-medios-para-las-personalidades-2026-10-12.md, sección 6.
 // Media Studio corre en la PC de Lucas, así que es el que llama: cada 25 s consulta los pedidos pendientes de SalesBot.
-// - Todas las personalidades tienen imágenes, sin filtro por categoría (Lucas, 2026-10-12: "no tiene que haber
-//   restricción en nada"). Cada una tiene su cara, que se inventa la primera vez y queda en server/salesbot-personajes.json
-//   (`personajeDe`, de index.mjs). Lo que vale para todas por igual lo controla el pedido a Flow: nada de desnudos ni
-//   sexo explícito, nada de personas reales, siempre adultos.
+// - Todas las personalidades tienen imágenes y Media Studio no filtra ni juzga los pedidos (Lucas, 2026-10-12:
+//   "solamente tenés que generar; todo lo demás corre por cuenta mía"): les suma lo profesional y los manda a Flow.
+//   Cada personalidad tiene su cara: la fija la primera foto que Lucas le pide y queda en server/salesbot-personajes.json
+//   (`personajeDe`, de index.mjs).
 // - Los pedidos libres los escribe Lucas en el panel (origen "panel").
 // La clave (MEDIA_STUDIO_KEY, Secret Manager de salesbot-prod) se lee con gcloud al arrancar y queda sólo en memoria.
 import { spawn } from 'node:child_process';

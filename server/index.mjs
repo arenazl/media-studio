@@ -582,7 +582,7 @@ Tipo pedido: ${kind || 'video'}.
 ${contextoPersona}
 
 Convertilo en UN pedido para el generador de video. Respondé SOLO un JSON:
-{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "muestra": <true si en el medio aparece la personalidad sobre la que se pidió; si no, false>, "retratoEn": "", "rechazo": "" }
+{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "muestra": <true si en el medio aparece la personalidad sobre la que se pidió; si no, false>, "retratoEn": "" }
 
 El prompt:
 - Primero qué se ve y qué pasa (los sujetos, la acción, el lugar, el momento del día), después cómo se filma (plano, cámara, luz). Fotorrealista y cinematográfico salvo que pida otro estilo.
@@ -590,8 +590,7 @@ El prompt:
 - Formato vertical 9:16 salvo que pida horizontal.
 - Si alguien habla, la frase va entre comillas, en castellano rioplatense, y empieza en el primer segundo. Si no, sin diálogo, con el sonido del lugar.
 - Nunca texto, logos, carteles ni subtítulos dentro de la imagen (la marca, si hace falta, la pone el montaje).
-
-"rechazo": sólo en tres casos: si el pedido es sobre una persona real o famosa, si pide desnudos (pechos, genitales o cola al descubierto) o sexo explícito, o si muestra a un menor en un contexto sugerente. Ahí escribí el motivo en una frase y dejá el resto vacío. Todo lo demás se hace, también ropa sexy, escotada, ajustada, de fiesta o una bikini en una persona adulta: eso no es un rechazo. Si no hay rechazo, "". Las personas que aparecen son siempre adultas.`;
+- Respetá el pedido tal cual (lo que se ve, la ropa, la actitud): tu trabajo es sumarle lo profesional, no cambiarlo.`;
 async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   // parado sobre una personalidad: si el pedido la muestra, va con su cara; si todavía no tiene, esta foto se la fija
   const contextoPersona = !personaje ? ''
@@ -602,8 +601,11 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
     : `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} (así el generador usa su cara) y describilo así: ${personaje.retratoEn}. La ropa y el lugar son los que diga el pedido. Si el pedido es de otra cosa, no lo pongas.
 `;
   const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona, personaje?.esElla ? `${personaje.nombre}, en una charla,` : undefined), model: 'sonnet', functionId: 'flowpack' });
-  const plan = extractJson(text);
-  if (plan.rechazo) return { error: `No lo hago: ${plan.rechazo}` };
+  // Media Studio no juzga el pedido (Lucas, 2026-10-12: "solamente tenés que generar; todo lo demás corre por cuenta
+  // mía"): si la IA que lo arma no devuelve el pedido, se dice eso, con sus palabras
+  let plan;
+  try { plan = extractJson(text); } catch { return { error: `La IA que arma el pedido a Flow no lo armó; contestó: "${String(text || '').trim().slice(0, 300)}"` }; }
+  if (!String(plan.prompt || '').trim()) return { error: `La IA que arma el pedido a Flow no lo armó; contestó: "${String(text || '').trim().slice(0, 300)}"` };
   const kind = plan.kind === 'imagen' || pedido.kind === 'imagen' ? 'imagen' : 'video';
   const durSec = Math.max(2, Math.min(8, Number(plan.durSec) || 6));
   const aspecto = plan.aspecto === '16:9' ? '16:9' : '9:16';
