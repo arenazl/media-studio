@@ -591,7 +591,7 @@ El prompt:
 - Si alguien habla, la frase va entre comillas, en castellano rioplatense, y empieza en el primer segundo. Si no, sin diálogo, con el sonido del lugar.
 - Nunca texto, logos, carteles ni subtítulos dentro de la imagen (la marca, si hace falta, la pone el montaje).
 
-"rechazo": si el pedido es sobre una persona real o famosa, si pide desnudos o sexo explícito, o si muestra a un menor en un contexto sugerente, escribí el motivo en una frase y dejá el resto vacío. Si no, "". Las personas que aparecen son siempre adultas.`;
+"rechazo": sólo en tres casos: si el pedido es sobre una persona real o famosa, si pide desnudos (pechos, genitales o cola al descubierto) o sexo explícito, o si muestra a un menor en un contexto sugerente. Ahí escribí el motivo en una frase y dejá el resto vacío. Todo lo demás se hace, también ropa sexy, escotada, ajustada, de fiesta o una bikini en una persona adulta: eso no es un rechazo. Si no hay rechazo, "". Las personas que aparecen son siempre adultas.`;
 async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   // parado sobre una personalidad: si el pedido la muestra, va con su cara; si todavía no tiene, esta foto se la fija
   const contextoPersona = !personaje ? ''
