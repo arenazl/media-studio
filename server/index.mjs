@@ -568,7 +568,7 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
 // Antes de entregar a SalesBot se mira el cuadro real (2026-10-12: la prueba de la taza entregó el video de los perros de
 // un pedido anterior). Si lo que se ve no es lo pedido, no se entrega; la descripción y las etiquetas salen de lo que se ve.
 async function mirarMedio(cuadro, loPedido) {
-  const { text } = await runAI({ model: 'sonnet', imageBuffer: fs.readFileSync(cuadro), prompt: `Es un cuadro de un medio que se pidió así: "${loPedido}". Respondé SOLO un JSON: { "coincide": true | false, "descripcion": "<en castellano, una frase: qué se ve>", "etiquetas": ["<3 a 6 palabras sueltas en castellano: sujetos, lugar, momento>"] }. "coincide" es false si lo que se ve es otra cosa que lo pedido.` });
+  const { text } = await runAI({ model: 'sonnet', imageBuffer: fs.readFileSync(cuadro), prompt: `Es un cuadro de un medio que se pidió así: "${loPedido}". Respondé SOLO un JSON: { "coincide": true | false, "descripcion": "<en castellano, una frase: qué se ve>", "etiquetas": ["<3 a 6 palabras sueltas en castellano: sujetos, lugar, momento>"] }. "coincide" es false sólo si lo que se ve es otra cosa por completo, como si fuera de otro pedido (otro tema, otros sujetos); si es lo pedido aunque cambie un detalle (la ropa, el color, el estilo, el lugar), es true.` });
   const r = extractJson(text);
   const descripcion = String(r.descripcion || '').trim();
   if (!descripcion) throw new Error('no pude mirar el cuadro para describirlo');
@@ -576,47 +576,40 @@ async function mirarMedio(cuadro, loPedido) {
 }
 
 // Un pedido LIBRE de Lucas desde el panel de SalesBot (2026-10-12): Claude lo convierte en un pedido de Flow y Flow lo genera.
-const PEDIDO_LIBRE = (texto, kind, contextoPersona = '', quien = 'Lucas, el dueño,') => `Sos director de fotografía y prompt-writer de Google Flow (Veo 3). ${quien} pidió este medio:
+// El texto del pedido va a Flow TAL CUAL (Lucas, 2026-10-12: "mandá generar el prompt exactamente como lo puse yo");
+// la IA sólo le suma lo técnico (plano, cámara, luz) y dice el formato y la duración.
+const PEDIDO_LIBRE = (texto, kind, contextoPersona = '', quien = 'Lucas, el dueño,') => `Sos director de fotografía de Google Flow (Veo 3). ${quien} pidió este medio, y su texto va al generador tal cual:
 "${texto}"
 Tipo pedido: ${kind || 'video'}.
 ${contextoPersona}
-
-Convertilo en UN pedido para el generador de video. Respondé SOLO un JSON:
-{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "prompt": "<en inglés, 60 a 120 palabras>", "muestra": <true si en el medio aparece la personalidad sobre la que se pidió; si no, false>, "retratoEn": "" }
-
-El prompt:
-- Primero qué se ve y qué pasa (los sujetos, la acción, el lugar, el momento del día), después cómo se filma (plano, cámara, luz). Fotorrealista y cinematográfico salvo que pida otro estilo.
-- Si pide una imagen o una foto, igual escribí un plano de video casi quieto, que de ahí se saca el cuadro.
-- Formato vertical 9:16 salvo que pida horizontal.
-- Si alguien habla, la frase va entre comillas, en castellano rioplatense, y empieza en el primer segundo. Si no, sin diálogo, con el sonido del lugar.
-- Nunca texto, logos, carteles ni subtítulos dentro de la imagen (la marca, si hace falta, la pone el montaje).
-- Respetá el pedido tal cual (lo que se ve, la ropa, la actitud): tu trabajo es sumarle lo profesional, no cambiarlo.`;
+Tu trabajo es sólo sumarle lo técnico, sin repetir, cambiar ni suavizar lo que pide. Respondé SOLO un JSON:
+{ "kind": "video" | "imagen", "durSec": <segundos que pidió; si no dijo, 6; entre 2 y 8>, "aspecto": "9:16" | "16:9", "tecnica": "<en inglés, 20 a 50 palabras: plano, lente, movimiento de cámara, luz, textura fotorrealista; si pide una foto, un plano casi quieto>", "muestra": <true si en el medio aparece la personalidad sobre la que se pidió; si no, false>, "retratoEn": "" }
+Formato vertical 9:16 salvo que pida horizontal.`;
 async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   // parado sobre una personalidad: si el pedido la muestra, va con su cara; si todavía no tiene, esta foto se la fija
   const contextoPersona = !personaje ? ''
-    : personaje.esElla ? `Es una foto de ${personaje.nombre}, un personaje ficticio, que la pidió en una charla: aparece en el medio, haciendo lo que dice el pedido, como una foto que se sacó o le sacaron. En el prompt llamalo exactamente ${personaje.flowNombre} (así el generador usa su cara) y describilo así: ${personaje.retratoEn}. "muestra" es true.
+    : personaje.esElla ? `El medio es una foto de ${personaje.nombre}, que la pidió en una charla: aparece haciendo lo que dice el texto. "muestra" es true.
 `
-    : personaje.sinCara ? `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio que todavía no tiene cara. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} y completá además "retratoEn": cómo se ve según el pedido (edad, pelo, rasgos, piel, contextura), en inglés, completando de forma común lo que el pedido no diga; esa va a ser su cara de ahí en adelante. Si el pedido es de otra cosa, no lo pongas y dejá "retratoEn" vacío.
+    : personaje.sinCara ? `Se pidió parado sobre ${personaje.nombre}, que todavía no tiene cara. Si el medio lo muestra (también si dice "la misma persona", "él" o "ella"), "muestra" es true y en "retratoEn" escribí cómo se ve según el texto (edad, pelo, rasgos, piel, contextura), en inglés, completando de forma común lo que no diga: va a ser su cara de ahí en adelante.
 `
-    : `Lo pidió parado sobre ${personaje.nombre}, un personaje ficticio. Si el pedido lo muestra (también si dice "la misma persona", "él" o "ella"), en el prompt llamalo exactamente ${personaje.flowNombre} (así el generador usa su cara) y describilo así: ${personaje.retratoEn}. La ropa y el lugar son los que diga el pedido. Si el pedido es de otra cosa, no lo pongas.
+    : `Se pidió parado sobre ${personaje.nombre}. Si el medio lo muestra (también si dice "la misma persona", "él" o "ella"), "muestra" es true.
 `;
   const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona, personaje?.esElla ? `${personaje.nombre}, en una charla,` : undefined), model: 'sonnet', functionId: 'flowpack' });
   // Media Studio no juzga el pedido (Lucas, 2026-10-12: "solamente tenés que generar; todo lo demás corre por cuenta
   // mía"): si la IA que lo arma no devuelve el pedido, se dice eso, con sus palabras
   let plan;
   try { plan = extractJson(text); } catch { return { error: `La IA que arma el pedido a Flow no lo armó; contestó: "${String(text || '').trim().slice(0, 300)}"` }; }
-  if (!String(plan.prompt || '').trim()) return { error: `La IA que arma el pedido a Flow no lo armó; contestó: "${String(text || '').trim().slice(0, 300)}"` };
   const kind = plan.kind === 'imagen' || pedido.kind === 'imagen' ? 'imagen' : 'video';
   const durSec = Math.max(2, Math.min(8, Number(plan.durSec) || 6));
   const aspecto = plan.aspecto === '16:9' ? '16:9' : '9:16';
-  let prompt = `${estiloPara(aspecto)} ${String(plan.prompt || '').trim()} Leave some empty headroom at the top of the frame; nothing drawn or written there. No on-screen text. No subtitles, no captions.`;
-  log(`pedido libre ${pedido.id}: "${String(pedido.contexto).slice(0, 80)}" → ${kind} de ${durSec} s, ${aspecto}`);
   // si el pedido muestra a la personalidad, va su retrato como referencia en Flow (la misma cara en todas sus imágenes).
   // Sin cara todavía: el retrato sale de este pedido y, si la foto se entrega, queda como su cara.
   if (personaje?.sinCara && plan.muestra === true && String(plan.retratoEn || '').trim()) personaje = { ...personaje, retratoEn: String(plan.retratoEn).trim(), vestuarioEn: '', lugarEn: '' };
   const conCara = !!personaje?.retratoEn && (plan.muestra === true || !!personaje.esElla);
-  // en el pedido a Flow la persona va con su nombre de Flow (el de la referencia @), aunque el modelo haya puesto el de pila
-  if (conCara && !new RegExp(`\\b${personaje.flowNombre}\\b`).test(prompt)) prompt = new RegExp(`\\b${personaje.nombre}\\b`).test(prompt) ? prompt.replace(new RegExp(`\\b${personaje.nombre}\\b`, 'g'), personaje.flowNombre) : prompt.replace(String(plan.prompt || '').trim(), `${personaje.flowNombre}: ${String(plan.prompt || '').trim()}`);
+  // el texto tal cual; delante, el nombre de la persona en Flow (el de su referencia @) y detrás, lo técnico
+  const texto = String(pedido.contexto || '').trim().replace(/[.\s]+$/, '');
+  const prompt = `${estiloPara(aspecto)} ${conCara ? `${personaje.flowNombre}: ` : ''}${texto}. ${String(plan.tecnica || '').trim()} No on-screen text, no subtitles, no captions.`;
+  log(`pedido libre ${pedido.id}: "${texto.slice(0, 80)}" → ${kind} de ${durSec} s, ${aspecto}`);
   const personajes = conCara ? [{ id: 'p1', nombre: personaje.flowNombre, promptImagen: promptImagen({ id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn }, { descripcionEn: personaje.lugarEn }) }] : [];
   const pack = { estilo: estiloPara(aspecto), personajes, escenas: [{ escenaN: 1, rol: 'desarrollo', prompt }] };
   const dir = path.join(STORAGE_DIR, 'salesbot');
