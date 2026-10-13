@@ -24,7 +24,7 @@ describe('Molde director publicitario — back', () => {
     expect(prompt.promptVersion).toBe('montageDirection/1.0');
     expect(prompt.prompt).toContain('TRATAMIENTO: sobrio');
     expect(prompt.prompt).toContain('music_drop');
-    expect(prompt.prompt).toContain('no inventa');
+    expect(prompt.prompt).toContain('No inventes');
   });
   it('acepta propuestas vacías si no hay decisiones justificadas', () => {
     const parsed = parseFunctionResult('montageDirection', '{"diagnostico":"Un spot claro","decisiones":[]}', body);
