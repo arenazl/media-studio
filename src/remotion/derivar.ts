@@ -1,7 +1,8 @@
 // Del plan SEMÁNTICO (segundos, por escena) al plan de RENDER (cuadros, absoluto). Es la ÚNICA derivación:
 // la usan la vista previa (Player en el navegador) y el render (Remotion en el servidor), así no hay dos
 // relojes que se desincronicen. Pura, sin DOM.
-import { duckRanges, gananciaDePista, sceneStarts, totalDuration, transitionDur, type MontajePlan, type PalabraTiempo } from '../lib/montajePlan';
+import { duckRanges, silenceRanges, gananciaDePista, sceneStarts, totalDuration, transitionDur, type MontajePlan, type PalabraTiempo } from '../lib/montajePlan';
+import { nivelAutomatizacion, type PuntoMusical } from '../lib/direccionMontaje';
 import { frasesDe, partirFrase } from '../lib/montajista';
 
 export interface PalabraMs { text: string; startMs: number; endMs: number }
@@ -17,7 +18,7 @@ export interface PlanRender {
   inserts: InsertoRender[];
   captions: PaginaSubtitulo[];
   endCard?: { from: number; dur: number; linea1: string; linea2?: string; logoSrc?: string; tipo?: 'logo' | 'pantalla' | 'presentadora'; videoSrc?: string; aterriza?: number };   // aterriza: cuadro (dentro de la placa) en que el logo se asienta, sincronizado con la voz
-  music?: { src: string; gain: number; duck: boolean; duckFrames: [number, number][]; fadeIn: number; fadeOut: number };
+  music?: { src: string; gain: number; duck: boolean; duckFrames: [number, number][]; silenceFrames: [number, number][]; automation: PuntoMusical[]; fadeIn: number; fadeOut: number };
   voice?: { src: string; from: number; volume: number; fadeIn: number; fadeOut: number };
   sfx?: { src: string; from: number; dur: number; volume: number; nombre?: string }[];   // efectos de sonido, cada uno en su cuadro
   logo?: { src: string };
@@ -61,13 +62,30 @@ export function paginarSubtitulos(words: PalabraMs[]): PaginaSubtitulo[] {
 const rampa = (f: number, a: number, b: number) => Math.max(0, Math.min(1, (f - a) / Math.max(1, b - a)));
 
 // música: fade de entrada, baja bajo el diálogo (rangos de ducking del plan), sube en la placa, fade de salida.
+// Ganancias graduales sin saltos abruptos, tanto en el Player como en el MP4 (misma función).
 export function volumenMusica(f: number, r: PlanRender): number {
   if (!r.music) return 0;
-  const enDuck = r.music.duck && r.music.duckFrames.some(([a, b]) => f >= a && f < b);
-  const bed = r.music.gain * (enDuck ? 0.35 : 1);
-  const fadeIn = rampa(f, 0, Math.max(1, r.music.fadeIn));
-  const fadeOut = 1 - rampa(f, r.totalFrames - Math.max(1, r.music.fadeOut), r.totalFrames - 1);
-  return Math.max(0, Math.min(1, bed * fadeIn * fadeOut));
+  const m = r.music;
+  const fadeCuadros = Math.max(1, Math.round(r.fps * 0.12));
+  const duck = m.duck && m.duckFrames.length
+    ? m.duckFrames.reduce((g, [a, b]) => {
+      // Attack anticipado y release suave: evita saltos de volumen entre frases.
+      if (f < a - fadeCuadros || f > b + fadeCuadros) return g;
+      const entrada = Math.max(0, Math.min(1, (a - f) / fadeCuadros));
+      const salida = Math.max(0, Math.min(1, (f - b) / fadeCuadros));
+      return Math.min(g, f < a ? 0.35 + 0.65 * entrada : f >= b ? 0.35 + 0.65 * salida : 0.35);
+    }, 1) : 1;
+  // Un silencio del plan es SILENCIO DE MÚSICA (no corta diálogos ni SFX).
+  const sil = m.silenceFrames.reduce((g, [a, b]) => {
+    if (f < a || f >= b + fadeCuadros) return g;
+    if (f < a + fadeCuadros) return Math.min(g, Math.max(0, 1 - (f - a) / fadeCuadros));
+    if (f < b) return 0;
+    return Math.min(g, (f - b) / fadeCuadros);
+  }, 1);
+  const automatizacion = nivelAutomatizacion(f / r.fps, m.automation);
+  const fadeIn = rampa(f, 0, Math.max(1, m.fadeIn));
+  const fadeOut = 1 - rampa(f, r.totalFrames - Math.max(1, m.fadeOut), r.totalFrames - 1);
+  return Math.max(0, Math.min(1, m.gain * duck * sil * automatizacion * fadeIn * fadeOut));
 }
 
 export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
@@ -122,7 +140,7 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
   return {
     fps, width: plan.width, height: plan.height, totalFrames,
     segments, inserts, captions, endCard,
-    music: plan.music ? { src: resolverSrc(base, plan.music.src), gain: plan.music.gain * gananciaDePista(plan, 'musica'), duck: plan.music.duck, duckFrames: duckRanges(plan).map(([a, b]) => [F(a), F(b)] as [number, number]), fadeIn: plan.music.fadeIn != null ? F(plan.music.fadeIn) : FADE_MUSICA, fadeOut: plan.music.fadeOut != null ? F(plan.music.fadeOut) : FADE_MUSICA } : undefined,
+    music: plan.music ? { src: resolverSrc(base, plan.music.src), gain: plan.music.gain * gananciaDePista(plan, 'musica'), duck: plan.music.duck, duckFrames: duckRanges(plan).map(([a, b]) => [F(a), F(b)] as [number, number]), silenceFrames: silenceRanges(plan).map(([a, b]) => [F(a), F(b)] as [number, number]), automation: plan.music.automation || [], fadeIn: plan.music.fadeIn != null ? F(plan.music.fadeIn) : FADE_MUSICA, fadeOut: plan.music.fadeOut != null ? F(plan.music.fadeOut) : FADE_MUSICA } : undefined,
     voice: plan.voice ? { src: resolverSrc(base, plan.voice.src), from: F(plan.voice.at), volume: gananciaDePista(plan, 'voz'), fadeIn: F(plan.voice.fadeIn || 0), fadeOut: F(plan.voice.fadeOut || 0) } : undefined,
     ...(plan.sfx?.length ? { sfx: plan.sfx.map((s) => ({ src: resolverSrc(base, s.src), from: F(s.at), dur: Math.max(1, F(s.durSec || 2)), volume: (s.gain ?? 0.7) * gananciaDePista(plan, 'sfx'), nombre: s.nombre })) } : {}),
     logo: plan.logo?.src ? { src: resolverSrc(base, plan.logo.src) } : undefined,
