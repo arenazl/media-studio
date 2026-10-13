@@ -22,3 +22,6 @@ _shots/
 
 # Secrets de integración (X-KB-Key por app) — NUNCA al repo
 PROMPTS_INTEGRACION.md
+
+# corrida en seco: empaquetado temporal de los ayudantes del front
+scripts/corrida-seco/.ayudantes.mjs

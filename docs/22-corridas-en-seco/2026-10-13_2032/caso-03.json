@@ -1,0 +1,367 @@
+{
+ "caso": {
+  "n": 3,
+  "app": "munify",
+  "objetivo": "conversion",
+  "enfoque": "antes-despues",
+  "tratamiento": "calido"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "munify",
+  "nombre": "Munify",
+  "rubro": "GovTech / gestion municipal (gobiernos locales)",
+  "brief": "# Munify — brief (desde el KB de la app)\n> La app que conecta al vecino con su municipio en tiempo real: reclama, tramita y paga desde el celular, con validacion biometrica oficial.\n\n## El negocio\nEl vecino reclama un bache, inicia un tramite o paga una tasa desde el celular. El municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve y notifica al vecino en tiempo real, con foto, GPS y firma digital cuando hace falta. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un unico sistema con login unico para gobernar y para atender al vecino.\n\n### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)\nMunify pone en una sola app la relacion entre el vecino y su municipio: el vecino reclama, tramita o paga una tasa desde el celular, con validacion biometrica oficial via RENAPER; el municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve con foto antes/despues y notifica al vecino en cada paso, mientras ve en vivo la temperatura de la ciudad. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un solo login para gobernar y para atender al vecino.\n- Rubro: GovTech / gestion municipal (gobiernos locales)\n- Público: Intendentes, jefes de gabinete, secretarios de gobierno y directores de modernizacion de municipios y comunas de Argentina, desde comunas de 3.000 habitantes hasta ciudades de 200.000. Exclusivo gobiernos locales argentinos.\n\n## Mensajes clave (van en CADA reel)\n- El vinculo vecino-municipio en tiempo real, desde el celular y sin demoras\n- Tramites con validacion biometrica oficial via RENAPER, sin pisar el municipio\n- Los reclamos se derivan solos a la dependencia y se resuelven con foto antes y despues\n- La plata del municipio ordenada: ordenes de pago, tesoreria y sueldos en un solo sistema, sin Excel\n- Todo integrado con un login unico; se implementa en 1 a 2 semanas, no en 6 meses\n\n## Qué ofrece\n- **Reclamos vecinales**: El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y GPS. La IA lo deriva a la dependencia correcta, el supervisor lo asigna a una cuadrilla, se resuelve con foto antes/despues y el vecino recibe notificacion en cada paso con numero de seguimiento.\n  - Clasificacion automatica del reclamo por IA\n  - Foto y geolocalizacion GPS automatica\n  - Asignacion a cuadrilla y fotos antes/despues\n  - Dashboard en vivo y mapa con hotspots\n  - Notificacion al vecino en cada paso y modo offline para cuadrillas\n- **Tramites municipales online**: El vecino inicia tramites desde el celular (habilitacion comercial, libre deuda, certificado de domicilio, licencia de conducir, monotributo municipal, bromatologia, permiso de obra), sube la documentacion, paga online y firma digital cuando corresponde, sin pisar el municipio hasta la entrega.\n  - Validacion biometrica oficial via RENAPER (DNI + selfie con prueba de vida, menos de 30s)\n  - Configuracion por tramite (documentacion, validaciones, area que aprueba, pago)\n  - Pago online y firma digital\n  - Mostrador asistido para vecinos sin app (el operador carga y valida la biometria)\n  - Pre-validacion de documentacion con IA\n- **Turnos y agenda presencial**: El vecino saca turno para gestiones que requieren presencia (mesa de entradas, licencias, bromatologia) eligiendo dependencia, dia y horario disponible. El municipio configura cupos, horarios y feriados; cada dependencia ve su agenda diaria.\n  - Reserva de turno por dependencia, dia y horario libre\n  - Configuracion de cupos, horarios y feriados por agenda\n  - Agenda diaria por dependencia para el personal\n  - Reserva tambien por bot de WhatsApp\n- **Gestion Financiera (Contaduria + Tesoreria + Sueldos)**: Reemplaza el Excel del municipio. Contaduria maneja el circuito formal de Ordenes de Pago con trazabilidad para el Tribunal de Cuentas; Tesoreria registra los movimientos reales y saldos de cada caja; Sueldos liquida al personal con monto editable y premios variables. Los tres sub-modulos comparten la misma base de datos.\n  - Orden de Pago con numero correlativo, PDF de factura adjunto y circuito pendiente -> autorizada -> pagada\n  - Al pagar una OP genera el movimiento en Tesoreria automaticamente, sin doble carga\n  - Cajas y fondos (FOFINDE, FODEMEP, coparticipacion, tesoro propio) con saldo en vivo\n  - Conciliacion bancaria: importar extracto y matchear contra movimientos de caja\n  - Sueldos con monto base editable por mes y premios variables desde catalogo\n\n## Por qué (diferenciadores)\n- Integral: un solo sistema con login unico para reclamos, tramites, turnos y gestion financiera; la competencia los vende por separado.\n- App gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp); si el vecino tuviera que pagar, la adopcion seria cero.\n- Validacion biometrica oficial via RENAPER: le da validez gubernamental al tramite, no es solo un formulario en internet.\n- Multi-tenant real: los datos de cada municipio estan totalmente aislados, con sus colores, logo y dependencias.\n- Multiplataforma de verdad: panel web, PWA, app nativa iOS/Android, bot de WhatsApp y modo offline para cuadrillas.\n- Implementacion en 1 a 2 semanas, no en 6 meses; importa los datos existentes y convive con sistemas legacy via API.\n- IA integrada sin costo extra: clasifica reclamos, detecta duplicados, sugiere asignacion y categoriza gastos.\n- Argentino, en pesos argentinos; la competencia internacional cobra en dolares.\n\n## Dolores y objeciones (en palabras del cliente)\n- \"Ya tenemos un sistema.\" → Munify se integra via API y no obliga a tirar nada de lo que ya tienen. Lo distinto: app gratis para el vecino, validacion RENAPER y los modulos integrados en uno solo.\n- \"Es caro / no tenemos presupuesto.\" → Por eso ofrecemos 3 meses gratis sin tarjeta de credito. El municipio prueba con datos reales y recien decide cuando ve los resultados.\n- \"Mi gente no es tecnologica.\" → La capacitacion esta incluida y la hacemos por videollamada con cada equipo. La curva es de un dia. Esta pensado para que lo use un empleado municipal sin saber de informatica.\n- \"El vecino aca no usa el celular.\" → Para eso esta el Mostrador asistido: el operador de la municipalidad carga el tramite del vecino y le hace la validacion biometrica con el celular. El vecino no necesita tener la app instalada.\n- \"Mis datos estan seguros?\" → Si. Cumplimos la Ley 25.326 de Proteccion de Datos Personales. Cada municipio tiene sus datos aislados, cifrados, en cloud, con backups diarios. La data es del municipio y la pueden exportar cuando quieran.\n\n## Oferta / CTA\n- La app es gratis para el vecino. El municipio paga por habitante, en pesos argentinos, sin permanencia. El precio exacto lo confirma un asesor del equipo segun el tamano del municipio.\n- Combo 3 modulos (Reclamos + Tramites + Gestion Financiera): 3 meses gratis sin compromiso ni tarjeta de credito, precio combinado menor a la suma de los modulos sueltos, capacitacion incluida e implementacion en 1 a 2 semanas.\n\n## A evitar (do_not_say)\n- No inventar precios ni dar montos cerrados; el precio exacto lo cierra un asesor humano segun el tamano del municipio.\n- No afirmar que somos un sistema contable completo ni que emitimos facturacion electronica AFIP; convivimos con SIPAF/RAFAM y sistemas provinciales via API, no los reemplazamos.\n- No presentar Sueldos como un sistema de RRHH completo: liquida base + premios, no calcula aportes/retenciones ni controla asistencia ni legajos.\n- No presentarlo como un GIS profesional (catastro, planos urbanisticos) ni como un CRM generico; es exclusivo para gobiernos locales argentinos.\n- No prometer integraciones especificas (SIPAF, RAFAM, etc.) sin confirmar; el equipo tecnico valida el caso puntual.\n- No comparar directamente con competidores por nombre.\n- Si un dato del municipio viene vacio, no inventarlo: decir que no lo tiene.\n- No usar emojis ni jerga de marketing (revolucionario, increible, potencia, boostea)."
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "conversion",
+   "angle": "Tres meses gratis",
+   "messageScope": "conversion",
+   "primaryMessage": "El municipio puede probar Munify tres meses gratis, con datos reales y sin tarjeta de crédito, y decidir después.",
+   "supportingFacts": [
+    "Combo 3 módulos (Reclamos + Trámites + Gestión Financiera): 3 meses gratis sin compromiso ni tarjeta de crédito",
+    "Precio combinado menor a la suma de los módulos sueltos; el municipio paga por habitante, en pesos argentinos, sin permanencia",
+    "La app es gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp)",
+    "El precio exacto lo confirma un asesor del equipo según el tamaño del municipio"
+   ],
+   "format": "9:16 para Instagram / TikTok",
+   "durationSec": 26,
+   "creativeBrief": "Esta pieza ataca la objeción de presupuesto desde la oferta: antes de firmar nada, el municipio usa el combo de Reclamos, Trámites y Gestión Financiera tres meses gratis con sus propios datos. Deja claro qué es Munify —un solo sistema donde el vecino reclama, tramita y paga desde el celular mientras el municipio ordena su gestión adentro— y prueba que probarlo no exige presupuesto ni permanencia. Cierra invitando a hablar con un asesor del equipo para activar los 3 meses y conocer el precio por habitante según el tamaño del municipio."
+  },
+  "piezasPropuestas": 3
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "Mismo escritorio, dos semanas",
+   "tipoGancho": "CONTRASTE VISUAL",
+   "idea": "En una oficina municipal llena de carpetas, un secretario intenta averiguar en qué quedó un reclamo y nadie sabe decirle. Semanas después, el mismo escritorio: el pedido llegó a la dependencia correcta, se resolvió con foto y el vecino quedó avisado. Lo probaron tres meses gratis, con datos propios, antes de decidir nada.",
+   "tono": "Conversado, sobrio, sin reproche; alivio contenido al final",
+   "estetica": "Oficina real de pueblo, luz de ventana, madera gastada, pilas de papel que se vacían; paleta cálida y cámara a la altura de la persona",
+   "referencia": "Spot institucional de contraste en una sola locación",
+   "porQueFunciona": "El mismo lugar antes y después prueba el cambio sin inventar cifras ni promesas."
+  },
+  {
+   "id": "c2",
+   "topico": "Dos lados del mostrador",
+   "tipoGancho": "DOBLE PERSPECTIVA",
+   "idea": "Una vecina recuerda lo que era reclamar: llamar, volver, preguntar en la esquina. Del otro lado del mostrador, la empleada que recibía el papel y no tenía cómo avisarle. Después, el mismo pedido viaja desde el celular al panel y la respuesta vuelve sola. El municipio lo usó tres meses gratis antes de pagar nada.",
+   "tono": "Humano, cercano, con complicidad entre dos mujeres comunes",
+   "estetica": "Vereda de barrio y mostrador municipal en luz natural; encuadres simples, detalles cotidianos, música discreta que no subraya la emoción",
+   "referencia": "Pieza de servicio público contada en dos voces",
+   "porQueFunciona": "Muestra el beneficio para vecino y municipio a la vez, y vuelve tangible la prueba gratuita."
+  },
+  {
+   "id": "c3",
+   "topico": "No hay presupuesto",
+   "tipoGancho": "INVERSIÓN DE EXPECTATIVA",
+   "idea": "Una directora de modernización corta la reunión: este año no hay presupuesto. En lugar de insistir, le proponen cargar los datos del municipio y usar reclamos, trámites y gestión financiera tres meses, sin tarjeta ni permanencia. Terminado el período, ella compara cómo trabajaban antes y cómo ahora, y recién entonces pide hablar del precio.",
+   "tono": "Directo, respetuoso, escepticismo que afloja de a poco",
+   "estetica": "Sala de reuniones chica con ventanal, mate, carpetas; luz de tarde, cámara quieta, paleta cálida y nada de decorado corporativo",
+   "referencia": "Spot B2B de objeción resuelta en una escena",
+   "porQueFunciona": "Ataca la objeción de presupuesto de frente y deja clara la invitación a consultar."
+  }
+ ],
+ "comercial": {
+  "id": "com-tres-meses-gratis-h6bc",
+  "titulo": "Tres meses gratis",
+  "tipo": "filmado",
+  "enfoque": "antes-despues",
+  "tratamiento": "calido",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Tres meses gratis",
+  "creativeBrief": "Esta pieza ataca la objeción de presupuesto desde la oferta: antes de firmar nada, el municipio usa el combo de Reclamos, Trámites y Gestión Financiera tres meses gratis con sus propios datos. Deja claro qué es Munify —un solo sistema donde el vecino reclama, tramita y paga desde el celular mientras el municipio ordena su gestión adentro— y prueba que probarlo no exige presupuesto ni permanencia. Cierra invitando a hablar con un asesor del equipo para activar los 3 meses y conocer el precio por habitante según el tamaño del municipio.",
+  "messageScope": "conversion",
+  "primaryMessage": "El municipio puede probar Munify tres meses gratis, con datos reales y sin tarjeta de crédito, y decidir después.",
+  "supportingFacts": [
+   "Combo 3 módulos (Reclamos + Trámites + Gestión Financiera): 3 meses gratis sin compromiso ni tarjeta de crédito",
+   "Precio combinado menor a la suma de los módulos sueltos; el municipio paga por habitante, en pesos argentinos, sin permanencia",
+   "La app es gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp)",
+   "El precio exacto lo confirma un asesor del equipo según el tamaño del municipio"
+  ],
+  "perfilCampana": "conversion",
+  "concepto": {
+   "id": "c1",
+   "topico": "Mismo escritorio, dos semanas",
+   "tipoGancho": "CONTRASTE VISUAL",
+   "idea": "En una oficina municipal llena de carpetas, un secretario intenta averiguar en qué quedó un reclamo y nadie sabe decirle. Semanas después, el mismo escritorio: el pedido llegó a la dependencia correcta, se resolvió con foto y el vecino quedó avisado. Lo probaron tres meses gratis, con datos propios, antes de decidir nada.",
+   "tono": "Conversado, sobrio, sin reproche; alivio contenido al final",
+   "estetica": "Oficina real de pueblo, luz de ventana, madera gastada, pilas de papel que se vacían; paleta cálida y cámara a la altura de la persona",
+   "referencia": "Spot institucional de contraste en una sola locación",
+   "porQueFunciona": "El mismo lugar antes y después prueba el cambio sin inventar cifras ni promesas."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Ramiro",
+     "narration": "¿Alguien sabe en qué quedó el reclamo de Nélida?",
+     "visual": "Escritorio de madera tapado de carpetas; Ramiro con el teléfono apoyado en el hombro, esperando que alguien le conteste.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Silvana",
+     "narration": "Estaba en esa carpeta. O en la de arriba.",
+     "visual": "Silvana levanta una pila de papeles, mira abajo y vuelve a apoyarla en el mismo lugar.",
+     "durSec": 5
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Ramiro",
+     "narration": "Lo pusimos a prueba tres meses, con nuestros reclamos, sin poner un peso.",
+     "visual": "Mismo escritorio semanas después, con luz de ventana, una sola carpeta y espacio libre donde antes había pilas.",
+     "durSec": 7
+    },
+    {
+     "role": "giro",
+     "quien": "Silvana",
+     "narration": "Nélida ya sabe. Le llegó la foto al celular.",
+     "visual": "En la pantalla, el reclamo cerrado con las fotos de antes y después; Ramiro se recuesta en la silla y suelta el aire.",
+     "durSec": 5
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "visual": "Placa final sobre fondo cálido con el logo de Munify.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "cálido, contenido"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Ramiro",
+     "rol": "Secretario municipal que busca el estado de un reclamo",
+     "fisicoEn": "Man in his late 40s, short graying hair, olive skin tone, tired eyes, light stubble, medium build, sitting posture suited to desk work, calm but worn expression typical of long office days.",
+     "fisicoEs": "Hombre de unos 48 años, pelo corto canoso, tez morena, aspecto cansado pero calmo.",
+     "vestuario": "Camisa clara arremangada, pantalón de vestir gastado",
+     "vestuarioEn": "Light-colored shirt, sleeves rolled up, worn dress pants",
+     "personalidad": "Paciente, resignado",
+     "lugarEn": "At a wooden municipal office desk by a window, warm natural light falling across stacks of paper folders, worn surface, modest small-town government office atmosphere.",
+     "quien": "Ramiro"
+    },
+    {
+     "id": "p2",
+     "nombre": "Silvana",
+     "rol": "Empleada administrativa que busca el papel del reclamo",
+     "fisicoEn": "Woman in her early 40s, dark hair tied back loosely, olive skin tone, practical appearance, minimal makeup, slightly tired but attentive expression, comfortable administrative office attire.",
+     "fisicoEs": "Mujer de unos 42 años, pelo oscuro recogido, tez morena, expresión atenta y cansada.",
+     "vestuario": "Blusa sencilla, cardigan fino, pantalón cómodo",
+     "vestuarioEn": "Simple blouse, thin cardigan, comfortable trousers",
+     "personalidad": "Práctica, serena",
+     "lugarEn": "Standing beside the same wooden desk near the window, handling paper folders under warm natural light, within the same modest municipal office setting as Ramiro.",
+     "quien": "Silvana"
+    }
+   ],
+   "lugar": {
+    "nombre": "Oficina municipal de pueblo",
+    "descripcionEn": "A modest small-town municipal office with a worn wooden desk by a window, stacks of paper folders, an old computer monitor, warm afternoon light filtering through glass, walls with faded municipal notices, a lived-in bureaucratic atmosphere.",
+    "luz": "Luz natural cálida de ventana"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 5.5,
+    "plano": "medium shot",
+    "angulo": "a la altura del escritorio",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Ramiro pregunta por teléfono qué pasó con un reclamo",
+    "accionEn": "Ramiro is on a work call, phone wedged between his ear and shoulder so his hands stay free, waiting for someone on the other end to answer him. He asks about the status of a resident's complaint with the tired patience of someone who has made this same call before. He sits at his desk surrounded by stacked paper folders, eyes scanning the mess in front of him as he waits, warm afternoon light from the window falling across the worn wood surface of the municipal office.",
+    "dialogo": "¿Alguien sabe en qué quedó el reclamo de Nélida?",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 5.5,
+    "plano": "medium close-up",
+    "angulo": "ligeramente lateral",
+    "personajes": [
+     "p2"
+    ],
+    "accion": "Silvana levanta una pila de carpetas y la vuelve a dejar",
+    "accionEn": "Silvana is trying to locate one specific paper among many, speaking to Ramiro off to the side as she searches. She lifts a stack of folders near the desk, glances underneath without real confidence of finding anything, and sets the pile back down in the same spot, resigned to not knowing exactly where it is. Her tone is practical rather than frustrated, like someone used to this kind of search. She stands beside the same wooden desk by the window, warm light falling over the stacked folders in the municipal office.",
+    "dialogo": "Estaba en esa carpeta. O en la de arriba.",
+    "continuidad": "mismo escritorio, misma luz de ventana",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 5.5,
+    "plano": "wide shot",
+    "angulo": "frontal al escritorio",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Ramiro habla desde el mismo escritorio, ahora despejado",
+    "accionEn": "Ramiro is explaining to someone off-camera that they tried the system for three months using their own complaints, without paying anything, speaking with the calm confidence of someone reporting a result rather than selling something. He sits at the same wooden desk, but weeks later, the surface now mostly clear, only a single folder remaining where piles used to sit. The warm window light is the same as before, giving a quiet sense of the same place with less clutter and less weight.",
+    "dialogo": "Lo pusimos a prueba tres meses, con nuestros reclamos, sin poner un peso.",
+    "continuidad": "mismo escritorio, menos carpetas que antes",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 4,
+    "rol": "giro",
+    "durSec": 5.5,
+    "plano": "medium shot",
+    "angulo": "sobre el hombro",
+    "personajes": [
+     "p2"
+    ],
+    "accion": "Silvana cuenta que Nélida ya recibió la foto",
+    "accionEn": "Silvana is telling Ramiro that Nélida already knows the outcome, that the photo reached her phone, with the quiet satisfaction of someone confirming that something finally worked. She speaks directly to him, standing near the same desk, holding her own phone loosely at her side rather than showing it to camera. Her expression is calm, almost relieved, the kind of small win that doesn't need to be celebrated loudly. Same warm window light, same municipal office.",
+    "dialogo": "Nélida ya sabe. Le llegó la foto al celular.",
+    "continuidad": "mismo lugar, misma luz",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 5,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "frontal",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Ramiro se recuesta en la silla y suelta el aire",
+    "accionEn": "Ramiro reacts to what Silvana just told him, leaning back in his chair and letting out a breath, the physical release of someone who no longer has to chase down an answer. There's no one else to perform for here, it's just his own quiet relief settling in for a second. He stays seated at the same desk, same warm window light, the folder beside him a small reminder of how little is left to sort through now.",
+    "dialogo": "",
+    "continuidad": "mismo escritorio, misma luz",
+    "pantalla": "",
+    "durSecModelo": 2
+   },
+   {
+    "n": 6,
+    "rol": "cta",
+    "durSec": 3.5,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Ramiro",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Man in his late 40s, short graying hair, olive skin tone, tired eyes, light stubble, medium build, sitting posture suited to desk work, calm but worn expression typical of long office days, standing and looking at the camera, natural pose, neutral background with a hint of a modest small-town municipal office with a worn wooden desk by a window. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "p2",
+     "nombre": "Silvana",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman in her early 40s, dark hair tied back loosely, olive skin tone, practical appearance, minimal makeup, slightly tired but attentive expression, comfortable administrative office attire, standing and looking at the camera, natural pose, neutral background with a hint of a modest small-town municipal office with a worn wooden desk by a window. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Ramiro, an Argentine man in his late 40s, short graying hair, olive skin tone, tired eyes, light stubble, medium build, wearing Light-colored shirt, sleeves rolled up, worn dress pants. Ramiro is on a work call, phone wedged between his ear and shoulder so his hands stay free, waiting for someone on the other end to answer him. He asks about the status of a resident's complaint with the tired patience of someone who has made this same call before. He sits at his desk surrounded by stacked paper folders, eyes scanning the mess in front of him as he waits, warm afternoon light from the window falling across the worn wood surface of the municipal office. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: '¿Alguien sabe en qué quedó el reclamo de Nélida?' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Silvana, an Argentine woman in her early 40s, dark hair tied back loosely, olive skin tone, practical appearance, minimal makeup, wearing Simple blouse, thin cardigan, comfortable trousers. Silvana is trying to locate one specific paper among many, speaking to Ramiro off to the side as she searches. She lifts a stack of folders near the desk, glances underneath without real confidence of finding anything, and sets the pile back down in the same spot, resigned to not knowing exactly where it is. Her tone is practical rather than frustrated, like someone used to this kind of search. She stands beside the same wooden desk by the window, warm light falling over the stacked folders in the municipal office. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Estaba en esa carpeta. O en la de arriba.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Ramiro, an Argentine man in his late 40s, short graying hair, olive skin tone, tired eyes, light stubble, medium build, wearing Light-colored shirt, sleeves rolled up, worn dress pants. Ramiro is explaining to someone off-camera that they tried the system for three months using their own complaints, without paying anything, speaking with the calm confidence of someone reporting a result rather than selling something. He sits at the same wooden desk, but weeks later, the surface now mostly clear, only a single folder remaining where piles used to sit. The warm window light is the same as before, giving a quiet sense of the same place with less clutter and less weight. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Lo pusimos a prueba tres meses, con nuestros reclamos, sin poner un peso.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Wide shot that shows the whole place, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 4,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Silvana, an Argentine woman in her early 40s, dark hair tied back loosely, olive skin tone, practical appearance, minimal makeup, wearing Simple blouse, thin cardigan, comfortable trousers. Silvana is telling Ramiro that Nélida already knows the outcome, that the photo reached her phone, with the quiet satisfaction of someone confirming that something finally worked. She speaks directly to him, standing near the same desk, holding her own phone loosely at her side rather than showing it to camera. Her expression is calm, almost relieved, the kind of small win that doesn't need to be celebrated loudly. Same warm window light, same municipal office. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Nélida ya sabe. Le llegó la foto al celular.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 5,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Ramiro, an Argentine man in his late 40s, short graying hair, olive skin tone, tired eyes, light stubble, medium build, wearing Light-colored shirt, sleeves rolled up, worn dress pants. Ramiro reacts to what Silvana just told him, leaning back in his chair and letting out a breath, the physical release of someone who no longer has to chase down an answer. There's no one else to perform for here, it's just his own quiet relief settling in for a second. He stays seated at the same desk, same warm window light, the folder beside him a small reminder of how little is left to sort through now. No dialogue: ambient sound only. Close-up on the face and hands, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Munify. Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito.' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "Munify. Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Un spot institucional de una sola locación donde todo el peso está en el salto temporal del mismo escritorio: el montaje sólo tiene que hacer legible ese cambio y dejar respirar la reacción final.",
+  "decisiones": [
+   {
+    "recurso": "dissolve",
+    "escenaN": 3,
+    "cuando": "antes",
+    "durSec": 0.7,
+    "motivo": "El corte entre escena 2 y 3 es el mismo escritorio en dos momentos distintos: la disolvencia hace perceptible el paso de semanas y el vaciado de las pilas de papel sin recurrir a placas ni trucos."
+   },
+   {
+    "recurso": "music_dip",
+    "escenaN": 4,
+    "cuando": "inicio",
+    "durSec": 0.6,
+    "motivo": "La frase 'Nélida ya sabe' es el remate de la historia y se dice en voz baja; bajar la música deja la línea limpia y sostiene el alivio contenido."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 5,
+    "cuando": "inicio",
+    "durSec": 0.8,
+    "motivo": "La escena 5 no tiene diálogo y cierra sobre la placa con el logo: el realce da un final claro a la marca sin tapar nada."
+   }
+  ]
+ }
+}

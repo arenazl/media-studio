@@ -1,0 +1,378 @@
+{
+ "caso": {
+  "n": 4,
+  "app": "repareya",
+  "objetivo": "campaña",
+  "enfoque": "caso",
+  "tratamiento": "natural"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "repareya",
+  "nombre": "RepareHoy",
+  "rubro": "AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Los textos no nombran ningún barrio.",
+  "brief": "# RepareHoy — brief (desde el KB de la app)\n> Marketplace de oficios para el hogar en el AMBA. El cliente cuenta el problema en sus palabras, recibe hasta tres presupuestos de profesionales verificados de su zona, habla con el que elige por un chat dentro de la app y paga la seña desde ahí.\n\n## La tesis (lo que se vende, en palabras de la app)\n- El fuerte: RepareHoy hace de juez entre el que necesita arreglar algo en su casa y el que sabe hacerlo: la seña queda retenida hasta que el trabajo está hecho, el plan de pagos lo acuerdan los dos en el chat y queda como registro, y la reputación sale sólo de trabajos terminados adentro.\n- Se entiende como: Un Mercado Libre de oficios con pago protegido: publicás lo que te pasa y te llegan los presupuestos, no perseguís a nadie.\n- Contra qué: El WhatsApp y la confianza a ciegas: el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó, y lo hablado que quedó en audios.\n- El momento mágico: Para el cliente, cuando abre la app y la tira dice 'Te esperan tus proveedores' con presupuestos que llegaron solos. Para el proveedor, cuando arma el plan de pagos a su manera y la app le dice hasta dónde puede pedir de adelanto porque ya se lo ganó.\n- A quién le hablamos primero: Al cliente con algo roto en casa, porque es quien tiene el dolor hoy y quien trae la plata; sin pedidos no hay proveedor que se quede. El proveedor viene después, con su propia pieza: la bandeja, el plan, los números.\n\n## El negocio\nIntermediación entre quien necesita arreglar o hacer algo en su casa y profesionales de once oficios: plomería, electricidad, cerrajería, gas, aire acondicionado, pintura, carpintería, albañilería, herrería, techos y humedad, y materiales. La plataforma cobra una comisión del 10% sobre el monto del trabajo; la paga el proveedor.\n- Rubro: AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Los textos no nombran ningún barrio.\n- Público: Primero el cliente que tiene algo que arreglar en su casa; después el proveedor. En ese orden, y con una historia para cada uno.\n\n## Qué ofrece\n\n## Por qué (diferenciadores)\n- La seña queda retenida por la plataforma y se le libera al proveedor recién cuando el trabajo está terminado: sin disputa abierta, a los 7 días de finalizado.\n- El plan de pagos lo acuerdan las partes, no la plataforma: el proveedor propone (todo al final, mitad y mitad, o contra avance por etapas), el cliente acepta o contrapropone, y queda sellado cuando los dos firman.\n- La plataforma pone un solo límite: cuánto se puede pedir por adelantado, y sale del historial del proveedor. Hasta 20% del total sin trabajos previos, 40% con cinco finalizados, 60% con veinte.\n- Cada propuesta de pago queda dentro del hilo de la conversación, en el momento en que ocurrió. La negociación completa es el registro si después hay una disputa.\n- Las reseñas salen únicamente de trabajos finalizados dentro de la app. No se pueden cargar a mano, ni desde el panel de administración.\n- El cliente no persigue a nadie: publica el problema, le llegan los presupuestos, y su pantalla de inicio le muestra qué trabajos esperan algo suyo, ordenados por urgencia.\n- Los pagos hechos por fuera de la app se pueden declarar y la otra parte los confirma. Queda registro aunque la plata no haya pasado por el sistema, y al proveedor le suma historial.\n- Hay un fondo de reparo opcional: un porcentaje que queda retenido unos días después de terminado el trabajo.\n\n## A evitar (do_not_say)\n- precios concretos de servicios: son de demostración y cambian\n- cantidades de proveedores, trabajos o reseñas como si fueran tracción real\n- promesas absolutas: '100% seguro', 'garantizado', 'sin riesgo'\n- que el pago al proveedor es automático: hoy la liberación genera una orden y la transferencia la hace tesorería a mano\n- Mobbex, 'split de pagos' o 'sin triangulación fiscal': la pasarela activa es MercadoPago y no hay split; esos textos que aparecen en algún banner son heredados y están marcados para sacar\n- que la plataforma garantiza el trabajo: lo que garantiza es que la seña no se libera hasta que esté hecho\n- 'matriculados' para todos los oficios: la app verifica identidad y CUIT, no matrícula. La matrícula existe para gas y electricidad; en el resto, decir 'verificados'"
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "awareness",
+   "angle": "Dejar de perseguir",
+   "messageScope": "problem",
+   "primaryMessage": "Arreglar algo en tu casa no tendría que ser perseguir a alguien por WhatsApp: en RepareHoy publicás el problema y los presupuestos te llegan solos.",
+   "supportingFacts": [
+    "Contra qué compite: el WhatsApp y la confianza a ciegas, el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó",
+    "El cliente cuenta el problema en sus palabras y recibe hasta tres presupuestos de profesionales verificados de su zona",
+    "El cliente no persigue a nadie: publica el problema y le llegan los presupuestos",
+    "Marketplace de oficios para el hogar en el AMBA"
+   ],
+   "creativeBrief": "Esta pieza instala un solo dolor: la rutina de mandar mensajes y esperar que alguien conteste. Cierra presentando RepareHoy como el lugar donde se invierte ese flujo, el problema se publica una vez y los presupuestos llegan solos. Prueba la parte de la propuesta que dice que el cliente no corre atrás de nadie."
+  },
+  "piezasPropuestas": 7
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "Tres días esperando",
+   "tipoGancho": "CONTRASTE COTIDIANO",
+   "idea": "Una mujer convive tres días con una canilla que pierde y una lista de mensajes sin responder; cada vez que suena el teléfono no es nadie. Cansada, cuenta el problema en la app una sola vez y deja de mirar la pantalla. Cuando vuelve, la espera cambió de lado: los presupuestos llegaron solos.",
+   "tono": "Resignación que se afloja; nada de euforia, alivio contenido",
+   "estetica": "Departamento real, luz de ventana, baño chico; insertos de las pantallas Contar el problema y Te esperan tus proveedores",
+   "referencia": "Spot de servicio con relato observacional en primera persona",
+   "porQueFunciona": "Muestra el antes y el después del mismo gesto: dejar de escribir y recibir presupuestos."
+  },
+  {
+   "id": "c2",
+   "topico": "La hija interviene",
+   "tipoGancho": "VÍNCULO HUMANO",
+   "idea": "Un padre y su hija comparten mesa: él repite el mismo mensaje a tres contactos por una persiana trabada y ninguno contesta. La hija no lo reta, le pasa el teléfono con el pedido ya publicado. Él vuelve a comer y el aviso que entra después no lo escribió él: son presupuestos para comparar.",
+   "tono": "Diálogo breve, cariño sin bajada de línea, naturalidad familiar",
+   "estetica": "Cocina de casa de familia, sobremesa, celulares sobre la mesa; inserto de Te esperan tus proveedores en la pantalla del padre",
+   "referencia": "Publicidad de escena familiar con descubrimiento compartido",
+   "porQueFunciona": "El cambio lo valida otra persona: se entiende sin explicar y el padre conserva la decisión."
+  },
+  {
+   "id": "c3",
+   "topico": "Dos pantallas comparadas",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Un hombre sentado al borde de la bañera muestra a cámara su propia prueba: la conversación donde pidió presupuesto cuatro veces sin respuesta, y al lado el pedido que cargó una sola vez contando qué le pasa. No llama a nadie más; espera, y los presupuestos aparecen sin que él insista.",
+   "tono": "Directo, conversado, como quien explica algo a un amigo",
+   "estetica": "Baño con humedad visible, luz cruda de artefacto, encuadre frontal cercano; pantallas del flujo del cliente como insertos del montaje",
+   "referencia": "Demostración a cámara con prueba en pantalla",
+   "porQueFunciona": "La comparación es la prueba: un pedido publicado reemplaza cuatro mensajes sin respuesta."
+  }
+ ],
+ "comercial": {
+  "id": "com-dejar-de-perseguir-hy0z",
+  "titulo": "Dejar de perseguir",
+  "tipo": "filmado",
+  "enfoque": "caso",
+  "tratamiento": "natural",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Dejar de perseguir",
+  "creativeBrief": "Esta pieza instala un solo dolor: la rutina de mandar mensajes y esperar que alguien conteste. Cierra presentando RepareHoy como el lugar donde se invierte ese flujo, el problema se publica una vez y los presupuestos llegan solos. Prueba la parte de la propuesta que dice que el cliente no corre atrás de nadie.",
+  "messageScope": "problem",
+  "primaryMessage": "Arreglar algo en tu casa no tendría que ser perseguir a alguien por WhatsApp: en RepareHoy publicás el problema y los presupuestos te llegan solos.",
+  "supportingFacts": [
+   "Contra qué compite: el WhatsApp y la confianza a ciegas, el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó",
+   "El cliente cuenta el problema en sus palabras y recibe hasta tres presupuestos de profesionales verificados de su zona",
+   "El cliente no persigue a nadie: publica el problema y le llegan los presupuestos",
+   "Marketplace de oficios para el hogar en el AMBA"
+  ],
+  "perfilCampana": "campaña",
+  "concepto": {
+   "id": "c1",
+   "topico": "Tres días esperando",
+   "tipoGancho": "CONTRASTE COTIDIANO",
+   "idea": "Una mujer convive tres días con una canilla que pierde y una lista de mensajes sin responder; cada vez que suena el teléfono no es nadie. Cansada, cuenta el problema en la app una sola vez y deja de mirar la pantalla. Cuando vuelve, la espera cambió de lado: los presupuestos llegaron solos.",
+   "tono": "Resignación que se afloja; nada de euforia, alivio contenido",
+   "estetica": "Departamento real, luz de ventana, baño chico; insertos de las pantallas Contar el problema y Te esperan tus proveedores",
+   "referencia": "Spot de servicio con relato observacional en primera persona",
+   "porQueFunciona": "Muestra el antes y el después del mismo gesto: dejar de escribir y recibir presupuestos."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Valeria",
+     "narration": "Tres días con un balde abajo de la pileta.",
+     "visual": "Baño chico con luz de ventana: Valeria mira caer la gota en el balde, sin apurarse.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Valeria",
+     "narration": "Escribí a cuatro. Dos me dejaron en visto, uno me dijo que pasaba el martes. Hoy es jueves. Al final lo conté una sola vez, en la app.",
+     "visual": "Chats sin respuesta en la cocina mientras suena un teléfono que no es nadie; inserto de la pantalla Contar el problema.",
+     "durSec": 12
+    },
+    {
+     "role": "giro",
+     "quien": "Valeria",
+     "narration": "Me olvidé del teléfono. Cuando lo miré, los presupuestos ya estaban ahí.",
+     "visual": "El teléfono boca abajo sobre la mesa, ella volviendo del lavadero; inserto de la pantalla Te esperan tus proveedores y la cara de Valeria aflojándose.",
+     "durSec": 5
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Entrá a reparehoy.com.ar y contá qué hay que arreglar · https://reparehoy.com.ar",
+     "visual": "Placa final de RepareHoy con la dirección web.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "intimidad contenida"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Valeria",
+     "rol": "Protagonista: convive con el problema, cuenta el caso una vez y vive el cambio",
+     "fisicoEn": "Woman around 35 years old, shoulder-length dark brown hair tied back loosely, light olive skin tone, tired but calm expression, natural everyday appearance without makeup emphasis, average build, relaxed posture of someone at home after a long day",
+     "fisicoEs": "Mujer de unos 35 años, pelo castaño oscuro recogido, piel clara, expresión cansada pero tranquila",
+     "vestuario": "Remera gris simple, pantalón cómodo de estar en casa",
+     "vestuarioEn": "simple grey t-shirt, comfortable grey loungewear pants",
+     "personalidad": "Resignada, contenida",
+     "lugarEn": "Small home bathroom with a narrow window letting in soft natural daylight, a plastic bucket under a dripping sink, worn tile walls; later the same apartment's kitchen table area with a phone resting face down, warm late-afternoon light through a nearby window",
+     "quien": "Valeria"
+    }
+   ],
+   "lugar": {
+    "nombre": "Departamento real: baño chico y cocina",
+    "descripcionEn": "A modest, lived-in apartment: a small bathroom with a dripping faucet over a plastic bucket, worn tiles, and a narrow window with soft daylight; adjoining kitchen with a simple table where a phone lies face down, everyday clutter, warm natural light filtering through curtains",
+    "luz": "Luz natural de ventana, suave y realista"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 4,
+    "plano": "medium close-up",
+    "angulo": "a la altura de los ojos, levemente de costado",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Valeria mira caer la gota en el balde, resignada",
+    "accionEn": "Valeria sits on the edge of the bathtub staring at the dripping faucet, worn down by three days of the same problem repeating itself; she is not frustrated anymore, just tired, almost resigned to the routine of watching water fall into the bucket. She speaks to herself, as if finally putting it into words out loud. Small home bathroom with narrow window, soft natural daylight, worn tile walls, plastic bucket under the sink.",
+    "dialogo": "Tres días con un balde abajo de la pileta.",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 6.5,
+    "plano": "medium shot",
+    "angulo": "frontal, leve picado desde la mesa",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Valeria revisa el teléfono en la cocina, sin respuestas",
+    "accionEn": "Valeria stands in her kitchen looking at her phone, going through old conversations in her head rather than typing; she speaks to herself with quiet frustration about the four people she contacted who never followed through. Her tone is matter-of-fact, not angry, just done with waiting. Warm late-afternoon light through the kitchen window, everyday clutter on the table, no one else in frame.",
+    "dialogo": "Escribí a cuatro. Dos me dejaron en visto, uno me dijo que pasaba el martes.",
+    "continuidad": "misma cocina, mismo momento del día",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 5.5,
+    "plano": "close-up",
+    "angulo": "frontal",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Valeria termina la idea, cansada de insistir",
+    "accionEn": "Valeria remains in the same kitchen spot, finishing her thought with a small exhale, closing the subject of the four failed attempts before mentioning what actually worked. She speaks plainly, to herself, as someone stating a fact rather than complaining. Same warm afternoon light, same kitchen table with the phone nearby, continuous moment from the previous beat.",
+    "dialogo": "Hoy es jueves. Al final lo conté una sola vez, en la app.",
+    "continuidad": "misma cocina, continúa el mismo pensamiento",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 4,
+    "rol": "desarrollo",
+    "durSec": 1.5,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Inserto: pantalla Contar el problema de la app",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "Contar el problema",
+    "durSecModelo": 3,
+    "archivoCaptura": "screens/01-cliente-contar-el-problema.png"
+   },
+   {
+    "n": 5,
+    "rol": "giro",
+    "durSec": 2.5,
+    "plano": "wide shot",
+    "angulo": "desde la puerta de la cocina",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Valeria vuelve del lavadero, el teléfono quedó en la mesa",
+    "accionEn": "Valeria walks back into the kitchen from doing something else around the house, having completely forgotten about her phone resting face down on the table; she is not expecting anything, just going about her day. She speaks almost surprised at herself for forgetting. Same lived-in kitchen, warm natural light through curtains, phone visible face down on the table as she approaches.",
+    "dialogo": "Me olvidé del teléfono.",
+    "continuidad": "misma cocina, ella entra desde otro ambiente",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 6,
+    "rol": "giro",
+    "durSec": 3.5,
+    "plano": "close-up",
+    "angulo": "sobre la mesa, hacia su rostro",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Valeria afloja la expresión al ver el teléfono",
+    "accionEn": "Valeria picks up the phone and her face softens with quiet relief as she sees something unexpected waiting for her; she speaks to herself, finishing the thought with calm surprise rather than excitement. Same kitchen table, warm afternoon light, phone now face up in her hand, continuous from the previous moment.",
+    "dialogo": "Cuando lo miré, los presupuestos ya estaban ahí.",
+    "continuidad": "mismo lugar, el teléfono ahora boca arriba",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 7,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Inserto: pantalla Te esperan tus proveedores de la app",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "Te esperan tus proveedores",
+    "durSecModelo": 1,
+    "archivoCaptura": "screens/02-cliente-te-esperan-tus-proveedores.png"
+   },
+   {
+    "n": 8,
+    "rol": "cta",
+    "durSec": 1.5,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Placa final: Entrá a reparehoy.com.ar y contá qué hay que arreglar · https://reparehoy.com.ar",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Valeria",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman around 35 years old, shoulder-length dark brown hair tied back loosely, light olive skin tone, tired but calm expression, natural everyday appearance without makeup emphasis, average build, relaxed posture of someone at home after a long day, standing and looking at the camera, natural pose, neutral background with a hint of a modest, lived-in apartment: a small bathroom with a dripping faucet over a plastic. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Valeria, an Argentine woman around 35 years old, shoulder-length dark brown hair tied back loosely, light olive skin tone, wearing simple grey t-shirt, comfortable grey loungewear pants. Valeria sits on the edge of the bathtub staring at the dripping faucet, worn down by three days of the same problem repeating itself; she is not frustrated anymore, just tired, almost resigned to the routine of watching water fall into the bucket. She speaks to herself, as if finally putting it into words out loud. Small home bathroom with narrow window, soft natural daylight, worn tile walls, plastic bucket under the sink. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Tres días con un balde abajo de la pileta.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Valeria, an Argentine woman around 35 years old, shoulder-length dark brown hair tied back loosely, light olive skin tone, wearing simple grey t-shirt, comfortable grey loungewear pants. Valeria stands in her kitchen looking at her phone, going through old conversations in her head rather than typing; she speaks to herself with quiet frustration about the four people she contacted who never followed through. Her tone is matter-of-fact, not angry, just done with waiting. Warm late-afternoon light through the kitchen window, everyday clutter on the table, no one else in frame. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Escribí a cuatro. Dos me dejaron en visto, uno me dijo que pasaba el martes.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Valeria, an Argentine woman around 35 years old, shoulder-length dark brown hair tied back loosely, light olive skin tone, wearing simple grey t-shirt, comfortable grey loungewear pants. Valeria remains in the same kitchen spot, finishing her thought with a small exhale, closing the subject of the four failed attempts before mentioning what actually worked. She speaks plainly, to herself, as someone stating a fact rather than complaining. Same warm afternoon light, same kitchen table with the phone nearby, continuous moment from the previous beat. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Hoy es jueves. Al final lo conté una sola vez, en la app.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Close-up on the face and hands, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 5,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Valeria, an Argentine woman around 35 years old, shoulder-length dark brown hair tied back loosely, light olive skin tone, wearing simple grey t-shirt, comfortable grey loungewear pants. Valeria walks back into the kitchen from doing something else around the house, having completely forgotten about her phone resting face down on the table; she is not expecting anything, just going about her day. She speaks almost surprised at herself for forgetting. Same lived-in kitchen, warm natural light through curtains, phone visible face down on the table as she approaches. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Me olvidé del teléfono.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Wide shot that shows the whole place, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 6,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Valeria, an Argentine woman around 35 years old, shoulder-length dark brown hair tied back loosely, light olive skin tone, wearing simple grey t-shirt, comfortable grey loungewear pants. Valeria picks up the phone and her face softens with quiet relief as she sees something unexpected waiting for her; she speaks to herself, finishing the thought with calm surprise rather than excitement. Same kitchen table, warm afternoon light, phone now face up in her hand, continuous from the previous moment. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Cuando lo miré, los presupuestos ya estaban ahí.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Close-up on the face and hands, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'RepareHoy. Entrá a reparehoy.com.ar y contá qué hay que arreglar · https://reparehoy.com.ar' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "RepareHoy. Entrá a reparehoy.com.ar y contá qué hay que arreglar · https://reparehoy.com.ar",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Un relato de espera contada en voz baja: el spot vive del contraste entre los tres días de silencio y el momento en que la espera cambia de lado, así que el montaje sólo tiene que marcar ese pasaje y no decorar el resto.",
+  "decisiones": [
+   {
+    "recurso": "music_dip",
+    "escenaN": 3,
+    "cuando": "inicio",
+    "durSec": 0.5,
+    "motivo": "La frase 'Hoy es jueves' es el remate del abandono y está dicha sin énfasis; bajar la música deja que el dato caiga solo."
+   },
+   {
+    "recurso": "cut",
+    "escenaN": 5,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "El pasaje del teléfono que no suena al giro tiene que ser seco: un fundido ahí suavizaría justo el cambio de estado que el spot necesita que se note."
+   },
+   {
+    "recurso": "music_drop",
+    "escenaN": 6,
+    "cuando": "inicio",
+    "durSec": 0.6,
+    "motivo": "'Cuando lo miré, los presupuestos ya estaban ahí' es la revelación de la pieza; el vacío de música sostiene la frase sin tocar la voz."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 7,
+    "cuando": "inicio",
+    "durSec": 0.8,
+    "motivo": "Escena sin diálogo con la cara de Valeria aflojándose: es el único lugar donde la música puede cargar el alivio sin competir con nadie."
+   }
+  ]
+ }
+}

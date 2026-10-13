@@ -1,0 +1,394 @@
+{
+ "caso": {
+  "n": 10,
+  "app": "repareya",
+  "objetivo": "campaña",
+  "enfoque": "antes-despues",
+  "tratamiento": "humor"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "repareya",
+  "nombre": "RepareHoy",
+  "rubro": "AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Los textos no nombran ningún barrio.",
+  "brief": "# RepareHoy — brief (desde el KB de la app)\n> Marketplace de oficios para el hogar en el AMBA. El cliente cuenta el problema en sus palabras, recibe hasta tres presupuestos de profesionales verificados de su zona, habla con el que elige por un chat dentro de la app y paga la seña desde ahí.\n\n## La tesis (lo que se vende, en palabras de la app)\n- El fuerte: RepareHoy hace de juez entre el que necesita arreglar algo en su casa y el que sabe hacerlo: la seña queda retenida hasta que el trabajo está hecho, el plan de pagos lo acuerdan los dos en el chat y queda como registro, y la reputación sale sólo de trabajos terminados adentro.\n- Se entiende como: Un Mercado Libre de oficios con pago protegido: publicás lo que te pasa y te llegan los presupuestos, no perseguís a nadie.\n- Contra qué: El WhatsApp y la confianza a ciegas: el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó, y lo hablado que quedó en audios.\n- El momento mágico: Para el cliente, cuando abre la app y la tira dice 'Te esperan tus proveedores' con presupuestos que llegaron solos. Para el proveedor, cuando arma el plan de pagos a su manera y la app le dice hasta dónde puede pedir de adelanto porque ya se lo ganó.\n- A quién le hablamos primero: Al cliente con algo roto en casa, porque es quien tiene el dolor hoy y quien trae la plata; sin pedidos no hay proveedor que se quede. El proveedor viene después, con su propia pieza: la bandeja, el plan, los números.\n\n## El negocio\nIntermediación entre quien necesita arreglar o hacer algo en su casa y profesionales de once oficios: plomería, electricidad, cerrajería, gas, aire acondicionado, pintura, carpintería, albañilería, herrería, techos y humedad, y materiales. La plataforma cobra una comisión del 10% sobre el monto del trabajo; la paga el proveedor.\n- Rubro: AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Los textos no nombran ningún barrio.\n- Público: Primero el cliente que tiene algo que arreglar en su casa; después el proveedor. En ese orden, y con una historia para cada uno.\n\n## Qué ofrece\n\n## Por qué (diferenciadores)\n- La seña queda retenida por la plataforma y se le libera al proveedor recién cuando el trabajo está terminado: sin disputa abierta, a los 7 días de finalizado.\n- El plan de pagos lo acuerdan las partes, no la plataforma: el proveedor propone (todo al final, mitad y mitad, o contra avance por etapas), el cliente acepta o contrapropone, y queda sellado cuando los dos firman.\n- La plataforma pone un solo límite: cuánto se puede pedir por adelantado, y sale del historial del proveedor. Hasta 20% del total sin trabajos previos, 40% con cinco finalizados, 60% con veinte.\n- Cada propuesta de pago queda dentro del hilo de la conversación, en el momento en que ocurrió. La negociación completa es el registro si después hay una disputa.\n- Las reseñas salen únicamente de trabajos finalizados dentro de la app. No se pueden cargar a mano, ni desde el panel de administración.\n- El cliente no persigue a nadie: publica el problema, le llegan los presupuestos, y su pantalla de inicio le muestra qué trabajos esperan algo suyo, ordenados por urgencia.\n- Los pagos hechos por fuera de la app se pueden declarar y la otra parte los confirma. Queda registro aunque la plata no haya pasado por el sistema, y al proveedor le suma historial.\n- Hay un fondo de reparo opcional: un porcentaje que queda retenido unos días después de terminado el trabajo.\n\n## A evitar (do_not_say)\n- precios concretos de servicios: son de demostración y cambian\n- cantidades de proveedores, trabajos o reseñas como si fueran tracción real\n- promesas absolutas: '100% seguro', 'garantizado', 'sin riesgo'\n- que el pago al proveedor es automático: hoy la liberación genera una orden y la transferencia la hace tesorería a mano\n- Mobbex, 'split de pagos' o 'sin triangulación fiscal': la pasarela activa es MercadoPago y no hay split; esos textos que aparecen en algún banner son heredados y están marcados para sacar\n- que la plataforma garantiza el trabajo: lo que garantiza es que la seña no se libera hasta que esté hecho\n- 'matriculados' para todos los oficios: la app verifica identidad y CUIT, no matrícula. La matrícula existe para gas y electricidad; en el resto, decir 'verificados'"
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "awareness",
+   "angle": "Confianza a ciegas",
+   "messageScope": "problem",
+   "primaryMessage": "Arreglar algo en tu casa hoy significa transferir una seña a un alias y confiar a ciegas: RepareHoy se mete en el medio para que eso no dependa de la suerte.",
+   "supportingFacts": [
+    "Contra qué compite: el WhatsApp y la confianza a ciegas, el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó y lo hablado que quedó en audios",
+    "RepareHoy hace de juez entre el que necesita arreglar algo en su casa y el que sabe hacerlo",
+    "La seña queda retenida por la plataforma y se le libera al proveedor recién cuando el trabajo está terminado",
+    "Marketplace de oficios para el hogar en el AMBA: Ciudad de Buenos Aires y Gran Buenos Aires"
+   ],
+   "creativeBrief": "Pieza de entrada: instala el problema real del cliente del AMBA, que no es la falta de plomeros sino la falta de reglas cuando aparece la plata. Cierra presentando a RepareHoy como el tercero que arbitra, con la seña retenida como prueba concreta de ese rol. No explica el flujo completo de la app: sólo deja clavada la idea de que existe otra forma de arreglar tu casa."
+  },
+  "piezasPropuestas": 7
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "El alias dictado",
+   "tipoGancho": "SERIEDAD ANTE LO MÍNIMO",
+   "idea": "Una mujer con una pérdida en el baño anota al teléfono, con solemnidad de escribano, un alias que le dictan letra por letra y repite dos veces para confirmarlo. Transfiere la seña sin saber a quién. Después cuenta el problema en RepareHoy, elige un presupuesto y paga la seña: queda retenida hasta que el trabajo esté hecho.",
+   "tono": "Seco, contenido, sin chiste subrayado; ironía en el gesto",
+   "estetica": "Baño y cocina reales de departamento, luz de ventana, celular en mano, insertos limpios de las pantallas de la app",
+   "referencia": "Spot comparativo de servicio, registro documental cotidiano",
+   "porQueFunciona": "El ritual del alias es reconocible y hace evidente que la seña retenida cambia todo."
+  },
+  {
+   "id": "c2",
+   "topico": "Mandame la seña",
+   "tipoGancho": "REPETICIÓN CON VARIACIÓN",
+   "idea": "Un hombre escucha tres veces la misma frase: mandame la seña y mañana arranco. Las dos primeras, en la vereda y en un audio, terminan con él mirando la mancha de humedad intacta. La tercera llega dentro del chat de RepareHoy: paga sólo la seña y queda retenida hasta que el trabajo termine.",
+   "tono": "Ágil, resignado al principio, aliviado y práctico al final",
+   "estetica": "Pared manchada como ancla visual, vereda y living de barrio, paleta sobria, pantallas de la app como insertos verticales",
+   "referencia": "Publicidad de contraste por patrón repetido",
+   "porQueFunciona": "La frase repetida instala el riesgo; el cambio en la tercera vuelta demuestra el arbitraje."
+  },
+  {
+   "id": "c3",
+   "topico": "Transferir a ciegas",
+   "tipoGancho": "LITERALIDAD VISUAL",
+   "idea": "Frente al homebanking, un hombre cierra los ojos y respira antes de confirmar la transferencia de una seña, como quien se mete al agua helada. Su pareja lo mira sin decir nada. Más tarde ya no hace falta ese gesto: cuenta el problema en la app, paga ahí la seña y la plataforma la retiene hasta terminar el trabajo.",
+   "tono": "Observacional, cómplice entre los dos, humor en el silencio",
+   "estetica": "Mesa de comedor de noche, luz cálida y pantalla de celular iluminando caras; insertos de la app sobrios",
+   "referencia": "Comparativo doméstico de marca de servicios",
+   "porQueFunciona": "Vuelve visible la confianza a ciegas y presenta la seña retenida como el alivio concreto."
+  }
+ ],
+ "comercial": {
+  "id": "com-confianza-a-ciegas-phey",
+  "titulo": "Confianza a ciegas",
+  "tipo": "filmado",
+  "enfoque": "antes-despues",
+  "tratamiento": "humor",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Confianza a ciegas",
+  "creativeBrief": "Pieza de entrada: instala el problema real del cliente del AMBA, que no es la falta de plomeros sino la falta de reglas cuando aparece la plata. Cierra presentando a RepareHoy como el tercero que arbitra, con la seña retenida como prueba concreta de ese rol. No explica el flujo completo de la app: sólo deja clavada la idea de que existe otra forma de arreglar tu casa.",
+  "messageScope": "problem",
+  "primaryMessage": "Arreglar algo en tu casa hoy significa transferir una seña a un alias y confiar a ciegas: RepareHoy se mete en el medio para que eso no dependa de la suerte.",
+  "supportingFacts": [
+   "Contra qué compite: el WhatsApp y la confianza a ciegas, el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó y lo hablado que quedó en audios",
+   "RepareHoy hace de juez entre el que necesita arreglar algo en su casa y el que sabe hacerlo",
+   "La seña queda retenida por la plataforma y se le libera al proveedor recién cuando el trabajo está terminado",
+   "Marketplace de oficios para el hogar en el AMBA: Ciudad de Buenos Aires y Gran Buenos Aires"
+  ],
+  "perfilCampana": "campaña",
+  "concepto": {
+   "id": "c1",
+   "topico": "El alias dictado",
+   "tipoGancho": "SERIEDAD ANTE LO MÍNIMO",
+   "idea": "Una mujer con una pérdida en el baño anota al teléfono, con solemnidad de escribano, un alias que le dictan letra por letra y repite dos veces para confirmarlo. Transfiere la seña sin saber a quién. Después cuenta el problema en RepareHoy, elige un presupuesto y paga la seña: queda retenida hasta que el trabajo esté hecho.",
+   "tono": "Seco, contenido, sin chiste subrayado; ironía en el gesto",
+   "estetica": "Baño y cocina reales de departamento, luz de ventana, celular en mano, insertos limpios de las pantallas de la app",
+   "referencia": "Spot comparativo de servicio, registro documental cotidiano",
+   "porQueFunciona": "El ritual del alias es reconocible y hace evidente que la seña retenida cambia todo."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Vale",
+     "narration": "Pará. ¿El alias es con K o con C?",
+     "visual": "Baño de departamento, balde bajo el caño que gotea; Vale con el teléfono al hombro anota letra por letra en el dorso de un ticket.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Vale",
+     "narration": "Te lo repito: martillo, punto, azul, veintiuno. Martillo, punto, azul, veintiuno. ¿Y el nombre del titular quién es?",
+     "visual": "Vale lee el papel como un escribano mientras confirma la transferencia en el home banking, y se queda mirando un nombre que no reconoce.",
+     "durSec": 8
+    },
+    {
+     "role": "desarrollo",
+     "quien": "",
+     "narration": "",
+     "visual": "Cocina con luz de ventana: Vale escribe lo que le pasa en Contar el problema e insertos de Te esperan tus proveedores con los presupuestos que llegaron solos.",
+     "durSec": 5
+    },
+    {
+     "role": "giro",
+     "quien": "Vale",
+     "narration": "Pagué, pero la plata queda ahí hasta que lo arregle.",
+     "visual": "Inserto de Pagar la seña con la seña retenida, y Vale usando el papelito del alias para secar la gota del borde del balde.",
+     "durSec": 4
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Entrá a reparehoy.com.ar y contá qué hay que arreglar",
+     "visual": "Placa final sobre fondo limpio con el logo de RepareHoy y la URL.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "cotidiano, seco, irónico"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Vale",
+     "rol": "Protagonista que vive el contraste entre pagar a ciegas y pagar con seña retenida",
+     "fisicoEn": "Woman in her early thirties, medium-length dark hair tied back loosely, light olive skin, tired but focused expression, no makeup emphasis, average build, natural at-home posture, phone wedged between shoulder and ear",
+     "fisicoEs": "Mujer treintañera, pelo oscuro atado, piel clara, expresión cansada y concentrada",
+     "vestuario": "Remera gris lisa, pantalón de estar en casa",
+     "vestuarioEn": "Plain grey t-shirt, casual house pants, no shoes",
+     "personalidad": "Seria, metódica",
+     "lugarEn": "A real apartment bathroom with a leaking pipe and a bucket catching drips, then the adjoining kitchen lit by window daylight; both spaces modest, lived-in, with natural midday light and no studio polish",
+     "quien": "Vale"
+    }
+   ],
+   "lugar": {
+    "nombre": "Departamento con pérdida en el baño",
+    "descripcionEn": "A modest real apartment: a small bathroom with a dripping pipe over a plastic bucket, worn tile, and a narrow window; adjoining kitchen with a table, natural window light, everyday clutter, no staging, documentary domestic feel",
+    "luz": "Luz natural de ventana, cotidiana"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 3,
+    "plano": "medium close-up",
+    "angulo": "altura de hombros, levemente lateral",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Vale anota el alias letra por letra con el teléfono al hombro",
+    "accionEn": "Vale is on the phone with a plumber, trying to get a bank alias right before paying blindly, frustrated and unsure she's writing it down correctly. She talks to the person on the phone, not to camera, double-checking the spelling. She presses the phone against her shoulder with her head tilted and scribbles on the back of a ticket, standing in her small bathroom with a dripping pipe and a plastic bucket behind her, worn tile, narrow window light.",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 4
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 3,
+    "plano": "over-the-shoulder",
+    "angulo": "por encima del hombro, hacia el papel",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Vale repite el alias en voz alta mientras confirma la transferencia",
+    "accionEn": "Vale is repeating a string of random words out loud to make sure she heard the alias correctly, concentrating hard so she doesn't make a mistake with the money. She speaks toward the phone wedged on her shoulder, treating the moment with the seriousness of a notary reading a document. She holds the ticket like a script and glances toward her phone screen in the bathroom, bucket and dripping pipe still behind her.",
+    "continuidad": "mismo baño, mismo balde, misma postura con el teléfono",
+    "pantalla": "",
+    "durSecModelo": 4
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 3,
+    "plano": "close-up",
+    "angulo": "sobre el papel y el rostro",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Vale se queda mirando un nombre que no reconoce",
+    "accionEn": "Vale finishes confirming the transfer and asks who the account holder actually is, then freezes for a second, unsettled by seeing an unfamiliar name on her screen. She reacts with quiet doubt, not panic, the kind of small hesitation that comes from sending money to a stranger without any real guarantee. She stands still in the bathroom, still holding the ticket, the dripping pipe and bucket visible behind her.",
+    "continuidad": "mismo baño, mismo papel en la mano",
+    "pantalla": "",
+    "durSecModelo": 4
+   },
+   {
+    "n": 4,
+    "rol": "desarrollo",
+    "durSec": 1.5,
+    "plano": "medium shot",
+    "angulo": "frontal, luz de ventana",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Vale escribe en la cocina lo que le pasa en el baño",
+    "accionEn": "Vale sits at her kitchen table in natural window daylight, writing down what's happening in her bathroom in her own words, calm and relieved to just describe the problem instead of chasing anyone. She focuses on her phone resting on the table, her expression settling after the earlier tension. The kitchen is modest and lived-in, with everyday clutter and soft midday light.",
+    "continuidad": "mismo personaje, nuevo espacio: la cocina",
+    "pantalla": "",
+    "durSecModelo": 2
+   },
+   {
+    "n": 5,
+    "rol": "desarrollo",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "insertos de pantalla",
+    "personajes": [],
+    "accion": "Se ve la pantalla donde cuenta el problema en cuatro pasos",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "Contar el problema",
+    "archivoCaptura": "screens/01-cliente-contar-el-problema.png"
+   },
+   {
+    "n": 6,
+    "rol": "desarrollo",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "insertos de pantalla",
+    "personajes": [],
+    "accion": "Se ve la pantalla con los presupuestos que llegaron solos",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "Te esperan tus proveedores",
+    "archivoCaptura": "screens/02-cliente-te-esperan-tus-proveedores.png"
+   },
+   {
+    "n": 7,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "insertos de pantalla",
+    "personajes": [],
+    "accion": "Se ve la pantalla con la seña pagada y retenida",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "Pagar la seña",
+    "durSecModelo": 2,
+    "archivoCaptura": "screens/04-cliente-pagar-la-sena.png"
+   },
+   {
+    "n": 8,
+    "rol": "giro",
+    "durSec": 6.5,
+    "plano": "medium close-up",
+    "angulo": "a la altura del balde",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Vale usa el papelito del alias para secar la gota del balde",
+    "accionEn": "Vale explains to herself, almost to camera, that she already paid but the money stays held until the job is actually finished, with a tone of relief rather than complaint. She takes the same ticket she used earlier to write the alias and casually wipes a drop from the edge of the bucket, as if the paper finally found a better use. She's back in the bathroom, the pipe still dripping behind her.",
+    "dialogo": "Pagué, pero la plata queda ahí hasta que lo arregle.",
+    "continuidad": "mismo baño, mismo balde, mismo papel reutilizado",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 9,
+    "rol": "cta",
+    "durSec": 4,
+    "plano": "wide shot",
+    "angulo": "placa fija",
+    "personajes": [],
+    "accion": "Placa final con logo de RepareHoy y la URL: Entrá a reparehoy.com.ar y contá qué hay que arreglar · https://reparehoy.com.ar",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Vale",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman in her early thirties, medium-length dark hair tied back loosely, light olive skin, tired but focused expression, no makeup emphasis, average build, natural at-home posture, phone wedged between shoulder and ear, standing and looking at the camera, natural pose, neutral background with a hint of a modest real apartment: a small bathroom with a dripping pipe over a plastic. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vale, an Argentine woman in her early thirties, medium-length dark hair tied back loosely, light olive skin, tired but focused expression, wearing Plain grey t-shirt, casual house pants, no shoes. Vale is on the phone with a plumber, trying to get a bank alias right before paying blindly, frustrated and unsure she's writing it down correctly. She talks to the person on the phone, not to camera, double-checking the spelling. She presses the phone against her shoulder with her head tilted and scribbles on the back of a ticket, standing in her small bathroom with a dripping pipe and a plastic bucket behind her, worn tile, narrow window light. No dialogue: ambient sound only. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vale, an Argentine woman in her early thirties, medium-length dark hair tied back loosely, light olive skin, tired but focused expression, wearing Plain grey t-shirt, casual house pants, no shoes. Vale is repeating a string of random words out loud to make sure she heard the alias correctly, concentrating hard so she doesn't make a mistake with the money. She speaks toward the phone wedged on her shoulder, treating the moment with the seriousness of a notary reading a document. She holds the ticket like a script and glances toward her phone screen in the bathroom, bucket and dripping pipe still behind her. No dialogue: ambient sound only. Over-the-shoulder shot, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vale, an Argentine woman in her early thirties, medium-length dark hair tied back loosely, light olive skin, tired but focused expression, wearing Plain grey t-shirt, casual house pants, no shoes. Vale finishes confirming the transfer and asks who the account holder actually is, then freezes for a second, unsettled by seeing an unfamiliar name on her screen. She reacts with quiet doubt, not panic, the kind of small hesitation that comes from sending money to a stranger without any real guarantee. She stands still in the bathroom, still holding the ticket, the dripping pipe and bucket visible behind her. No dialogue: ambient sound only. Close-up on the face and hands, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 4,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vale, an Argentine woman in her early thirties, medium-length dark hair tied back loosely, light olive skin, tired but focused expression, wearing Plain grey t-shirt, casual house pants, no shoes. Vale sits at her kitchen table in natural window daylight, writing down what's happening in her bathroom in her own words, calm and relieved to just describe the problem instead of chasing anyone. She focuses on her phone resting on the table, her expression settling after the earlier tension. The kitchen is modest and lived-in, with everyday clutter and soft midday light. No dialogue: ambient sound only. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 8,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vale, an Argentine woman in her early thirties, medium-length dark hair tied back loosely, light olive skin, tired but focused expression, wearing Plain grey t-shirt, casual house pants, no shoes. Vale explains to herself, almost to camera, that she already paid but the money stays held until the job is actually finished, with a tone of relief rather than complaint. She takes the same ticket she used earlier to write the alias and casually wipes a drop from the edge of the bucket, as if the paper finally found a better use. She's back in the bathroom, the pipe still dripping behind her. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Pagué, pero la plata queda ahí hasta que lo arregle.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'RepareHoy. Entrá a reparehoy.com.ar y contá qué hay que arreglar' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "RepareHoy. Entrá a reparehoy.com.ar y contá qué hay que arreglar",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "El spot vive de un contraste simple: el ritual solemne del alias dictado contra la seña que queda retenida, así que el montaje sólo tiene que marcar el cambio de estado y dejar respirar la única línea hablada.",
+  "decisiones": [
+   {
+    "recurso": "cut",
+    "escenaN": 4,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "Es el pasaje del baño con el balde y el papel del alias a la app: corte seco, sin transición, para que la diferencia entre los dos estados se note de golpe y no se suavice."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 4,
+    "cuando": "inicio",
+    "durSec": 0.6,
+    "motivo": "Primera escena sin voz ni diálogo: los presupuestos que aparecen en pantalla necesitan un empuje musical breve para leerse como el momento en que algo empieza a funcionar."
+   },
+   {
+    "recurso": "music_drop",
+    "escenaN": 8,
+    "cuando": "antes",
+    "durSec": 0.5,
+    "motivo": "Antes de la única frase del spot, 'Pagué, pero la plata queda ahí hasta que lo arregle': el vacío sonoro la deja sola y sostiene el tono seco, sin subrayar el chiste."
+   },
+   {
+    "recurso": "music_dip",
+    "escenaN": 8,
+    "cuando": "final",
+    "durSec": 0.5,
+    "motivo": "Al terminar la frase, bajar la música un instante para que el remate asiente antes de entrar a la placa con logo y URL."
+   }
+  ]
+ }
+}

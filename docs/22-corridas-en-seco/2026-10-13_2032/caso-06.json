@@ -1,0 +1,392 @@
+{
+ "caso": {
+  "n": 6,
+  "app": "repareya",
+  "objetivo": "demo",
+  "enfoque": "dos-lados",
+  "tratamiento": "calido"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "repareya",
+  "nombre": "RepareHoy",
+  "rubro": "AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Los textos no nombran ningún barrio.",
+  "brief": "# RepareHoy — brief (desde el KB de la app)\n> Marketplace de oficios para el hogar en el AMBA. El cliente cuenta el problema en sus palabras, recibe hasta tres presupuestos de profesionales verificados de su zona, habla con el que elige por un chat dentro de la app y paga la seña desde ahí.\n\n## La tesis (lo que se vende, en palabras de la app)\n- El fuerte: RepareHoy hace de juez entre el que necesita arreglar algo en su casa y el que sabe hacerlo: la seña queda retenida hasta que el trabajo está hecho, el plan de pagos lo acuerdan los dos en el chat y queda como registro, y la reputación sale sólo de trabajos terminados adentro.\n- Se entiende como: Un Mercado Libre de oficios con pago protegido: publicás lo que te pasa y te llegan los presupuestos, no perseguís a nadie.\n- Contra qué: El WhatsApp y la confianza a ciegas: el plomero que no contesta, la seña por transferencia a un alias, el presupuesto que cambia cuando ya empezó, y lo hablado que quedó en audios.\n- El momento mágico: Para el cliente, cuando abre la app y la tira dice 'Te esperan tus proveedores' con presupuestos que llegaron solos. Para el proveedor, cuando arma el plan de pagos a su manera y la app le dice hasta dónde puede pedir de adelanto porque ya se lo ganó.\n- A quién le hablamos primero: Al cliente con algo roto en casa, porque es quien tiene el dolor hoy y quien trae la plata; sin pedidos no hay proveedor que se quede. El proveedor viene después, con su propia pieza: la bandeja, el plan, los números.\n\n## El negocio\nIntermediación entre quien necesita arreglar o hacer algo en su casa y profesionales de once oficios: plomería, electricidad, cerrajería, gas, aire acondicionado, pintura, carpintería, albañilería, herrería, techos y humedad, y materiales. La plataforma cobra una comisión del 10% sobre el monto del trabajo; la paga el proveedor.\n- Rubro: AMBA: Ciudad de Buenos Aires y Gran Buenos Aires. Los textos no nombran ningún barrio.\n- Público: Primero el cliente que tiene algo que arreglar en su casa; después el proveedor. En ese orden, y con una historia para cada uno.\n\n## Qué ofrece\n\n## Por qué (diferenciadores)\n- La seña queda retenida por la plataforma y se le libera al proveedor recién cuando el trabajo está terminado: sin disputa abierta, a los 7 días de finalizado.\n- El plan de pagos lo acuerdan las partes, no la plataforma: el proveedor propone (todo al final, mitad y mitad, o contra avance por etapas), el cliente acepta o contrapropone, y queda sellado cuando los dos firman.\n- La plataforma pone un solo límite: cuánto se puede pedir por adelantado, y sale del historial del proveedor. Hasta 20% del total sin trabajos previos, 40% con cinco finalizados, 60% con veinte.\n- Cada propuesta de pago queda dentro del hilo de la conversación, en el momento en que ocurrió. La negociación completa es el registro si después hay una disputa.\n- Las reseñas salen únicamente de trabajos finalizados dentro de la app. No se pueden cargar a mano, ni desde el panel de administración.\n- El cliente no persigue a nadie: publica el problema, le llegan los presupuestos, y su pantalla de inicio le muestra qué trabajos esperan algo suyo, ordenados por urgencia.\n- Los pagos hechos por fuera de la app se pueden declarar y la otra parte los confirma. Queda registro aunque la plata no haya pasado por el sistema, y al proveedor le suma historial.\n- Hay un fondo de reparo opcional: un porcentaje que queda retenido unos días después de terminado el trabajo.\n\n## A evitar (do_not_say)\n- precios concretos de servicios: son de demostración y cambian\n- cantidades de proveedores, trabajos o reseñas como si fueran tracción real\n- promesas absolutas: '100% seguro', 'garantizado', 'sin riesgo'\n- que el pago al proveedor es automático: hoy la liberación genera una orden y la transferencia la hace tesorería a mano\n- Mobbex, 'split de pagos' o 'sin triangulación fiscal': la pasarela activa es MercadoPago y no hay split; esos textos que aparecen en algún banner son heredados y están marcados para sacar\n- que la plataforma garantiza el trabajo: lo que garantiza es que la seña no se libera hasta que esté hecho\n- 'matriculados' para todos los oficios: la app verifica identidad y CUIT, no matrícula. La matrícula existe para gas y electricidad; en el resto, decir 'verificados'"
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "awareness",
+   "angle": "Dejá de perseguir",
+   "messageScope": "demo",
+   "primaryMessage": "En RepareHoy contás el problema de tu casa en tus palabras y los presupuestos te llegan solos, sin perseguir a nadie.",
+   "supportingFacts": [
+    "El cliente cuenta el problema en sus palabras y recibe hasta tres presupuestos de profesionales verificados de su zona",
+    "El cliente no persigue a nadie: publica el problema y le llegan los presupuestos",
+    "La pantalla de inicio muestra 'Te esperan tus proveedores' y qué trabajos esperan algo suyo, ordenados por urgencia",
+    "Marketplace de oficios para el hogar en el AMBA, con once oficios: plomería, electricidad, cerrajería, gas, aire acondicionado, pintura, carpintería, albañilería, herrería, techos y humedad, y materiales"
+   ],
+   "format": "9:16 para Instagram / TikTok",
+   "durationSec": 26,
+   "creativeBrief": "Pieza de apertura de campaña que recorre la interfaz del lado cliente: publicar el problema con sus propias palabras y volver a la app para encontrar la tira de 'Te esperan tus proveedores' con los presupuestos ya adentro y los trabajos ordenados por urgencia. El mensaje es la inversión del esfuerzo: en vez de salir a buscar y repetir el problema diez veces, el cliente publica una vez y le llegan hasta tres presupuestos de profesionales verificados de su zona. Prueba la parte de la propuesta que resuelve el 'nadie me contesta', y cierra invitando a publicar el primer trabajo."
+  },
+  "piezasPropuestas": 3
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "Contarlo una sola vez",
+   "tipoGancho": "CONTRASTE DE ESFUERZO",
+   "idea": "Vuelve del trabajo y la mancha de humedad creció. En vez de arrancar la ronda de mensajes que nunca contestan, cuenta qué pasa una sola vez. A la noche abre la app: la esperan sus proveedores, con presupuestos adentro. Del otro lado, uno de ellos vio ese pedido llegar a su bandeja. Cierra con la invitación a publicar.",
+   "tono": "Conversado, bajo, sin euforia; alivio contenido de día largo",
+   "estetica": "Departamento real de noche, luz de cocina y velador, pantalla del celular como única fuente de información nueva",
+   "referencia": "Spot de app con insertos de interfaz real",
+   "porQueFunciona": "Muestra la inversión del esfuerzo: un pedido en vez de diez llamados, con prueba en pantalla."
+  },
+  {
+   "id": "c2",
+   "topico": "Qué oficio necesito",
+   "tipoGancho": "SITUACIÓN COTIDIANA",
+   "idea": "Pareja frente a una mancha que gotea en el lavadero: discuten si eso es plomero, techista o humedad y se quedan trabados ahí. Terminan contándolo como lo dirían en voz alta, sin elegir oficio. Al rato tienen presupuestos esperando. Del otro lado, un techista recibe ese pedido en su bandeja, de su zona. Nadie persiguió a nadie.",
+   "tono": "Diálogo cruzado, natural, con duda honesta y complicidad",
+   "estetica": "Lavadero con bacha, balde y pared marcada; luz de día entrando por ventana chica; nada decorado",
+   "referencia": "Escena doméstica breve con cierre de marca",
+   "porQueFunciona": "Resuelve una traba real: contarlo en tus palabras alcanza, aunque no sepas a quién llamar."
+  },
+  {
+   "id": "c3",
+   "topico": "Un pedido, dos manos",
+   "tipoGancho": "DEMOSTRACIÓN ESPEJADA",
+   "idea": "Una jubilada no logra cerrar la puerta de entrada y lo cuenta en la app con sus palabras. Un cerrajero ve ese pedido ordenado en su bandeja. Ella sigue en qué paso va su solicitud sin llamar a nadie; él sabe a quién le cotiza. El mismo pedido, dos manos, nadie insistiendo, y una invitación a contar el tuyo.",
+   "tono": "Respetuoso, parejo entre los dos, sin explicaciones técnicas",
+   "estetica": "Palier y taller de barrio, luz natural motivada; dos espacios distintos unidos por la misma información en pantalla",
+   "referencia": "Spot de doble perspectiva con interfaz como nexo",
+   "porQueFunciona": "Hace visible el sistema desde los dos lados: claridad para ella, orden para él."
+  }
+ ],
+ "comercial": {
+  "id": "com-deja-de-perseguir-kzzp",
+  "titulo": "Dejá de perseguir",
+  "tipo": "filmado",
+  "enfoque": "dos-lados",
+  "tratamiento": "calido",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Dejá de perseguir",
+  "creativeBrief": "Pieza de apertura de campaña que recorre la interfaz del lado cliente: publicar el problema con sus propias palabras y volver a la app para encontrar la tira de 'Te esperan tus proveedores' con los presupuestos ya adentro y los trabajos ordenados por urgencia. El mensaje es la inversión del esfuerzo: en vez de salir a buscar y repetir el problema diez veces, el cliente publica una vez y le llegan hasta tres presupuestos de profesionales verificados de su zona. Prueba la parte de la propuesta que resuelve el 'nadie me contesta', y cierra invitando a publicar el primer trabajo.",
+  "messageScope": "demo",
+  "primaryMessage": "En RepareHoy contás el problema de tu casa en tus palabras y los presupuestos te llegan solos, sin perseguir a nadie.",
+  "supportingFacts": [
+   "El cliente cuenta el problema en sus palabras y recibe hasta tres presupuestos de profesionales verificados de su zona",
+   "El cliente no persigue a nadie: publica el problema y le llegan los presupuestos",
+   "La pantalla de inicio muestra 'Te esperan tus proveedores' y qué trabajos esperan algo suyo, ordenados por urgencia",
+   "Marketplace de oficios para el hogar en el AMBA, con once oficios: plomería, electricidad, cerrajería, gas, aire acondicionado, pintura, carpintería, albañilería, herrería, techos y humedad, y materiales"
+  ],
+  "perfilCampana": "demo",
+  "concepto": {
+   "id": "c1",
+   "topico": "Contarlo una sola vez",
+   "tipoGancho": "CONTRASTE DE ESFUERZO",
+   "idea": "Vuelve del trabajo y la mancha de humedad creció. En vez de arrancar la ronda de mensajes que nunca contestan, cuenta qué pasa una sola vez. A la noche abre la app: la esperan sus proveedores, con presupuestos adentro. Del otro lado, uno de ellos vio ese pedido llegar a su bandeja. Cierra con la invitación a publicar.",
+   "tono": "Conversado, bajo, sin euforia; alivio contenido de día largo",
+   "estetica": "Departamento real de noche, luz de cocina y velador, pantalla del celular como única fuente de información nueva",
+   "referencia": "Spot de app con insertos de interfaz real",
+   "porQueFunciona": "Muestra la inversión del esfuerzo: un pedido en vez de diez llamados, con prueba en pantalla."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Sol",
+     "narration": "La última vez que me pasó mandé diez mensajes.",
+     "visual": "Sol llega de noche, todavía con la campera puesta, y se queda mirando la mancha del techo del pasillo, más grande que a la mañana.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Sol",
+     "narration": "Esta vez lo conté una sola vez: que la mancha creció y no sé de dónde viene.",
+     "visual": "Sentada en la mesa de la cocina, escribe en la pantalla Contar el problema con sus propias palabras y agrega una foto del techo.",
+     "durSec": 7
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Rubén",
+     "narration": "Mirá, esta me queda a diez cuadras.",
+     "visual": "Rubén, en su taller, levanta la vista del celular con la Bandeja de solicitudes abierta y el pedido nuevo arriba, con el servicio y el cliente.",
+     "durSec": 6
+    },
+    {
+     "role": "giro",
+     "quien": "Sol",
+     "narration": "Che… ni un llamado hice y ya están los presupuestos.",
+     "visual": "Sol, luz de velador, abre la app y aparece Te esperan tus proveedores con los presupuestos ordenados por urgencia; afloja los hombros y se queda mirando la pantalla.",
+     "durSec": 4
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Entrá a reparehoy.com.ar y contá qué hay que arreglar",
+     "visual": "Placa final con el logo de RepareHoy y la dirección reparehoy.com.ar.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "cálida y contenida"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Sol",
+     "rol": "Vecina que necesita una reparación y usa la app para contar el problema una sola vez",
+     "fisicoEn": "Woman in her early thirties, shoulder-length dark brown hair, olive skin tone, tired but calm expression after a workday, no makeup touch-ups visible, average build, natural posture of someone just arriving home",
+     "fisicoEs": "Mujer de treinta y tantos, pelo castaño oscuro a los hombros, piel morena, cara cansada pero tranquila",
+     "vestuario": "Campera liviana, remera simple, pantalón cómodo",
+     "vestuarioEn": "Light jacket still on, simple t-shirt underneath, comfortable pants",
+     "personalidad": "Cansada, directa",
+     "lugarEn": "Her own apartment at night: first the hallway near the stained ceiling, then the kitchen table lit by a warm overhead lamp, later the bedroom with a bedside lamp as the only light while she checks her phone",
+     "quien": "Sol"
+    },
+    {
+     "id": "p2",
+     "nombre": "Rubén",
+     "rol": "Gasista u operario que recibe el pedido en su bandeja de solicitudes",
+     "fisicoEn": "Man in his late forties, short greying hair, light olive skin, weathered hands, sturdy build, relaxed posture typical of someone used to manual work, no exaggerated expressions",
+     "fisicoEs": "Hombre de cerca de cincuenta, pelo corto canoso, manos curtidas, contextura robusta",
+     "vestuario": "Remera de trabajo, delantal o campera de taller",
+     "vestuarioEn": "Work t-shirt, worn work apron or workshop jacket",
+     "personalidad": "Calmo, resolutivo",
+     "lugarEn": "Inside his small workshop at night, surrounded by basic tools on a workbench, a single overhead bulb or desk lamp lighting the space while he looks at his phone",
+     "quien": "Rubén"
+    }
+   ],
+   "lugar": {
+    "nombre": "Departamento de Sol y taller de Rubén",
+    "descripcionEn": "Two connected spaces shown in parallel: a modest apartment at night with a hallway showing a water-damaged ceiling stain, and a small kitchen table under warm lamp light; intercut with a cluttered home workshop lit by a single bulb, tools resting on a workbench",
+    "luz": "Luz cálida de velador y lamparita de taller"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 4,
+    "plano": "medium close-up",
+    "angulo": "a la altura de los ojos, levemente lateral",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Sol llega de noche y mira la mancha del techo",
+    "accionEn": "Sol has just walked in from work, still wearing her jacket, and stops in the hallway when she notices the ceiling stain has grown since the morning. She speaks to herself, tired and a little resigned, remembering how exhausting it was last time. Her body stays still, her eyes fixed upward, the weight of the day still on her shoulders. Hallway of her apartment at night, warm light bleeding in from another room, the stain visible on the ceiling above her.",
+    "continuidad": "",
+    "pantalla": ""
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 4,
+    "plano": "medium shot",
+    "angulo": "frontal, ligeramente bajo",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Sol se sienta en la cocina y empieza a contar el problema",
+    "accionEn": "Sol sits down at her kitchen table, jacket still on, and starts talking about what happened, explaining to herself more than to anyone else that this time she only had to say it once. There's quiet relief in her voice, contrasted with the tiredness from before. She settles into the chair, phone resting on the table in front of her. Kitchen table lit by a warm overhead lamp, the rest of the apartment dim around her.",
+    "continuidad": "misma campera, mismo cansancio",
+    "pantalla": ""
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 3,
+    "plano": "high angle",
+    "angulo": "cenital sobre la mesa",
+    "personajes": [],
+    "accion": "Insert: pantalla Contar el problema con foto del techo",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "misma mesa, misma luz cálida",
+    "pantalla": "Contar el problema",
+    "archivoCaptura": "screens/01-cliente-contar-el-problema.png"
+   },
+   {
+    "n": 4,
+    "rol": "desarrollo",
+    "durSec": 4,
+    "plano": "medium close-up",
+    "angulo": "frontal, cámara en mano",
+    "personajes": [
+     "p2"
+    ],
+    "accion": "Rubén levanta la vista del celular en su taller",
+    "accionEn": "Rubén is in his workshop at night when a new request catches his attention on his phone. He talks to himself, almost surprised, noting out loud that this particular job is close to where he lives, ten blocks away. There's calm satisfaction in his tone, the practical mind of someone sizing up a job he can take. He looks up briefly from the phone, settling into the idea. Small home workshop lit by a single overhead bulb, tools resting on the workbench behind him.",
+    "continuidad": "",
+    "pantalla": ""
+   },
+   {
+    "n": 5,
+    "rol": "desarrollo",
+    "durSec": 2,
+    "plano": "high angle",
+    "angulo": "sobre el hombro, ángulo bajo hacia el celular",
+    "personajes": [],
+    "accion": "Insert: pantalla Bandeja de solicitudes con el pedido nuevo",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "mismo taller, misma luz de lamparita",
+    "pantalla": "Bandeja de solicitudes",
+    "archivoCaptura": "screens/05-proveedor-bandeja-de-solicitudes.png"
+   },
+   {
+    "n": 6,
+    "rol": "giro",
+    "durSec": 2,
+    "plano": "close-up",
+    "angulo": "frontal, luz de velador",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Sol afloja los hombros al ver los presupuestos",
+    "accionEn": "Sol is in her bedroom at night, the bedside lamp the only light, when she opens her phone and reacts with quiet disbelief at how fast the quotes arrived without her having to call anyone. She speaks half to herself, with a small release of tension in her voice, surprised by how little effort it took this time. Her shoulders drop slightly as she relaxes, still holding the phone, looking at it for a moment longer than usual. Bedroom lit only by the warm glow of the bedside lamp.",
+    "continuidad": "misma Sol, de noche, ahora en el dormitorio",
+    "pantalla": ""
+   },
+   {
+    "n": 7,
+    "rol": "giro",
+    "durSec": 2,
+    "plano": "over-the-shoulder",
+    "angulo": "sobre el hombro de Sol",
+    "personajes": [],
+    "accion": "Insert: pantalla Te esperan tus proveedores con presupuestos ordenados",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "mismo dormitorio, misma luz de velador",
+    "pantalla": "Te esperan tus proveedores",
+    "archivoCaptura": "screens/02-cliente-te-esperan-tus-proveedores.png"
+   },
+   {
+    "n": 8,
+    "rol": "cta",
+    "durSec": 5,
+    "plano": "wide shot",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Placa final: logo de RepareHoy y reparehoy.com.ar, texto: Entrá a reparehoy.com.ar y contá qué hay que arreglar",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": ""
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Sol",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman in her early thirties, shoulder-length dark brown hair, olive skin tone, tired but calm expression after a workday, no makeup touch-ups visible, average build, natural posture of someone just arriving home, standing and looking at the camera, natural pose, neutral background with a hint of two connected spaces shown in parallel: a modest apartment at night with a hallway. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "p2",
+     "nombre": "Rubén",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Man in his late forties, short greying hair, light olive skin, weathered hands, sturdy build, relaxed posture typical of someone used to manual work, no exaggerated expressions, standing and looking at the camera, natural pose, neutral background with a hint of two connected spaces shown in parallel: a modest apartment at night with a hallway. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Sol, an Argentine woman in her early thirties, shoulder-length dark brown hair, olive skin tone, wearing Light jacket still on, simple t-shirt underneath, comfortable pants. Sol has just walked in from work, still wearing her jacket, and stops in the hallway when she notices the ceiling stain has grown since the morning. She speaks to herself, tired and a little resigned, remembering how exhausting it was last time. Her body stays still, her eyes fixed upward, the weight of the day still on her shoulders. Hallway of her apartment at night, warm light bleeding in from another room, the stain visible on the ceiling above her. No dialogue: ambient sound only. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Sol, an Argentine woman in her early thirties, shoulder-length dark brown hair, olive skin tone, wearing Light jacket still on, simple t-shirt underneath, comfortable pants. Sol sits down at her kitchen table, jacket still on, and starts talking about what happened, explaining to herself more than to anyone else that this time she only had to say it once. There's quiet relief in her voice, contrasted with the tiredness from before. She settles into the chair, phone resting on the table in front of her. Kitchen table lit by a warm overhead lamp, the rest of the apartment dim around her. No dialogue: ambient sound only. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 4,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Rubén, an Argentine man in his late forties, short greying hair, light olive skin, weathered hands, sturdy build, wearing Work t-shirt, worn work apron or workshop jacket. Rubén is in his workshop at night when a new request catches his attention on his phone. He talks to himself, almost surprised, noting out loud that this particular job is close to where he lives, ten blocks away. There's calm satisfaction in his tone, the practical mind of someone sizing up a job he can take. He looks up briefly from the phone, settling into the idea. Small home workshop lit by a single overhead bulb, tools resting on the workbench behind him. No dialogue: ambient sound only. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 6,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Sol, an Argentine woman in her early thirties, shoulder-length dark brown hair, olive skin tone, wearing Light jacket still on, simple t-shirt underneath, comfortable pants. Sol is in her bedroom at night, the bedside lamp the only light, when she opens her phone and reacts with quiet disbelief at how fast the quotes arrived without her having to call anyone. She speaks half to herself, with a small release of tension in her voice, surprised by how little effort it took this time. Her shoulders drop slightly as she relaxes, still holding the phone, looking at it for a moment longer than usual. Bedroom lit only by the warm glow of the bedside lamp. No dialogue: ambient sound only. Close-up on the face and hands, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'RepareHoy. Entrá a reparehoy.com.ar y contá qué hay que arreglar' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "RepareHoy. Entrá a reparehoy.com.ar y contá qué hay que arreglar",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Spot cálido de dos lados donde el valor está en el contraste entre el esfuerzo viejo (diez mensajes) y el nuevo (contarlo una vez), así que el montaje tiene que proteger el salto de Sol a Rubén y el alivio final, sin decorar el resto.",
+  "decisiones": [
+   {
+    "recurso": "music_dip",
+    "escenaN": 1,
+    "cuando": "final",
+    "durSec": 0.6,
+    "motivo": "Sol se queda mirando la mancha más grande que a la mañana: bajar la música deja respirar el cansancio antes de arrancar el relato."
+   },
+   {
+    "recurso": "cut",
+    "escenaN": 3,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "El pase de la cocina de Sol al taller de Rubén es el cambio de perspectiva; corte seco para que el contraste se note en vez de fundirse."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 5,
+    "cuando": "inicio",
+    "durSec": 0.8,
+    "motivo": "Tramo del lado del proveedor con el pedido ya en la bandeja y sin voz encima: la música puede sostener que del otro lado algo se puso en movimiento."
+   },
+   {
+    "recurso": "music_drop",
+    "escenaN": 6,
+    "cuando": "inicio",
+    "durSec": 0.5,
+    "motivo": "Es el momento en que aparecen los presupuestos sin que ella haya hecho un llamado; el vacío breve marca la revelación sin tapar la línea de Sol."
+   },
+   {
+    "recurso": "dissolve",
+    "escenaN": 7,
+    "cuando": "antes",
+    "durSec": 0.5,
+    "motivo": "Sol afloja los hombros frente a la pantalla: una transición suave acompaña el alivio contenido en vez de cortarlo."
+   }
+  ]
+ }
+}

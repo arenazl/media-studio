@@ -1,0 +1,403 @@
+{
+ "caso": {
+  "n": 2,
+  "app": "munify",
+  "objetivo": "demo",
+  "enfoque": "producto",
+  "tratamiento": "natural"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "munify",
+  "nombre": "Munify",
+  "rubro": "GovTech / gestion municipal (gobiernos locales)",
+  "brief": "# Munify — brief (desde el KB de la app)\n> La app que conecta al vecino con su municipio en tiempo real: reclama, tramita y paga desde el celular, con validacion biometrica oficial.\n\n## El negocio\nEl vecino reclama un bache, inicia un tramite o paga una tasa desde el celular. El municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve y notifica al vecino en tiempo real, con foto, GPS y firma digital cuando hace falta. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un unico sistema con login unico para gobernar y para atender al vecino.\n\n### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)\nMunify pone en una sola app la relacion entre el vecino y su municipio: el vecino reclama, tramita o paga una tasa desde el celular, con validacion biometrica oficial via RENAPER; el municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve con foto antes/despues y notifica al vecino en cada paso, mientras ve en vivo la temperatura de la ciudad. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un solo login para gobernar y para atender al vecino.\n- Rubro: GovTech / gestion municipal (gobiernos locales)\n- Público: Intendentes, jefes de gabinete, secretarios de gobierno y directores de modernizacion de municipios y comunas de Argentina, desde comunas de 3.000 habitantes hasta ciudades de 200.000. Exclusivo gobiernos locales argentinos.\n\n## Mensajes clave (van en CADA reel)\n- El vinculo vecino-municipio en tiempo real, desde el celular y sin demoras\n- Tramites con validacion biometrica oficial via RENAPER, sin pisar el municipio\n- Los reclamos se derivan solos a la dependencia y se resuelven con foto antes y despues\n- La plata del municipio ordenada: ordenes de pago, tesoreria y sueldos en un solo sistema, sin Excel\n- Todo integrado con un login unico; se implementa en 1 a 2 semanas, no en 6 meses\n\n## Qué ofrece\n- **Reclamos vecinales**: El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y GPS. La IA lo deriva a la dependencia correcta, el supervisor lo asigna a una cuadrilla, se resuelve con foto antes/despues y el vecino recibe notificacion en cada paso con numero de seguimiento.\n  - Clasificacion automatica del reclamo por IA\n  - Foto y geolocalizacion GPS automatica\n  - Asignacion a cuadrilla y fotos antes/despues\n  - Dashboard en vivo y mapa con hotspots\n  - Notificacion al vecino en cada paso y modo offline para cuadrillas\n- **Tramites municipales online**: El vecino inicia tramites desde el celular (habilitacion comercial, libre deuda, certificado de domicilio, licencia de conducir, monotributo municipal, bromatologia, permiso de obra), sube la documentacion, paga online y firma digital cuando corresponde, sin pisar el municipio hasta la entrega.\n  - Validacion biometrica oficial via RENAPER (DNI + selfie con prueba de vida, menos de 30s)\n  - Configuracion por tramite (documentacion, validaciones, area que aprueba, pago)\n  - Pago online y firma digital\n  - Mostrador asistido para vecinos sin app (el operador carga y valida la biometria)\n  - Pre-validacion de documentacion con IA\n- **Turnos y agenda presencial**: El vecino saca turno para gestiones que requieren presencia (mesa de entradas, licencias, bromatologia) eligiendo dependencia, dia y horario disponible. El municipio configura cupos, horarios y feriados; cada dependencia ve su agenda diaria.\n  - Reserva de turno por dependencia, dia y horario libre\n  - Configuracion de cupos, horarios y feriados por agenda\n  - Agenda diaria por dependencia para el personal\n  - Reserva tambien por bot de WhatsApp\n- **Gestion Financiera (Contaduria + Tesoreria + Sueldos)**: Reemplaza el Excel del municipio. Contaduria maneja el circuito formal de Ordenes de Pago con trazabilidad para el Tribunal de Cuentas; Tesoreria registra los movimientos reales y saldos de cada caja; Sueldos liquida al personal con monto editable y premios variables. Los tres sub-modulos comparten la misma base de datos.\n  - Orden de Pago con numero correlativo, PDF de factura adjunto y circuito pendiente -> autorizada -> pagada\n  - Al pagar una OP genera el movimiento en Tesoreria automaticamente, sin doble carga\n  - Cajas y fondos (FOFINDE, FODEMEP, coparticipacion, tesoro propio) con saldo en vivo\n  - Conciliacion bancaria: importar extracto y matchear contra movimientos de caja\n  - Sueldos con monto base editable por mes y premios variables desde catalogo\n\n## Por qué (diferenciadores)\n- Integral: un solo sistema con login unico para reclamos, tramites, turnos y gestion financiera; la competencia los vende por separado.\n- App gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp); si el vecino tuviera que pagar, la adopcion seria cero.\n- Validacion biometrica oficial via RENAPER: le da validez gubernamental al tramite, no es solo un formulario en internet.\n- Multi-tenant real: los datos de cada municipio estan totalmente aislados, con sus colores, logo y dependencias.\n- Multiplataforma de verdad: panel web, PWA, app nativa iOS/Android, bot de WhatsApp y modo offline para cuadrillas.\n- Implementacion en 1 a 2 semanas, no en 6 meses; importa los datos existentes y convive con sistemas legacy via API.\n- IA integrada sin costo extra: clasifica reclamos, detecta duplicados, sugiere asignacion y categoriza gastos.\n- Argentino, en pesos argentinos; la competencia internacional cobra en dolares.\n\n## Dolores y objeciones (en palabras del cliente)\n- \"Ya tenemos un sistema.\" → Munify se integra via API y no obliga a tirar nada de lo que ya tienen. Lo distinto: app gratis para el vecino, validacion RENAPER y los modulos integrados en uno solo.\n- \"Es caro / no tenemos presupuesto.\" → Por eso ofrecemos 3 meses gratis sin tarjeta de credito. El municipio prueba con datos reales y recien decide cuando ve los resultados.\n- \"Mi gente no es tecnologica.\" → La capacitacion esta incluida y la hacemos por videollamada con cada equipo. La curva es de un dia. Esta pensado para que lo use un empleado municipal sin saber de informatica.\n- \"El vecino aca no usa el celular.\" → Para eso esta el Mostrador asistido: el operador de la municipalidad carga el tramite del vecino y le hace la validacion biometrica con el celular. El vecino no necesita tener la app instalada.\n- \"Mis datos estan seguros?\" → Si. Cumplimos la Ley 25.326 de Proteccion de Datos Personales. Cada municipio tiene sus datos aislados, cifrados, en cloud, con backups diarios. La data es del municipio y la pueden exportar cuando quieran.\n\n## Oferta / CTA\n- La app es gratis para el vecino. El municipio paga por habitante, en pesos argentinos, sin permanencia. El precio exacto lo confirma un asesor del equipo segun el tamano del municipio.\n- Combo 3 modulos (Reclamos + Tramites + Gestion Financiera): 3 meses gratis sin compromiso ni tarjeta de credito, precio combinado menor a la suma de los modulos sueltos, capacitacion incluida e implementacion en 1 a 2 semanas.\n\n## A evitar (do_not_say)\n- No inventar precios ni dar montos cerrados; el precio exacto lo cierra un asesor humano segun el tamano del municipio.\n- No afirmar que somos un sistema contable completo ni que emitimos facturacion electronica AFIP; convivimos con SIPAF/RAFAM y sistemas provinciales via API, no los reemplazamos.\n- No presentar Sueldos como un sistema de RRHH completo: liquida base + premios, no calcula aportes/retenciones ni controla asistencia ni legajos.\n- No presentarlo como un GIS profesional (catastro, planos urbanisticos) ni como un CRM generico; es exclusivo para gobiernos locales argentinos.\n- No prometer integraciones especificas (SIPAF, RAFAM, etc.) sin confirmar; el equipo tecnico valida el caso puntual.\n- No comparar directamente con competidores por nombre.\n- Si un dato del municipio viene vacio, no inventarlo: decir que no lo tiene.\n- No usar emojis ni jerga de marketing (revolucionario, increible, potencia, boostea)."
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "consideracion",
+   "angle": "Del bache resuelto",
+   "messageScope": "demo",
+   "primaryMessage": "En Munify, el reclamo del vecino entra desde el celular con foto y GPS, se deriva solo a la dependencia correcta y se cierra con foto antes y después, notificando al vecino en cada paso.",
+   "supportingFacts": [
+    "El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y geolocalización GPS automática",
+    "La IA clasifica el reclamo y lo deriva a la dependencia correcta; el supervisor lo asigna a una cuadrilla",
+    "Se resuelve con fotos antes/después y el vecino recibe notificación en cada paso con número de seguimiento",
+    "Dashboard en vivo y mapa con hotspots; modo offline para cuadrillas"
+   ],
+   "format": "9:16 para Instagram / TikTok",
+   "durationSec": 26,
+   "creativeBrief": "Esta pieza recorre en pantalla un solo caso de punta a punta: el vecino saca la foto del bache en la app y el reclamo aparece clasificado, asignado a la cuadrilla y cerrado con el antes y después, mientras el municipio lo ve en el mapa en vivo. El mensaje principal es que el circuito del reclamo deja de depender de llamados y papeles porque el sistema lo deriva y lo documenta solo. Prueba la parte de la propuesta que conecta al vecino con su municipio en tiempo real, y aclara que ese módulo vive dentro del mismo sistema con login único de Munify."
+  },
+  "piezasPropuestas": 3
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "Un bache resuelto",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Una vecina esquiva un bache camino al trabajo, lo fotografía desde la app y sigue. En el municipio el reclamo aparece clasificado y ubicado; el supervisor lo asigna a una cuadrilla que lo cierra con foto del antes y el después. A la tarde ella pasa por la esquina reparada y recibe el aviso.",
+   "tono": "Claro, activo, cotidiano; voces naturales, sin solemnidad",
+   "estetica": "Luz natural de barrio y oficina municipal real, cámara en mano serena, paleta sobria, pantallas del sistema sugeridas sin textos inventados.",
+   "referencia": "Demo de producto contada como caso real",
+   "porQueFunciona": "Un solo caso cerrado prueba el circuito completo y deja ver el beneficio sin explicarlo."
+  },
+  {
+   "id": "c2",
+   "topico": "Dos pantallas, mismo reclamo",
+   "tipoGancho": "DOBLE PERSPECTIVA",
+   "idea": "Dos realidades en paralelo: un vecino reporta alumbrado roto frente a su casa y, en la secretaría, una directora de modernización ve ese pedido entrar al mapa de la ciudad junto a los demás. Deriva, se resuelve, se documenta. Ella entra con el mismo login con que mira la agenda y la plata del municipio.",
+   "tono": "Sereno, informativo, confiado; diálogo breve y concreto",
+   "estetica": "Pantalla partida vertical entre calle nocturna y oficina iluminada; textura documental, grises institucionales, interfaces aludidas de forma conceptual.",
+   "referencia": "Spot institucional de doble punto de vista",
+   "porQueFunciona": "Muestra a la vez el alivio del vecino y el control del municipio, hablándole al decisor."
+  },
+  {
+   "id": "c3",
+   "topico": "La cuadrilla documenta",
+   "tipoGancho": "OBSERVACIÓN COTIDIANA",
+   "idea": "Camioneta, pala y un celular. El capataz abre el trabajo que le llegó asignado, saca la foto previa, el equipo tapa el pozo y saca la de después, todo desde la calle y sin señal. Nadie anota nada en papel ni llama a la oficina: el reclamo se cierra solo y el vecino se entera.",
+   "tono": "Terrenal, respetuoso con el oficio, sin épica",
+   "estetica": "Mañana de calle de tierra y asfalto, polvo, chalecos reflectivos, manos y celular en primer plano, registro documental sin estilizar.",
+   "referencia": "Pieza documental de trabajo en campo",
+   "porQueFunciona": "Valida el circuito desde quien ejecuta: la prueba es el antes y después hecho en obra."
+  }
+ ],
+ "comercial": {
+  "id": "com-del-bache-resuelto-heft",
+  "titulo": "Del bache resuelto",
+  "tipo": "filmado",
+  "enfoque": "producto",
+  "tratamiento": "natural",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Del bache resuelto",
+  "creativeBrief": "Esta pieza recorre en pantalla un solo caso de punta a punta: el vecino saca la foto del bache en la app y el reclamo aparece clasificado, asignado a la cuadrilla y cerrado con el antes y después, mientras el municipio lo ve en el mapa en vivo. El mensaje principal es que el circuito del reclamo deja de depender de llamados y papeles porque el sistema lo deriva y lo documenta solo. Prueba la parte de la propuesta que conecta al vecino con su municipio en tiempo real, y aclara que ese módulo vive dentro del mismo sistema con login único de Munify.",
+  "messageScope": "demo",
+  "primaryMessage": "En Munify, el reclamo del vecino entra desde el celular con foto y GPS, se deriva solo a la dependencia correcta y se cierra con foto antes y después, notificando al vecino en cada paso.",
+  "supportingFacts": [
+   "El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y geolocalización GPS automática",
+   "La IA clasifica el reclamo y lo deriva a la dependencia correcta; el supervisor lo asigna a una cuadrilla",
+   "Se resuelve con fotos antes/después y el vecino recibe notificación en cada paso con número de seguimiento",
+   "Dashboard en vivo y mapa con hotspots; modo offline para cuadrillas"
+  ],
+  "perfilCampana": "demo",
+  "concepto": {
+   "id": "c1",
+   "topico": "Un bache resuelto",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Una vecina esquiva un bache camino al trabajo, lo fotografía desde la app y sigue. En el municipio el reclamo aparece clasificado y ubicado; el supervisor lo asigna a una cuadrilla que lo cierra con foto del antes y el después. A la tarde ella pasa por la esquina reparada y recibe el aviso.",
+   "tono": "Claro, activo, cotidiano; voces naturales, sin solemnidad",
+   "estetica": "Luz natural de barrio y oficina municipal real, cámara en mano serena, paleta sobria, pantallas del sistema sugeridas sin textos inventados.",
+   "referencia": "Demo de producto contada como caso real",
+   "porQueFunciona": "Un solo caso cerrado prueba el circuito completo y deja ver el beneficio sin explicarlo."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Marcela",
+     "narration": "Otra vez. Este pozo ya es parte del barrio.",
+     "visual": "Marcela esquiva un bache camino al trabajo, se detiene en el cordón y encuadra el pozo con el celular antes de seguir.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Darío",
+     "narration": "Mirá, llegó con la foto y la esquina marcada. Vialidad.",
+     "visual": "Oficina municipal con luz de ventana; Darío gira el monitor hacia su compañera y señala el reclamo ubicado en el mapa.",
+     "durSec": 5
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Nadia",
+     "narration": "Tengo una cuadrilla a dos cuadras. Se lo paso.",
+     "visual": "Nadia asigna el reclamo desde su puesto mientras levanta el handy sin dejar de mirar la pantalla.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "",
+     "narration": "",
+     "visual": "La cuadrilla alisa el parche y uno de los operarios saca la foto del asfalto terminado desde el celular de trabajo.",
+     "durSec": 3
+    },
+    {
+     "role": "giro",
+     "quien": "Marcela",
+     "narration": "Mirá vos. Lo arreglaron. Y me avisaron a mí.",
+     "visual": "Marcela cruza la esquina reparada a la tarde, frena al ver el asfalto nuevo y lee el aviso en el celular con las fotos del antes y el después.",
+     "durSec": 5
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "visual": "Placa final sobre fondo sobrio con el logotipo de Munify.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "cálido cotidiano, sobrio"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Marcela",
+     "rol": "Vecina que reporta el bache y recibe el cierre del reclamo",
+     "fisicoEn": "Woman in her mid-30s, shoulder-length dark brown hair tied back loosely, light-olive skin tone, warm brown eyes, natural everyday makeup, average build, walks with brisk purposeful energy typical of a morning commute",
+     "fisicoEs": "Mujer de unos 35 años, pelo castaño oscuro atado, piel clara, aspecto cotidiano",
+     "vestuario": "Campera liviana, cartera cruzada, zapatillas urbanas",
+     "vestuarioEn": "Light jacket, crossbody bag, casual urban sneakers",
+     "personalidad": "Observadora, directa",
+     "lugarEn": "A residential street corner with a visible pothole near the curb, morning natural light, parked cars and modest building facades in the background, handheld camera feel",
+     "quien": "Marcela"
+    },
+    {
+     "id": "p2",
+     "nombre": "Darío",
+     "rol": "Empleado municipal que recibe y ubica el reclamo en el sistema",
+     "fisicoEn": "Man in his early 40s, short dark hair with light gray at the temples, medium skin tone, clean-shaven, calm attentive expression, seated posture typical of office work",
+     "fisicoEs": "Hombre de unos 40 años, pelo corto con canas, piel media, porte tranquilo",
+     "vestuario": "Camisa clara prolija, sin corbata",
+     "vestuarioEn": "Light plain collared shirt, no tie",
+     "personalidad": "Metódico, calmo",
+     "lugarEn": "Municipal office with window daylight, a desk with a monitor showing a map with a located claim, another coworker nearby, orderly but modest public-office setting",
+     "quien": "Darío"
+    },
+    {
+     "id": "p3",
+     "nombre": "Nadia",
+     "rol": "Supervisora que asigna el reclamo a la cuadrilla",
+     "fisicoEn": "Woman in her late 30s, black hair pulled into a low ponytail, medium-brown skin tone, focused expression, seated at a desk with confident efficient posture",
+     "fisicoEs": "Mujer de unos 38 años, pelo negro recogido, piel morena, actitud resuelta",
+     "vestuario": "Chomba institucional, handy en mano",
+     "vestuarioEn": "Institutional polo shirt, handheld radio in hand",
+     "personalidad": "Resolutiva, ágil",
+     "lugarEn": "Same municipal office as Darío, window daylight, desk with computer screen showing the assigned claim, radio handy visible on the table",
+     "quien": "Nadia"
+    }
+   ],
+   "lugar": {
+    "nombre": "Oficina municipal y esquina de barrio",
+    "descripcionEn": "Two connected real settings: a modest municipal office with desks, computer monitors, and window daylight, and a residential street corner with a repaired patch of asphalt, parked cars, and plain building facades, both lit with natural daytime light",
+    "luz": "Luz natural diurna, suave y directa"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 5,
+    "plano": "handheld follow",
+    "angulo": "a la altura de los ojos, siguiendo su caminata",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Marcela esquiva el pozo y lo fotografía antes de seguir",
+    "accionEn": "Marcela is annoyed and resigned at finding the same pothole on her way to work, as if greeting an old problem. She speaks to herself, almost to the street itself, with weary familiarity. She steps around the pothole, pauses at the curb, raises her phone to frame the damaged asphalt, then lowers it and keeps walking. The residential street corner, morning natural light, parked cars and modest building facades behind her.",
+    "dialogo": "Otra vez. Este pozo ya es parte del barrio.",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 5,
+    "plano": "over-the-shoulder",
+    "angulo": "desde atrás de Darío hacia el monitor y su compañera",
+    "personajes": [
+     "p2"
+    ],
+    "accion": "Darío gira el monitor y le muestra el reclamo ubicado",
+    "accionEn": "Darío wants to show his coworker that the claim just came in complete and ready to act on, with calm professional satisfaction. He speaks directly to her, turning the monitor so she can see the map with the located claim, pointing toward the screen without looking away from her. The municipal office has window daylight, an orderly but modest public setting, another coworker nearby.",
+    "dialogo": "Mirá, llegó con la foto y la esquina marcada. Vialidad.",
+    "continuidad": "misma oficina, luz de ventana",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 5,
+    "plano": "medium shot",
+    "angulo": "frontal, a la altura del escritorio",
+    "personajes": [
+     "p3"
+    ],
+    "accion": "Nadia asigna el reclamo y levanta el handy sin despegar la vista",
+    "accionEn": "Nadia wants to resolve the claim fast, speaking to Darío with quick efficient confidence as she acts on it in real time. She keeps her eyes on her screen while she reaches for the handheld radio, lifting it toward her mouth without breaking focus on the assignment she is making. Same municipal office, window daylight, desk with computer screen showing the assigned claim.",
+    "dialogo": "Tengo una cuadrilla a dos cuadras. Se lo paso.",
+    "continuidad": "misma oficina, continúa desde el reclamo mostrado",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 4,
+    "rol": "desarrollo",
+    "durSec": 2,
+    "plano": "wide shot",
+    "angulo": "general de la esquina, cámara fija",
+    "personajes": [],
+    "accion": "La cuadrilla termina el parche y fotografía el asfalto",
+    "accionEn": "A worker from the municipal crew feels quiet satisfaction at finishing the job properly, working alongside a teammate who smooths the last bit of fresh asphalt. Without speaking, one of them steps back, raises a work phone and photographs the finished patch as proof of the completed repair. The same residential street corner, daytime natural light, parked cars and plain building facades in the background.",
+    "dialogo": "",
+    "continuidad": "misma esquina del hook, ahora reparada",
+    "pantalla": "",
+    "durSecModelo": 3
+   },
+   {
+    "n": 5,
+    "rol": "giro",
+    "durSec": 5,
+    "plano": "medium close-up",
+    "angulo": "frontal, acompañando su parada en la esquina",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Marcela ve el asfalto nuevo y lee el aviso en su celular",
+    "accionEn": "Marcela feels genuine surprise and quiet satisfaction at seeing the pothole gone, speaking to herself with a tone of pleasant disbelief. She stops walking as she notices the new asphalt, then looks down at her phone and reads the notification with the before and after photos, her expression softening into a small smile. The same residential street corner, now repaired, afternoon natural light.",
+    "dialogo": "Mirá vos. Lo arreglaron. Y me avisaron a mí.",
+    "continuidad": "misma esquina, ahora de tarde, asfalto reparado",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 6,
+    "rol": "cta",
+    "durSec": 3.5,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Marcela",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman in her mid-30s, shoulder-length dark brown hair tied back loosely, light-olive skin tone, warm brown eyes, natural everyday makeup, average build, walks with brisk purposeful energy typical of a morning commute, standing and looking at the camera, natural pose, neutral background with a hint of two connected real settings: a modest municipal office with desks, computer monitors. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "p2",
+     "nombre": "Darío",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Man in his early 40s, short dark hair with light gray at the temples, medium skin tone, clean-shaven, calm attentive expression, seated posture typical of office work, standing and looking at the camera, natural pose, neutral background with a hint of two connected real settings: a modest municipal office with desks, computer monitors. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "p3",
+     "nombre": "Nadia",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman in her late 30s, black hair pulled into a low ponytail, medium-brown skin tone, focused expression, seated at a desk with confident efficient posture, standing and looking at the camera, natural pose, neutral background with a hint of two connected real settings: a modest municipal office with desks, computer monitors. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Marcela, an Argentine woman in her mid-30s, shoulder-length dark brown hair tied back loosely, light-olive skin tone, warm brown eyes, wearing Light jacket, crossbody bag, casual urban sneakers. Marcela is annoyed and resigned at finding the same pothole on her way to work, as if greeting an old problem. She speaks to herself, almost to the street itself, with weary familiarity. She steps around the pothole, pauses at the curb, raises her phone to frame the damaged asphalt, then lowers it and keeps walking. The residential street corner, morning natural light, parked cars and modest building facades behind her. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Otra vez. Este pozo ya es parte del barrio.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Handheld camera following the movement, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Darío, an Argentine man in his early 40s, short dark hair with light gray at the temples, medium skin tone, clean-shaven, wearing Light plain collared shirt, no tie. Darío wants to show his coworker that the claim just came in complete and ready to act on, with calm professional satisfaction. He speaks directly to her, turning the monitor so she can see the map with the located claim, pointing toward the screen without looking away from her. The municipal office has window daylight, an orderly but modest public setting, another coworker nearby. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Mirá, llegó con la foto y la esquina marcada. Vialidad.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Over-the-shoulder shot, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Nadia, an Argentine woman in her late 30s, black hair pulled into a low ponytail, medium-brown skin tone, focused expression, wearing Institutional polo shirt, handheld radio in hand. Nadia wants to resolve the claim fast, speaking to Darío with quick efficient confidence as she acts on it in real time. She keeps her eyes on her screen while she reaches for the handheld radio, lifting it toward her mouth without breaking focus on the assignment she is making. Same municipal office, window daylight, desk with computer screen showing the assigned claim. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Tengo una cuadrilla a dos cuadras. Se lo paso.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 4,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Location: Two connected real settings: a modest municipal office with desks, computer monitors, and window daylight, and a residential street corner with a repaired patch of asphalt, parked cars, and plain building facades, both lit with natural daytime light. A worker from the municipal crew feels quiet satisfaction at finishing the job properly, working alongside a teammate who smooths the last bit of fresh asphalt. Without speaking, one of them steps back, raises a work phone and photographs the finished patch as proof of the completed repair. The same residential street corner, daytime natural light, parked cars and plain building facades in the background. No spoken dialogue, ambient sound only. One single continuous take, same background, no cut. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 5,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Marcela, an Argentine woman in her mid-30s, shoulder-length dark brown hair tied back loosely, light-olive skin tone, warm brown eyes, wearing Light jacket, crossbody bag, casual urban sneakers. Marcela feels genuine surprise and quiet satisfaction at seeing the pothole gone, speaking to herself with a tone of pleasant disbelief. She stops walking as she notices the new asphalt, then looks down at her phone and reads the notification with the before and after photos, her expression softening into a small smile. The same residential street corner, now repaired, afternoon natural light. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Mirá vos. Lo arreglaron. Y me avisaron a mí.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Munify. Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito.' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "Munify. Munify: 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Es una demo contada como caso real: el valor está en que se entienda el circuito completo (foto y GPS, derivación a Vialidad, asignación a cuadrilla, cierre con antes y después), así que el montaje debe sostener la inteligibilidad y marcar sólo dos momentos: el trabajo sin diálogo y la reacción de Marcela.",
+  "decisiones": [
+   {
+    "recurso": "music_dip",
+    "escenaN": 2,
+    "cuando": "inicio",
+    "durSec": 0.5,
+    "motivo": "Darío gira el monitor y nombra los datos clave ('la foto y la esquina marcada. Vialidad'); bajar la música deja clara la primera explicación del circuito."
+   },
+   {
+    "recurso": "cut",
+    "escenaN": 3,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "El pase de oficina a puesto de supervisión es un cambio de responsable en el mismo trámite; corte seco para que se lea como continuidad de proceso y no como elipsis."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 4,
+    "cuando": "inicio",
+    "durSec": 0.8,
+    "motivo": "Es la única escena sin diálogo: la cuadrilla alisando el parche y la foto del asfalto terminado sostienen el momento visualmente y la música puede empujar sin tapar voz."
+   },
+   {
+    "recurso": "music_drop",
+    "escenaN": 5,
+    "cuando": "inicio",
+    "durSec": 0.6,
+    "motivo": "Marcela frena al ver el asfalto nuevo antes de hablar; el vacío breve apoya esa reacción genuina y hace que 'Y me avisaron a mí' caiga limpio."
+   },
+   {
+    "recurso": "cut",
+    "escenaN": 5,
+    "cuando": "final",
+    "durSec": 0,
+    "motivo": "La placa de Munify debe entrar con corte seco después de que ella lee el aviso, para que el cierre de marca sea neto y no se diluya en un fundido."
+   }
+  ]
+ }
+}

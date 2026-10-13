@@ -1,0 +1,402 @@
+{
+ "caso": {
+  "n": 8,
+  "app": "eventmarker",
+  "objetivo": "demo",
+  "enfoque": "caso",
+  "tratamiento": "aspiracional"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "eventmarker",
+  "nombre": "sin vueltas ¡YA!",
+  "rubro": "Marketplace de servicios para eventos",
+  "brief": "# sin vueltas ¡YA! — brief (desde el KB de la app)\n> El marketplace para organizar tu evento en el AMBA: encontrás proveedores verificados, pedís cotización, reservás y pagás protegido, todo en un solo lugar.\n\n## El negocio\nsin vueltas ¡YA! conecta a quien organiza un evento (casamiento, 15, cumpleaños, corporativo) con proveedores de servicios para eventos en CABA y Gran Buenos Aires. El cliente busca por categoría o publica su pedido y los proveedores le cotizan; reserva con una seña que queda en garantía y se libera al proveedor después del evento. Para el proveedor es una fuente de clientes: publica gratis, recibe pedidos de su zona y cobra con el respaldo de la plataforma.\n\n### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)\nsin vueltas ¡YA! reúne en un solo lugar todo lo que necesitás para tu evento: buscás proveedores verificados por categoría o publicás tu pedido y te cotizan, comparás con fotos y reseñas, y reservás con una seña que queda en garantía y se libera al proveedor recién después del evento. El cliente organiza tranquilo y con respaldo; el proveedor consigue clientes de su zona y cobra protegido. Cotizar, reservar y pagar, todo sin salir de la plataforma.\n- Rubro: Marketplace de servicios para eventos\n- Público: Personas organizando un evento (casamiento, 15 años, cumpleaños, evento corporativo o de egresados) en CABA y Gran Buenos Aires; y proveedores de servicios para eventos que buscan más clientes.\n\n## Mensajes clave (van en CADA reel)\n- Todo tu evento en un solo lugar: proveedores, cotización, reserva y pago\n- Pago protegido: la seña queda en garantía y se libera después del evento\n- Publicás tu pedido y los proveedores de tu zona te cotizan\n- Proveedores verificados, con fotos y reseñas para comparar antes de elegir\n- Cobertura real del AMBA: CABA y Gran Buenos Aires\n\n## Qué ofrece\n- **Marketplace de proveedores verificados**: Buscás por categoría, comparás proveedores con sus fotos y reseñas, y pedís cotización sin compromiso.\n  - 11 categorías: música y DJ, catering, fotografía, animación, decoración, transporte, lunch & bar, estilismo, salones y locaciones, bienestar, shows y entretenimiento\n  - Fichas de proveedor con fotos y reseñas\n  - Cotización sin compromiso\n- **Reserva con pago protegido (seña en garantía)**: Reservás con una seña que queda retenida por la plataforma y se libera al proveedor después del evento, así el pago queda respaldado.\n  - Seña en garantía hasta después del evento\n  - Liberación al proveedor pasado el evento\n  - Coordinación y pago dentro de la plataforma\n- **Publicá tu pedido y recibí cotizaciones**: En vez de buscar uno por uno, publicás qué necesitás (categoría, zona, fecha, invitados) y los proveedores de tu zona te cotizan.\n  - Pedido publicado en un paso\n  - Los proveedores de tu zona cotizan\n  - Comparás cotizaciones y elegís\n- **Combos con descuento**: Paquetes que combinan varios servicios para tu evento a un precio menor que contratándolos por separado.\n  - Varios servicios en un paquete\n  - Precio menor que sueltos\n- **Asistente para armar tu evento**: Te guía paso a paso para armar el evento y te sugiere proveedores según lo que necesitás.\n  - Armado paso a paso\n  - Sugerencias según tu evento\n- **Panel para proveedores**: El proveedor publica sus servicios gratis, gestiona su bandeja de pedidos y cotizaciones, ve oportunidades de su zona y cobra con respaldo.\n  - Publicar es gratis\n  - Bandeja de pedidos y cotizaciones\n  - Oportunidades de tu zona\n  - Plan premium opcional para aparecer destacado\n\n## Por qué (diferenciadores)\n- Pago protegido: la seña queda en garantía y se libera al proveedor después del evento.\n- Todo en un solo lugar: cotizás, reservás y pagás sin salir de la plataforma.\n- Publicás tu pedido y los proveedores de tu zona te cotizan; no perseguís a nadie.\n- Proveedores con ficha, fotos y reseñas para comparar antes de elegir.\n- Cobertura real del AMBA (CABA y Gran Buenos Aires).\n- Combos que combinan varios servicios a un precio menor que sueltos.\n- Para el proveedor: publicar es gratis y solo paga comisión cuando concreta una reserva.\n\n## Dolores y objeciones (en palabras del cliente)\n- \"¿Es seguro pagar por la plataforma?\" → Sí. Pagás una seña que queda en garantía y recién se libera al proveedor después del evento, así tu pago queda respaldado.\n- \"¿Por qué no contacto al proveedor directo?\" → Coordinás todo desde la plataforma, con la cotización y el pago protegido. Eso te da respaldo si algo no sale como se acordó.\n- \"Soy proveedor, ¿me cuesta estar?\" → Publicar es gratis. La plataforma cobra una comisión solo cuando concretás una reserva.\n- \"¿Hay proveedores en mi zona?\" → Trabajamos en todo el AMBA: CABA y Gran Buenos Aires.\n- \"No sé bien qué necesito para mi evento.\" → Publicás tu pedido con la fecha y la cantidad de invitados y los proveedores te cotizan; además tenés un asistente que te guía paso a paso.\n\n## Oferta / CTA\n- Publicar es gratis para el proveedor. La plataforma cobra una comisión sobre cada reserva concretada. El cliente paga una seña para reservar que queda en garantía y se libera al proveedor después del evento. Los porcentajes exactos los define la plataforma y pueden variar.\n\n## A evitar (do_not_say)\n- No usar la palabra 'IA' ni 'inteligencia artificial'; usar verbos de acción (armá, encontrá, cotizá, sugerir, asistente).\n- No inventar la comisión ni el porcentaje de seña exactos; los define la plataforma y pueden variar.\n- No nombrar una pasarela de pago específica (MercadoPago u otra) como el medio de cobro; hablar de 'pago protegido' o 'seña en garantía'.\n- No prometer proveedores específicos ni garantizar su disponibilidad para una fecha.\n- No dar el contacto directo (WhatsApp, Instagram, teléfono) del proveedor antes de la reserva; la coordinación es por la plataforma.\n- No presentar la cantidad de proveedores, servicios o reseñas como cifras cerradas: el catálogo actual incluye datos de demostración.\n- No prometer cobertura fuera del AMBA (CABA y Gran Buenos Aires).\n- No usar emojis.\n- No garantizar reintegros automáticos ni plazos de devolución que no estén confirmados."
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "consideracion",
+   "angle": "Comparar antes de elegir",
+   "messageScope": "demo",
+   "primaryMessage": "En sin vueltas ¡YA! entrás por categoría y comparás proveedores verificados con sus fotos y reseñas antes de pedir cotización.",
+   "supportingFacts": [
+    "11 categorías: música y DJ, catering, fotografía, animación, decoración, transporte, lunch & bar, estilismo, salones y locaciones, bienestar, shows y entretenimiento",
+    "Fichas de proveedor con fotos y reseñas para comparar antes de elegir",
+    "Cotización sin compromiso",
+    "Proveedores verificados"
+   ],
+   "format": "9:16 para Instagram / TikTok",
+   "durationSec": 26,
+   "creativeBrief": "Recorrido de pantalla por el buscador del marketplace: elegir categoría, abrir dos fichas de proveedor, mirar fotos y reseñas y pedir cotización sin compromiso. El mensaje único es que acá podés comparar con información a la vista antes de decidir, no elegir a ciegas. Prueba la parte de la propuesta referida al catálogo de proveedores verificados y la cotización dentro de la plataforma."
+  },
+  "piezasPropuestas": 3
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "Papelito versus pantalla",
+   "tipoGancho": "CONTRASTE VISUAL",
+   "idea": "Un hombre organiza el festejo de fin de año de su oficina con tres nombres de catering anotados en un papel y cero información de cada uno. Deja el papel de lado, entra por categoría en sin vueltas ¡YA!, abre dos fichas de proveedores verificados, mira fotos de trabajos y reseñas, y pide cotización a los dos sin compromiso.",
+   "tono": "Sobrio, resuelto, cercano, sin euforia ni promesas grandes",
+   "estetica": "Oficina chica con luz natural de tarde, paleta cálida y limpia, pantalla del celular como protagonista del momento de decisión.",
+   "referencia": "Spot de contraste antes y después, con demo de pantalla",
+   "porQueFunciona": "Muestra la diferencia entre elegir a ciegas y comparar con fotos y reseñas a la vista."
+  },
+  {
+   "id": "c2",
+   "topico": "Dos candidatos, una mesa",
+   "tipoGancho": "DOBLE PERSPECTIVA",
+   "idea": "Madre e hija arman los quince y cada una defiende un DJ distinto. En vez de discutir, apoyan el celular en la mesa de la cocina y comparan las dos fichas lado a lado: fotos de fiestas, reseñas de otros clientes, zona de cobertura. Terminan pidiendo cotización a los dos, sin compromiso, y deciden con datos.",
+   "tono": "Cómplice, conversado, afectuoso, sin solemnidad ni discusión forzada",
+   "estetica": "Cocina de departamento al atardecer, luz tibia, dos caras iluminadas por la pantalla, encuadres íntimos y ordenados.",
+   "referencia": "Pieza de decisión compartida con apoyo de pantalla",
+   "porQueFunciona": "Convierte la comparación en un acto humano: dos opiniones se resuelven mirando la misma información."
+  },
+  {
+   "id": "c3",
+   "topico": "Primera vez organizando",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Una mujer que nunca organizó nada grande cuenta a cámara que su hermano le pidió ayuda con el casamiento. Mientras habla, recorre el buscador: elige la categoría que necesita, abre dos fichas de proveedores verificados, se detiene en las fotos y en lo que escribieron otros clientes, y pide cotización sin compromiso antes de comprometerse con nadie.",
+   "tono": "Directo, didáctico, seguro, hablado como a una amiga",
+   "estetica": "Living luminoso y despojado, fondo neutro, pantalla intercalada como material de apoyo, paleta clara y profesional.",
+   "referencia": "Demostración a cámara con recorrido de producto",
+   "porQueFunciona": "Explica el paso a paso de comparar y cotizar mostrándolo, con una voz creíble y sin tecnicismos."
+  }
+ ],
+ "comercial": {
+  "id": "com-comparar-antes-de-elegir-ldy6",
+  "titulo": "Comparar antes de elegir",
+  "tipo": "filmado",
+  "enfoque": "caso",
+  "tratamiento": "aspiracional",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Comparar antes de elegir",
+  "creativeBrief": "Recorrido de pantalla por el buscador del marketplace: elegir categoría, abrir dos fichas de proveedor, mirar fotos y reseñas y pedir cotización sin compromiso. El mensaje único es que acá podés comparar con información a la vista antes de decidir, no elegir a ciegas. Prueba la parte de la propuesta referida al catálogo de proveedores verificados y la cotización dentro de la plataforma.",
+  "messageScope": "demo",
+  "primaryMessage": "En sin vueltas ¡YA! entrás por categoría y comparás proveedores verificados con sus fotos y reseñas antes de pedir cotización.",
+  "supportingFacts": [
+   "11 categorías: música y DJ, catering, fotografía, animación, decoración, transporte, lunch & bar, estilismo, salones y locaciones, bienestar, shows y entretenimiento",
+   "Fichas de proveedor con fotos y reseñas para comparar antes de elegir",
+   "Cotización sin compromiso",
+   "Proveedores verificados"
+  ],
+  "perfilCampana": "demo",
+  "concepto": {
+   "id": "c1",
+   "topico": "Papelito versus pantalla",
+   "tipoGancho": "CONTRASTE VISUAL",
+   "idea": "Un hombre organiza el festejo de fin de año de su oficina con tres nombres de catering anotados en un papel y cero información de cada uno. Deja el papel de lado, entra por categoría en sin vueltas ¡YA!, abre dos fichas de proveedores verificados, mira fotos de trabajos y reseñas, y pide cotización a los dos sin compromiso.",
+   "tono": "Sobrio, resuelto, cercano, sin euforia ni promesas grandes",
+   "estetica": "Oficina chica con luz natural de tarde, paleta cálida y limpia, pantalla del celular como protagonista del momento de decisión.",
+   "referencia": "Spot de contraste antes y después, con demo de pantalla",
+   "porQueFunciona": "Muestra la diferencia entre elegir a ciegas y comparar con fotos y reseñas a la vista."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Diego",
+     "narration": "Tengo tres nombres y ni una foto.",
+     "visual": "Un papel con tres nombres anotados a mano, sin ningún otro dato, sobre un escritorio de oficina con luz de tarde.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Lucía",
+     "narration": "¿Y cuál de los tres es bueno?",
+     "visual": "Lucía se asoma por encima del monitor y mira el papel; Diego se queda callado un segundo y toma el celular.",
+     "durSec": 5
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Diego",
+     "narration": "Acá por lo menos veo los trabajos y lo que dijeron los clientes.",
+     "visual": "Diego apoya el papel a un costado; captura de pantalla real de la app con la categoría catering y fichas de proveedor con fotos y reseñas.",
+     "durSec": 7
+    },
+    {
+     "role": "giro",
+     "quien": "Diego",
+     "narration": "Les pedí cotización a dos. Ya no elijo a ciegas.",
+     "visual": "Pantalla de la app con el pedido de cotización enviado a dos proveedores; el papel queda olvidado al borde del escritorio.",
+     "durSec": 5
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "sin vueltas ¡YA! Compará proveedores verificados y pedí tu cotización sin compromiso.",
+     "visual": "Placa final con el logo sin vueltas ¡YA! sobre fondo cálido y limpio.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "cálida y resuelta"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Diego",
+     "rol": "Organizador del festejo que decide comparar proveedores",
+     "fisicoEn": "Man in his late 30s, short dark brown hair, light-tan skin, clean-shaven, average build, seated at an office desk, relaxed but focused posture, business-casual look suited to a small office",
+     "fisicoEs": "Hombre de unos 38 años, pelo corto oscuro, piel clara, aspecto prolijo y cercano",
+     "vestuario": "Camisa celeste clara, mangas remangadas, sin corbata",
+     "vestuarioEn": "Light blue button-down shirt, sleeves rolled up, no tie",
+     "personalidad": "Resuelto, calmo",
+     "lugarEn": "Seated at a small office desk by a window in late afternoon, warm natural light falling across the desk, a handwritten paper note and a smartphone within reach, modest office furniture visible but unremarkable",
+     "quien": "Diego"
+    },
+    {
+     "id": "p2",
+     "nombre": "Lucía",
+     "rol": "Compañera de oficina que cuestiona la falta de información",
+     "fisicoEn": "Woman in her mid-30s, shoulder-length dark hair, light-tan skin, natural light makeup, average build, seated at an adjacent desk, casual office posture leaning slightly to glance over a monitor",
+     "fisicoEs": "Mujer de unos 35 años, pelo oscuro a los hombros, piel clara, mirada curiosa",
+     "vestuario": "Blusa blanca simple, sin accesorios llamativos",
+     "vestuarioEn": "Simple white blouse, no flashy accessories",
+     "personalidad": "Curiosa, directa",
+     "lugarEn": "Seated at the desk next to Diego in the same small office, late afternoon light, leaning slightly over her monitor to look toward Diego's desk and the paper note",
+     "quien": "Lucía"
+    }
+   ],
+   "lugar": {
+    "nombre": "Oficina chica, escritorios de Diego y Lucía",
+    "descripcionEn": "Small office space with two adjacent desks, modest furniture, a window letting in warm late-afternoon natural light, a handwritten paper note and a smartphone on the desk, clean and unremarkable workspace without branding or clutter",
+    "luz": "Luz natural cálida de tarde"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 4.5,
+    "plano": "close-up",
+    "angulo": "a la altura del escritorio",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Diego mira el papel con tres nombres anotados",
+    "accionEn": "Diego is frustrated at how little he has to go on, speaking to himself more than to anyone else, almost thinking out loud as he stares down at the handwritten note. He wants to convey that three names without any context are useless for making a real decision. He glances at the paper on his desk, sitting at his small office desk in the warm late-afternoon light.",
+    "dialogo": "Tengo tres nombres y ni una foto.",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 4.5,
+    "plano": "over-the-shoulder",
+    "angulo": "desde el escritorio de Lucía hacia Diego",
+    "personajes": [
+     "p2"
+    ],
+    "accion": "Lucía se asoma por el monitor y pregunta",
+    "accionEn": "Lucía is genuinely curious and a bit skeptical, challenging Diego's casual approach to such an important decision. She wants him to notice the obvious gap in his plan, speaking directly to him across the desks. She leans slightly over her monitor to look toward him and the note, staying at her desk in the small office beside Diego's.",
+    "dialogo": "¿Y cuál de los tres es bueno?",
+    "continuidad": "misma oficina, luz de tarde",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 1.5,
+    "plano": "medium close-up",
+    "angulo": "frontal a Diego",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Diego se queda callado y toma el celular",
+    "accionEn": "Diego has no good answer to Lucía's question and feels the weight of not knowing, pausing for a moment before deciding to do something about it instead of guessing. He is not speaking to anyone, just reacting internally to the problem she pointed out. He stays quiet for a beat, then reaches for his phone on the desk, still seated in the same small office.",
+    "dialogo": "",
+    "continuidad": "mismo escritorio, papel visible",
+    "pantalla": "",
+    "durSecModelo": 3
+   },
+   {
+    "n": 4,
+    "rol": "desarrollo",
+    "durSec": 5.5,
+    "plano": "medium shot",
+    "angulo": "frontal a Diego",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Diego habla mientras aparta el papel",
+    "accionEn": "Diego feels relieved and more confident now, explaining to Lucía what he found as a direct answer to her doubt. He wants to show her that he finally has real information instead of just names on paper. He speaks to her while setting the handwritten note aside on his desk, in the same small office with the warm afternoon light.",
+    "dialogo": "Acá por lo menos veo los trabajos y lo que dijeron los clientes.",
+    "continuidad": "mismo escritorio, papel apartado",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 5,
+    "rol": "desarrollo",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "cenital leve sobre el teléfono",
+    "personajes": [],
+    "accion": "Se ve la categoría catering con fichas y reseñas",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "celular de Diego, mismo momento",
+    "pantalla": "categoría catering con fichas de proveedor, fotos y reseñas",
+    "durSecModelo": 3
+   },
+   {
+    "n": 6,
+    "rol": "giro",
+    "durSec": 4.5,
+    "plano": "medium close-up",
+    "angulo": "frontal a Diego",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Diego habla con el papel olvidado al costado",
+    "accionEn": "Diego feels in control for the first time, telling Lucía with quiet satisfaction that he has already acted instead of guessing. He wants her to see that he moved past the uncertainty from before. He speaks to her from his desk while the handwritten note sits forgotten at the edge of the table, same small office, same afternoon light.",
+    "dialogo": "Les pedí cotización a dos. Ya no elijo a ciegas.",
+    "continuidad": "mismo escritorio, papel al borde",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 7,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "cenital leve sobre el teléfono",
+    "personajes": [],
+    "accion": "Se ve el pedido de cotización enviado a dos proveedores",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "celular de Diego, mismo momento",
+    "pantalla": "pedido de cotización enviado a dos proveedores",
+    "durSecModelo": 2
+   },
+   {
+    "n": 8,
+    "rol": "cta",
+    "durSec": 3,
+    "plano": "wide shot",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Placa final: sin vueltas ¡YA! Compará proveedores verificados y pedí tu cotización sin compromiso.",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Diego",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Man in his late 30s, short dark brown hair, light-tan skin, clean-shaven, average build, seated at an office desk, relaxed but focused posture, business-casual look suited to a small office, standing and looking at the camera, natural pose, neutral background with a hint of small office space with two adjacent desks, modest furniture. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "p2",
+     "nombre": "Lucía",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman in her mid-30s, shoulder-length dark hair, light-tan skin, natural light makeup, average build, seated at an adjacent desk, casual office posture leaning slightly to glance over a monitor, standing and looking at the camera, natural pose, neutral background with a hint of small office space with two adjacent desks, modest furniture. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Diego, an Argentine man in his late 30s, short dark brown hair, light-tan skin, clean-shaven, average build, wearing Light blue button-down shirt, sleeves rolled up, no tie. Diego is frustrated at how little he has to go on, speaking to himself more than to anyone else, almost thinking out loud as he stares down at the handwritten note. He wants to convey that three names without any context are useless for making a real decision. He glances at the paper on his desk, sitting at his small office desk in the warm late-afternoon light. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Tengo tres nombres y ni una foto.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Close-up on the face and hands, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Lucía, an Argentine woman in her mid-30s, shoulder-length dark hair, light-tan skin, natural light makeup, average build, wearing Simple white blouse, no flashy accessories. Lucía is genuinely curious and a bit skeptical, challenging Diego's casual approach to such an important decision. She wants him to notice the obvious gap in his plan, speaking directly to him across the desks. She leans slightly over her monitor to look toward him and the note, staying at her desk in the small office beside Diego's. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: '¿Y cuál de los tres es bueno?' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Over-the-shoulder shot, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Diego, an Argentine man in his late 30s, short dark brown hair, light-tan skin, clean-shaven, average build, wearing Light blue button-down shirt, sleeves rolled up, no tie. Diego has no good answer to Lucía's question and feels the weight of not knowing, pausing for a moment before deciding to do something about it instead of guessing. He is not speaking to anyone, just reacting internally to the problem she pointed out. He stays quiet for a beat, then reaches for his phone on the desk, still seated in the same small office. No dialogue: ambient sound only. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 4,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Diego, an Argentine man in his late 30s, short dark brown hair, light-tan skin, clean-shaven, average build, wearing Light blue button-down shirt, sleeves rolled up, no tie. Diego feels relieved and more confident now, explaining to Lucía what he found as a direct answer to her doubt. He wants to show her that he finally has real information instead of just names on paper. He speaks to her while setting the handwritten note aside on his desk, in the same small office with the warm afternoon light. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Acá por lo menos veo los trabajos y lo que dijeron los clientes.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 6,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Diego, an Argentine man in his late 30s, short dark brown hair, light-tan skin, clean-shaven, average build, wearing Light blue button-down shirt, sleeves rolled up, no tie. Diego feels in control for the first time, telling Lucía with quiet satisfaction that he has already acted instead of guessing. He wants her to see that he moved past the uncertainty from before. He speaks to her from his desk while the handwritten note sits forgotten at the edge of the table, same small office, same afternoon light. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Les pedí cotización a dos. Ya no elijo a ciegas.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'sin vueltas ¡YA!. sin vueltas ¡YA! Compará proveedores verificados y pedí tu cotización sin compromiso.' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "sin vueltas ¡YA!. sin vueltas ¡YA! Compará proveedores verificados y pedí tu cotización sin compromiso.",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Un caso sobrio donde el contraste papel-pantalla ya está en el material, así que el montaje sólo tiene que marcar el momento en que Diego deja de adivinar y pasa a comparar.",
+  "decisiones": [
+   {
+    "recurso": "music_dip",
+    "escenaN": 2,
+    "cuando": "final",
+    "durSec": 0.6,
+    "motivo": "Después de la pregunta de Lucía, Diego se queda callado un segundo antes de tomar el celular; bajar la música deja respirar ese silencio incómodo sin tapar ninguna voz."
+   },
+   {
+    "recurso": "cut",
+    "escenaN": 4,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "El pasaje del papel apoyado a un costado a la pantalla con la categoría catering es el contraste central: conviene seco, sin transición que lo suavice."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 5,
+    "cuando": "inicio",
+    "durSec": 0.8,
+    "motivo": "Plano sin diálogo de las fichas con fotos y reseñas: la música sostiene el valor estético del momento de comparación sin competir con nadie."
+   },
+   {
+    "recurso": "dissolve",
+    "escenaN": 7,
+    "cuando": "antes",
+    "durSec": 0.8,
+    "motivo": "Último plano sin voz, con el papel olvidado al borde del escritorio; la transición suave cierra el caso y entrega la pieza a la placa de logo."
+   }
+  ]
+ }
+}

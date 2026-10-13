@@ -1,0 +1,76 @@
+{
+  "_nota": "Los casos de la corrida en seco. Cada uno es UN spot: la app integrada (id de /api/kb/apps), el objetivo de campaña, el tipo de historia y el clima, como los elige el usuario en la app. Valores válidos — objetivo: awareness, demo, conversion, campaña, solo-mockups · enfoque: caso, producto, dos-lados, antes-despues, testimonio, institucional, humor · tratamiento: natural, sobrio, calido, aspiracional, humor. Para correr sólo algunos: npm run corrida-seco -- --casos 1,4,7 · 13/10: Habláh (503, su API sigue en Heroku) y TasAR (404) no responden la integración; sus casos se pasaron a apps que andan.",
+  "formatoId": "reel-hibrido-9-16",
+  "casos": [
+    {
+      "n": 1,
+      "app": "munify",
+      "objetivo": "awareness",
+      "enfoque": "institucional",
+      "tratamiento": "sobrio"
+    },
+    {
+      "n": 2,
+      "app": "munify",
+      "objetivo": "demo",
+      "enfoque": "producto",
+      "tratamiento": "natural"
+    },
+    {
+      "n": 3,
+      "app": "munify",
+      "objetivo": "conversion",
+      "enfoque": "antes-despues",
+      "tratamiento": "calido"
+    },
+    {
+      "n": 4,
+      "app": "repareya",
+      "objetivo": "campaña",
+      "enfoque": "caso",
+      "tratamiento": "natural"
+    },
+    {
+      "n": 5,
+      "app": "repareya",
+      "objetivo": "awareness",
+      "enfoque": "humor",
+      "tratamiento": "humor"
+    },
+    {
+      "n": 6,
+      "app": "repareya",
+      "objetivo": "demo",
+      "enfoque": "dos-lados",
+      "tratamiento": "calido"
+    },
+    {
+      "n": 7,
+      "app": "eventmarker",
+      "objetivo": "awareness",
+      "enfoque": "testimonio",
+      "tratamiento": "calido"
+    },
+    {
+      "n": 8,
+      "app": "eventmarker",
+      "objetivo": "demo",
+      "enfoque": "caso",
+      "tratamiento": "aspiracional"
+    },
+    {
+      "n": 9,
+      "app": "munify",
+      "objetivo": "conversion",
+      "enfoque": "producto",
+      "tratamiento": "sobrio"
+    },
+    {
+      "n": 10,
+      "app": "repareya",
+      "objetivo": "campaña",
+      "enfoque": "antes-despues",
+      "tratamiento": "humor"
+    }
+  ]
+}

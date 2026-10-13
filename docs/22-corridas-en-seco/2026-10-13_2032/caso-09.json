@@ -1,0 +1,328 @@
+{
+ "caso": {
+  "n": 9,
+  "app": "munify",
+  "objetivo": "conversion",
+  "enfoque": "producto",
+  "tratamiento": "sobrio"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "munify",
+  "nombre": "Munify",
+  "rubro": "GovTech / gestion municipal (gobiernos locales)",
+  "brief": "# Munify — brief (desde el KB de la app)\n> La app que conecta al vecino con su municipio en tiempo real: reclama, tramita y paga desde el celular, con validacion biometrica oficial.\n\n## El negocio\nEl vecino reclama un bache, inicia un tramite o paga una tasa desde el celular. El municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve y notifica al vecino en tiempo real, con foto, GPS y firma digital cuando hace falta. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un unico sistema con login unico para gobernar y para atender al vecino.\n\n### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)\nMunify pone en una sola app la relacion entre el vecino y su municipio: el vecino reclama, tramita o paga una tasa desde el celular, con validacion biometrica oficial via RENAPER; el municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve con foto antes/despues y notifica al vecino en cada paso, mientras ve en vivo la temperatura de la ciudad. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un solo login para gobernar y para atender al vecino.\n- Rubro: GovTech / gestion municipal (gobiernos locales)\n- Público: Intendentes, jefes de gabinete, secretarios de gobierno y directores de modernizacion de municipios y comunas de Argentina, desde comunas de 3.000 habitantes hasta ciudades de 200.000. Exclusivo gobiernos locales argentinos.\n\n## Mensajes clave (van en CADA reel)\n- El vinculo vecino-municipio en tiempo real, desde el celular y sin demoras\n- Tramites con validacion biometrica oficial via RENAPER, sin pisar el municipio\n- Los reclamos se derivan solos a la dependencia y se resuelven con foto antes y despues\n- La plata del municipio ordenada: ordenes de pago, tesoreria y sueldos en un solo sistema, sin Excel\n- Todo integrado con un login unico; se implementa en 1 a 2 semanas, no en 6 meses\n\n## Qué ofrece\n- **Reclamos vecinales**: El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y GPS. La IA lo deriva a la dependencia correcta, el supervisor lo asigna a una cuadrilla, se resuelve con foto antes/despues y el vecino recibe notificacion en cada paso con numero de seguimiento.\n  - Clasificacion automatica del reclamo por IA\n  - Foto y geolocalizacion GPS automatica\n  - Asignacion a cuadrilla y fotos antes/despues\n  - Dashboard en vivo y mapa con hotspots\n  - Notificacion al vecino en cada paso y modo offline para cuadrillas\n- **Tramites municipales online**: El vecino inicia tramites desde el celular (habilitacion comercial, libre deuda, certificado de domicilio, licencia de conducir, monotributo municipal, bromatologia, permiso de obra), sube la documentacion, paga online y firma digital cuando corresponde, sin pisar el municipio hasta la entrega.\n  - Validacion biometrica oficial via RENAPER (DNI + selfie con prueba de vida, menos de 30s)\n  - Configuracion por tramite (documentacion, validaciones, area que aprueba, pago)\n  - Pago online y firma digital\n  - Mostrador asistido para vecinos sin app (el operador carga y valida la biometria)\n  - Pre-validacion de documentacion con IA\n- **Turnos y agenda presencial**: El vecino saca turno para gestiones que requieren presencia (mesa de entradas, licencias, bromatologia) eligiendo dependencia, dia y horario disponible. El municipio configura cupos, horarios y feriados; cada dependencia ve su agenda diaria.\n  - Reserva de turno por dependencia, dia y horario libre\n  - Configuracion de cupos, horarios y feriados por agenda\n  - Agenda diaria por dependencia para el personal\n  - Reserva tambien por bot de WhatsApp\n- **Gestion Financiera (Contaduria + Tesoreria + Sueldos)**: Reemplaza el Excel del municipio. Contaduria maneja el circuito formal de Ordenes de Pago con trazabilidad para el Tribunal de Cuentas; Tesoreria registra los movimientos reales y saldos de cada caja; Sueldos liquida al personal con monto editable y premios variables. Los tres sub-modulos comparten la misma base de datos.\n  - Orden de Pago con numero correlativo, PDF de factura adjunto y circuito pendiente -> autorizada -> pagada\n  - Al pagar una OP genera el movimiento en Tesoreria automaticamente, sin doble carga\n  - Cajas y fondos (FOFINDE, FODEMEP, coparticipacion, tesoro propio) con saldo en vivo\n  - Conciliacion bancaria: importar extracto y matchear contra movimientos de caja\n  - Sueldos con monto base editable por mes y premios variables desde catalogo\n\n## Por qué (diferenciadores)\n- Integral: un solo sistema con login unico para reclamos, tramites, turnos y gestion financiera; la competencia los vende por separado.\n- App gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp); si el vecino tuviera que pagar, la adopcion seria cero.\n- Validacion biometrica oficial via RENAPER: le da validez gubernamental al tramite, no es solo un formulario en internet.\n- Multi-tenant real: los datos de cada municipio estan totalmente aislados, con sus colores, logo y dependencias.\n- Multiplataforma de verdad: panel web, PWA, app nativa iOS/Android, bot de WhatsApp y modo offline para cuadrillas.\n- Implementacion en 1 a 2 semanas, no en 6 meses; importa los datos existentes y convive con sistemas legacy via API.\n- IA integrada sin costo extra: clasifica reclamos, detecta duplicados, sugiere asignacion y categoriza gastos.\n- Argentino, en pesos argentinos; la competencia internacional cobra en dolares.\n\n## Dolores y objeciones (en palabras del cliente)\n- \"Ya tenemos un sistema.\" → Munify se integra via API y no obliga a tirar nada de lo que ya tienen. Lo distinto: app gratis para el vecino, validacion RENAPER y los modulos integrados en uno solo.\n- \"Es caro / no tenemos presupuesto.\" → Por eso ofrecemos 3 meses gratis sin tarjeta de credito. El municipio prueba con datos reales y recien decide cuando ve los resultados.\n- \"Mi gente no es tecnologica.\" → La capacitacion esta incluida y la hacemos por videollamada con cada equipo. La curva es de un dia. Esta pensado para que lo use un empleado municipal sin saber de informatica.\n- \"El vecino aca no usa el celular.\" → Para eso esta el Mostrador asistido: el operador de la municipalidad carga el tramite del vecino y le hace la validacion biometrica con el celular. El vecino no necesita tener la app instalada.\n- \"Mis datos estan seguros?\" → Si. Cumplimos la Ley 25.326 de Proteccion de Datos Personales. Cada municipio tiene sus datos aislados, cifrados, en cloud, con backups diarios. La data es del municipio y la pueden exportar cuando quieran.\n\n## Oferta / CTA\n- La app es gratis para el vecino. El municipio paga por habitante, en pesos argentinos, sin permanencia. El precio exacto lo confirma un asesor del equipo segun el tamano del municipio.\n- Combo 3 modulos (Reclamos + Tramites + Gestion Financiera): 3 meses gratis sin compromiso ni tarjeta de credito, precio combinado menor a la suma de los modulos sueltos, capacitacion incluida e implementacion en 1 a 2 semanas.\n\n## A evitar (do_not_say)\n- No inventar precios ni dar montos cerrados; el precio exacto lo cierra un asesor humano segun el tamano del municipio.\n- No afirmar que somos un sistema contable completo ni que emitimos facturacion electronica AFIP; convivimos con SIPAF/RAFAM y sistemas provinciales via API, no los reemplazamos.\n- No presentar Sueldos como un sistema de RRHH completo: liquida base + premios, no calcula aportes/retenciones ni controla asistencia ni legajos.\n- No presentarlo como un GIS profesional (catastro, planos urbanisticos) ni como un CRM generico; es exclusivo para gobiernos locales argentinos.\n- No prometer integraciones especificas (SIPAF, RAFAM, etc.) sin confirmar; el equipo tecnico valida el caso puntual.\n- No comparar directamente con competidores por nombre.\n- Si un dato del municipio viene vacio, no inventarlo: decir que no lo tiene.\n- No usar emojis ni jerga de marketing (revolucionario, increible, potencia, boostea)."
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "conversion",
+   "angle": "Tres meses gratis",
+   "messageScope": "conversion",
+   "primaryMessage": "El municipio puede poner a andar Munify —reclamos, trámites y gestión financiera— durante 3 meses gratis, sin compromiso ni tarjeta de crédito, y recién después decidir.",
+   "supportingFacts": [
+    "Combo 3 módulos (Reclamos + Trámites + Gestión Financiera): 3 meses gratis sin compromiso ni tarjeta de crédito",
+    "Precio combinado menor a la suma de los módulos sueltos, capacitación incluida e implementación en 1 a 2 semanas",
+    "El municipio paga por habitante, en pesos argentinos, sin permanencia; el precio exacto lo confirma un asesor según el tamaño del municipio",
+    "La app es gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp)"
+   ],
+   "format": "9:16 para Instagram / TikTok",
+   "durationSec": 26,
+   "creativeBrief": "Esta pieza cuenta una sola cosa: la oferta. Munify es el sistema que conecta al vecino con su municipio —reclamar, tramitar y pagar desde el celular— y que puertas adentro ordena la plata, y se puede probar tres meses gratis sin tarjeta y sin permanencia. Prueba el ángulo con el combo de los tres módulos, la capacitación incluida y el hecho de que para el vecino la app no cuesta nada; cierra invitando a hablar con un asesor del equipo para confirmar el precio según el tamaño del municipio."
+  },
+  "piezasPropuestas": 3
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "Reclamo punta a punta",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Un director de modernización apoya el celular en el escritorio y muestra paso a paso un reclamo cargado esa mañana: entra con foto, se deriva a la dependencia, la cuadrilla lo cierra con la foto final y el vecino queda avisado. Cierra aclarando que todo eso lo están probando dentro de los tres meses gratis.",
+   "tono": "Didáctico y tranquilo, de quien muestra lo que usa",
+   "estetica": "Oficina municipal real, luz natural de ventana, paleta neutra, encuadres fijos y limpios, celular y pantalla como protagonistas.",
+   "referencia": "Demostración de producto institucional a cámara",
+   "porQueFunciona": "Muestra el circuito completo funcionando y vuelve la prueba gratis una decisión sin riesgo."
+  },
+  {
+   "id": "c2",
+   "topico": "Trámite sin mostrador",
+   "tipoGancho": "DOBLE PERSPECTIVA",
+   "idea": "Una vecina resuelve desde su cocina un trámite que antes la obligaba a pedir el día: valida su identidad con DNI y selfie, adjunta la documentación y paga. En la oficina, el mismo pedido llega listo para aprobar. Una voz aclara que para ella la app es gratis y que el municipio lo prueba tres meses sin tarjeta.",
+   "tono": "Claro, cercano, sin énfasis; afirmaciones breves",
+   "estetica": "Dos ambientes alternados, cocina cálida y oficina sobria, misma luz suave, texturas cotidianas, sin gráficos ni efectos.",
+   "referencia": "Pieza de servicio público con dos escenarios",
+   "porQueFunciona": "Une beneficio del vecino y del municipio, y presenta la prueba gratis como paso natural."
+  },
+  {
+   "id": "c3",
+   "topico": "La plata ordenada",
+   "tipoGancho": "OBJECIÓN RESUELTA",
+   "idea": "En contaduría, la responsable repasa una orden de pago que viaja de pendiente a autorizada y, al pagarse, aparece sola en el movimiento de tesorería, sin volver a cargarla en planillas. El intendente pregunta cuánto cuesta probarlo: tres meses gratis, sin tarjeta, capacitación incluida, y el precio lo confirma un asesor.",
+   "tono": "Sobrio, administrativo, respetuoso del oficio",
+   "estetica": "Interior de oficina con papeles y carpetas, luz fría controlada, cámara quieta, planos cortos de manos y pantalla.",
+   "referencia": "Aviso de software de gestión para organismos",
+   "porQueFunciona": "Ataca la objeción de presupuesto mostrando trabajo interno resuelto antes de pagar nada."
+  }
+ ],
+ "comercial": {
+  "id": "com-tres-meses-gratis-omq3",
+  "titulo": "Tres meses gratis",
+  "tipo": "filmado",
+  "enfoque": "producto",
+  "tratamiento": "sobrio",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Tres meses gratis",
+  "creativeBrief": "Esta pieza cuenta una sola cosa: la oferta. Munify es el sistema que conecta al vecino con su municipio —reclamar, tramitar y pagar desde el celular— y que puertas adentro ordena la plata, y se puede probar tres meses gratis sin tarjeta y sin permanencia. Prueba el ángulo con el combo de los tres módulos, la capacitación incluida y el hecho de que para el vecino la app no cuesta nada; cierra invitando a hablar con un asesor del equipo para confirmar el precio según el tamaño del municipio.",
+  "messageScope": "conversion",
+  "primaryMessage": "El municipio puede poner a andar Munify —reclamos, trámites y gestión financiera— durante 3 meses gratis, sin compromiso ni tarjeta de crédito, y recién después decidir.",
+  "supportingFacts": [
+   "Combo 3 módulos (Reclamos + Trámites + Gestión Financiera): 3 meses gratis sin compromiso ni tarjeta de crédito",
+   "Precio combinado menor a la suma de los módulos sueltos, capacitación incluida e implementación en 1 a 2 semanas",
+   "El municipio paga por habitante, en pesos argentinos, sin permanencia; el precio exacto lo confirma un asesor según el tamaño del municipio",
+   "La app es gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp)"
+  ],
+  "perfilCampana": "conversion",
+  "concepto": {
+   "id": "c1",
+   "topico": "Reclamo punta a punta",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Un director de modernización apoya el celular en el escritorio y muestra paso a paso un reclamo cargado esa mañana: entra con foto, se deriva a la dependencia, la cuadrilla lo cierra con la foto final y el vecino queda avisado. Cierra aclarando que todo eso lo están probando dentro de los tres meses gratis.",
+   "tono": "Didáctico y tranquilo, de quien muestra lo que usa",
+   "estetica": "Oficina municipal real, luz natural de ventana, paleta neutra, encuadres fijos y limpios, celular y pantalla como protagonistas.",
+   "referencia": "Demostración de producto institucional a cámara",
+   "porQueFunciona": "Muestra el circuito completo funcionando y vuelve la prueba gratis una decisión sin riesgo."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Marcelo",
+     "narration": "Este reclamo entró hoy, ocho y diez. Mirá.",
+     "visual": "Marcelo apoya el celular inclinado contra el monitor y gira la silla hacia cámara; detrás, oficina municipal con luz de ventana.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Marcelo",
+     "narration": "Lo tomó la dependencia que corresponde, sin que nadie lo mueva a mano. A las once la cuadrilla subió la foto del cierre. El vecino ya lo sabía.",
+     "visual": "Marcelo desliza el dedo por el seguimiento del reclamo en el celular y se detiene en la foto final; en el fondo, un escritorio despejado.",
+     "durSec": 12
+    },
+    {
+     "role": "giro",
+     "quien": "Marcelo",
+     "narration": "Y todavía estamos en los tres meses de prueba.",
+     "visual": "Marcelo deja el celular sobre el escritorio, se recuesta en la silla y encoge los hombros con una media sonrisa.",
+     "durSec": 5
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Munify. Combo 3 módulos: 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "visual": "Placa final sobre fondo neutro con el logo de Munify.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "calma institucional sobria"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Marcelo",
+     "rol": "Director de modernización que demuestra el circuito del reclamo",
+     "fisicoEn": "Man in his late 40s, short greying hair, light olive skin tone, calm face with faint smile lines, medium build, seated posture with relaxed shoulders, professional but approachable demeanor",
+     "fisicoEs": "Hombre de unos 48 años, pelo corto canoso, contextura media, gesto calmo y cercano",
+     "vestuario": "Camisa celeste prolija, sin saco, mangas largas",
+     "vestuarioEn": "Light blue buttoned shirt, no jacket, long sleeves rolled down",
+     "personalidad": "Tranquilo, confiable",
+     "lugarEn": "Seated at a municipal office desk near a window, soft natural daylight falling across the desk and monitor behind him, neutral walls, tidy workspace with the phone as the visible focal object",
+     "quien": "Marcelo"
+    }
+   ],
+   "lugar": {
+    "nombre": "Oficina de modernización municipal",
+    "descripcionEn": "A real municipal office space with a desk, a monitor, and a window providing natural light, neutral-toned walls, uncluttered surfaces, a lived-in but orderly administrative atmosphere typical of a local government back office",
+    "luz": "Luz natural de ventana, suave y pareja"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 5.5,
+    "plano": "medium shot",
+    "angulo": "frontal, ligeramente alto desde el escritorio",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Marcelo apoya el celular contra el monitor y gira hacia cámara",
+    "accionEn": "Marcelo is settling into his desk, wanting to share something that just happened with whoever he is talking to, speaking directly to camera as if addressing a colleague. He leans the phone against the monitor at an angle so it stays upright, then turns his chair toward camera with calm confidence, ready to explain. He is seated at his municipal office desk, soft natural window light falling across the desk and the tidy workspace behind him.",
+    "dialogo": "Este reclamo entró hoy, ocho y diez. Mirá.",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 5.5,
+    "plano": "medium close-up",
+    "angulo": "frontal, altura de ojos",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Marcelo explica cómo se asignó el reclamo sin intervención manual",
+    "accionEn": "Marcelo wants to make clear to camera that the process ran on its own, without anyone having to push it forward, speaking with quiet pride and precision rather than excitement. He keeps a steady, attentive posture, glancing briefly at the phone beside him on the desk as a reference point without picking it up. He remains seated at his municipal office desk, the same soft window light and tidy background behind him.",
+    "dialogo": "Lo tomó la dependencia que corresponde, sin que nadie lo mueva a mano.",
+    "continuidad": "Mismo lugar, celular apoyado contra el monitor",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 6.5,
+    "plano": "over-the-shoulder",
+    "angulo": "desde atrás del hombro de Marcelo hacia el celular",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Marcelo mira el celular y señala el avance con la mirada",
+    "accionEn": "Marcelo is tracking the progress of the claim with genuine satisfaction, wanting to show the viewer that the work moved forward on its own timeline. He looks down toward the phone resting against the monitor, following the information with his eyes without touching or typing on it, then looks back up to continue speaking to camera. He stays seated at the same municipal office desk, the window light unchanged, the desk calm and uncluttered behind him.",
+    "dialogo": "A las once la cuadrilla subió la foto del cierre. El vecino ya lo sabía.",
+    "continuidad": "Mismo lugar, celular apoyado contra el monitor",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 4,
+    "rol": "giro",
+    "durSec": 5.5,
+    "plano": "medium shot",
+    "angulo": "frontal, ligeramente bajo para relajar la postura",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Marcelo se recuesta, encoge los hombros con media sonrisa",
+    "accionEn": "Marcelo wants to land the real point of the story with a relaxed, almost understated confidence, speaking to camera as if sharing a small secret that matters more than it sounds. He sets the phone down flat on the desk, leans back into his chair, and gives a light shrug with a half smile, letting the fact speak for itself. He remains at his municipal office desk, the same natural window light and tidy background behind him.",
+    "dialogo": "Y todavía estamos en los tres meses de prueba.",
+    "continuidad": "Mismo lugar, celular ahora sobre el escritorio",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 5,
+    "rol": "cta",
+    "durSec": 3.5,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Placa: Munify. Combo 3 módulos: 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Marcelo",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Man in his late 40s, short greying hair, light olive skin tone, calm face with faint smile lines, medium build, seated posture with relaxed shoulders, professional but approachable demeanor, standing and looking at the camera, natural pose, neutral background with a hint of a real municipal office space with a desk, a monitor. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Marcelo, an Argentine man in his late 40s, short greying hair, light olive skin tone, calm face with faint smile lines, wearing Light blue buttoned shirt, no jacket, long sleeves rolled down. Marcelo is settling into his desk, wanting to share something that just happened with whoever he is talking to, speaking directly to camera as if addressing a colleague. He leans the phone against the monitor at an angle so it stays upright, then turns his chair toward camera with calm confidence, ready to explain. He is seated at his municipal office desk, soft natural window light falling across the desk and the tidy workspace behind him. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Este reclamo entró hoy, ocho y diez. Mirá.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Marcelo, an Argentine man in his late 40s, short greying hair, light olive skin tone, calm face with faint smile lines, wearing Light blue buttoned shirt, no jacket, long sleeves rolled down. Marcelo wants to make clear to camera that the process ran on its own, without anyone having to push it forward, speaking with quiet pride and precision rather than excitement. He keeps a steady, attentive posture, glancing briefly at the phone beside him on the desk as a reference point without picking it up. He remains seated at his municipal office desk, the same soft window light and tidy background behind him. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Lo tomó la dependencia que corresponde, sin que nadie lo mueva a mano.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Marcelo, an Argentine man in his late 40s, short greying hair, light olive skin tone, calm face with faint smile lines, wearing Light blue buttoned shirt, no jacket, long sleeves rolled down. Marcelo is tracking the progress of the claim with genuine satisfaction, wanting to show the viewer that the work moved forward on its own timeline. He looks down toward the phone resting against the monitor, following the information with his eyes without touching or typing on it, then looks back up to continue speaking to camera. He stays seated at the same municipal office desk, the window light unchanged, the desk calm and uncluttered behind him. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'A las once la cuadrilla subió la foto del cierre. El vecino ya lo sabía.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Over-the-shoulder shot, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 4,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Marcelo, an Argentine man in his late 40s, short greying hair, light olive skin tone, calm face with faint smile lines, wearing Light blue buttoned shirt, no jacket, long sleeves rolled down. Marcelo wants to land the real point of the story with a relaxed, almost understated confidence, speaking to camera as if sharing a small secret that matters more than it sounds. He sets the phone down flat on the desk, leans back into his chair, and gives a light shrug with a half smile, letting the fact speak for itself. He remains at his municipal office desk, the same natural window light and tidy background behind him. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Y todavía estamos en los tres meses de prueba.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Munify. Munify. Combo 3 módulos: 3 meses gratis, sin compromiso ni tarjeta de crédito.' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "Munify. Munify. Combo 3 módulos: 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Es una demo a cámara de un circuito real: lo que hay que proteger es la claridad de la operación en el celular y el remate tranquilo de los tres meses, no agregar energía que el material no tiene.",
+  "decisiones": [
+   {
+    "recurso": "cut",
+    "escenaN": 2,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "Marcelo pasa de mostrar el reclamo a explicar la derivación: corte seco para que el seguimiento en pantalla se lea como un paso que sigue al anterior, sin suavizar con transición."
+   },
+   {
+    "recurso": "music_dip",
+    "escenaN": 3,
+    "cuando": "final",
+    "durSec": 0.6,
+    "motivo": "Cuando se detiene en la foto del cierre y dice 'el vecino ya lo sabía', bajar la música deja esa evidencia como dato, sin subrayado."
+   },
+   {
+    "recurso": "music_dip",
+    "escenaN": 4,
+    "cuando": "inicio",
+    "durSec": 0.5,
+    "motivo": "Apoya el gesto real de dejar el celular y recostarse en la silla antes de decir que todavía están en la prueba."
+   },
+   {
+    "recurso": "dissolve",
+    "escenaN": 4,
+    "cuando": "final",
+    "durSec": 0.8,
+    "motivo": "El encogimiento de hombros con media sonrisa cierra el relato; una disolvencia hacia la placa de logo da el final institucional limpio sin corte abrupto."
+   }
+  ]
+ }
+}

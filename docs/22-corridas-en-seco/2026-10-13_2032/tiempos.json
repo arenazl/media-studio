@@ -1,0 +1,636 @@
+{
+ "totalSeg": 587,
+ "fallas": [],
+ "tiempos": [
+  {
+   "caso": 1,
+   "paso": "strategy",
+   "seg": 40.8,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 3,
+   "paso": "strategy",
+   "seg": 41,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 2,
+   "paso": "strategy",
+   "seg": 51.5,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 1,
+   "paso": "concept",
+   "seg": 32.7,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 4,
+   "paso": "strategy",
+   "seg": 77.3,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 3,
+   "paso": "concept",
+   "seg": 43.7,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": true,
+   "errores": 0
+  },
+  {
+   "caso": 2,
+   "paso": "concept",
+   "seg": 48.8,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": true,
+   "errores": 0
+  },
+  {
+   "caso": 1,
+   "paso": "script",
+   "seg": 30.6,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 1,
+   "paso": "cast",
+   "seg": 10.7,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 4,
+   "paso": "concept",
+   "seg": 40.3,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 3,
+   "paso": "script",
+   "seg": 34.8,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 3,
+   "paso": "cast",
+   "seg": 13.6,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 4,
+   "paso": "script",
+   "seg": 24.5,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 2,
+   "paso": "script",
+   "seg": 42.6,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 1,
+   "paso": "storyboard",
+   "seg": 29.6,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 1,
+   "paso": "flowpack",
+   "seg": 7.3,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 3,
+   "paso": "storyboard",
+   "seg": 21.8,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 4,
+   "paso": "cast",
+   "seg": 13.7,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 3,
+   "paso": "flowpack",
+   "seg": 5,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 2,
+   "paso": "cast",
+   "seg": 17.6,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 1,
+   "paso": "montageDirection",
+   "seg": 10.5,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 3,
+   "paso": "montageDirection",
+   "seg": 17.7,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 4,
+   "paso": "storyboard",
+   "seg": 23,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 2,
+   "paso": "storyboard",
+   "seg": 21.5,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 4,
+   "paso": "flowpack",
+   "seg": 6.3,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 2,
+   "paso": "flowpack",
+   "seg": 5.8,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 2,
+   "paso": "montageDirection",
+   "seg": 13.1,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 4,
+   "paso": "montageDirection",
+   "seg": 16.4,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 5,
+   "paso": "strategy",
+   "seg": 43.3,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 6,
+   "paso": "strategy",
+   "seg": 41.8,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 7,
+   "paso": "strategy",
+   "seg": 26.5,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 8,
+   "paso": "strategy",
+   "seg": 36,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 5,
+   "paso": "concept",
+   "seg": 53.2,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 6,
+   "paso": "concept",
+   "seg": 57,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 8,
+   "paso": "concept",
+   "seg": 41.1,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": true,
+   "errores": 0
+  },
+  {
+   "caso": 7,
+   "paso": "concept",
+   "seg": 59.3,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": true,
+   "errores": 0
+  },
+  {
+   "caso": 5,
+   "paso": "script",
+   "seg": 32,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 5,
+   "paso": "cast",
+   "seg": 14,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 7,
+   "paso": "script",
+   "seg": 22.3,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 6,
+   "paso": "script",
+   "seg": 39.7,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 8,
+   "paso": "script",
+   "seg": 37.6,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 7,
+   "paso": "cast",
+   "seg": 10.3,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 8,
+   "paso": "cast",
+   "seg": 13.4,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 5,
+   "paso": "storyboard",
+   "seg": 25.2,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 6,
+   "paso": "cast",
+   "seg": 14.2,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 5,
+   "paso": "flowpack",
+   "seg": 6,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 7,
+   "paso": "storyboard",
+   "seg": 17.1,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 7,
+   "paso": "flowpack",
+   "seg": 5.8,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 8,
+   "paso": "storyboard",
+   "seg": 21.3,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 5,
+   "paso": "montageDirection",
+   "seg": 17,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 6,
+   "paso": "storyboard",
+   "seg": 24.9,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 8,
+   "paso": "flowpack",
+   "seg": 4.9,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 7,
+   "paso": "montageDirection",
+   "seg": 16.1,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 6,
+   "paso": "flowpack",
+   "seg": 6.5,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 8,
+   "paso": "montageDirection",
+   "seg": 16.7,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 6,
+   "paso": "montageDirection",
+   "seg": 13,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 9,
+   "paso": "strategy",
+   "seg": 35.8,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 10,
+   "paso": "strategy",
+   "seg": 69.5,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 9,
+   "paso": "concept",
+   "seg": 54.6,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": true,
+   "errores": 0
+  },
+  {
+   "caso": 9,
+   "paso": "script",
+   "seg": 32.9,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 9,
+   "paso": "cast",
+   "seg": 11.7,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 10,
+   "paso": "concept",
+   "seg": 59.6,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": true,
+   "errores": 0
+  },
+  {
+   "caso": 9,
+   "paso": "storyboard",
+   "seg": 17.9,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 9,
+   "paso": "flowpack",
+   "seg": 4.6,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 10,
+   "paso": "script",
+   "seg": 42,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 9,
+   "paso": "montageDirection",
+   "seg": 21.1,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 10,
+   "paso": "cast",
+   "seg": 10.4,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 10,
+   "paso": "storyboard",
+   "seg": 23.6,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 10,
+   "paso": "flowpack",
+   "seg": 4.6,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 10,
+   "paso": "montageDirection",
+   "seg": 17.4,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  }
+ ]
+}

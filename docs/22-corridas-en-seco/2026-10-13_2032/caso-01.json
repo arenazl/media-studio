@@ -1,0 +1,430 @@
+{
+ "caso": {
+  "n": 1,
+  "app": "munify",
+  "objetivo": "awareness",
+  "enfoque": "institucional",
+  "tratamiento": "sobrio"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "munify",
+  "nombre": "Munify",
+  "rubro": "GovTech / gestion municipal (gobiernos locales)",
+  "brief": "# Munify — brief (desde el KB de la app)\n> La app que conecta al vecino con su municipio en tiempo real: reclama, tramita y paga desde el celular, con validacion biometrica oficial.\n\n## El negocio\nEl vecino reclama un bache, inicia un tramite o paga una tasa desde el celular. El municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve y notifica al vecino en tiempo real, con foto, GPS y firma digital cuando hace falta. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un unico sistema con login unico para gobernar y para atender al vecino.\n\n### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)\nMunify pone en una sola app la relacion entre el vecino y su municipio: el vecino reclama, tramita o paga una tasa desde el celular, con validacion biometrica oficial via RENAPER; el municipio recibe el pedido, lo deriva a la dependencia correcta, lo resuelve con foto antes/despues y notifica al vecino en cada paso, mientras ve en vivo la temperatura de la ciudad. Puertas adentro, el mismo sistema ordena la plata del municipio (ordenes de pago, tesoreria y sueldos) y reemplaza el Excel. Un solo login para gobernar y para atender al vecino.\n- Rubro: GovTech / gestion municipal (gobiernos locales)\n- Público: Intendentes, jefes de gabinete, secretarios de gobierno y directores de modernizacion de municipios y comunas de Argentina, desde comunas de 3.000 habitantes hasta ciudades de 200.000. Exclusivo gobiernos locales argentinos.\n\n## Mensajes clave (van en CADA reel)\n- El vinculo vecino-municipio en tiempo real, desde el celular y sin demoras\n- Tramites con validacion biometrica oficial via RENAPER, sin pisar el municipio\n- Los reclamos se derivan solos a la dependencia y se resuelven con foto antes y despues\n- La plata del municipio ordenada: ordenes de pago, tesoreria y sueldos en un solo sistema, sin Excel\n- Todo integrado con un login unico; se implementa en 1 a 2 semanas, no en 6 meses\n\n## Qué ofrece\n- **Reclamos vecinales**: El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y GPS. La IA lo deriva a la dependencia correcta, el supervisor lo asigna a una cuadrilla, se resuelve con foto antes/despues y el vecino recibe notificacion en cada paso con numero de seguimiento.\n  - Clasificacion automatica del reclamo por IA\n  - Foto y geolocalizacion GPS automatica\n  - Asignacion a cuadrilla y fotos antes/despues\n  - Dashboard en vivo y mapa con hotspots\n  - Notificacion al vecino en cada paso y modo offline para cuadrillas\n- **Tramites municipales online**: El vecino inicia tramites desde el celular (habilitacion comercial, libre deuda, certificado de domicilio, licencia de conducir, monotributo municipal, bromatologia, permiso de obra), sube la documentacion, paga online y firma digital cuando corresponde, sin pisar el municipio hasta la entrega.\n  - Validacion biometrica oficial via RENAPER (DNI + selfie con prueba de vida, menos de 30s)\n  - Configuracion por tramite (documentacion, validaciones, area que aprueba, pago)\n  - Pago online y firma digital\n  - Mostrador asistido para vecinos sin app (el operador carga y valida la biometria)\n  - Pre-validacion de documentacion con IA\n- **Turnos y agenda presencial**: El vecino saca turno para gestiones que requieren presencia (mesa de entradas, licencias, bromatologia) eligiendo dependencia, dia y horario disponible. El municipio configura cupos, horarios y feriados; cada dependencia ve su agenda diaria.\n  - Reserva de turno por dependencia, dia y horario libre\n  - Configuracion de cupos, horarios y feriados por agenda\n  - Agenda diaria por dependencia para el personal\n  - Reserva tambien por bot de WhatsApp\n- **Gestion Financiera (Contaduria + Tesoreria + Sueldos)**: Reemplaza el Excel del municipio. Contaduria maneja el circuito formal de Ordenes de Pago con trazabilidad para el Tribunal de Cuentas; Tesoreria registra los movimientos reales y saldos de cada caja; Sueldos liquida al personal con monto editable y premios variables. Los tres sub-modulos comparten la misma base de datos.\n  - Orden de Pago con numero correlativo, PDF de factura adjunto y circuito pendiente -> autorizada -> pagada\n  - Al pagar una OP genera el movimiento en Tesoreria automaticamente, sin doble carga\n  - Cajas y fondos (FOFINDE, FODEMEP, coparticipacion, tesoro propio) con saldo en vivo\n  - Conciliacion bancaria: importar extracto y matchear contra movimientos de caja\n  - Sueldos con monto base editable por mes y premios variables desde catalogo\n\n## Por qué (diferenciadores)\n- Integral: un solo sistema con login unico para reclamos, tramites, turnos y gestion financiera; la competencia los vende por separado.\n- App gratis para el vecino (Play Store, App Store, PWA y bot de WhatsApp); si el vecino tuviera que pagar, la adopcion seria cero.\n- Validacion biometrica oficial via RENAPER: le da validez gubernamental al tramite, no es solo un formulario en internet.\n- Multi-tenant real: los datos de cada municipio estan totalmente aislados, con sus colores, logo y dependencias.\n- Multiplataforma de verdad: panel web, PWA, app nativa iOS/Android, bot de WhatsApp y modo offline para cuadrillas.\n- Implementacion en 1 a 2 semanas, no en 6 meses; importa los datos existentes y convive con sistemas legacy via API.\n- IA integrada sin costo extra: clasifica reclamos, detecta duplicados, sugiere asignacion y categoriza gastos.\n- Argentino, en pesos argentinos; la competencia internacional cobra en dolares.\n\n## Dolores y objeciones (en palabras del cliente)\n- \"Ya tenemos un sistema.\" → Munify se integra via API y no obliga a tirar nada de lo que ya tienen. Lo distinto: app gratis para el vecino, validacion RENAPER y los modulos integrados en uno solo.\n- \"Es caro / no tenemos presupuesto.\" → Por eso ofrecemos 3 meses gratis sin tarjeta de credito. El municipio prueba con datos reales y recien decide cuando ve los resultados.\n- \"Mi gente no es tecnologica.\" → La capacitacion esta incluida y la hacemos por videollamada con cada equipo. La curva es de un dia. Esta pensado para que lo use un empleado municipal sin saber de informatica.\n- \"El vecino aca no usa el celular.\" → Para eso esta el Mostrador asistido: el operador de la municipalidad carga el tramite del vecino y le hace la validacion biometrica con el celular. El vecino no necesita tener la app instalada.\n- \"Mis datos estan seguros?\" → Si. Cumplimos la Ley 25.326 de Proteccion de Datos Personales. Cada municipio tiene sus datos aislados, cifrados, en cloud, con backups diarios. La data es del municipio y la pueden exportar cuando quieran.\n\n## Oferta / CTA\n- La app es gratis para el vecino. El municipio paga por habitante, en pesos argentinos, sin permanencia. El precio exacto lo confirma un asesor del equipo segun el tamano del municipio.\n- Combo 3 modulos (Reclamos + Tramites + Gestion Financiera): 3 meses gratis sin compromiso ni tarjeta de credito, precio combinado menor a la suma de los modulos sueltos, capacitacion incluida e implementacion en 1 a 2 semanas.\n\n## A evitar (do_not_say)\n- No inventar precios ni dar montos cerrados; el precio exacto lo cierra un asesor humano segun el tamano del municipio.\n- No afirmar que somos un sistema contable completo ni que emitimos facturacion electronica AFIP; convivimos con SIPAF/RAFAM y sistemas provinciales via API, no los reemplazamos.\n- No presentar Sueldos como un sistema de RRHH completo: liquida base + premios, no calcula aportes/retenciones ni controla asistencia ni legajos.\n- No presentarlo como un GIS profesional (catastro, planos urbanisticos) ni como un CRM generico; es exclusivo para gobiernos locales argentinos.\n- No prometer integraciones especificas (SIPAF, RAFAM, etc.) sin confirmar; el equipo tecnico valida el caso puntual.\n- No comparar directamente con competidores por nombre.\n- Si un dato del municipio viene vacio, no inventarlo: decir que no lo tiene.\n- No usar emojis ni jerga de marketing (revolucionario, increible, potencia, boostea)."
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "awareness",
+   "angle": "Reclamo sin respuesta",
+   "messageScope": "problem",
+   "primaryMessage": "El vecino no se enoja por el bache: se enoja porque nadie le avisa qué pasó con su reclamo.",
+   "supportingFacts": [
+    "El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y geolocalización GPS automática",
+    "La IA clasifica el reclamo y lo deriva a la dependencia correcta; el supervisor lo asigna a una cuadrilla",
+    "Se resuelve con foto antes y después, y el vecino recibe notificación en cada paso con número de seguimiento"
+   ],
+   "format": "9:16 para Instagram / TikTok",
+   "durationSec": 26,
+   "creativeBrief": "Esta pieza abre con el dolor cotidiano del municipio: el reclamo que entra por mil canales informales y muere sin respuesta, mientras el vecino asume que no hicieron nada. El mensaje principal es que el silencio es el verdadero problema, y lo prueba mostrando el circuito de Munify: reclamo con foto y GPS, derivación automática por IA a la dependencia, resolución con foto antes y después y notificación al vecino en cada paso. Cierra presentando a Munify como la app que conecta al vecino con su municipio en tiempo real e invita a hablar con un asesor del equipo."
+  },
+  "piezasPropuestas": 3
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "El reclamo que rebota",
+   "tipoGancho": "CONTRASTE DE CANALES",
+   "idea": "Un mismo pedido vecinal repetido en todos lados menos donde sirve: un mensaje al conocido que trabaja adentro, un comentario suelto en la calle, un llamado sin respuesta. Nada vuelve. Después, ese pedido entra una sola vez con foto y ubicación, llega al área que corresponde, se resuelve y el vecino recibe aviso. El silencio era el problema.",
+   "tono": "Sereno, directo, sin reproche; voz adulta que explica",
+   "estetica": "Vereda de pueblo y oficina municipal, luz natural, paleta sobria, encuadres limpios, pocos elementos, sin estridencia gráfica",
+   "referencia": "Spot institucional de servicio público, antes y después",
+   "porQueFunciona": "Muestra el desorden real del reclamo informal y lo ordena con una capacidad concreta de la marca."
+  },
+  {
+   "id": "c2",
+   "topico": "Dos verdades distintas",
+   "tipoGancho": "DOBLE PERSPECTIVA",
+   "idea": "Una cuadrilla municipal termina un arreglo temprano y se va. A la tarde, la vecina de enfrente sigue convencida de que nadie fue nunca. Dos verdades que no se cruzan. Munify las une: el pedido queda registrado con ubicación, se deriva solo al área, se cierra con foto antes y después, y el vecino se entera.",
+   "tono": "Humano, respetuoso con el trabajo municipal, nada paternalista",
+   "estetica": "Dos líneas visuales paralelas, mañana de trabajo y tarde de barrio, colores reales, textura documental contenida",
+   "referencia": "Narrativa de dos puntos de vista que convergen",
+   "porQueFunciona": "Reivindica al municipio y ubica el valor donde está: avisar. Ideal para quien decide la compra."
+  },
+  {
+   "id": "c3",
+   "topico": "Recorrido de un pedido",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Seguimos un solo pedido vecinal puertas adentro del municipio: entra desde un celular con foto y ubicación, la clasificación automática lo manda al área correcta, un supervisor lo asigna, la cuadrilla lo cierra con foto antes y después. En cada paso sale un aviso al vecino. Gestionar a la vista, también es gobernar.",
+   "tono": "Expositivo, preciso, con autoridad tranquila y voz institucional",
+   "estetica": "Interiores municipales reales, pasillos y escritorios, luz pareja, tipografía sobria para marcar cada etapa del circuito",
+   "referencia": "Pieza explicativa de proceso para decisor institucional",
+   "porQueFunciona": "Hace visible el circuito completo y convierte una promesa abstracta en trazabilidad comprobable para el municipio."
+  }
+ ],
+ "comercial": {
+  "id": "com-reclamo-sin-respuesta-h669",
+  "titulo": "Reclamo sin respuesta",
+  "tipo": "filmado",
+  "enfoque": "institucional",
+  "tratamiento": "sobrio",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Reclamo sin respuesta",
+  "creativeBrief": "Esta pieza abre con el dolor cotidiano del municipio: el reclamo que entra por mil canales informales y muere sin respuesta, mientras el vecino asume que no hicieron nada. El mensaje principal es que el silencio es el verdadero problema, y lo prueba mostrando el circuito de Munify: reclamo con foto y GPS, derivación automática por IA a la dependencia, resolución con foto antes y después y notificación al vecino en cada paso. Cierra presentando a Munify como la app que conecta al vecino con su municipio en tiempo real e invita a hablar con un asesor del equipo.",
+  "messageScope": "problem",
+  "primaryMessage": "El vecino no se enoja por el bache: se enoja porque nadie le avisa qué pasó con su reclamo.",
+  "supportingFacts": [
+   "El vecino reporta problemas (bache, alumbrado, residuos, animales sueltos, ruidos) desde la app con foto y geolocalización GPS automática",
+   "La IA clasifica el reclamo y lo deriva a la dependencia correcta; el supervisor lo asigna a una cuadrilla",
+   "Se resuelve con foto antes y después, y el vecino recibe notificación en cada paso con número de seguimiento"
+  ],
+  "perfilCampana": "awareness",
+  "concepto": {
+   "id": "c1",
+   "topico": "El reclamo que rebota",
+   "tipoGancho": "CONTRASTE DE CANALES",
+   "idea": "Un mismo pedido vecinal repetido en todos lados menos donde sirve: un mensaje al conocido que trabaja adentro, un comentario suelto en la calle, un llamado sin respuesta. Nada vuelve. Después, ese pedido entra una sola vez con foto y ubicación, llega al área que corresponde, se resuelve y el vecino recibe aviso. El silencio era el problema.",
+   "tono": "Sereno, directo, sin reproche; voz adulta que explica",
+   "estetica": "Vereda de pueblo y oficina municipal, luz natural, paleta sobria, encuadres limpios, pocos elementos, sin estridencia gráfica",
+   "referencia": "Spot institucional de servicio público, antes y después",
+   "porQueFunciona": "Muestra el desorden real del reclamo informal y lo ordena con una capacidad concreta de la marca."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Vecino",
+     "narration": "No me molesta el bache. Me molesta el silencio.",
+     "visual": "Un hombre parado al borde de un pozo en la vereda, celular en la mano con la pantalla apagada.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Vecino",
+     "narration": "Se lo dije a un conocido que trabaja adentro. Lo comenté en la esquina. Llamé dos veces. Y seguí sin saber si alguien lo había anotado.",
+     "visual": "Mensaje visto sin respuesta, charla corta con un vecino en la esquina, y un mostrador municipal donde el teléfono suena sin que nadie lo levante.",
+     "durSec": 12
+    },
+    {
+     "role": "giro",
+     "quien": "Vecino",
+     "narration": "Lo mandé una sola vez. Y esta vez me fueron avisando.",
+     "visual": "El reclamo con foto y ubicación entra en la pantalla de la dependencia, una cuadrilla trabajando en ese mismo pozo, y después el aviso con número de seguimiento llegando al celular del vecino junto a la foto del antes y el después.",
+     "durSec": 5
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Munify. 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "visual": "Placa final sobria con el logotipo Munify sobre fondo plano.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "sobria, serena, institucional"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Vecino",
+     "rol": "Protagonista que vive el reclamo sin respuesta y después la resolución",
+     "fisicoEn": "Man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, average build, plain weathered face suggesting a working routine, unremarkable everyday appearance",
+     "fisicoEs": "Hombre de unos 45 años, pelo corto con canas, piel morena clara, expresión calma y cansada",
+     "vestuario": "Camisa simple y pantalón de trabajo, nada llamativo",
+     "vestuarioEn": "Plain buttoned shirt, work trousers, simple worn shoes",
+     "personalidad": "Sereno, paciente",
+     "lugarEn": "Standing on a cracked sidewalk beside a street pothole in a small town, soft overcast daylight, modest houses and a lamp post in the background, quiet residential street atmosphere",
+     "quien": "Vecino"
+    }
+   ],
+   "lugar": {
+    "nombre": "Vereda del barrio y mostrador municipal",
+    "descripcionEn": "A modest town sidewalk with a visible pothole, bordered by simple houses, transitioning to a municipal office counter with a landline phone and a basic computer screen, plain walls, functional furniture, no decoration, natural daylight throughout",
+    "luz": "Luz natural diurna, suave y pareja"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 4,
+    "plano": "medium close-up",
+    "angulo": "a la altura de los ojos, ligeramente frontal",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "El vecino mira el pozo y dice que lo que molesta es el silencio",
+    "accionEn": "The man stands at the edge of the pothole, speaking directly to camera as if addressing someone from the neighborhood who finally listens. He wants to name the real problem, not the pothole itself but the lack of response. His expression is calm but firm, tired of being ignored. He holds his phone loosely at his side, screen off, not looking at it. He stays still, grounded on the cracked sidewalk, soft overcast daylight around him, modest houses faintly visible behind.",
+    "dialogo": "No me molesta el bache. Me molesta el silencio.",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 4,
+    "plano": "medium shot",
+    "angulo": "frontal, leve contrapicado",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Cuenta que se lo dijo a un conocido que trabaja adentro",
+    "accionEn": "The man speaks to camera with the tone of someone recounting a familiar frustration, almost resigned. He wants to explain that he tried the informal way first, through a personal contact inside the municipality, expecting that to be enough. His face shows mild disappointment as he recalls it not working. He stands on the same sidewalk near the pothole, body relaxed but voice steady, soft daylight unchanged from the previous moment.",
+    "dialogo": "Se lo dije a un conocido que trabaja adentro.",
+    "continuidad": "mismo lugar y luz que la escena anterior",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 2.5,
+    "plano": "wide shot",
+    "angulo": "ligeramente lateral",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Comenta el problema con un vecino en la esquina",
+    "accionEn": "The man talks briefly with a neighbor at the corner, gesturing toward the direction of the pothole while explaining the situation. He wants a witness, someone else to acknowledge the problem exists, not expecting a real solution from the conversation. His tone is casual, almost like venting. The neighbor listens and nods without much reaction. The exchange happens quickly on the quiet residential street, modest houses and a lamp post in the background, natural daylight.",
+    "dialogo": "Lo comenté en la esquina.",
+    "continuidad": "mismo vecino, misma calle, luz diurna",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 4,
+    "rol": "desarrollo",
+    "durSec": 2,
+    "plano": "over-the-shoulder",
+    "angulo": "desde atrás del mostrador",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Llama dos veces desde el mostrador municipal sin respuesta",
+    "accionEn": "The man stands at a municipal office counter, a landline phone ringing unanswered beside a basic computer screen. He wants someone to pick up and confirm his complaint was registered, but no one appears. His patience visibly thins as he waits, arms resting on the counter, eyes fixed on the silent phone. The space is plain, functional furniture, no decoration, steady daylight coming through a window.",
+    "dialogo": "Llamé dos veces.",
+    "continuidad": "mismo vecino, nuevo lugar: mostrador municipal",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 5,
+    "rol": "desarrollo",
+    "durSec": 4,
+    "plano": "close-up",
+    "angulo": "frontal",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Dice que siguió sin saber si alguien lo había anotado",
+    "accionEn": "The man looks directly at camera, voice low and tired, summarizing the frustration of not knowing if his complaint ever reached anyone. He wants to express the core problem: uncertainty, not bureaucracy. His expression is still calm, but there's a quiet weight behind it. He remains at the same municipal counter, landline and computer screen visible but out of focus behind him, same steady daylight as before.",
+    "dialogo": "Y seguí sin saber si alguien lo había anotado.",
+    "continuidad": "mismo lugar y luz que la escena anterior",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 6,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "cenital leve, sobre el reclamo",
+    "personajes": [],
+    "accion": "El reclamo con foto y ubicación entra en la pantalla municipal",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "mismo mostrador municipal",
+    "pantalla": "Reclamo con foto y ubicación"
+   },
+   {
+    "n": 7,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "wide shot",
+    "angulo": "a nivel de calle",
+    "personajes": [],
+    "accion": "Una cuadrilla trabaja en el mismo pozo de la vereda",
+    "accionEn": "A municipal work crew is seen repairing the same pothole from the beginning of the story, tools in motion, focused on the task. The moment is quiet but purposeful, no dialogue, just visible proof that the report led to real action. The street and houses match the earlier establishing scene, same overcast daylight, same pothole location now being fixed.",
+    "dialogo": "",
+    "continuidad": "mismo pozo de la escena 1",
+    "pantalla": ""
+   },
+   {
+    "n": 8,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "frontal, sobre el celular",
+    "personajes": [],
+    "accion": "Llega el aviso de seguimiento al celular del vecino",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "mismo celular de la escena 1",
+    "pantalla": "Aviso de seguimiento con número",
+    "durSecModelo": 1
+   },
+   {
+    "n": 9,
+    "rol": "giro",
+    "durSec": 1.5,
+    "plano": "close-up",
+    "angulo": "frontal, sobre el celular",
+    "personajes": [],
+    "accion": "Se ve la foto del antes y el después del pozo",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "mismo celular, misma pantalla de seguimiento",
+    "pantalla": "Foto antes y después",
+    "durSecModelo": 1
+   },
+   {
+    "n": 10,
+    "rol": "giro",
+    "durSec": 5,
+    "plano": "medium close-up",
+    "angulo": "frontal",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Dice que lo mandó una sola vez y le fueron avisando",
+    "accionEn": "The man looks at his phone and then up, a small sense of relief in his expression, speaking as if sharing good news with someone close. He wants to acknowledge that this time was different: he reported once and was kept informed throughout. His posture relaxes slightly compared to the earlier scenes. He stands on the same sidewalk near the now-repaired pothole, soft daylight, calm and composed.",
+    "dialogo": "Lo mandé una sola vez. Y esta vez me fueron avisando.",
+    "continuidad": "mismo vecino, mismo pozo ya reparado",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 11,
+    "rol": "cta",
+    "durSec": 1.5,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Placa final: Munifai. 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Vecino",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, average build, plain weathered face suggesting a working routine, unremarkable everyday appearance, standing and looking at the camera, natural pose, neutral background with a hint of a modest town sidewalk with a visible pothole, bordered by simple houses. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vecino, an Argentine man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, wearing Plain buttoned shirt, work trousers, simple worn shoes. The man stands at the edge of the pothole, speaking directly to camera as if addressing someone from the neighborhood who finally listens. He wants to name the real problem, not the pothole itself but the lack of response. His expression is calm but firm, tired of being ignored. He holds his phone loosely at his side, screen off, not looking at it. He stays still, grounded on the cracked sidewalk, soft overcast daylight around him, modest houses faintly visible behind. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'No me molesta el bache. Me molesta el silencio.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vecino, an Argentine man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, wearing Plain buttoned shirt, work trousers, simple worn shoes. The man speaks to camera with the tone of someone recounting a familiar frustration, almost resigned. He wants to explain that he tried the informal way first, through a personal contact inside the municipality, expecting that to be enough. His face shows mild disappointment as he recalls it not working. He stands on the same sidewalk near the pothole, body relaxed but voice steady, soft daylight unchanged from the previous moment. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Se lo dije a un conocido que trabaja adentro.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vecino, an Argentine man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, wearing Plain buttoned shirt, work trousers, simple worn shoes. The man talks briefly with a neighbor at the corner, gesturing toward the direction of the pothole while explaining the situation. He wants a witness, someone else to acknowledge the problem exists, not expecting a real solution from the conversation. His tone is casual, almost like venting. The neighbor listens and nods without much reaction. The exchange happens quickly on the quiet residential street, modest houses and a lamp post in the background, natural daylight. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Lo comenté en la esquina.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Wide shot that shows the whole place, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 4,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vecino, an Argentine man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, wearing Plain buttoned shirt, work trousers, simple worn shoes. The man stands at a municipal office counter, a landline phone ringing unanswered beside a basic computer screen. He wants someone to pick up and confirm his complaint was registered, but no one appears. His patience visibly thins as he waits, arms resting on the counter, eyes fixed on the silent phone. The space is plain, functional furniture, no decoration, steady daylight coming through a window. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Llamé dos veces.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Over-the-shoulder shot, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 5,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vecino, an Argentine man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, wearing Plain buttoned shirt, work trousers, simple worn shoes. The man looks directly at camera, voice low and tired, summarizing the frustration of not knowing if his complaint ever reached anyone. He wants to express the core problem: uncertainty, not bureaucracy. His expression is still calm, but there's a quiet weight behind it. He remains at the same municipal counter, landline and computer screen visible but out of focus behind him, same steady daylight as before. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Y seguí sin saber si alguien lo había anotado.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Close-up on the face and hands, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 7,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Location: A modest town sidewalk with a visible pothole, bordered by simple houses, transitioning to a municipal office counter with a landline phone and a basic computer screen, plain walls, functional furniture, no decoration, natural daylight throughout. A municipal work crew is seen repairing the same pothole from the beginning of the story, tools in motion, focused on the task. The moment is quiet but purposeful, no dialogue, just visible proof that the report led to real action. The street and houses match the earlier establishing scene, same overcast daylight, same pothole location now being fixed. No spoken dialogue, ambient sound only. One single continuous take, same background, no cut. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 10,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Vecino, an Argentine man in his mid-forties, short dark hair greying at the temples, medium olive skin tone, calm tired expression, wearing Plain buttoned shirt, work trousers, simple worn shoes. The man looks at his phone and then up, a small sense of relief in his expression, speaking as if sharing good news with someone close. He wants to acknowledge that this time was different: he reported once and was kept informed throughout. His posture relaxes slightly compared to the earlier scenes. He stands on the same sidewalk near the now-repaired pothole, soft daylight, calm and composed. He starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Lo mandé una sola vez. Y esta vez me fueron avisando.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Munify. Munify. 3 meses gratis, sin compromiso ni tarjeta de crédito.' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "Munify. Munify. 3 meses gratis, sin compromiso ni tarjeta de crédito.",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Spot institucional de reclamo sin respuesta: la fuerza está en la acumulación de intentos fallidos (escenas 2 a 5) y en el alivio del aviso que sí llega; sólo necesita marcar el vacío antes del giro y suavizar la entrada al tramo resolutivo.",
+  "decisiones": [
+   {
+    "recurso": "music_dip",
+    "escenaN": 5,
+    "cuando": "final",
+    "durSec": 0.8,
+    "motivo": "La frase 'sin saber si alguien lo había anotado' termina en incertidumbre; bajar la música deja el final de esa línea en el aire antes del giro."
+   },
+   {
+    "recurso": "dissolve",
+    "escenaN": 6,
+    "cuando": "antes",
+    "durSec": 0.6,
+    "motivo": "Pasaje del tramo de intentos fallidos al reclamo que sí entra al sistema: el corte seco marcaría quiebre, el dissolve lo lee como continuidad del mismo pedido."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 8,
+    "cuando": "inicio",
+    "durSec": 0.7,
+    "motivo": "Tramo del giro sin diálogo donde se ve el trabajo sobre el mismo pozo; la música puede sostener la evidencia visual sin pisar ninguna voz."
+   },
+   {
+    "recurso": "cut",
+    "escenaN": 10,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "La voz vuelve con 'Lo mandé una sola vez'; el corte seco devuelve al vecino al centro sin dilatar el remate."
+   }
+  ]
+ }
+}
