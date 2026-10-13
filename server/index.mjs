@@ -1821,7 +1821,29 @@ ${src}`;
         const parecido = esperadas.length ? esperadas.filter((w) => oidas.has(w)).length / esperadas.length : 1;
         return { parecido, dice };
       };
-      const job = puente.iniciarJob({ projectId, reelId, pack: body.pack, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, escenasConCrudo, guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip });
+      // la PRESENTADORA del cierre (2026-10-13, Lucas: "movela vos"): se genera en el proyecto de Flow de SU modelo (server/
+      // presentadora.json), no en el de la campaña. Su escena y su personaje salen del pack principal y van en un segundo
+      // trabajo, cuando el primero termina bien (la pestaña hace una cosa por vez). Si la pieza ya tiene su clip, no se repite.
+      const esPres = (e) => Number(e.escenaN) === 90 && e.flowProjectUrl;
+      const escPres = (body.pack.escenas || []).find(esPres);
+      const packPrincipal = escPres ? { ...body.pack, escenas: body.pack.escenas.filter((e) => !esPres(e)), personajes: (body.pack.personajes || []).filter((x) => x.id !== 'presentadora') } : body.pack;
+      const job = puente.iniciarJob({ projectId, reelId, pack: packPrincipal, escenasStoryboard: body.storyboard || [], flowProjectUrl: body.flowProjectUrl, soloDescargar: !!body.soloDescargar, escenasConCrudo, guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip });
+      if (escPres && !escenasConCrudo.includes(90)) {
+        const perPres = (body.pack.personajes || []).find((x) => x.id === 'presentadora');
+        const esperar = setInterval(() => {
+          const j = puente.verJob(job.id);
+          if (!j || (j.estado !== 'listo' && j.estado !== 'error')) return;
+          clearInterval(esperar);
+          if (j.estado !== 'listo') { console.log('[media-studio] presentadora: el trabajo principal no terminó bien; su escena queda para la próxima corrida'); return; }
+          console.log('[media-studio] presentadora: generando su escena en el proyecto de Flow de la modelo');
+          puente.iniciarJob({
+            projectId, reelId, retomar: false, flowProjectUrl: escPres.flowProjectUrl,
+            pack: { estilo: body.pack.estilo, personajes: perPres ? [perPres] : [], escenas: [escPres] },
+            escenasStoryboard: [{ n: 90, personajes: perPres ? ['presentadora'] : [], dialogo: escPres.dialogo }],
+            escenasConCrudo: [], guardarClip, agregarToma, guardarFlowUrl: async () => {}, verificarClip,
+          });
+        }, 5000);
+      }
       return json(res, 200, { job });
     }
     // ── Mockups de la app (paso de la orquestación, 2026-10-10): renderiza las tarjetas del catálogo de la app como

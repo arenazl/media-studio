@@ -161,10 +161,10 @@ export function promptEscena(e, { cast, lugar, phonetic, accionEn, aspecto = '9:
 // "Presentadora".
 export const ESCENA_PRESENTADORA = 90;
 export const PRESENTADORA = { id: 'presentadora', nombre: 'Presentadora', fisicoEn: 'a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face', vestuarioEn: 'smart casual clothes' };
-export function promptPresentadora(frase, aspecto = '9:16') {
+export function promptPresentadora(frase, aspecto = '9:16', nombre = PRESENTADORA.nombre) {
   return [
     estiloPara(aspecto),
-    'Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background.',
+    `${nombre}, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background.`,
     `She looks straight into the camera, smiles and ${VEO_REGLAS_EN.dice} '${S(frase)}'`,
     `Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. ${VEO_REGLAS_EN.despues}`,
     'Medium close-up, chest up, eye level, static camera with a very subtle slow push-in.',
@@ -191,8 +191,12 @@ export function compileFlowPack({ storyboard = [], cast, phonetic = '', traducci
   });
   // la presentadora del cierre, al final del pack (con su frase, que también se verifica al bajar el clip)
   if (S(presentadora?.frase)) {
-    personajes.push({ id: PRESENTADORA.id, nombre: PRESENTADORA.nombre, promptImagen: promptImagen(PRESENTADORA, null) });
-    escenas.push({ escenaN: ESCENA_PRESENTADORA, rol: 'cierre', prompt: promptPresentadora(presentadora.frase, aspecto), dialogo: S(presentadora.frase), estado: 'pendiente' });
+    // con la modelo de Lucas (server/presentadora.json): su nombre en Flow y su proyecto, donde se genera esta escena;
+    // nunca se crea otra en su lugar (noCrear)
+    const nombre = S(presentadora.nombre) || PRESENTADORA.nombre;
+    const suyo = S(presentadora.flowProjectUrl) ? { flowProjectUrl: S(presentadora.flowProjectUrl) } : {};
+    personajes.push({ id: PRESENTADORA.id, nombre, promptImagen: promptImagen(PRESENTADORA, null), ...(suyo.flowProjectUrl ? { noCrear: true, ...suyo } : {}) });
+    escenas.push({ escenaN: ESCENA_PRESENTADORA, rol: 'cierre', prompt: promptPresentadora(presentadora.frase, aspecto, nombre), dialogo: S(presentadora.frase), estado: 'pendiente', ...suyo });
   }
   return { estilo: estiloPara(aspecto), personajes, escenas, huecos, version: FLOW_COMPILER_VERSION };
 }

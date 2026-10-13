@@ -11,6 +11,13 @@ import { compileFlowPack, promptTraduccion, parseTraduccion, promptEscena } from
 import { lintCommercial } from './lintCommercial.mjs';
 import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
 import { buildConceptPromptV3, CATALOGO_CONCEPTO_V3 } from './media-studio-concept-v3.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// la modelo de Lucas como presentadora del cierre (server/presentadora.json): su proyecto de Flow y su nombre ahí
+function leerPresentadora() {
+  try { const j = JSON.parse(fs.readFileSync(path.resolve('server/presentadora.json'), 'utf8')); return { flowProjectUrl: String(j.flowProjectUrl || '').trim(), nombre: String(j.nombre || '').trim() }; } catch { return { flowProjectUrl: '', nombre: '' }; }
+}
 
 // Herencia de concept/3.0 a guion, cast y storyboard (LEEME de la curación): viaja la MISMA ficha del enfoque y el
 // tratamiento elegidos, con la regla de cada etapa. Sin enfoque en la pieza el bloque queda vacío (prompts viejos intactos).
@@ -1164,7 +1171,7 @@ Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "accionEn": 
       const ctaGuion = ((piece.guion && piece.guion.blocks) || []).find((b) => b.role === 'cta');
       const marca = (project.marcaKit && project.marcaKit.nombreExacto) || project.name || '';
       const frase = (piece.cierre && piece.cierre.locutor && piece.cierre.locutor.texto) || piece.cierreMarca || [marca && `${marca}.`, ctaGuion && ctaGuion.narration].filter(Boolean).join(' ');
-      const presentadora = piece.tipo !== 'animado' && String(frase || '').trim() ? { frase } : null;
+      const presentadora = piece.tipo !== 'animado' && String(frase || '').trim() ? { frase, ...leerPresentadora() } : null;
       const pack = compileFlowPack({ storyboard, cast: piece.cast, phonetic: project.phonetic || project.name || '', traducciones, aspecto, presentadora });
       if (pack.huecos.length) console.warn(`[media-studio] flowpack: ${pack.huecos.length} escena(s) con la acción sin traducir (quedó en español): ${pack.huecos.join(', ')}`);
       return { estilo: pack.estilo, personajes: pack.personajes, escenas: pack.escenas, huecos: pack.huecos, version: pack.version };

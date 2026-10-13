@@ -157,8 +157,10 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       nombres[p.id] = nombre;
       setPaso(`personaje ${nombre}`);
       const tPer = Date.now();
-      const { existe } = await pedirConReintentos(job, 'personajeExiste', { nombre }, 60000, 4, 5000, log);
+      const { existe, nombres: enGrilla } = await pedirConReintentos(job, 'personajeExiste', { nombre }, 60000, 4, 5000, log);
       if (existe) { log(`personaje ${nombre}: ya existía`); continue; }
+      // la modelo de Lucas (server/presentadora.json) no se reemplaza por una inventada: si no está en su proyecto, se avisa
+      if (p.noCrear) throw new Error(`no encontré a "${nombre}" en el proyecto de Flow de la presentadora (en la grilla: ${(enGrilla || []).join(' | ') || 'nadie'}); revisá el nombre en server/presentadora.json`);
       // 1) editor abierto con el prompt escrito → 2) click REAL en la flecha (el programado no dispara) → 3) esperar →
       // 4) volver a la grilla y ponerle el nombre desde "Cambiar nombre" (el título del editor no acepta tipeo programado)
       // 2026-10-12: un personaje que no se pudo crear no corta la rutina; sus escenas salen sin @ (el prompt lo describe)
