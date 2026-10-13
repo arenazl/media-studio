@@ -407,14 +407,14 @@ async function runGeminiModel(prompt, imageBuffer = null, modelName = 'gemini-2.
 // Fase 6: dos pedidos iguales al mismo tiempo (doble disparo, re-render) comparten UNA corrida.
 const EN_VUELO = new Map();
 
-const TASK_CLASS = { strategy: 'creativo', concept: 'creativo', script: 'creativo', cast: 'estructurado', storyboard: 'estructurado', qa: 'estructurado', flowpack: 'transformacion', publish: 'transformacion', briefToKb: 'transformacion', videoprompt: 'transformacion' };
+const TASK_CLASS = { strategy: 'creativo', concept: 'creativo', script: 'creativo', montageDirection: 'creativo', cast: 'estructurado', storyboard: 'estructurado', qa: 'estructurado', flowpack: 'transformacion', publish: 'transformacion', briefToKb: 'transformacion', videoprompt: 'transformacion' };
 const MODELO_INTERMEDIO = { creativo: 'opus', estructurado: 'sonnet', transformacion: 'sonnet' };
 // Tope de tokens de pensamiento por clase: lo creativo puede pensar un poco (tope, no ilimitado);
 // convertir con reglas y traducir no necesitan pensar (0 = apagado). Override: body.thinking.
 const THINKING_POR_CLASE = { creativo: 2000, estructurado: 0, transformacion: 0 };
 async function runAI({ prompt, imageBuffer = null, cwd, allowedTools, model, functionId, provider, thinking, tools, system }) {
   const selectedProvider = provider || (currentLlmProvider === 'auto' ? (IS_PROD ? 'gemini' : 'claude') : currentLlmProvider);
-  const isCreativePhase = ['concept', 'strategy', 'angulo'].includes(functionId);
+  const isCreativePhase = ['concept', 'strategy', 'angulo', 'montageDirection'].includes(functionId);
 
   if (selectedProvider === 'gemini') {
     const geminiModel = isCreativePhase ? 'gemini-1.5-pro' : 'gemini-2.0-flash';
