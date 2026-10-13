@@ -50,7 +50,13 @@ export async function armarBase(project: Project, comercial: Comercial): Promise
   // la voz del cierre se crea sola si la pieza no la tiene (locutorCierre.ts); el paso Montaje la persiste en la pieza
   const c = await asegurarLocutor(project, comercial);
   // y los efectos de sonido solos (efectosSonido.ts): whoosh en los cambios de material, golpe al aterrizar el logo
-  return conEfectosDeSonido(await conMusicaPropia(conLocutor(await armarSinMusica(project, c), c), c), mockupsDe(c));
+  const base = await conMusicaPropia(conLocutor(await armarSinMusica(project, c), c), c);
+  // Los whooshes automáticos no encajan en todos los géneros. Institucional/testimonio o un registro sobrio
+  // arrancan SIN esos adornos; el usuario o el director pueden agregarlos si una escena los justifica.
+  // Los demás conservan el armado existente. Esto no impide importar SFX manualmente en el multipista.
+  const sonidoDiscreto = c.tratamiento === 'sobrio' || c.tratamiento === 'aspiracional'
+    || c.enfoque === 'institucional' || c.enfoque === 'testimonio';
+  return sonidoDiscreto ? base : conEfectosDeSonido(base, mockupsDe(c));
 }
 
 // el LOCUTOR del cierre: su frase suena sobre la placa, que dura lo que dura la frase (y un respiro). Va en la pista de
