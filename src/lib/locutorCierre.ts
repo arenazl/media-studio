@@ -28,7 +28,7 @@ export async function generarLocutor(texto: string, voiceId: string, nombre?: st
 // la pieza con su locutor: si ya lo tiene, la misma; si no, se genera con la frase de la marca y la voz del proyecto.
 // Sin voz no se frena el armado: el paso Montaje muestra "sin locutor" y se puede rehacer a mano.
 export async function asegurarLocutor(project: Project, comercial: Comercial): Promise<Comercial> {
-  if (comercial.tipo === 'animado' || comercial.cierre?.locutor?.src) return comercial;
+  if (comercial.tipo === 'animado' || comercial.cierre?.tipo === 'presentadora' || comercial.cierre?.locutor?.src) return comercial;
   const texto = (comercial.cierre?.locutor?.texto || fraseDeCierre(project, comercial)).trim();
   if (!texto) return comercial;
   const voiceId = comercial.cierre?.locutor?.voiceId || (project as { vozLocutor?: string }).vozLocutor || VOZ_LOCUTOR;
