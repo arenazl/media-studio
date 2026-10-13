@@ -140,6 +140,16 @@ export const FUNCTION_CATALOG: StudioFunction[] = [
     ],
   },
 
+  {
+    id: 'montageDirection',
+    label: 'Dirección de montaje IA',
+    icon: 'Clapperboard',
+    level: 'piece',
+    description: 'Propone cortes, pausas musicales y énfasis sobre escenas reales; cada decisión se ejecuta o descarta con motivo.',
+    taskClass: 'creativo',
+    options: [],
+  },
+
   // ── MOLDES DEL REWORK (pipeline storyboard-driven) ───────────────────────────
   // NOTA: `concept` es nivel PIECE (se corre 1 vez por comercial y lee el ángulo/brief de la pieza),
   // aunque el doc de fase 1 lo listó como 'project' — un molde project-level no tendría `piece`.
