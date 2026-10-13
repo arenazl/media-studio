@@ -115,6 +115,12 @@ export function dropLibItem(tracks: EditorTrack[], item: DropItem, playheadSec: 
       return [...conTrans, nuevo];
     });
   }
+  // un efecto de sonido (sfx-…) va a la pista SFX en el cabezal; se mueve y se borra como cualquier clip (2026-10-13)
+  if (item.id.startsWith('sfx-') && item.fileRef) {
+    return mapTrack(tracks, 'sfx', (clips) => [...clips, {
+      id: `sfx-${uid}`, label: item.label, startSec: playheadSec, durSec: item.durSec && item.durSec > 0 ? item.durSec : 1, color: item.color, fileRef: item.fileRef, meta: 'efecto',
+    }].sort((a, b) => a.startSec - b.startSec));
+  }
   if (item.tab === 'audio' && item.fileRef) {
     // la voz grabada (id audio-voz) va a la pista voz; el resto (música) a la pista música. Reemplaza.
     const esVoz = item.id === 'audio-voz';

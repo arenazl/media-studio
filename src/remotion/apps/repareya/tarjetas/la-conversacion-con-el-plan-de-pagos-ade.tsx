@@ -22,7 +22,7 @@ export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
         f={f} m={m} icono="chat"
         titulo="Mensajes directos con el proveedor"
         bajada="Conversación · 4 mensajes"
-        derecha={<Pastilla m={m} texto="Villa Urquiza" color={m.texto2} />}
+        derecha={<Pastilla m={m} texto="A 2 km" color={m.texto2} />}
       >
         <Fila
           m={m} icono="usuario"

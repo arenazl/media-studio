@@ -1093,6 +1093,11 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { src: `musica/${nombre}`, durSec, mood });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo componer la música' }); }
     }
+    // El DIRECTORIO DE EFECTOS DE SONIDO (2026-10-13): storage/sfx/catalogo.json, generado con ElevenLabs Sound Generation
+    if (p === '/api/sfx' && req.method === 'GET') {
+      try { return json(res, 200, JSON.parse(fs.readFileSync(path.join(STORAGE_DIR, 'sfx', 'catalogo.json'), 'utf8'))); }
+      catch { return json(res, 200, { efectos: [] }); }
+    }
     // El DIRECTORIO DE CANCIONES (Lucas, 2026-10-13: "poneme un directorio grande de canciones"): temas compuestos con
     // ElevenLabs Music por estilo, agnósticos, en storage/canciones (catalogo.json). Se sirven por /api/storage como todo.
     if (p === '/api/canciones' && req.method === 'GET') {

@@ -300,6 +300,11 @@ export const Comercial: React.FC<ComercialProps> = ({ plan, base = '' }) => {
           <Audio src={r.voice.src} volume={(f) => r.voice!.volume * rampaFades(f, r.totalFrames - r.voice!.from, r.voice!.fadeIn, r.voice!.fadeOut)} />
         </Sequence>
       ) : null}
+      {(r.sfx || []).map((s, i) => (
+        <Sequence key={`sfx-${i}`} from={s.from} durationInFrames={s.dur} name={s.nombre ? `efecto ${s.nombre}` : `efecto ${i + 1}`}>
+          <Audio src={s.src} volume={s.volume} />
+        </Sequence>
+      ))}
       {r.music ? <Audio src={r.music.src} volume={(f) => volumenMusica(f, r)} /> : null}
     </AbsoluteFill>
   );

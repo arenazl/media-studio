@@ -124,7 +124,9 @@ export function piezasDelProyecto(project = {}) {
       tratamiento: S(c.tratamiento),
       formato: S(c.formatoId) === 'reel-hibrido-9-16' ? 'reel híbrido 9:16 (personas filmadas + pantallas de la app)' : S(c.formatoId) === 'reel-animado-9-16' ? 'reel animado 9:16 (sólo pantallas)' : 'reel filmado 9:16',
       duracion_seg: Number(r.durationSec) || 20,
-      ...(c.concepto?.idea ? { idea_anterior_solo_referencia: `${S(c.concepto.idea)} (es la idea que salió antes; mejorala o reemplazala si no cumple las reglas de oficio)` } : {}),
+      // 2026-10-13 (Lucas: "siempre ponemos Villa Urquiza, borralo"): la idea anterior puede traer un barrio o un lugar puntual
+      // que ya no se quiere; se avisa que se quite, así no vuelve por acá
+      ...(c.concepto?.idea ? { idea_anterior_solo_referencia: `${S(c.concepto.idea)} (es la idea que salió antes; mejorala o reemplazala si no cumple las reglas de oficio; si nombra un barrio, una ciudad o un lugar puntual, quitalo: la zona no se nombra)` } : {}),
     };
   });
 }

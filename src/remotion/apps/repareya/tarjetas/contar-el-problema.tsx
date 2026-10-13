@@ -37,7 +37,7 @@ export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
           <Fila
             m={m} icono="pin" etiqueta="Humedad en el techo del lavadero"
             detalle={escrito + (f < t1 ? '|' : '')}
-            pastilla={<Pastilla m={m} texto="Villa Urquiza" color={m.info} />}
+            pastilla={<Pastilla m={m} texto="Tu zona" color={m.info} />}
             style={{ ...entra(f, lugar), opacity: ease(f, lugar, lugar + 12) * (1 - ease(f, salida, salida + 8)) }}
           />
         ) : (

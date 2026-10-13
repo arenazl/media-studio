@@ -18,6 +18,7 @@ import { useProjects } from './lib/useProjects';
 import type { Route } from './lib/routes';
 import { API_BASE } from './config';
 import { cargarCanciones } from './lib/music';
+import { cargarSfx } from './lib/efectosSonido';
 import './App.css';
 
 // La demo de grabación va aparte: con el `return` antes de los hooks, la app los llamaba de forma condicional
@@ -133,7 +134,7 @@ function AppPrincipal() {
   // el directorio de canciones (2026-10-13): al arrancar reemplaza al catálogo viejo en MUSIC_TRACKS; el cambio de estado
   // vuelve a dibujar lo que lo lee (Audio, multipista, Montaje)
   const [, setCancionesListas] = useState(false);
-  useEffect(() => { void cargarCanciones(API_BASE).then(() => setCancionesListas(true)); }, []);
+  useEffect(() => { void Promise.all([cargarCanciones(API_BASE), cargarSfx(API_BASE)]).then(() => setCancionesListas(true)); }, []);
   // al cargar con ?p=<id>, se abre ese proyecto apenas la lista lo tiene (una sola vez)
   const abiertoDesdeUrl = useRef(false);
   useEffect(() => {

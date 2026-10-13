@@ -117,6 +117,11 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
     ? { src: vozClip.fileRef, at: vozClip.startSec, ...(vozClip.fadeIn ? { fadeIn: vozClip.fadeIn } : {}), ...(vozClip.fadeOut ? { fadeOut: vozClip.fadeOut } : {}), ...(base.voice?.durSec != null && base.voice.src === vozClip.fileRef ? { durSec: base.voice.durSec } : {}) }
     : base.voice;
 
+  // ── sfx ← pista SFX: cada clip es un efecto en su momento (si la pista está, manda; si no, los de base) ──
+  const sfx = hay('sfx')
+    ? clipsDe(tracks, 'sfx').filter((c) => c.fileRef).map((c) => ({ src: c.fileRef as string, at: r3(c.startSec), durSec: r3(c.durSec), ...(c.audioGain != null ? { gain: c.audioGain } : {}), ...(c.label ? { nombre: c.label } : {}) }))
+    : base.sfx;
+
   // ── music ← pista música (clip único). gain/duck salen del clip si el inspector los editó
   //    (audioGain del clip / meta 'con ducking'|'sin ducking'), si no de base. ──
   const musClip = clipsDe(tracks, 'musica')[0];
@@ -143,7 +148,7 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
   return {
     ...base,   // placa final, estilo de marca, motor de render, kit, cta: el editor no los toca
     width: base.width, height: base.height, fps: base.fps,
-    scenes, silences, texts, voice, music,
+    scenes, silences, texts, voice, music, ...(sfx?.length ? { sfx } : {}),
     logo: base.logo,
     endCard,
     mezcla: Object.keys(mezcla).length ? mezcla : undefined,

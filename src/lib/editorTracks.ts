@@ -215,8 +215,17 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
     }]
     : [];
 
-  // sfx: sin fuente real en el Comercial hoy — pista vacía honesta (no hay dato que mapear).
-  const sfxClips: EditorClip[] = [];
+  // sfx: los efectos del plan (los pone el armado o se arrastran desde la biblioteca), cada uno en su momento
+  const sfxClips: EditorClip[] = (plan.sfx || []).map((s, i) => ({
+    id: `sfx-${i + 1}`,
+    label: s.nombre || 'Efecto',
+    startSec: s.at,
+    durSec: Math.max(0.2, s.durSec || 1),
+    color: '#FF5C8A',
+    fileRef: s.src,
+    ...(s.gain != null ? { audioGain: s.gain } : {}),
+    meta: 'efecto',
+  }));
 
   // fx: el efecto de cada escena (lo pone una versión del montaje o se suelta desde la biblioteca); si se borra, la
   // escena queda sin efecto (montajeFromTracks)

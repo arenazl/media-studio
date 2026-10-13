@@ -6,6 +6,7 @@
 import type { Comercial } from './comercial';
 import type { Project, ProjectReel } from './projects';
 import { MUSIC_TRACKS } from './music';
+import { SFX_EFECTOS } from './efectosSonido';
 
 export type LibTab = 'clips' | 'audio' | 'texto' | 'efectos' | 'marca';
 
@@ -91,6 +92,8 @@ function buildAudioBin(reel: ProjectReel | undefined): LibItem[] {
   const voiceRef = reel?.voiceConfig?.audioRef;
   if (voiceRef) items.push({ id: 'audio-voz', label: 'Voz en off', meta: 'grabada del comercial', color: '#00B37E', fileRef: voiceRef, tab: 'audio' });
   for (const t of MUSIC_TRACKS) items.push({ id: `audio-${t.id}`, label: t.label, meta: `música · ${t.cat}`, color: '#FFB800', fileRef: t.url, tab: 'audio' });
+  // los efectos de sonido del directorio (efectosSonido.ts): se sueltan en la pista SFX
+  for (const e of SFX_EFECTOS) items.push({ id: `sfx-${e.id}`, label: e.nombre, meta: `efecto · ${e.uso}`, color: '#FF5C8A', fileRef: e.src, durSec: e.durSec, tab: 'audio' });
   return items;
 }
 
