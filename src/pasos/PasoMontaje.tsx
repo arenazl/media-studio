@@ -153,6 +153,24 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     return { ...c, montaje: { ...resto, plan: m.direccion.anterior }, estados: { ...c.estados, montaje: 'editado' } };
   });
 
+  const [cueEscena, setCueEscena] = useState<number>(0);
+  const editarCue = (index: number, cambio: Partial<NonNullable<MontajePlan['musicCues']>[number]>) => setComercial((c) => {
+    const m = c.montaje as MontajeState | undefined;
+    if (!m) return c;
+    return { ...c, montaje: { ...m, plan: { ...m.plan, musicCues: (m.plan.musicCues || []).map((x, i) => i === index ? { ...x, ...cambio } : x) } }, estados: { ...c.estados, montaje: 'editado' } };
+  });
+
+  const agregarPausa = () => setComercial((c) => {
+    const m = c.montaje as MontajeState | undefined;
+    if (!m?.plan.music?.src || !m.plan.scenes.length) return c;
+    const hay = m.plan.scenes.filter((x) => x.src);
+    const seleccionada = hay.find((x) => x.escenaN === cueEscena) || hay[hay.length > 1 ? 1 : 0];
+    if (!seleccionada) return c;
+    const cuando = hay[0]?.escenaN === seleccionada.escenaN ? 'inicio' as const : 'antes' as const;
+    const musicCues = [...(m.plan.musicCues || []), { escenaN: seleccionada.escenaN, cuando, durSec: 0.4, nivel: 0, motivo: 'pausa manual' }];
+    return { ...c, montaje: { ...m, plan: { ...m.plan, musicCues } }, estados: { ...c.estados, montaje: 'editado' } };
+  });
+
   const quitarCue = (index: number) => setComercial((c) => {
     const m = c.montaje as MontajeState | undefined;
     if (!m) return c;
@@ -390,10 +408,25 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
                 {montaje.direccion.rechazadas.map((aviso, i) => <div key={i} className="mont-sil">No aplicada: {aviso}</div>)}
               </div>
             )}
+            {plan.music?.src && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10, alignItems: 'center' }}>
+              <span className="mont-sil">Pausa manual antes de:</span>
+              <select aria-label="Escena donde insertar pausa" className="mont-select" value={cueEscena || plan.scenes.find((_, i) => i > 0)?.escenaN || plan.scenes[0]?.escenaN || 0} onChange={(e) => setCueEscena(Number(e.target.value))}>
+                {plan.scenes.filter((s) => s.src).map((s) => <option key={s.escenaN} value={s.escenaN}>Escena #{s.escenaN} · {s.rol || 'video'}</option>)}
+              </select>
+              <button type="button" className="rodaje-var" onClick={agregarPausa}>Añadir pausa de música</button>
+            </div>}
             {!!plan.musicCues?.length && <div style={{ marginTop: 10 }}>
-              <div className="paso-card-h">Automatizaciones de música activas</div>
-              {plan.musicCues.map((cue, i) => <div key={i} className="mont-sil" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>Escena #{cue.escenaN} · {cue.cuando} · {cue.nivel === 0 ? 'silencio musical' : cue.nivel < 1 ? 'música baja' : 'música sube'} · {cue.durSec.toFixed(2)} s</span>
+              <div className="paso-card-h">Automatizaciones de música · editables</div>
+              {plan.musicCues.map((cue, i) => <div key={i} className="mont-sil" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+                <span>Escena #{cue.escenaN}</span>
+                <select className="mont-select" aria-label="Posición de la pausa" value={cue.cuando} onChange={(e) => editarCue(i, { cuando: e.target.value as 'antes' | 'inicio' | 'final' })}>
+                  <option value="antes">Antes</option><option value="inicio">Inicio</option><option value="final">Final</option>
+                </select>
+                <select className="mont-select" aria-label="Volumen del momento" value={cue.nivel} onChange={(e) => editarCue(i, { nivel: Number(e.target.value) })}>
+                  <option value={0}>Corte de música</option><option value={0.32}>Música baja</option><option value={1.18}>Música sube</option>
+                </select>
+                <input className="mont-select" aria-label="Duración en segundos" type="number" min="0.1" max="1.5" step="0.1" style={{ width: 72 }} value={cue.durSec} onChange={(e) => editarCue(i, { durSec: Math.min(1.5, Math.max(0.1, Number(e.target.value) || 0.1)) })} />
+                <span>segundos</span>
                 <button type="button" className="rodaje-var" onClick={() => quitarCue(i)} title="Quitar sólo esta automatización">Quitar</button>
               </div>)}
             </div>}
