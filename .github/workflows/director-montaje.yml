@@ -1,0 +1,37 @@
+name: Director de montaje — verificación
+
+on:
+  push:
+    branches:
+      - feat/director-montaje-publicitario
+  pull_request:
+    paths:
+      - "src/**"
+      - "server/**"
+      - "package*.json"
+      - ".github/workflows/director-montaje.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Validar sintaxis de los moldes de servidor
+        run: |
+          node --check server/functions.mjs
+          node --check server/prompting.mjs
+      - name: Comprobar tipos
+        run: npx tsc --noEmit
+      - name: Ejecutar unit tests
+        run: npm test
+      - name: Verificar bundle
+        run: npm run build
