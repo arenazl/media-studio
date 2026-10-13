@@ -130,7 +130,18 @@ export function dropLibItem(tracks: EditorTrack[], item: DropItem, playheadSec: 
       meta: item.meta || 'titulo',
     }]);
   }
-  return tracks;   // efectos/marca u otros → no-op (no droppables v1)
+  // un efecto se suelta sobre la escena que está en el cabezal (filmada o pantalla): reemplaza el que tuviera
+  if (item.id.startsWith('fx-')) {
+    const escena = [...(tracks.find((t) => t.id === 'video')?.clips || []), ...(tracks.find((t) => t.id === 'pantallas')?.clips.filter((c) => c.esEscena) || [])]
+      .find((c) => playheadSec >= c.startSec && playheadSec < c.startSec + c.durSec && c.escenaN != null);
+    if (!escena) return tracks;
+    const efecto = item.id.replace(/^fx-/, '');
+    return mapTrack(tracks, 'fx', (clips) => [...clips.filter((c) => c.id !== `fx-${escena.escenaN}`), {
+      id: `fx-${escena.escenaN}`, label: item.label, startSec: escena.startSec, durSec: escena.durSec, color: item.color,
+      escenaN: escena.escenaN, meta: efecto,
+    }].sort((a, b) => a.startSec - b.startSec));
+  }
+  return tracks;   // marca u otros → no-op
 }
 
 // ── Historial deshacer/rehacer ────────────────────────────────────────────────

@@ -9,7 +9,8 @@ import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { mediaKitParaMolde } from '../lib/mediaKit';
 import { totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
-import { armarMontaje } from '../lib/armarMontaje';
+import { armarBase, mockupsDe } from '../lib/armarMontaje';
+import { aplicarVariante, variantesDisponibles } from '../lib/variantesMontaje';
 
 // La vista previa exacta (Player de Remotion) se carga sólo cuando hay un plan v2: no entra al bundle inicial.
 const PlayerMontaje = lazy(() => import('../remotion/PlayerMontaje'));
@@ -77,13 +78,28 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     if (!c0) return;
     setArmando(true); setError('');
     try {
-      const planFinal = await armarMontaje(project, c0);
+      // la base del montajista y, encima, la versión elegida (variantesMontaje.ts): cambiar de versión no rearma
+      const base = await armarBase(project, c0);
+      const variante = (c0.montaje as MontajeState | undefined)?.variante;
+      const planFinal = aplicarVariante(base, variante, mockupsDe(c0));
       setComercial((c) => ({
         ...c,
-        montaje: { plan: planFinal, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
+        montaje: { plan: planFinal, base, variante, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
         estados: { ...c.estados, montaje: c.estados.montaje === 'aprobado' ? 'aprobado' : 'generado' },
       }));
     } catch (e) { setError(errMsg(e)); } finally { setArmando(false); }
+  };
+
+  // elegir otra versión del montaje: se aplica sobre la base guardada, al instante (sin la base, se rearma)
+  const elegirVariante = (id: string) => {
+    if (!comercial) return;
+    const m = comercial.montaje as MontajeState | undefined;
+    if (!m?.base) { void armar({ ...comercial, montaje: m ? { ...m, variante: id } : m }); return; }
+    setComercial((c) => {
+      const mm = c.montaje as MontajeState | undefined;
+      if (!mm?.base) return c;
+      return { ...c, montaje: { ...mm, variante: id, plan: aplicarVariante(mm.base, id, mockupsDe(c)) } };
+    });
   };
 
   // AUTO-ARMAR al entrar (Lucas, 2026-10-11: "primero debería crear una versión automática y después, si hace falta, el
@@ -237,6 +253,22 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       <div className="paso-body">
         {plan ? (
           <>
+          {/* las versiones del montaje (Lucas, 2026-10-12): la misma pieza contada de 4 o 5 maneras, para elegir antes del multipista */}
+          {montaje?.base && (
+            <div className="paso-card">
+              <div className="paso-card-h"><Clapperboard size={12} /> Versión del montaje</div>
+              <div className="veo-chips">
+                {variantesDisponibles(montaje.base, mockupsDe(comercial!)).map((v) => (
+                  <button key={v.id} type="button" title={v.que} disabled={armando || rendering}
+                    className={(montaje.variante || 'montajista') === v.id ? 'veo-chip veo-chip--on' : 'veo-chip'}
+                    onClick={() => elegirVariante(v.id)}>
+                    {v.nombre}
+                  </button>
+                ))}
+              </div>
+              <div className="mont-sil">{variantesDisponibles(montaje.base, mockupsDe(comercial!)).find((v) => v.id === (montaje.variante || 'montajista'))?.que}</div>
+            </div>
+          )}
           <div className="pack-bar">
             <span className="pack-prog">{plan.scenes.length} escenas · {conClip} con clip · ~{totalDuration(plan).toFixed(1)}s{plan.motor === 'remotion' ? ` · ${plan.scenes.reduce((n, s) => n + (s.inserts?.length || 0), 0)} insertos de pantalla` : ''}</span>
           </div>

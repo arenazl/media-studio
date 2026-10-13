@@ -89,7 +89,8 @@ function AppPrincipal() {
       reels: prev.reels.map((r, i) => {
         if (i !== 0 || !r.comercial) return r;
         const prevState = r.comercial.montaje as MontajeState | undefined;
-        const montaje: MontajeState = { plan, exports: prevState?.exports ?? [] };
+        // la base y la versión elegida en el paso Montaje se conservan (el editor guarda sólo el plan)
+        const montaje: MontajeState = { ...prevState, plan, exports: prevState?.exports ?? [] };
         const c: Comercial = avanzarEstado({ ...r.comercial, montaje }, 'montaje', opts?.automatico ? 'generado' : 'editado');
         return { ...r, comercial: c };
       }),

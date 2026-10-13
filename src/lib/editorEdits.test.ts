@@ -140,9 +140,20 @@ describe('dropLibItem (WO-6a)', () => {
     expect(txt.clips[0].meta).toBe('titulo');
   });
 
-  it('item no droppable (efectos/marca) → no-op', () => {
+  it('item no droppable (marca) → no-op', () => {
     const input = base();
-    expect(dropLibItem(input, { id: 'fx-x', label: 'FX', color: '#fff', tab: 'efectos' }, 0)).toBe(input);
+    expect(dropLibItem(input, { id: 'marca-logo', label: 'Logo', color: '#fff', tab: 'marca' }, 0)).toBe(input);
+  });
+
+  // 2026-10-12 (Lucas: "que anden los efectos"): el efecto cae sobre la escena del cabezal y reemplaza el que tuviera
+  it('efecto → se pone en la escena que está en el cabezal; otro efecto la reemplaza', () => {
+    const conFx = [...base(), { id: 'fx' as const, name: 'Efectos', clips: [] }];
+    const uno = dropLibItem(conFx, { id: 'fx-flash', label: 'Flash blanco', color: '#fff' }, 1.5);
+    expect(uno.find((t) => t.id === 'fx')!.clips).toEqual([expect.objectContaining({ id: 'fx-1', escenaN: 1, meta: 'flash', startSec: 0, durSec: 4 })]);
+    const dos = dropLibItem(uno, { id: 'fx-zoom', label: 'Zoom rápido', color: '#fff' }, 2);
+    expect(dos.find((t) => t.id === 'fx')!.clips.map((c) => c.meta)).toEqual(['zoom']);
+    // fuera de toda escena no hace nada
+    expect(dropLibItem(conFx, { id: 'fx-flash', label: 'Flash', color: '#fff' }, 9)).toBe(conFx);
   });
 });
 

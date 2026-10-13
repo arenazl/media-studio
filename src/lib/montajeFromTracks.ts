@@ -88,6 +88,9 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
   if (hay('fx')) {
     const conZoom = new Set(clipsDe(tracks, 'fx').filter((c) => c.id.startsWith('zoom-') || c.meta === 'acercamiento').map((c) => c.escenaN));
     for (const s of scenes) if ((s.punchFrom != null || s.punchTo != null) && !conZoom.has(s.escenaN)) { delete s.punchFrom; delete s.punchTo; }
+    // efectos ← sus clips (fx-<escena>, meta = el efecto): el que se soltó lo pone, el que se borró lo saca
+    const efectos = new Map(clipsDe(tracks, 'fx').filter((c) => c.id.startsWith('fx-') && c.meta && c.escenaN != null).map((c) => [c.escenaN, c.meta as string]));
+    for (const s of scenes) { const fx = efectos.get(s.escenaN); if (fx) s.effect = fx; else delete s.effect; }
   }
 
   // ── placa final ← su clip en la pista de video (duración ajustable); si se borró, el reel termina sin placa ──

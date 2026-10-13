@@ -82,7 +82,7 @@ export interface EditorLibraryProps {
 
 // un item se puede soltar en la timeline si viene de una pista real (clips/audio/texto). Efectos y
 // marca (sin tab de pista) no.
-const esDroppable = (it: LibItem) => it.tab === 'clips' || it.tab === 'audio' || it.tab === 'texto';
+const esDroppable = (it: LibItem) => it.tab === 'clips' || it.tab === 'audio' || it.tab === 'texto' || it.id.startsWith('fx-');
 
 export default function EditorLibrary({
   open, width, onToggle, onResizeStart, activeTab, onTabChange, search, onSearchChange, items,

@@ -5,6 +5,7 @@
 import type { Comercial } from './comercial';
 import { storyboardToMontaje, sceneStarts, totalDuration, transitionDur, type MezclaPista, type MontajePlan, type MontajeState, type PistaAudio, type Transicion } from './montajePlan';
 import { MUSIC_TRACKS } from './music';
+import { NOMBRE_EFECTO } from './editorLibrary';
 
 export type TrackId = 'video' | 'pantallas' | 'texto' | 'voz' | 'musica' | 'sfx' | 'fx';
 export type TransitionKind = 'cut' | 'dissolve' | 'slide';
@@ -217,17 +218,19 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
   // sfx: sin fuente real en el Comercial hoy — pista vacía honesta (no hay dato que mapear).
   const sfxClips: EditorClip[] = [];
 
-  // fx: sólo las escenas que ya tengan un `effect` propio asignado (campo real de MontajeScene,
-  // hoy sin generador que lo pueble — vacío hasta que algo lo escriba).
+  // fx: el efecto de cada escena (lo pone una versión del montaje o se suelta desde la biblioteca); si se borra, la
+  // escena queda sin efecto (montajeFromTracks)
   const fxClips: EditorClip[] = plan.scenes
     .map((s, i) => ({ s, i }))
     .filter(({ s }) => !!s.effect)
     .map(({ s, i }) => ({
       id: `fx-${s.escenaN}`,
-      label: s.effect as string,
+      label: NOMBRE_EFECTO[String(s.effect).replace(/^fx-/, '')] || (s.effect as string),
       startSec: starts[i],
       durSec: Math.max(0.1, s.out - s.in),
       color: '#4AA3FF',
+      escenaN: s.escenaN,
+      meta: String(s.effect).replace(/^fx-/, ''),
     }));
 
   // los acercamientos (punch-in del montajista) en la pista de efectos: se ven y, si se borran, la escena queda sin zoom

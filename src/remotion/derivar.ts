@@ -9,7 +9,7 @@ export interface PaginaSubtitulo { startMs: number; endMs: number; words: Palabr
 // cómo ENTRA el segmento sobre el anterior (la transición que la escena previa marcó hacia ésta). Los cuadros son el
 // solape que ya calcula sceneStarts: el segmento nuevo arranca antes de que termine el viejo y se funde encima.
 export interface EntradaRender { tipo: 'fundido' | 'deslizar' | 'zoom'; frames: number }
-export interface SegmentoRender { nombre: string; src: string; from: number; dur: number; startFrom: number; scaleFrom: number; scaleTo: number; audio: 'keep' | 'mute'; gain: number; entrada?: EntradaRender; fadeIn?: number; fadeOut?: number }   // fades en cuadros (menú del clip)
+export interface SegmentoRender { nombre: string; src: string; from: number; dur: number; startFrom: number; scaleFrom: number; scaleTo: number; audio: 'keep' | 'mute'; gain: number; entrada?: EntradaRender; fadeIn?: number; fadeOut?: number; efecto?: string }   // fades en cuadros (menú del clip); efecto: flash · zoom · pushin · fade · ramp
 export interface InsertoRender { from: number; dur: number; src: string; nombre?: string; tarjeta?: string; video?: boolean; fadeIn: number; fadeOut: number }
 export interface PlanRender {
   fps: number; width: number; height: number; totalFrames: number;
@@ -95,6 +95,7 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
       ...(entrada ? { entrada } : {}),
       ...(s.fadeIn ? { fadeIn: F(s.fadeIn) } : {}),
       ...(s.fadeOut ? { fadeOut: F(s.fadeOut) } : {}),
+      ...(s.effect ? { efecto: s.effect.replace(/^fx-/, '') } : {}),
     });
     // subtítulos POR ESCENA: una página nunca cruza un corte, y su fin queda acotado al fin del clip
     const words: PalabraMs[] = [];

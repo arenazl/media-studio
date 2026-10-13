@@ -26,21 +26,37 @@ function estiloEntrada(seg: SegmentoRender, frame: number): { opacity: number; d
   return { opacity: t, dx: 0, zoom: 1 };
 }
 
+// el efecto de la escena (Lucas, 2026-10-12: "que anden los efectos"): flash blanco al entrar, zoom rápido de énfasis,
+// push-in sutil a lo largo de la toma, fundido desde y hacia negro, y cámara lenta
+const CUADROS_FLASH = 7, CUADROS_ZOOM = 9, CUADROS_FADE = 12;
+function efectoDe(seg: SegmentoRender, frame: number): { zoom: number; brillo: number; fade: number } {
+  const t = (n: number) => interpolate(frame, [0, n], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
+  if (seg.efecto === 'zoom') return { zoom: 1 + 0.18 * (1 - t(CUADROS_ZOOM)), brillo: 0, fade: 1 };
+  if (seg.efecto === 'pushin') return { zoom: 1 + 0.08 * Math.min(1, frame / Math.max(1, seg.dur - 1)), brillo: 0, fade: 1 };
+  if (seg.efecto === 'flash') return { zoom: 1, brillo: 1 - t(CUADROS_FLASH), fade: 1 };
+  if (seg.efecto === 'fade') return { zoom: 1, brillo: 0, fade: rampaFades(frame, seg.dur, CUADROS_FADE, CUADROS_FADE) };
+  return { zoom: 1, brillo: 0, fade: 1 };
+}
+
 const Segmento: React.FC<{ seg: SegmentoRender }> = ({ seg }) => {
   const frame = useCurrentFrame();
   const p = Math.min(1, frame / Math.max(1, seg.dur - 1));
   const scale = (seg.scaleFrom + (seg.scaleTo - seg.scaleFrom) * p);
   const e = estiloEntrada(seg, frame);
-  const fade = rampaFades(frame, seg.dur, seg.fadeIn, seg.fadeOut);   // fade in/out del clip: imagen a negro y sonido
+  const fx = efectoDe(seg, frame);
+  const fade = rampaFades(frame, seg.dur, seg.fadeIn, seg.fadeOut) * fx.fade;   // fade in/out del clip: imagen a negro y sonido
+  const lenta = seg.efecto === 'ramp';   // cámara lenta: la toma a media velocidad y sin su sonido (la voz no se estira)
   return (
-    <AbsoluteFill style={{ opacity: e.opacity * fade, transform: `translateX(${e.dx}%) scale(${scale * e.zoom})`, transformOrigin: '50% 30%' }}>
+    <AbsoluteFill style={{ opacity: e.opacity * fade, transform: `translateX(${e.dx}%) scale(${scale * e.zoom * fx.zoom})`, transformOrigin: '50% 30%' }}>
       <OffthreadVideo
         src={seg.src}
         startFrom={seg.startFrom}
-        muted={seg.audio !== 'keep'}
-        volume={seg.audio === 'keep' ? (f) => seg.gain * rampaFades(f, seg.dur, seg.fadeIn, seg.fadeOut) : 0}
+        playbackRate={lenta ? 0.5 : 1}
+        muted={seg.audio !== 'keep' || lenta}
+        volume={seg.audio === 'keep' && !lenta ? (f) => seg.gain * rampaFades(f, seg.dur, seg.fadeIn, seg.fadeOut) : 0}
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       />
+      {fx.brillo > 0 && <AbsoluteFill style={{ background: '#FFF', opacity: fx.brillo }} />}
     </AbsoluteFill>
   );
 };

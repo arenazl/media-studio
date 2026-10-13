@@ -11,6 +11,8 @@ import { getFormato, mediosDeFormato } from './formato';
 import { storyboardToMontaje, type MontajePlan, type PalabraTiempo } from './montajePlan';
 import { afinarMontaje } from './montajista';
 import { conMusicaPropia } from './musicaGenerada';
+import { aplicarVariante } from './variantesMontaje';
+import type { MontajeState } from './montajePlan';
 
 export function esHibrido(comercial: Comercial): boolean {
   const medios = mediosDeFormato(getFormato(comercial.formatoId));
@@ -25,9 +27,18 @@ async function transcribir(ref: string): Promise<readonly [string, PalabraTiempo
   } catch { return [ref, undefined] as const; }
 }
 
-// la música ya no sale del catálogo: se compone a medida de la pieza (musicaGenerada.ts)
-export async function armarMontaje(project: Project, comercial: Comercial): Promise<MontajePlan> {
+// los mockups de la pieza, como los usan el montajista y las versiones
+export const mockupsDe = (comercial: Comercial) => (comercial.mockups || []).map((m) => ({ nombre: m.nombre, fileRef: m.fileRef, durSec: m.durSec }));
+
+// el armado del montajista con su música compuesta a medida (musicaGenerada.ts): la BASE de las versiones
+export async function armarBase(project: Project, comercial: Comercial): Promise<MontajePlan> {
   return conMusicaPropia(await armarSinMusica(project, comercial), comercial);
+}
+
+// el armado con la versión que se eligió en el paso Montaje (la del montajista si no se eligió ninguna)
+export async function armarMontaje(project: Project, comercial: Comercial): Promise<MontajePlan> {
+  const variante = (comercial.montaje as MontajeState | undefined)?.variante;
+  return aplicarVariante(await armarBase(project, comercial), variante, mockupsDe(comercial));
 }
 
 async function armarSinMusica(project: Project, comercial: Comercial): Promise<MontajePlan> {

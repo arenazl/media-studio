@@ -39,13 +39,15 @@ export const TEXT_PRESETS: LibItem[] = [
 ];
 
 // Catálogo fijo de efectos (herramienta de edición).
+// los efectos que dibuja el render (Comercial.tsx, efectoDe): se sueltan sobre la escena que está en el cabezal
 export const EFFECT_PRESETS: LibItem[] = [
-  { id: 'fx-pushin', label: 'Push-in sutil', meta: 'cámara · VEO look', color: '#7C5CFF' },
-  { id: 'fx-fade', label: 'Fade in/out', meta: 'transición', color: '#4AA3FF' },
-  { id: 'fx-zoom', label: 'Zoom rápido', meta: 'énfasis', color: '#FFB800' },
+  { id: 'fx-pushin', label: 'Push-in sutil', meta: 'cámara · acercamiento lento', color: '#7C5CFF' },
+  { id: 'fx-fade', label: 'Fade in/out', meta: 'desde y hacia negro', color: '#4AA3FF' },
+  { id: 'fx-zoom', label: 'Zoom rápido', meta: 'énfasis al entrar', color: '#FFB800' },
   { id: 'fx-flash', label: 'Flash blanco', meta: 'corte al beat', color: '#F5F1E8' },
-  { id: 'fx-ramp', label: 'Speed ramp', meta: 'cámara lenta→rápida', color: '#FF5C8A' },
+  { id: 'fx-ramp', label: 'Cámara lenta', meta: 'la toma a media velocidad', color: '#FF5C8A' },
 ];
+export const NOMBRE_EFECTO: Record<string, string> = Object.fromEntries(EFFECT_PRESETS.map((e) => [e.id.replace(/^fx-/, ''), e.label]));
 
 function buildClipsBin(comercial: Comercial | undefined): LibItem[] {
   if (!comercial) return [];

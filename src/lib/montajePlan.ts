@@ -98,7 +98,8 @@ export function gananciaDePista(plan: Pick<MontajePlan, 'mezcla'>, pista: PistaA
   return Math.max(0, Math.min(GAIN_PISTA_MAX, p?.gain ?? 1));
 }
 
-export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[] }
+// base: el armado del montajista; variante: la versión elegida en el paso Montaje (variantesMontaje.ts), que se aplica sobre la base
+export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[]; base?: MontajePlan; variante?: string }
 
 export const DUCK_GAIN = 0.4;              // igual que el preview (montageAudio.ts)
 const SILENCE_ANTES_GAG = 0.8;            // el "toque final" del workflow de referencia
