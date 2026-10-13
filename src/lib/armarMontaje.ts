@@ -57,7 +57,8 @@ export async function armarBase(project: Project, comercial: Comercial): Promise
 // voz, salvo que la pieza ya tenga una voz en off propia.
 function conLocutor(plan: MontajePlan, comercial: Comercial): MontajePlan {
   const loc = comercial.cierre?.locutor;
-  if (!loc?.src || !plan.endCard || plan.voice) return plan;
+  // Si habla la presentadora desde el video, no superponer una locución generada.
+  if (!loc?.src || !plan.endCard || plan.voice || plan.endCard.tipo === 'presentadora') return plan;
   const dur = loc.durSec || 3;
   return {
     ...plan,
