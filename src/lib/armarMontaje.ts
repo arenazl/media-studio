@@ -50,7 +50,7 @@ export async function armarBase(project: Project, comercial: Comercial): Promise
   // la voz del cierre se crea sola si la pieza no la tiene (locutorCierre.ts); el paso Montaje la persiste en la pieza
   const c = await asegurarLocutor(project, comercial);
   // y los efectos de sonido solos (efectosSonido.ts): whoosh en los cambios de material, golpe al aterrizar el logo
-  return conEfectosDeSonido(await conMusicaPropia(conLocutor(await armarSinMusica(project, c), c), c), mockupsDe(c));
+  return conEfectosDeSonido(await conMusicaPropia(conLocutor(await armarSinMusica(project, c), c), c), mockupsDe(c), { enfoque: c.enfoque, tratamiento: c.tratamiento });
 }
 
 // el LOCUTOR del cierre: su frase suena sobre la placa, que dura lo que dura la frase (y un respiro). Va en la pista de
