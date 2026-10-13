@@ -46,7 +46,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     setBusy(true); setError('');
     try {
       const mediaKit = mediaKitParaMolde(project.pantallasKit, project.momentos, project.cta);
-      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo, messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, supportingFacts: comercial?.supportingFacts, enfoque: comercial?.enfoque, tratamiento: comercial?.tratamiento, ...(mediaKit ? { mediaKit } : {}) }, { tono: 'cercano' }, undefined, comercial, provider);
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, durationSec, tipo, messageScope: comercial?.messageScope, primaryMessage: comercial?.primaryMessage, supportingFacts: comercial?.supportingFacts, enfoque: comercial?.enfoque, tratamiento: comercial?.tratamiento, ...(mediaKit ? { mediaKit } : {}) }, { tono: comercial?.tratamiento || 'natural' }, undefined, comercial, provider);
       applyGuion({ blocks: (res.blocks as GuionBloque[]) || [], music: res.music as { mood: string } | undefined });
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
@@ -56,7 +56,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
     setBusyIdx(i); setError('');
     try {
       // la regeneración de un bloque también viaja con el enfoque y el tratamiento (si no, un bloque sobrio volvía con otro registro)
-      const res = await runMolde('script', project, { concepto: comercial?.concepto, enfoque: comercial?.enfoque, tratamiento: comercial?.tratamiento }, { tono: 'cercano' }, { index: i, blocks }, comercial);
+      const res = await runMolde('script', project, { concepto: comercial?.concepto, enfoque: comercial?.enfoque, tratamiento: comercial?.tratamiento }, { tono: comercial?.tratamiento || 'natural' }, { index: i, blocks }, comercial);
       const item = res.item as GuionBloque | undefined;
       if (item) applyGuion({ ...guion, blocks: blocks.map((b, j) => (j === i ? item : b)) }, 'editado');
     } catch (e) { setError(errMsg(e)); } finally { setBusyIdx(null); }
