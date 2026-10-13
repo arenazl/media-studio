@@ -29,6 +29,10 @@ export async function generarLocutor(texto: string, voiceId: string, nombre?: st
 // Sin voz no se frena el armado: el paso Montaje muestra "sin locutor" y se puede rehacer a mano.
 export async function asegurarLocutor(project: Project, comercial: Comercial): Promise<Comercial> {
   if (comercial.tipo === 'animado' || comercial.cierre?.locutor?.src) return comercial;
+  // La presentadora tiene diálogo sincronizado dentro del video: no generar locutor encima.
+  const tienePresentadora = comercial.cierre?.tipo === 'presentadora' &&
+    (comercial.cierre.video || (comercial.rodaje || []).some((t) => t.escenaN === 90 && !!t.fileRef));
+  if (tienePresentadora) return comercial;
   const texto = (comercial.cierre?.locutor?.texto || fraseDeCierre(project, comercial)).trim();
   if (!texto) return comercial;
   const voiceId = comercial.cierre?.locutor?.voiceId || (project as { vozLocutor?: string }).vozLocutor || VOZ_LOCUTOR;
