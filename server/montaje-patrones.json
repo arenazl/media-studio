@@ -1,0 +1,164 @@
+{
+  "version": "1.0",
+  "principios": [
+    "El objetivo comercial no decide por sí solo los efectos; la escena real decide si un recurso tiene sentido",
+    "La música nunca debe ocultar diálogos; el silencio musical es diferente de silenciar actores",
+    "Los cambios de emoción deben poder observarse en el material y no suponerse",
+    "Una reacción humana puede necesitar más tiempo que un corte métrico, pero no retenerla si no está filmada",
+    "Un corte simple puede ser más profesional que una transición vistosa",
+    "La firma final respeta el cierre elegido y no agrega dos voces"
+  ],
+  "patrones": [
+    {
+      "id": "caso",
+      "nombre": "Caso cotidiano",
+      "aplica": {
+        "enfoques": [
+          "caso"
+        ]
+      },
+      "intencion": "claridad causal y empatía",
+      "sugerir": [
+        "cut",
+        "show_face",
+        "music_dip"
+      ],
+      "evitar": "Interrumpir la frase importante por efectos decorativos"
+    },
+    {
+      "id": "producto",
+      "nombre": "Demostración de producto",
+      "aplica": {
+        "enfoques": [
+          "producto"
+        ]
+      },
+      "intencion": "prueba comprensible de funcionamiento",
+      "sugerir": [
+        "cut",
+        "music_dip",
+        "show_face"
+      ],
+      "evitar": "Tapar la operación de interfaz con reacciones innecesarias"
+    },
+    {
+      "id": "dos-lados",
+      "nombre": "Dos perspectivas",
+      "aplica": {
+        "enfoques": [
+          "dos-lados"
+        ]
+      },
+      "intencion": "contraste coherente y diálogo entre perspectivas",
+      "sugerir": [
+        "cut",
+        "dissolve",
+        "music_dip"
+      ],
+      "evitar": "Fundir todo y perder contraste"
+    },
+    {
+      "id": "antes-despues",
+      "nombre": "Comparación",
+      "aplica": {
+        "enfoques": [
+          "antes-despues"
+        ]
+      },
+      "intencion": "hacer perceptible la diferencia entre dos estados",
+      "sugerir": [
+        "cut",
+        "music_lift",
+        "music_dip"
+      ],
+      "evitar": "Caricaturizar el antes o fingir resultados"
+    },
+    {
+      "id": "humor",
+      "nombre": "Comedia observacional",
+      "aplica": {
+        "enfoques": [
+          "humor"
+        ],
+        "tratamientos": [
+          "humor"
+        ]
+      },
+      "intencion": "preparación, reacción, pausa sólo si hay remate visual",
+      "sugerir": [
+        "music_drop",
+        "cut",
+        "show_face",
+        "sfx_off"
+      ],
+      "evitar": "Poner una pausa automática en todos los gags o explicar lo que es gracioso"
+    },
+    {
+      "id": "testimonio",
+      "nombre": "Testimonio",
+      "aplica": {
+        "enfoques": [
+          "testimonio"
+        ]
+      },
+      "intencion": "credibilidad, respiración humana y palabras comprensibles",
+      "sugerir": [
+        "cut",
+        "music_dip",
+        "sfx_off"
+      ],
+      "evitar": "Efectos sobre frases emocionales o testimonios fingidos"
+    },
+    {
+      "id": "institucional",
+      "nombre": "Institucional sobrio",
+      "aplica": {
+        "enfoques": [
+          "institucional"
+        ],
+        "tratamientos": [
+          "sobrio"
+        ]
+      },
+      "intencion": "confianza, evidencia y cierre limpio",
+      "sugerir": [
+        "dissolve",
+        "music_dip",
+        "sfx_off"
+      ],
+      "evitar": "Whoosh automático, pausa cómica o flash en cada corte"
+    },
+    {
+      "id": "aspiracional",
+      "nombre": "Premium / aspiracional",
+      "aplica": {
+        "tratamientos": [
+          "aspiracional"
+        ]
+      },
+      "intencion": "dar tiempo a imágenes con valor estético y firma de marca",
+      "sugerir": [
+        "dissolve",
+        "music_lift",
+        "sfx_off"
+      ],
+      "evitar": "Edición frenética sin motivo y efectos de stock"
+    },
+    {
+      "id": "emocional",
+      "nombre": "Cálido o emotivo",
+      "aplica": {
+        "tratamientos": [
+          "calido"
+        ]
+      },
+      "intencion": "mostrar consecuencias humanas y dejar respirar las palabras",
+      "sugerir": [
+        "show_face",
+        "music_dip",
+        "dissolve"
+      ],
+      "evitar": "Manipulación dramática o silencios que se sienten forzados"
+    }
+  ]
+}
