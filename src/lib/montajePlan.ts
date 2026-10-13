@@ -68,7 +68,7 @@ export interface MontajePlan {
   voice?: { src: string; at: number; fadeIn?: number; fadeOut?: number; durSec?: number };   // durSec: lo que dura (el locutor del cierre)
   sfx?: { src: string; at: number; durSec?: number; gain?: number; nombre?: string }[];     // efectos de sonido (efectosSonido.ts): whoosh en los cambios de material, golpe al aterrizar el logo
   // generada: compuesta a medida para esta pieza (ElevenLabs Music), con la duración y el clima con que se pidió
-  music?: { src: string; gain: number; duck: boolean; fadeIn?: number; fadeOut?: number; generada?: boolean; durSec?: number; mood?: string };
+  music?: { src: string; gain: number; duck: boolean; fadeIn?: number; fadeOut?: number; generada?: boolean; durSec?: number; mood?: string; automation?: { atSec: number; gain: number; rampSec?: number }[] };
   silences: { antesDeEscena: number; durSec: number }[];   // anclados a escena; from/to se derivan
   texts: { text: string; preset: string; at: number; dur: number; nx?: number; ny?: number }[];
   logo?: { src: string };
@@ -194,7 +194,8 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
     };
   });
   const gag = escenas.find((e) => e.rol === 'gag');
-  const silences = gag ? [{ antesDeEscena: gag.n, durSec: SILENCE_ANTES_GAG }] : [];
+  const humorSolicitado = comercial.enfoque === 'humor' || comercial.tratamiento === 'humor';
+  const silences = gag && humorSolicitado ? [{ antesDeEscena: gag.n, durSec: SILENCE_ANTES_GAG }] : [];
   const musicUrl = pickMusic(comercial.guion?.music?.mood);
   const logoUrl = comercial.marcaKit?.logoUrl || comercial.brandKit?.logoUrl;
   return {
