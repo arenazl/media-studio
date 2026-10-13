@@ -146,6 +146,7 @@ export interface Comercial {
   id: string;
   titulo: string;                    // "problema-solución: el caos vs el orden"
   tipo: TipoComercial;               // bifurcación del paso 6 (filmado → Flow · animado → render)
+  perfilCampana?: string;            // objetivo del wizard (awareness/demo/conversion/campaña); fluye al Concepto
   formatoId?: string;                // WO-1: formato de salida (aspecto/plataforma/técnica) — id de FORMATOS_DEF (formato.ts). Ausente = proyectos viejos (default 9:16 filmado).
   angulo?: string;                   // C7: ángulo estratégico (de `strategy`) — proxy de diferenciación que alimenta el concepto
   creativeBrief?: string;            // C7: brief creativo por pieza (de `strategy`)
@@ -215,6 +216,7 @@ export function nuevoComercial(titulo: string, tipo: TipoComercial): Comercial {
     id: `com-${slug(titulo) || 'comercial'}-${Date.now().toString(36).slice(-4)}`,
     titulo: titulo.trim() || 'Comercial sin título',
     tipo,
+    enfoque: 'caso', tratamiento: 'natural', // default legible; se eligen de verdad POR PIEZA en Concepto
     estados,
   };
 }
