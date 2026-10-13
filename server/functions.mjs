@@ -390,6 +390,59 @@ export function asignarCapturas(escenas, context = {}, piece = {}) {
 const RUNNERS = {
 
   // ── ESTRATEGIA (nivel proyecto) — del brief: posicionamiento + público + plan de piezas ──
+  // El director no inventa una película ni reescribe el guion: elige operaciones de montaje CONCRETAS.
+  // Compilador puro src/lib/direccionMontaje.ts valida cada acción antes de modificar el plan.
+  montageDirection: {
+    build({ context = {} }) {
+      const project = context.project || {};
+      const piece = context.piece || {};
+      const escenas = Array.isArray(piece.escenas) ? piece.escenas.slice(0, 30) : [];
+      if (!escenas.length) throw new Error('Director de montaje: todavía no hay escenas.');
+      const tieneMusica = !!piece.tieneMusica;
+      const tieneSfx = !!piece.tieneSfx;
+      return { prompt: `ROL: Director/a de montaje publicitario y mezclador/a de sonido. Recibís un spot YA FILMADO/COMPUESTO. Proponé decisiones precisas para el montaje INICIAL, sin modificar el guion ni inventar tomas. La creatividad es elegir muy pocos momentos significativos, NO aplicar todos los efectos.
+
+OBJETIVO: ${piece.objetivo || 'comunicar el beneficio de la marca'}
+PIEZA: ${piece.titulo || ''}
+MARCA: ${project.name || ''}
+ENFOQUE NARRATIVO: ${piece.enfoque || 'caso'}
+TRATAMIENTO: ${piece.tratamiento || 'natural'}
+CONCEPTO: ${JSON.stringify(piece.concepto || {})}
+GUION: ${JSON.stringify(piece.guion || {})}
+FORMATO FINAL: ${piece.cierreTipo || 'logo'}
+MÚSICA DISPONIBLE: ${tieneMusica ? 'sí' : 'NO: no propongas music_*'}
+SFX DISPONIBLES: ${tieneSfx ? 'sí' : 'NO: no propongas sfx_off'}
+ESCENAS DISPONIBLES (material real; sólo estos números):
+${JSON.stringify(escenas)}
+
+GRAMÁTICA DE RECURSOS REALES:
+- music_drop: cortar la música brevemente para una revelación, reacción o remate. NO corta las voces.
+- music_dip: bajar un poco la música en un instante expresivo.
+- music_lift: enfatizar un momento visual sin voz (la voz sigue mandando por ducking).
+- cut: corte seco entre escenas.
+- dissolve: transición suave entre escenas.
+- show_face: retirar insertos de esa escena para permitir ver reacción/cara; sólo si tiene insertos.
+- sfx_off: suprimir efectos dentro de esa escena; sólo si hay efectos.
+
+REGLAS DE DIRECCIÓN:
+1. Elegí entre 0 y 5 decisiones; preferí ninguna a una arbitraria. Un spot institucional normalmente evita bromas y music drops. Un spot gracioso PUEDE usar un vacío sonoro si existe un momento con reacción verdadera; el humor no implica necesariamente pausa. Una demo prioriza inteligibilidad y visibilidad de la interfaz.
+2. CADA decisión debe citar un escenaN que tenga clip real. La elección \"cuando\" puede ser \"antes\", \"inicio\" o \"final\"; para cut/dissolve se modifica el corte adyacente.
+3. durSec va de 0 a 1.5; para music_* usar preferentemente 0.2 a 1.0. Nunca inventes silbidos ni pistas. No inventes otros efectos que no existan aquí.
+4. Una decisión sólo existe si aporta propósito verificable: el motivo dice qué gesto, palabra o cambio del material real la justifica. No tomes el papel de música por encima de diálogo audible.
+5. Respeta los tres modos de cierre (logo con locutor, pantalla, presentadora). No propongas dos voces de cierre.
+6. Evitá whoosh sistemático, fundidos a cada corte y pausas vacías. La marca debe tener un final claro.
+7. La categoría del producto condiciona la estética, pero NO obliga efectos; el enfoque, la escena y la audiencia mandan.
+
+Devolvé SOLO JSON con este shape exacto:
+{ "diagnostico": "una frase concreta sobre el spot", "decisiones": [{ "recurso": "music_drop|music_dip|music_lift|cut|dissolve|show_face|sfx_off", "escenaN": 2, "cuando": "antes|inicio|final", "durSec": 0.4, "motivo": "qué momento observable lo justifica" }] }
+No agregues operaciones fuera del vocabulario. Nunca agregues escenas ni assets.` };
+    },
+    parse(text) {
+      const o = extractJson(text);
+      if (!o || typeof o.diagnostico !== 'string' || !Array.isArray(o.decisiones)) throw new Error('montageDirection: JSON sin diagnostico o decisiones');
+      return o;
+    },
+  },
   strategy: {
     build({ context, options = {} }) {
       const x = ctx(context);
