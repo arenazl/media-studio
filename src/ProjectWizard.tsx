@@ -24,12 +24,7 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
   const fn = getFunction('strategy');
   const perfilOpt = fn?.options.find((o) => o.id === 'perfil');
   const [perfil, setPerfil] = useState(perfilOpt?.default || 'campaña');
-  // concept/3.0: el dueño elige cómo se cuenta (enfoque) y cómo se siente (tratamiento); se estampa en cada pieza y
-  // se puede cambiar por pieza en Concepto. Antes sólo existía el tipo de campaña y el modelo se iba al chiste.
-  const enfoqueOpt = fn?.options.find((o) => o.id === 'enfoque');
-  const tratamientoOpt = fn?.options.find((o) => o.id === 'tratamiento');
-  const [enfoque, setEnfoque] = useState(enfoqueOpt?.default || 'caso');
-  const [tratamiento, setTratamiento] = useState(tratamientoOpt?.default || 'natural');
+  // El wizard decide el OBJETIVO; tipo de historia y clima se eligen luego POR PIEZA en Concepto.
   const [phase, setPhase] = useState<'idle' | 'working' | 'error'>('idle');
   const [progress, setProgress] = useState('');
   const [err, setErr] = useState('');
@@ -72,7 +67,7 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
             id: p.id || `reel-${i + 1}`, nombre: titulo, frases: 0, guion: [],
             objetivo: p.objective, angulo: p.angle, durationSec: p.durationSec,
             // El comercial nace con su ángulo → PasoConcepto lo usa como proxy diferenciado (no el título genérico).
-            comercial: { ...nuevoComercial(titulo, tipoPieza), formatoId: project.formatoId, angulo: p.angle, creativeBrief: p.creativeBrief, messageScope: p.messageScope, primaryMessage: p.primaryMessage, supportingFacts: p.supportingFacts, enfoque, tratamiento },
+            comercial: { ...nuevoComercial(titulo, tipoPieza), formatoId: project.formatoId, angulo: p.angle, creativeBrief: p.creativeBrief, messageScope: p.messageScope, primaryMessage: p.primaryMessage, supportingFacts: p.supportingFacts, perfilCampana: perfil },
           };
         });
       } catch { /* strategy falló → no bloquear el import; abajo se siembra un comercial base */ }
@@ -95,10 +90,10 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
             guion: [],
             objetivo: p.obj,
             angulo: p.title,
-            comercial: { ...nuevoComercial(p.title, tipoPieza), formatoId: project.formatoId, angulo: p.title, enfoque, tratamiento },
+            comercial: { ...nuevoComercial(p.title, tipoPieza), formatoId: project.formatoId, angulo: p.title, perfilCampana: perfil },
           }));
         } else {
-          reels = [{ id: `reel-${project.id}`, nombre: project.name, frases: 0, guion: [], comercial: { ...nuevoComercial(project.name, tipoPieza), formatoId: project.formatoId, enfoque, tratamiento } }];
+          reels = [{ id: `reel-${project.id}`, nombre: project.name, frases: 0, guion: [], comercial: { ...nuevoComercial(project.name, tipoPieza), formatoId: project.formatoId, perfilCampana: perfil } }];
         }
       }
 
@@ -126,29 +121,17 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
 
       <div className="paso-body">
         <div className="veo-field">
-          <span>Tipo de campaña</span>
+          <span>Qué querés lograr con esta campaña</span>
           <div className="veo-chips">
             {(perfilOpt?.choices || []).map((c) => (
               <button key={c.value} disabled={phase === 'working'} className={perfil === c.value ? 'veo-chip veo-chip--on' : 'veo-chip'} onClick={() => setPerfil(c.value)}>{c.label}</button>
             ))}
           </div>
         </div>
-        <div className="veo-field">
-          <span>Enfoque (cómo se cuenta cada pieza)</span>
-          <div className="veo-chips">
-            {(enfoqueOpt?.choices || []).map((c) => (
-              <button key={c.value} disabled={phase === 'working'} className={enfoque === c.value ? 'veo-chip veo-chip--on' : 'veo-chip'} onClick={() => setEnfoque(c.value)}>{c.label}</button>
-            ))}
-          </div>
-        </div>
-        <div className="veo-field">
-          <span>Tratamiento (cómo se siente)</span>
-          <div className="veo-chips">
-            {(tratamientoOpt?.choices || []).map((c) => (
-              <button key={c.value} disabled={phase === 'working'} className={tratamiento === c.value ? 'veo-chip veo-chip--on' : 'veo-chip'} onClick={() => setTratamiento(c.value)}>{c.label}</button>
-            ))}
-          </div>
-        </div>
+        <p className="paso-sub" style={{ marginTop: 8 }}>
+          Acá decidís para qué necesitás el anuncio. El tipo de historia (caso, demostración, humor…) y el clima
+          (cotidiano, sobrio, cálido…) se eligen después, en Concepto, para cada pieza por separado.
+        </p>
 
         <div className="veo-card wiz-explain">
           <div className="veo-card-h"><Sparkles size={14} /> Qué te dejo armado (la base, después producís cada paso)</div>
