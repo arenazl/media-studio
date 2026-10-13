@@ -62,6 +62,9 @@ export interface MontajeScene {
   fadeOut?: number;            // segundos: sale a negro
 }
 
+// Una decisión se ancla a una escena, no a segundos absolutos: sigue su sitio cuando la timeline cambia.
+export type MusicCue = { escenaN: number; cuando: 'antes' | 'inicio' | 'final'; durSec: number; nivel: number; motivo?: string };
+
 export interface MontajePlan {
   width: number; height: number; fps: number;
   scenes: MontajeScene[];
@@ -69,7 +72,8 @@ export interface MontajePlan {
   sfx?: { src: string; at: number; durSec?: number; gain?: number; nombre?: string }[];     // efectos de sonido (efectosSonido.ts): whoosh en los cambios de material, golpe al aterrizar el logo
   // generada: compuesta a medida para esta pieza (ElevenLabs Music), con la duración y el clima con que se pidió
   music?: { src: string; gain: number; duck: boolean; fadeIn?: number; fadeOut?: number; generada?: boolean; durSec?: number; mood?: string };
-  silences: { antesDeEscena: number; durSec: number }[];   // anclados a escena; from/to se derivan
+  silences: { antesDeEscena: number; durSec: number }[]; // legado: también se aplica al render de Remotion
+  musicCues?: MusicCue[];          // automatización de música anclada a escena, visible en el plan y editable   // anclados a escena; from/to se derivan
   texts: { text: string; preset: string; at: number; dur: number; nx?: number; ny?: number }[];
   logo?: { src: string };
   mediaKitId?: string;
@@ -194,7 +198,9 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
     };
   });
   const gag = escenas.find((e) => e.rol === 'gag');
-  const silences = gag ? [{ antesDeEscena: gag.n, durSec: SILENCE_ANTES_GAG }] : [];
+  // En versiones nuevas la pausa de música la decide el director, no cualquier escena llamada gag.
+  // Mantener el lector de silencios antiguos para los planes ya persistidos.
+  const silences: MontajePlan['silences'] = [];
   const musicUrl = pickMusic(comercial.guion?.music?.mood);
   const logoUrl = comercial.marcaKit?.logoUrl || comercial.brandKit?.logoUrl;
   return {
