@@ -1,0 +1,5 @@
+{
+  "_nota": "El Chrome y el perfil con la sesión de Google de Lucas y la extensión Puente Flow (2026-10-13). Lo usa server/abrirFlow.mjs para abrir Flow solo cuando un trabajo lo necesita. Sin claves: la sesión vive en el perfil.",
+  "exe": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "perfil": "Default"
+}

@@ -4,6 +4,7 @@
 // extensión avisa la ruta final y acá se importa al Rodaje.
 import fs from 'node:fs';
 import path from 'node:path';
+import { abrirFlow } from './abrirFlow.mjs';
 
 const jobs = new Map();
 const cola = [];                 // pasos pendientes para la pestaña
@@ -79,6 +80,7 @@ export async function consultar(flowProjectUrl, pasos) {
   const job = { id, estado: 'corriendo', paso: 'consulta', log: [], escenas: [], fallas: [], error: null, flowProjectUrl, inicio: Date.now(), fin: null };
   jobs.set(id, job);
   const salida = [];
+  if (!extensionViva() || pestanasFlow === 0) abrirFlow(flowProjectUrl || 'https://flow.google.com/');
   try {
     for (const p of pasos) salida.push({ accion: p.accion, data: await pedir(job, p.accion, p.args || {}, p.timeoutMs || 90000).catch((e) => ({ error: e.message })) });
     return salida;
@@ -95,8 +97,11 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
 
   (async () => {
     job.estado = 'corriendo';
-    if (!extensionViva()) setPaso('esperando la extensión Puente Flow en tu Chrome');
-    else if (pestanasFlow === 0) setPaso('abrí flow.google.com en una pestaña de tu Chrome (no hace falta que quede a la vista)');
+    // sin extensión o sin pestaña de Flow: se abre Chrome solo con el perfil de Lucas (abrirFlow.mjs, 2026-10-13)
+    if (!extensionViva() || pestanasFlow === 0) {
+      const r = abrirFlow(job.flowProjectUrl || 'https://flow.google.com/');
+      setPaso(r.abierto ? `abro Flow solo: ${r.motivo}` : `no pude abrir Flow solo (${r.motivo}); abrí flow.google.com en tu Chrome`);
+    }
     // primer contacto: dónde está la pestaña
     const est = await pedir(job, 'estado', {}, 600000);
     log(`pestaña de Flow: ${est.url}`);

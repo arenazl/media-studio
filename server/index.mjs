@@ -48,6 +48,7 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
+import { abrirFlow } from './abrirFlow.mjs';
 import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, descripcionDeSituacion, pedidoLibreLocal } from './salesbotMedios.mjs';
 import { promptEscena, promptImagen, estiloPara } from './flowCompiler.mjs';
 import { generarMockupsApp, catalogoDeApp } from './mockupsApp.mjs';
@@ -1911,6 +1912,8 @@ ${src}`;
       return json(res, 200, { ok: true });
     }
     if (p === '/api/flow/puente/estado' && req.method === 'GET') return json(res, 200, puente.estadoPuente());
+    // abrir Flow en el Chrome de Lucas a mano (el backend lo hace solo cuando un trabajo lo necesita)
+    if (p === '/api/flow/abrir' && req.method === 'POST') { const b = JSON.parse((await readBody(req)) || '{}'); return json(res, 200, abrirFlow(b.url || undefined, { forzar: true })); }
     // una consulta a la pestaña de Flow sin generar nada: body = { url, pasos: [{ accion, args, timeoutMs }] }
     if (p === '/api/flow/puente/consultar' && req.method === 'POST') {
       const b = JSON.parse((await readBody(req)) || '{}');
@@ -1979,7 +1982,7 @@ ${src}`;
 server.listen(PORT, () => {
   console.log(`[media-studio] backend en http://localhost:${PORT} (${IS_PROD ? 'PROD/Gemini' : 'LOCAL/Claude'})`);
   // SalesBot: Media Studio consulta sus pedidos y fabrica los de sus personajes ficticios con Flow
-  if (!IS_PROD) iniciarSalesbotMedios({ fabricar: fabricarParaSalesbot, fabricarLibre: fabricarLibreParaSalesbot, personajeDe: personajeDeSalesbot, flowListo: () => { const e = puente.estadoPuente(); return e.extension && e.pestanas > 0; }, ocupado: () => puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando') });
+  if (!IS_PROD) iniciarSalesbotMedios({ fabricar: fabricarParaSalesbot, fabricarLibre: fabricarLibreParaSalesbot, personajeDe: personajeDeSalesbot, flowListo: () => { const e = puente.estadoPuente(); if (e.extension && e.pestanas > 0) return true; const r = abrirFlow(); if (r.abierto) console.log('[media-studio] salesbot: abro Flow solo para atender el pedido'); return false; }, ocupado: () => puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando') });
   if (!IS_PROD) console.log(`[media-studio] videos dir: ${VIDEOS_DIR}`);
   if (CLD_CLOUD) console.log(`[media-studio] cloudinary: ${CLD_CLOUD}/${CLD_FOLDER}`);
   console.log(`[media-studio] sqlite: ${DB_PATH}`);
