@@ -145,6 +145,17 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     } catch (e) { setError(errMsg(e)); } finally { setDirigiendo(false); }
   };
 
+  // Deshacer la propuesta sin llamar a ElevenLabs ni reconstruir el storyboard.
+  const volverAlMontajeAnterior = () => {
+    setComercial((c) => {
+      const m = c.montaje as MontajeState | undefined;
+      if (!m?.base || !m.direccionIA) return c;
+      const anterior = m.direccionIA.varianteAnterior;
+      return { ...c, montaje: { ...m, plan: aplicarVariante(m.base, anterior, mockupsDe(c)), variante: anterior, direccionIA: undefined },
+        estados: { ...c.estados, montaje: 'generado' } };
+    });
+  };
+
   // AUTO-ARMAR al entrar (Lucas, 2026-10-11: "primero debería crear una versión automática y después, si hace falta, el
   // ajuste final manual en el multipista"): una sola vez, con el paso habilitado, sin montaje todavía y con material
   // (clips de Flow o mockups; en animado, el reel renderizado). "Rearmar" sigue disponible a mano.
@@ -357,7 +368,9 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
                 <p className="mont-sil"><strong>Criterio:</strong> {montaje.direccionIA.diagnostico}</p>
                 {montaje.direccionIA.aplicadas.map((a, i) => <div key={'ap-' + i} className="mont-sil">✓ {a}</div>)}
                 {montaje.direccionIA.descartadas.map((d, i) => <div key={'de-' + i} className="mont-sil">No aplicada: {d}</div>)}
-                <p className="mont-sil">Los ajustes están en el plan real. Usá Rearmar para volver al automático o el multipista para retocarlos.</p>
+                <p className="mont-sil">Los ajustes están en el plan real. Los cambios de escena y sus transiciones son editables en el multipista.</p>
+                <button type="button" className="rodaje-import mont-qa-btn" onClick={volverAlMontajeAnterior}
+                  disabled={dirigiendo || armando || rendering || !montaje.base}>Deshacer dirección IA</button>
               </div>
             )}
           </div>
@@ -386,6 +399,21 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
             <div className="paso-card">
               <div className="paso-card-h"><Clapperboard size={12} /> Lo que decidió el armado</div>
               {plan.avisos.map((a, i) => <div key={i} className="mont-sil">{a}</div>)}
+            </div>
+          )}
+
+          {!!plan.music?.automation?.length && (
+            <div className="paso-card">
+              <div className="paso-card-h"><Music2 size={12} /> Automatización musical · editable</div>
+              {plan.music.automation.map((p, i) => (
+                <div key={i} className="mont-sil">
+                  {p.atSec.toFixed(2)}s · nivel {Math.round(p.gain * 100)}% · rampa {(p.rampSec || 0).toFixed(2)}s
+                  <button type="button" style={{ marginLeft: 8 }} disabled={dirigiendo || rendering}
+                    onClick={() => patch((pl) => pl.music ? { ...pl, music: { ...pl.music,
+                      automation: (pl.music.automation || []).filter((_, j) => j !== i) } } : pl)}>Quitar punto</button>
+                </div>
+              ))}
+              <p className="mont-sil">Estos puntos son la primera propuesta de sonido; si los quitás se recupera el nivel previo.</p>
             </div>
           )}
 
