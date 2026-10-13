@@ -1091,6 +1091,28 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { src: `musica/${nombre}`, durSec, mood });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo componer la música' }); }
     }
+    // La voz del LOCUTOR del cierre (Lucas, 2026-10-12: "una voz de locutor sobre el logo que diga una frase; para eso
+    // está el módulo de voz"): genera la frase con ElevenLabs y la guarda en storage/voces, como la música.
+    // body = { texto, voice_id, nombre? } → { src, durSec }
+    if (p === '/api/voz/generar' && req.method === 'POST') {
+      if (!ELEVEN_KEY) return json(res, 503, { error: 'falta ELEVENLABS_API_KEY (.env)' });
+      const b = JSON.parse((await readBody(req)) || '{}');
+      const texto = String(b.texto || '').trim();
+      if (!texto || !b.voice_id) return json(res, 400, { error: 'faltan la frase o la voz' });
+      try {
+        const r = await fetch(`${ELEVEN_API}/text-to-speech/${encodeURIComponent(b.voice_id)}`, {
+          method: 'POST',
+          headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+          body: JSON.stringify({ text: texto, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.35, use_speaker_boost: true, speed: 1.0 } }),
+        });
+        if (!r.ok) return json(res, 502, { error: `ElevenLabs no generó la voz (${r.status}): ${(await r.text()).slice(0, 200)}` });
+        const nombre = `${String(b.nombre || 'cierre').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'cierre'}-${Date.now().toString(36)}.mp3`;
+        const archivo = path.join(STORAGE_DIR, 'voces', nombre);
+        fs.mkdirSync(path.dirname(archivo), { recursive: true });
+        fs.writeFileSync(archivo, Buffer.from(await r.arrayBuffer()));
+        return json(res, 200, { src: `voces/${nombre}`, durSec: (await probeDuration(archivo)) || null });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo generar la voz' }); }
+    }
     // Genera el audio de una voz — mismo body que iba al Cloud Run; devuelve audio/mpeg.
     if (p === '/api/tts/generate' && req.method === 'POST') {
       if (!ELEVEN_KEY) return json(res, 503, { error: 'falta ELEVENLABS_API_KEY (.env)' });

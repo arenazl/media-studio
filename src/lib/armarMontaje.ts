@@ -8,7 +8,7 @@ import { API_BASE } from '../config';
 import type { Comercial } from './comercial';
 import type { Project } from './projects';
 import { getFormato, mediosDeFormato } from './formato';
-import { storyboardToMontaje, type MontajePlan, type PalabraTiempo } from './montajePlan';
+import { storyboardToMontaje, totalDuration, type MontajePlan, type PalabraTiempo } from './montajePlan';
 import { afinarMontaje } from './montajista';
 import { conMusicaPropia } from './musicaGenerada';
 import { aplicarVariante } from './variantesMontaje';
@@ -32,7 +32,20 @@ export const mockupsDe = (comercial: Comercial) => (comercial.mockups || []).map
 
 // el armado del montajista con su música compuesta a medida (musicaGenerada.ts): la BASE de las versiones
 export async function armarBase(project: Project, comercial: Comercial): Promise<MontajePlan> {
-  return conMusicaPropia(await armarSinMusica(project, comercial), comercial);
+  return conMusicaPropia(conLocutor(await armarSinMusica(project, comercial), comercial), comercial);
+}
+
+// el LOCUTOR del cierre: su frase suena sobre la placa, que dura lo que dura la frase (y un respiro). Va en la pista de
+// voz, salvo que la pieza ya tenga una voz en off propia.
+function conLocutor(plan: MontajePlan, comercial: Comercial): MontajePlan {
+  const loc = comercial.cierre?.locutor;
+  if (!loc?.src || !plan.endCard || plan.voice) return plan;
+  const dur = loc.durSec || 3;
+  return {
+    ...plan,
+    endCard: { ...plan.endCard, durSec: Math.max(plan.endCard.durSec, Math.ceil((dur + 0.9) * 10) / 10) },
+    voice: { src: loc.src, at: Math.round((totalDuration(plan) + 0.25) * 100) / 100, durSec: dur },
+  };
 }
 
 // el armado con la versión que se eligió en el paso Montaje (la del montajista si no se eligió ninguna)

@@ -19,6 +19,9 @@ import { MUSIC_TRACKS } from '../lib/music';
 import { componerMusica, moodDe, musicaDelPlan } from '../lib/musicaGenerada';
 import { resolverSrc } from '../remotion/derivar';
 
+// el locutor por defecto del cierre: "Maxi AR", voz argentina adulta para publicidad y narración (ElevenLabs)
+const VOZ_LOCUTOR = 'rooCDyI2p1wGjgC5O5lH';
+
 const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
 
@@ -123,6 +126,39 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   });
 
   // música a medida (Lucas, 2026-10-12): otra composición del mismo clima, que dura lo que el video
+  // LOCUTOR del cierre (Lucas, 2026-10-12: "una voz de locutor sobre el logo que diga una frase"): la frase arranca con la
+  // firma de la marca o, si no hay, la marca y el cierre del guion; la voz, un locutor argentino de publicidad
+  const marcaNombre = project.marcaKit?.nombreExacto || project.brandKit?.name || '';
+  const ctaDelGuion = (comercial?.guion?.blocks || []).find((b) => b.role === 'cta')?.narration?.trim() || '';
+  const fraseSugerida = comercial?.cierreMarca?.trim() || [marcaNombre && `${marcaNombre}.`, ctaDelGuion].filter(Boolean).join(' ');
+  const [locTexto, setLocTexto] = useState(comercial?.cierre?.locutor?.texto || fraseSugerida);
+  const [locVoz, setLocVoz] = useState(comercial?.cierre?.locutor?.voiceId || VOZ_LOCUTOR);
+  const [voces, setVoces] = useState<{ voice_id: string; name: string; accent?: string; gender?: string }[]>([]);
+  const [locBusy, setLocBusy] = useState(false);
+  useEffect(() => {
+    fetch(`${API_BASE}/api/tts/voices`).then((r) => r.json())
+      .then((d) => setVoces((d.voices || []).filter((v: { accent?: string }) => /argentin|latin/i.test(v.accent || ''))))
+      .catch(() => {});
+  }, []);
+  const generarLocutor = async () => {
+    if (!comercial || !locTexto.trim() || locBusy) return;
+    setLocBusy(true); setError('');
+    try {
+      const r = await fetch(`${API_BASE}/api/voz/generar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texto: locTexto.trim(), voice_id: locVoz, nombre: `cierre-${marcaNombre}` }) });
+      const d = await r.json();
+      if (!r.ok || !d.src) throw new Error(d.error || `no se pudo generar la voz (${r.status})`);
+      const cierre = { ...(comercial.cierre || { tipo: 'logo' as const }), locutor: { texto: locTexto.trim(), voiceId: locVoz, src: d.src, durSec: d.durSec || undefined } };
+      setComercial((c) => ({ ...c, cierre }));
+      await armar({ ...comercial, cierre });
+    } catch (e) { setError(errMsg(e)); } finally { setLocBusy(false); }
+  };
+  const sacarLocutor = () => {
+    if (!comercial?.cierre?.locutor) return;
+    const { locutor: _fuera, ...resto } = comercial.cierre;
+    setComercial((c) => ({ ...c, cierre: resto }));
+    void armar({ ...comercial, cierre: resto });
+  };
+
   const [componiendo, setComponiendo] = useState(false);
   const componer = async () => {
     const m0 = comercial?.montaje as MontajeState | undefined;
@@ -344,6 +380,31 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
                   <span className="mont-track-empty">sin voz</span>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* el locutor del cierre: su frase suena sobre el logo y la placa dura lo que dura la frase */}
+          <div className="paso-card">
+            <div className="paso-card-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span><Mic size={12} /> Locutor del cierre {comercial?.cierre?.locutor?.src ? `— ${(comercial.cierre.locutor.durSec || 0).toFixed(1)} s sobre el logo` : '— sin locutor'}</span>
+              {comercial?.cierre?.locutor?.src && (
+                <span style={{ display: 'flex', gap: 6 }}>
+                  <button className="rodaje-var" onClick={() => toggleAudioPreview(comercial.cierre?.locutor?.src)}>
+                    {previewUrl === comercial.cierre.locutor.src ? <Pause size={12} /> : <Play size={12} />} Escuchar
+                  </button>
+                  <button className="rodaje-var" onClick={sacarLocutor} disabled={armando || locBusy}><X size={12} /> Sacar</button>
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', flexWrap: 'wrap' }}>
+              <input className="mont-select" style={{ flex: '2 1 260px' }} value={locTexto} onChange={(e) => setLocTexto(e.target.value)} placeholder="La frase del locutor, p. ej. «RepareHoy. Con RepareHoy se acabaron los inconvenientes.»" />
+              <select className="mont-select" style={{ flex: '1 1 180px' }} value={locVoz} onChange={(e) => setLocVoz(e.target.value)}>
+                {!voces.some((v) => v.voice_id === locVoz) && <option value={locVoz}>Maxi AR · locutor</option>}
+                {voces.map((v) => <option key={v.voice_id} value={v.voice_id}>{v.name}{v.gender === 'female' ? ' · mujer' : v.gender === 'male' ? ' · hombre' : ''}</option>)}
+              </select>
+              <button className="rodaje-var" style={{ background: '#B45309', color: '#FFF', display: 'flex', alignItems: 'center', gap: 6 }} onClick={generarLocutor} disabled={locBusy || armando || !locTexto.trim()}>
+                {locBusy ? <Loader2 size={13} className="paso-spin" /> : <Mic size={13} />} {comercial?.cierre?.locutor?.src ? 'Rehacer la voz' : 'Generar la voz'}
+              </button>
             </div>
           </div>
 

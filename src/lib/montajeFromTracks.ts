@@ -114,7 +114,7 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
   // ── voice ← pista voz (clip único) ──
   const vozClip = clipsDe(tracks, 'voz')[0];
   const voice = vozClip?.fileRef
-    ? { src: vozClip.fileRef, at: vozClip.startSec, ...(vozClip.fadeIn ? { fadeIn: vozClip.fadeIn } : {}), ...(vozClip.fadeOut ? { fadeOut: vozClip.fadeOut } : {}) }
+    ? { src: vozClip.fileRef, at: vozClip.startSec, ...(vozClip.fadeIn ? { fadeIn: vozClip.fadeIn } : {}), ...(vozClip.fadeOut ? { fadeOut: vozClip.fadeOut } : {}), ...(base.voice?.durSec != null && base.voice.src === vozClip.fileRef ? { durSec: base.voice.durSec } : {}) }
     : base.voice;
 
   // ── music ← pista música (clip único). gain/duck salen del clip si el inspector los editó

@@ -192,7 +192,7 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
       id: 'voz-1',
       label: 'Voz en off',
       startSec: plan.voice.at,
-      durSec: Math.max(0.5, total - plan.voice.at),
+      durSec: Math.max(0.5, plan.voice.durSec ?? total - plan.voice.at),
       color: '#00B37E',
       fileRef: plan.voice.src,
       meta: `desde ${plan.voice.at}s`,

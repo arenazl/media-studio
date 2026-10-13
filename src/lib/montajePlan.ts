@@ -65,7 +65,7 @@ export interface MontajeScene {
 export interface MontajePlan {
   width: number; height: number; fps: number;
   scenes: MontajeScene[];
-  voice?: { src: string; at: number; fadeIn?: number; fadeOut?: number };
+  voice?: { src: string; at: number; fadeIn?: number; fadeOut?: number; durSec?: number };   // durSec: lo que dura (el locutor del cierre)
   // generada: compuesta a medida para esta pieza (ElevenLabs Music), con la duración y el clima con que se pidió
   music?: { src: string; gain: number; duck: boolean; fadeIn?: number; fadeOut?: number; generada?: boolean; durSec?: number; mood?: string };
   silences: { antesDeEscena: number; durSec: number }[];   // anclados a escena; from/to se derivan
@@ -246,7 +246,8 @@ export function duckRanges(plan: MontajePlan, voiceDur?: number): [number, numbe
     }
   });
   if (plan.voice) {
-    const end = voiceDur != null ? plan.voice.at + voiceDur : totalDuration(plan);
+    const dur = voiceDur ?? plan.voice.durSec;
+    const end = dur != null ? plan.voice.at + dur : totalDuration(plan);
     ranges.push([plan.voice.at, end]);
   }
   return mergeRanges(ranges);
