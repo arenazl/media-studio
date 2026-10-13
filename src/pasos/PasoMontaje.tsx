@@ -358,10 +358,10 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           <div className="paso-card">
             <div className="paso-card-h"><Clapperboard size={12} /> Dirección creativa de la edición</div>
             <p className="mont-sil">La IA usa el concepto, el enfoque y el material disponible para proponer hasta siete ajustes ejecutables. No genera escenas ni reemplaza el multipista.</p>
-            <button type="button" className="rodaje-import mont-qa-btn" disabled={dirigiendo || armando || rendering || !conClip}
+            <button type="button" className="rodaje-import mont-qa-btn" disabled={dirigiendo || armando || rendering || !conClip || !!montaje?.direccionIA}
               onClick={() => void proponerDireccion()}>
               {dirigiendo ? <Loader2 size={14} className="paso-spin" /> : <Clapperboard size={14} />}
-              {dirigiendo ? 'Dirigiendo la edición…' : 'Proponer montaje con IA'}
+              {dirigiendo ? 'Dirigiendo la edición…' : montaje?.direccionIA ? 'Propuesta IA aplicada' : 'Proponer montaje con IA'}
             </button>
             {montaje?.direccionIA && (
               <div style={{ marginTop: 10 }}>
