@@ -146,8 +146,12 @@ Una línea por pendiente, con el dato que lo justifica y dónde está el detalle
   "Pantallas" con cada mockup sobre su escena), la placa final al final de la pista de video, el logo y los acercamientos.
 - FALTA verificar: la descarga directa de clips del puente Flow (0.4.1) con una corrida real (las 3 escenas de
   "El presupuesto fantasma" ya están generadas en Flow; recargar la extensión y tocar Automatizar).
-- (2026-10-13, Lucas: "acordate canciones") CANCIONES en el montaje: hoy la música se compone a medida e instrumental
-  (`src/lib/musicaGenerada.ts`, ElevenLabs Music). Falta ver si quiere temas con letra o más estilos para elegir.
+- HECHO (2026-10-13): DIRECTORIO DE CANCIONES, 24 temas (8 estilos × 3, 30 s) compuestos con ElevenLabs Music en
+  `server/storage/canciones/` (`catalogo.json`, `GET /api/canciones`); el generador vive en el scratchpad de la sesión
+  y se puede volver a correr para ampliar (nuevos estilos = más filas en ESTILOS). Lucas juzga el nivel con dos muestras.
+- (2026-10-13, Lucas: "hasta te diría efectos especiales; primero canciones") EFECTOS ESPECIALES (SFX): hoy la pista
+  SFX del multipista está vacía. Falta un directorio de efectos (whoosh, pop, click, campana, etc.) y que el armado los
+  ponga en los cambios de material y en la placa.
 - HECHO (2026-10-13): la modelo de Munify es el personaje "Presentadora" del proyecto de Flow `1c6046c1…`
   (`server/presentadora.json`); su escena de cierre se genera ahí, en un segundo trabajo después del pack principal.
   FALTA verificar con una corrida real (sale en la próxima generación de un pack).
