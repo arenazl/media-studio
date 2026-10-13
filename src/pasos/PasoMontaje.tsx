@@ -138,7 +138,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
         return {
           ...c,
           montaje: { ...actual, plan: r.plan, variante: undefined,
-            direccionIA: { diagnostico: String(respuesta.diagnostico || ''), aplicadas: r.aplicadas, descartadas: r.descartadas } },
+            direccionIA: { diagnostico: String(respuesta.diagnostico || ''), aplicadas: r.aplicadas, descartadas: r.descartadas, varianteAnterior: actual.direccionIA?.varianteAnterior ?? actual.variante } },
           estados: { ...c.estados, montaje: 'editado' },
         };
       });
