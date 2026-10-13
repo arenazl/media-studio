@@ -9,6 +9,7 @@ import { getFunction } from './lib/functionCatalog';
 import { saveProject, type Project, type ProjectReel } from './lib/projects';
 import { nuevoComercial } from './lib/comercial';
 import { getFormato, tipoDesdeFormato } from './lib/formato';
+import { OBJETIVOS_CAMPANA } from './lib/guiaCampana';
 import { effectiveModel } from './lib/settings';
 import './ProjectWizard.css';
 
@@ -28,8 +29,8 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
   // se puede cambiar por pieza en Concepto. Antes sólo existía el tipo de campaña y el modelo se iba al chiste.
   const enfoqueOpt = fn?.options.find((o) => o.id === 'enfoque');
   const tratamientoOpt = fn?.options.find((o) => o.id === 'tratamiento');
-  const [enfoque, setEnfoque] = useState(enfoqueOpt?.default || 'caso');
-  const [tratamiento, setTratamiento] = useState(tratamientoOpt?.default || 'natural');
+  const enfoque = enfoqueOpt?.default || 'caso';
+  const tratamiento = tratamientoOpt?.default || 'natural';
   const [phase, setPhase] = useState<'idle' | 'working' | 'error'>('idle');
   const [progress, setProgress] = useState('');
   const [err, setErr] = useState('');
@@ -126,29 +127,16 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
 
       <div className="paso-body">
         <div className="veo-field">
-          <span>Tipo de campaña</span>
+          <span>¿Qué querés lograr con la campaña?</span>
           <div className="veo-chips">
             {(perfilOpt?.choices || []).map((c) => (
               <button key={c.value} disabled={phase === 'working'} className={perfil === c.value ? 'veo-chip veo-chip--on' : 'veo-chip'} onClick={() => setPerfil(c.value)}>{c.label}</button>
             ))}
           </div>
         </div>
-        <div className="veo-field">
-          <span>Enfoque (cómo se cuenta cada pieza)</span>
-          <div className="veo-chips">
-            {(enfoqueOpt?.choices || []).map((c) => (
-              <button key={c.value} disabled={phase === 'working'} className={enfoque === c.value ? 'veo-chip veo-chip--on' : 'veo-chip'} onClick={() => setEnfoque(c.value)}>{c.label}</button>
-            ))}
-          </div>
-        </div>
-        <div className="veo-field">
-          <span>Tratamiento (cómo se siente)</span>
-          <div className="veo-chips">
-            {(tratamientoOpt?.choices || []).map((c) => (
-              <button key={c.value} disabled={phase === 'working'} className={tratamiento === c.value ? 'veo-chip veo-chip--on' : 'veo-chip'} onClick={() => setTratamiento(c.value)}>{c.label}</button>
-            ))}
-          </div>
-        </div>
+        <p className="paso-sub" style={{ marginTop: 4 }}>
+          {OBJETIVOS_CAMPANA[perfil] || ''} El relato y el tono se eligen después, en Concepto, por cada pieza.
+        </p>
 
         <div className="veo-card wiz-explain">
           <div className="veo-card-h"><Sparkles size={14} /> Qué te dejo armado (la base, después producís cada paso)</div>
