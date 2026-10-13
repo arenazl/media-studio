@@ -27,6 +27,14 @@ async function transcribir(ref: string): Promise<readonly [string, PalabraTiempo
   } catch { return [ref, undefined] as const; }
 }
 
+// el material con que se arma (las tomas importadas y los mockups): si cambia, el montaje automático quedó viejo
+// (2026-10-13: la orquestación armó "Reclamo sin respuesta" antes de que terminaran sus 4 mockups y quedó sin pantallas)
+export const materialDe = (comercial: Comercial): string => [
+  ...(comercial.rodaje || []).map((t) => t.fileRef),
+  ...(comercial.mockups || []).map((m) => m.fileRef),
+  comercial.renderRef || '',
+].filter(Boolean).sort().join('|');
+
 // los mockups de la pieza, como los usan el montajista y las versiones
 export const mockupsDe = (comercial: Comercial) => (comercial.mockups || []).map((m) => ({ nombre: m.nombre, fileRef: m.fileRef, durSec: m.durSec }));
 

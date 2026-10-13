@@ -9,7 +9,7 @@ import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { mediaKitParaMolde } from '../lib/mediaKit';
 import { totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
-import { armarBase, mockupsDe } from '../lib/armarMontaje';
+import { armarBase, materialDe, mockupsDe } from '../lib/armarMontaje';
 import { aplicarVariante, variantesDisponibles } from '../lib/variantesMontaje';
 
 // La vista previa exacta (Player de Remotion) se carga sólo cuando hay un plan v2: no entra al bundle inicial.
@@ -87,7 +87,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       const planFinal = aplicarVariante(base, variante, mockupsDe(c0));
       setComercial((c) => ({
         ...c,
-        montaje: { plan: planFinal, base, variante, exports: (c.montaje as MontajeState | undefined)?.exports || [] },
+        montaje: { plan: planFinal, base, variante, armadoCon: materialDe(c0), exports: (c.montaje as MontajeState | undefined)?.exports || [] },
         estados: { ...c.estados, montaje: c.estados.montaje === 'aprobado' ? 'aprobado' : 'generado' },
       }));
     } catch (e) { setError(errMsg(e)); } finally { setArmando(false); }
@@ -117,6 +117,20 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // REARMAR SOLO cuando llega material nuevo (tomas o mockups que terminaron después de armar): sólo si el montaje es
+  // el automático; lo que Lucas editó o aprobó no se toca. Un armado viejo sin `armadoCon` se rearma si hay mockups y
+  // no usa ninguno.
+  const materialActual = comercial ? materialDe(comercial) : '';
+  useEffect(() => {
+    const m = comercial?.montaje as MontajeState | undefined;
+    if (!comercial || !m?.plan || armando || comercial.estados?.montaje !== 'generado') return;
+    const refsMockup = (comercial.mockups || []).map((x) => x.fileRef);
+    const usaAlguno = m.plan.scenes.some((s) => refsMockup.includes(s.src) || (s.inserts || []).some((i) => refsMockup.includes(i.src)));
+    const viejo = m.armadoCon != null ? m.armadoCon !== materialActual : (refsMockup.length > 0 && !usaAlguno);
+    if (viejo) void armar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [materialActual]);
 
   const setMusica = (url: string) => setComercial((c) => {
     const m = c.montaje as MontajeState | undefined;
