@@ -16,7 +16,7 @@ export interface PlanRender {
   segments: SegmentoRender[];
   inserts: InsertoRender[];
   captions: PaginaSubtitulo[];
-  endCard?: { from: number; dur: number; linea1: string; linea2?: string; logoSrc?: string; tipo?: 'logo' | 'pantalla' | 'presentadora'; videoSrc?: string };
+  endCard?: { from: number; dur: number; linea1: string; linea2?: string; logoSrc?: string; tipo?: 'logo' | 'pantalla' | 'presentadora'; videoSrc?: string; aterriza?: number };   // aterriza: cuadro (dentro de la placa) en que el logo se asienta, sincronizado con la voz
   music?: { src: string; gain: number; duck: boolean; duckFrames: [number, number][]; fadeIn: number; fadeOut: number };
   voice?: { src: string; from: number; volume: number; fadeIn: number; fadeOut: number };
   logo?: { src: string };
@@ -110,8 +110,12 @@ export function derivarRender(plan: MontajePlan, base = ''): PlanRender {
     }
   });
   const finClips = F(total);
+  const placaDesde = Math.max(0, finClips - PLACA_SOLAPE);
+  // el logo "aterriza" cuando arranca la voz del cierre (el locutor dice la marca justo cuando el logo se asienta); sin voz, al medio segundo
+  const vozDesde = plan.voice ? F(plan.voice.at) : null;
+  const aterriza = vozDesde != null && vozDesde > placaDesde ? Math.max(8, Math.min(F(1.2), vozDesde - placaDesde)) : F(0.5);
   const endCard = plan.endCard
-    ? { from: Math.max(0, finClips - PLACA_SOLAPE), dur: PLACA_SOLAPE + F(plan.endCard.durSec), linea1: plan.endCard.linea1, linea2: plan.endCard.linea2, logoSrc: plan.endCard.logoSrc ? resolverSrc(base, plan.endCard.logoSrc) : undefined, tipo: plan.endCard.tipo, videoSrc: plan.endCard.videoSrc ? resolverSrc(base, plan.endCard.videoSrc) : undefined }
+    ? { from: placaDesde, dur: PLACA_SOLAPE + F(plan.endCard.durSec), linea1: plan.endCard.linea1, linea2: plan.endCard.linea2, logoSrc: plan.endCard.logoSrc ? resolverSrc(base, plan.endCard.logoSrc) : undefined, tipo: plan.endCard.tipo, videoSrc: plan.endCard.videoSrc ? resolverSrc(base, plan.endCard.videoSrc) : undefined, aterriza }
     : undefined;
   const totalFrames = Math.max(1, endCard ? endCard.from + endCard.dur : finClips);
   return {

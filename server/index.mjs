@@ -48,6 +48,7 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
+import { createHash as _sha } from 'node:crypto';
 import { abrirFlow } from './abrirFlow.mjs';
 import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, descripcionDeSituacion, pedidoLibreLocal } from './salesbotMedios.mjs';
 import { promptEscena, promptImagen, estiloPara } from './flowCompiler.mjs';
@@ -816,7 +817,7 @@ async function uploadToCloudinary(buffer, filename, folder = CLD_FOLDER) {
 // el front. En local los archivos viven en STORAGE_DIR y se sirven por /api/storage/<ruta>.
 // El día que vayas online: IS_PROD=true → Cloudinary; o el botón "Actualizar nube" sincroniza.
 const STORAGE_DIR = process.env.STORAGE_DIR || path.resolve('server/storage');
-const MIME_MORE = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4' };
+const MIME_MORE = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4' };   // svg: un logo vectorial del kit no se dibujaba en el render (2026-10-13)
 
 // Los mockups de UNA pieza (2026-10-12): las tarjetas de una app son las mismas para todas sus piezas, así que si otra
 // pieza del proyecto ya las tiene en video se reutilizan (antes se renderizaban de nuevo por pieza; `rehacer` fuerza el
@@ -1092,6 +1093,12 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { src: `musica/${nombre}`, durSec, mood });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo componer la música' }); }
     }
+    // El DIRECTORIO DE CANCIONES (Lucas, 2026-10-13: "poneme un directorio grande de canciones"): temas compuestos con
+    // ElevenLabs Music por estilo, agnósticos, en storage/canciones (catalogo.json). Se sirven por /api/storage como todo.
+    if (p === '/api/canciones' && req.method === 'GET') {
+      try { return json(res, 200, JSON.parse(fs.readFileSync(path.join(STORAGE_DIR, 'canciones', 'catalogo.json'), 'utf8'))); }
+      catch { return json(res, 200, { canciones: [] }); }
+    }
     // La voz del LOCUTOR del cierre (Lucas, 2026-10-12: "una voz de locutor sobre el logo que diga una frase; para eso
     // está el módulo de voz"): genera la frase con ElevenLabs y la guarda en storage/voces, como la música.
     // body = { texto, voice_id, nombre? } → { src, durSec }
@@ -1101,14 +1108,17 @@ const server = http.createServer(async (req, res) => {
       const texto = String(b.texto || '').trim();
       if (!texto || !b.voice_id) return json(res, 400, { error: 'faltan la frase o la voz' });
       try {
+        // la misma frase con la misma voz es el mismo archivo: no se vuelve a pedir a ElevenLabs (el armado la pide cada vez)
+        const huella = _sha('sha1').update(`${b.voice_id}|${texto}`).digest('hex').slice(0, 10);
+        const nombre = `${String(b.nombre || 'cierre').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'cierre'}-${huella}.mp3`;
+        const archivo = path.join(STORAGE_DIR, 'voces', nombre);
+        if (fs.existsSync(archivo)) return json(res, 200, { src: `voces/${nombre}`, durSec: (await probeDuration(archivo)) || null, reusada: true });
         const r = await fetch(`${ELEVEN_API}/text-to-speech/${encodeURIComponent(b.voice_id)}`, {
           method: 'POST',
           headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
           body: JSON.stringify({ text: texto, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.35, use_speaker_boost: true, speed: 1.0 } }),
         });
         if (!r.ok) return json(res, 502, { error: `ElevenLabs no generó la voz (${r.status}): ${(await r.text()).slice(0, 200)}` });
-        const nombre = `${String(b.nombre || 'cierre').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'cierre'}-${Date.now().toString(36)}.mp3`;
-        const archivo = path.join(STORAGE_DIR, 'voces', nombre);
         fs.mkdirSync(path.dirname(archivo), { recursive: true });
         fs.writeFileSync(archivo, Buffer.from(await r.arrayBuffer()));
         return json(res, 200, { src: `voces/${nombre}`, durSec: (await probeDuration(archivo)) || null });

@@ -73,6 +73,8 @@ export interface Project {
   // ── MEDIA KIT (WO-K2) — TODO opcional: un proyecto sin kit funciona EXACTAMENTE como antes ──
   mediaKitId?: string;           // id del kit del que se importó (= id del registro KSP)
   marcaKit?: MarcaKit;           // ficha de marca COMPLETA del kit (brandKit NO cambia de shape)
+  // la presentadora del cierre de ESTE proyecto: su personaje en Flow (proyecto y nombre). Sin ella, la de server/presentadora.json
+  presentadora?: { flowProjectUrl: string; nombre: string };
   cta?: MediaKitCta;             // el cierre del video, con URL verificada por la app
   momentos?: MediaKitMomento[];  // mini-flujos narrativos (2-3 pantallas que cuentan una historia)
   pantallasKit?: PantallaKit[];  // capturas REALES: relpath + URL + zonaClave/microAnimacion/datosVisibles

@@ -47,3 +47,20 @@ export const MUSIC_TRACKS: MusicTrack[] = [
   ...BASE_TRACKS.map(([id, label, cat]) => ({ id, label, url: `${BASE}/${id}.mp3`, cat })),
   ...CLOUD_TRACKS.map(([id, label, cat, url]) => ({ id, label, url, cat })),
 ];
+
+// El DIRECTORIO DE CANCIONES (Lucas, 2026-10-13: "poneme un directorio grande de canciones"; del catálogo de arriba dijo
+// que "es un desastre"): temas compuestos por estilo, agnósticos, que el backend lista en GET /api/canciones. Al cargar
+// reemplazan EN EL MISMO ARREGLO al catálogo viejo, así todo lo que ya lee MUSIC_TRACKS (Audio, multipista, Montaje) los
+// ve sin cambios. Si el backend no tiene ninguna, queda el catálogo viejo.
+export interface CancionCatalogo { id: string; nombre: string; cat: MusicCat; mood?: string; durSec?: number; src: string }
+let cargadas = false;
+export async function cargarCanciones(apiBase: string): Promise<MusicTrack[]> {
+  if (cargadas) return MUSIC_TRACKS;
+  try {
+    const r = await fetch(`${apiBase}/api/canciones`);
+    const d = (await r.json()) as { canciones?: CancionCatalogo[] };
+    const nuevas = (d.canciones || []).filter((c) => c.src).map((c) => ({ id: c.id, label: c.nombre, cat: MUSIC_CATS.includes(c.cat) ? c.cat : 'Tranquila' as MusicCat, url: `${apiBase}/api/storage/${c.src}` }));
+    if (nuevas.length) { MUSIC_TRACKS.splice(0, MUSIC_TRACKS.length, ...nuevas); cargadas = true; }
+  } catch { /* sin backend queda el catálogo viejo */ }
+  return MUSIC_TRACKS;
+}

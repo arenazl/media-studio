@@ -12,6 +12,7 @@ import { storyboardToMontaje, totalDuration, type MontajePlan, type PalabraTiemp
 import { afinarMontaje } from './montajista';
 import { conMusicaPropia } from './musicaGenerada';
 import { aplicarVariante } from './variantesMontaje';
+import { asegurarLocutor } from './locutorCierre';
 import type { MontajeState } from './montajePlan';
 
 export function esHibrido(comercial: Comercial): boolean {
@@ -45,7 +46,9 @@ export const mockupsDe = (comercial: Comercial) => (comercial.mockups || []).map
 
 // el armado del montajista con su música compuesta a medida (musicaGenerada.ts): la BASE de las versiones
 export async function armarBase(project: Project, comercial: Comercial): Promise<MontajePlan> {
-  return conMusicaPropia(conLocutor(await armarSinMusica(project, comercial), comercial), comercial);
+  // la voz del cierre se crea sola si la pieza no la tiene (locutorCierre.ts); el paso Montaje la persiste en la pieza
+  const c = await asegurarLocutor(project, comercial);
+  return conMusicaPropia(conLocutor(await armarSinMusica(project, c), c), c);
 }
 
 // el LOCUTOR del cierre: su frase suena sobre la placa, que dura lo que dura la frase (y un respiro). Va en la pista de

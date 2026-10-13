@@ -11,6 +11,7 @@ import { mediaKitParaMolde } from '../lib/mediaKit';
 import { totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
 import { armarBase, materialDe, mockupsDe, tomaPresentadora } from '../lib/armarMontaje';
 import { aplicarVariante, variantesDisponibles } from '../lib/variantesMontaje';
+import { VOZ_LOCUTOR, fraseDeCierre, asegurarLocutor } from '../lib/locutorCierre';
 
 // La vista previa exacta (Player de Remotion) se carga sólo cuando hay un plan v2: no entra al bundle inicial.
 const PlayerMontaje = lazy(() => import('../remotion/PlayerMontaje'));
@@ -19,8 +20,6 @@ import { MUSIC_TRACKS } from '../lib/music';
 import { componerMusica, moodDe, musicaDelPlan } from '../lib/musicaGenerada';
 import { resolverSrc } from '../remotion/derivar';
 
-// el locutor por defecto del cierre: "Maxi AR", voz argentina adulta para publicidad y narración (ElevenLabs)
-const VOZ_LOCUTOR = 'rooCDyI2p1wGjgC5O5lH';
 
 const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
@@ -81,8 +80,11 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     if (!c0) return;
     setArmando(true); setError('');
     try {
-      // la base del montajista y, encima, la versión elegida (variantesMontaje.ts): cambiar de versión no rearma
-      const base = await armarBase(project, c0);
+      // la voz del cierre se crea sola (locutorCierre.ts) y queda en la pieza; después la base del montajista y, encima,
+      // la versión elegida (variantesMontaje.ts): cambiar de versión no rearma
+      const c1 = await asegurarLocutor(project, c0);
+      if (c1.cierre !== c0.cierre) setComercial((c) => ({ ...c, cierre: c1.cierre }));
+      const base = await armarBase(project, c1);
       const variante = (c0.montaje as MontajeState | undefined)?.variante;
       const planFinal = aplicarVariante(base, variante, mockupsDe(c0));
       setComercial((c) => ({
@@ -143,8 +145,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   // LOCUTOR del cierre (Lucas, 2026-10-12: "una voz de locutor sobre el logo que diga una frase"): la frase arranca con la
   // firma de la marca o, si no hay, la marca y el cierre del guion; la voz, un locutor argentino de publicidad
   const marcaNombre = project.marcaKit?.nombreExacto || project.brandKit?.name || '';
-  const ctaDelGuion = (comercial?.guion?.blocks || []).find((b) => b.role === 'cta')?.narration?.trim() || '';
-  const fraseSugerida = comercial?.cierreMarca?.trim() || [marcaNombre && `${marcaNombre}.`, ctaDelGuion].filter(Boolean).join(' ');
+  const fraseSugerida = comercial ? fraseDeCierre(project, comercial) : '';
   const [locTexto, setLocTexto] = useState(comercial?.cierre?.locutor?.texto || fraseSugerida);
   const [locVoz, setLocVoz] = useState(comercial?.cierre?.locutor?.voiceId || VOZ_LOCUTOR);
   const [voces, setVoces] = useState<{ voice_id: string; name: string; accent?: string; gender?: string }[]>([]);

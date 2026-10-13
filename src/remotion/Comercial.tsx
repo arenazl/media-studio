@@ -191,21 +191,47 @@ const rgba = (hex: string, a: number) => { const h = /^#?([0-9a-f]{6})$/i.exec(h
 const PildoraWeb: React.FC<{ texto: string; color: string; u: number; opacity: number }> = ({ texto, color, u, opacity }) => (
   <div style={{ padding: `${20 * u}px ${46 * u}px`, borderRadius: 999, background: color, color: '#fff', fontFamily: sans, fontWeight: 800, fontSize: 36 * u, letterSpacing: 0.5, boxShadow: `0 22px 60px ${rgba(color, 0.45)}`, opacity }}>{texto}</div>
 );
-// 1) placa grande: fondo oscuro con el brillo del color de la marca, el logo grande, la frase y la web
+// 1) el logo ANIMADO de la marca que sea (Lucas, 2026-10-13: "no el logo de mierda que están poniendo, una animación; ahí sí
+// rompámonos el orto"). Todo sale del kit: el logo, los colores (primario, acento) y la firma. En orden: un barrido del
+// color de la marca cruza el fondo oscuro; el logo cae y se ASIENTA en `card.aterriza` (el cuadro en que arranca la voz
+// del cierre: el locutor dice la marca justo cuando el logo aterriza), con un destello y una onda; una línea del color
+// de acento se dibuja debajo; la frase se escribe letra por letra; la web sube como botón. Después respira, quieto.
 const CierreLogo: React.FC<{ card: NonNullable<PlanRender['endCard']>; estilo: PlanRender['estilo']; width: number; nombre?: string }> = ({ card, estilo, width, nombre }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const u = width / 1080;
-  const a = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: 'clamp' });
-  const esc = interpolate(frame, [0, 22], [0.86, 1], { extrapolateRight: 'clamp', easing: Easing.out(Easing.back(1.4)) });
-  const b = interpolate(frame, [14, 28], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const c = interpolate(frame, [22, 36], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const T = card.aterriza ?? Math.round(fps * 0.5);              // el aterrizaje
+  const lin = (de: number, a: number, v0: number, v1: number, e?: (t: number) => number) => interpolate(frame, [de, a], [v0, v1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', ...(e ? { easing: e } : {}) });
+  const entrada = lin(0, Math.round(fps * 0.25), 0, 1);
+  // 1. barrido: una banda diagonal del color de la marca cruza de izquierda a derecha antes del aterrizaje
+  const barrido = lin(0, T, -60, 160, Easing.inOut(Easing.cubic));
+  // 2. el logo: viene grande y "cae" hasta su tamaño; al aterrizar, destello y onda que se expande
+  const caida = lin(Math.max(0, T - Math.round(fps * 0.45)), T, 1.32, 1, Easing.out(Easing.back(1.5)));
+  const opLogo = lin(Math.max(0, T - Math.round(fps * 0.45)), T - 2, 0, 1);
+  const destello = frame >= T ? lin(T, T + Math.round(fps * 0.35), 0.9, 0) : 0;
+  const onda = frame >= T ? lin(T, T + Math.round(fps * 0.8), 0, 1, Easing.out(Easing.cubic)) : 0;
+  const respira = frame > T ? 1 + 0.012 * Math.sin(((frame - T) / fps) * Math.PI * 0.8) : 1;
+  // 3. la línea de acento se dibuja; 4. la frase se escribe letra por letra; 5. la web sube
+  const linea = lin(T + 2, T + Math.round(fps * 0.4), 0, 1, Easing.out(Easing.cubic));
+  const letras = Math.round(lin(T + Math.round(fps * 0.15), T + Math.round(fps * 0.15) + Math.round(fps * Math.min(1.2, 0.03 * card.linea1.length)), 0, card.linea1.length));
+  const web = lin(T + Math.round(fps * 0.6), T + Math.round(fps * 1.0), 0, 1, Easing.out(Easing.cubic));
+  const fondo = `radial-gradient(70% 45% at 50% 42%, ${rgba(estilo.primario, 0.38)} 0%, rgba(0,0,0,0) 72%), linear-gradient(180deg, #121014 0%, #0B0A0D 100%)`;
   return (
-    <AbsoluteFill style={{ background: `radial-gradient(65% 42% at 50% 40%, ${rgba(estilo.primario, 0.42)} 0%, rgba(0,0,0,0) 72%), linear-gradient(180deg, #121014 0%, #0B0A0D 100%)`, justifyContent: 'center', alignItems: 'center', opacity: a, padding: `0 ${90 * u}px` }}>
-      <div style={{ transform: `scale(${esc})`, display: 'flex', justifyContent: 'center' }}>
+    <AbsoluteFill style={{ background: fondo, justifyContent: 'center', alignItems: 'center', opacity: entrada, padding: `0 ${90 * u}px`, overflow: 'hidden' }}>
+      {/* el barrido de color */}
+      <div style={{ position: 'absolute', top: '-20%', bottom: '-20%', left: `${barrido}%`, width: '38%', transform: 'skewX(-18deg)', background: `linear-gradient(90deg, ${rgba(estilo.primario, 0)} 0%, ${rgba(estilo.primario, 0.55)} 50%, ${rgba(estilo.primario, 0)} 100%)`, filter: `blur(${18 * u}px)` }} />
+      {/* la onda del aterrizaje */}
+      {onda > 0 && onda < 1 ? <div style={{ position: 'absolute', width: 900 * u, height: 900 * u, borderRadius: '50%', border: `${3 * u}px solid ${rgba(estilo.acento, 0.8 * (1 - onda))}`, transform: `scale(${0.3 + onda * 1.4})` }} /> : null}
+      <div style={{ transform: `scale(${caida * respira})`, opacity: opLogo, display: 'flex', justifyContent: 'center', filter: destello > 0 ? `drop-shadow(0 0 ${40 * u * destello}px ${rgba('#ffffff', destello)})` : undefined }}>
         {card.logoSrc ? <Img src={card.logoSrc} style={{ width: 760 * u, maxHeight: 420 * u, objectFit: 'contain' }} /> : <span style={{ fontFamily: sans, fontWeight: 800, fontSize: 150 * u, color: '#fff' }}>{nombre}</span>}
       </div>
-      <div style={{ marginTop: 80 * u, fontFamily: sans, fontWeight: 700, fontSize: (card.linea1.length > 34 ? 52 : 62) * u, color: '#fff', textAlign: 'center', lineHeight: 1.18, opacity: b }}>{card.linea1}</div>
-      {card.linea2 ? <div style={{ marginTop: 56 * u }}><PildoraWeb texto={card.linea2} color={estilo.primario} u={u} opacity={c} /></div> : null}
+      {/* el destello blanco al asentarse */}
+      {destello > 0 ? <AbsoluteFill style={{ background: '#fff', opacity: destello * 0.35, pointerEvents: 'none' }} /> : null}
+      <div style={{ marginTop: 34 * u, height: 6 * u, width: 220 * u * linea, borderRadius: 999, background: estilo.acento, boxShadow: `0 0 ${24 * u}px ${rgba(estilo.acento, 0.7)}` }} />
+      <div style={{ marginTop: 40 * u, fontFamily: sans, fontWeight: 700, fontSize: (card.linea1.length > 34 ? 52 : 62) * u, color: '#fff', textAlign: 'center', lineHeight: 1.18, minHeight: 1.18 * (card.linea1.length > 34 ? 52 : 62) * u }}>
+        {card.linea1.slice(0, letras)}<span style={{ opacity: letras < card.linea1.length ? 0.9 : 0 }}>|</span>
+      </div>
+      {card.linea2 ? <div style={{ marginTop: 48 * u, transform: `translateY(${(1 - web) * 30 * u}px)` }}><PildoraWeb texto={card.linea2} color={estilo.primario} u={u} opacity={web} /></div> : null}
     </AbsoluteFill>
   );
 };

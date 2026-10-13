@@ -1171,7 +1171,10 @@ Devolvé SOLO JSON: { "escena": { "escenaN": ${regenerate.escenaN}, "accionEn": 
       const ctaGuion = ((piece.guion && piece.guion.blocks) || []).find((b) => b.role === 'cta');
       const marca = (project.marcaKit && project.marcaKit.nombreExacto) || project.name || '';
       const frase = (piece.cierre && piece.cierre.locutor && piece.cierre.locutor.texto) || piece.cierreMarca || [marca && `${marca}.`, ctaGuion && ctaGuion.narration].filter(Boolean).join(' ');
-      const presentadora = piece.tipo !== 'animado' && String(frase || '').trim() ? { frase, ...leerPresentadora() } : null;
+      // agnóstico (Lucas, 2026-10-13: "tiene que ser todo medio ambiguo"): cada proyecto puede tener SU presentadora
+      // (project.presentadora = { flowProjectUrl, nombre }); sin ella, la de server/presentadora.json
+      const presDelProyecto = project.presentadora && String(project.presentadora.flowProjectUrl || '').trim() ? { flowProjectUrl: String(project.presentadora.flowProjectUrl).trim(), nombre: String(project.presentadora.nombre || '').trim() } : null;
+      const presentadora = piece.tipo !== 'animado' && String(frase || '').trim() ? { frase, ...(presDelProyecto || leerPresentadora()) } : null;
       const pack = compileFlowPack({ storyboard, cast: piece.cast, phonetic: project.phonetic || project.name || '', traducciones, aspecto, presentadora });
       if (pack.huecos.length) console.warn(`[media-studio] flowpack: ${pack.huecos.length} escena(s) con la acción sin traducir (quedó en español): ${pack.huecos.join(', ')}`);
       return { estilo: pack.estilo, personajes: pack.personajes, escenas: pack.escenas, huecos: pack.huecos, version: pack.version };
