@@ -73,8 +73,9 @@ describe('moldes del rework (concept/cast/storyboard/flowpack)', () => {
     }
   });
 
-  it('concept tiene la opción de perfil; cast/storyboard/flowpack no piden opciones', () => {
-    expect(getFunction('concept')!.options.map((o) => o.id)).toContain('perfil');
+  it('perfil se elige en Estrategia; Concepto sólo ofrece cómo contar el spot', () => {
+    expect(getFunction('strategy')!.options.map((o) => o.id)).toContain('perfil');
+    expect(getFunction('concept')!.options.map((o) => o.id)).toEqual(['enfoque', 'tratamiento', 'intensidadHumor', 'recursoHumorId']);
     for (const id of ['cast', 'storyboard', 'flowpack'] as const) {
       expect(getFunction(id)!.options).toHaveLength(0);
     }
