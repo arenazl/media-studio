@@ -9,6 +9,7 @@
 import { validateConceptResponseV3 } from './media-studio-concept-v3.mjs';
 
 export const PROMPT_VERSIONS = {
+  montageDirection: 'montageDirection/1.0', // dirección del montaje con recursos ejecutables
   strategy: 'strategy/2.1',       // 2.1: curación 02 (2026-10-11): jerarquía de la pieza, "hasta N" no es "N"
   // strategy/2.0:       // 2.0: curado 2026-10-07 (la campaña cubre la propuesta; cada pieza UNA cosa)
   concept: 'concept/3.3',         // 3.3: (2026-10-12, Lucas) barrios y características de la ficha y el kit son de ejemplo: no se replican
@@ -96,6 +97,22 @@ export const esTalkingHead = (e) => !!(String(e?.dialogo || '').trim() && Array.
 const ROLES = ['hook', 'desarrollo', 'giro', 'cta'];
 const OPCIONALES = new Set(['giro']);   // un comercial sin giro es válido: no se fuerza un remate
 export const VALIDADORES = {
+  montageDirection(o, body) {
+    const E = [];
+    if (!o || typeof o.diagnostico !== 'string' || !o.diagnostico.trim()) E.push('falta diagnostico');
+    if (!Array.isArray(o?.decisiones) || o.decisiones.length > 8) return [...E, 'decisiones: lista de 0 a 8'];
+    const recursos = new Set(['music_drop','music_dip','music_lift','cut','dissolve','show_face','sfx_off']);
+    const cuando = new Set(['antes','inicio','final']);
+    const escenas = new Set((body?.context?.piece?.escenas || []).filter(e => e.src).map(e => e.escenaN));
+    for (const [i,d] of o.decisiones.entries()) {
+      if (!recursos.has(d?.recurso)) E.push(`decisión ${i}: recurso no válido`);
+      if (!escenas.has(d?.escenaN)) E.push(`decisión ${i}: escena sin material disponible`);
+      if (!cuando.has(d?.cuando)) E.push(`decisión ${i}: cuando no válido`);
+      if (!Number.isFinite(d?.durSec) || d.durSec < 0 || d.durSec > 1.5) E.push(`decisión ${i}: durSec fuera de 0-1.5`);
+      if (!String(d?.motivo || '').trim()) E.push(`decisión ${i}: falta motivo`);
+    }
+    return E;
+  },
   concept(o) {
     // concept/3.0: el validador vino con la curación (estructura, ids, largos por campo, mayúsculas en tipoGancho,
     // sin segundos ni planos en la idea). La veracidad y la diversidad real las mira el dueño.
