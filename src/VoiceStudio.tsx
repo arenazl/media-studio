@@ -261,15 +261,8 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
     out = out.replace(/[ \t]{2,}/g, (m) => ` <break time="${Math.min(0.25 + (m.length - 1) * 0.1, 1.2).toFixed(2)}s"/> `);
     return out.replace(/[ \t]{2,}/g, ' ').trim();
   };
-  // Sample de la voz: selecciona + reproduce directo (sin Web Audio) para evitar el
-  // bloqueo CORS de las URLs de preview de ElevenLabs (storage.googleapis.com).
-  const previewVoice = (v: Voice) => {
-    setVoiceId(v.voice_id);
-    const s = sampleRef.current; if (!s || !v.preview_url) return;
-    s.volume = sampleVol;
-    s.src = v.preview_url; s.currentTime = 0; duck(true);
-    s.play().then(() => setSampling(true)).catch(() => setSampling(false));
-  };
+  // (el sample de cada voz lo reproduce el botón de la lista de voces: un <audio> común, sin Web Audio, así las URLs de
+  // preview de ElevenLabs en storage.googleapis.com no chocan con CORS)
   const applyPreset = (p: { stability: number; similarity: number; style: number; speed: number }) => {
     setStability(p.stability); setSimilarity(p.similarity); setStyle(p.style); setSpeed(p.speed);
   };
@@ -506,8 +499,12 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
   // SOLO voces en español (latinoamericano / argentino). El resto (inglés, portugués) se ocultan:
   // los reels son en rioplatense. Si querés más, ampliás la API key de ElevenLabs.
   const esEspanol = (a?: string) => /latin|argentin|spanish|español|castell|mexic|colomb|chilen|peruan|uruguay/i.test(a || '');
+  // cada voz con lo que es en criollo (acento · hombre/mujer · edad) y su botón para escucharla (Lucas, 2026-10-12)
+  const GENERO_ES: Record<string, string> = { male: 'hombre', female: 'mujer', neutral: 'neutra' };
+  const EDAD_ES: Record<string, string> = { young: 'joven', middle_aged: 'adulta', old: 'mayor' };
   const voiceItems = voices.filter((v) => esEspanol(v.accent)).map((v) => ({
     id: v.voice_id, label: v.name,
+    sub: [langGroup(v.accent) === 'Latinoamericano' && /argentin/i.test(v.accent || '') ? 'argentina' : /latin/i.test(v.accent || '') ? 'latina' : v.accent, GENERO_ES[v.gender || ''] || v.gender, EDAD_ES[v.age || ''] || v.age].filter(Boolean).join(' · '),
     meta: { gender: v.gender || '', age: v.age || '', lang: langGroup(v.accent) },
     searchText: `${v.accent || ''} ${v.use_case || ''} ${v.description || ''}`,
     data: v,
@@ -603,10 +600,13 @@ export default function VoiceStudio({ reelConfig, files, onGrabar, onAudio }: Vo
           items={fileItems} activeId={activeFile ?? undefined} onPick={(it) => loadFile(it.data as SourceFile)}
           open={isOpen('src')} onToggle={() => tg('src')} emptyText="sin guiones" />
 
-        <SourcePanel title={`Voces (${voiceItems.length})`} accent={ACCENT_BLUE} icon={<Mic size={13} />} grow={282} view="chips"
+        {/* lista (no chips) con el botón para escuchar cada voz; tocar la fila la elige. Sin el filtro de idioma: son
+            todas en español, y esa fila le comía el lugar a la lista en una pantalla de notebook */}
+        <SourcePanel title={`Voces (${voiceItems.length})`} accent={ACCENT_BLUE} icon={<Mic size={13} />} grow={282} view="list"
           items={voiceItems} search activeId={voiceId}
-          filters={[{ key: 'gender', label: 'Todas', options: GENDER_OPTS }, { key: 'age', label: 'Toda edad', options: AGE_OPTS }, { key: 'lang', label: 'Todo idioma' }]}
-          onPick={(it) => previewVoice(it.data as Voice)} footer={voiceFooter}
+          filters={[{ key: 'gender', label: 'Todas', options: GENDER_OPTS }, { key: 'age', label: 'Toda edad', options: AGE_OPTS }]}
+          getPreviewUrl={(it) => (it.data as Voice).preview_url || null} previewVolume={sampleVol}
+          onPick={(it) => setVoiceId((it.data as Voice).voice_id)} footer={voiceFooter}
           open={isOpen('voces')} onToggle={() => tg('voces')} emptyText={voices.length ? 'sin voces con esos filtros' : 'cargando…'} />
 
         <SourcePanel title="Música" accent={ACCENT_BLUE} icon={<Music2 size={13} />} grow={232} view="chips"

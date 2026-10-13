@@ -203,7 +203,7 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
   const musicaClips: EditorClip[] = plan.music
     ? [{
       id: 'musica-1',
-      label: trackLabel(plan.music.src) || 'Música',
+      label: plan.music.generada ? 'Música a medida' : trackLabel(plan.music.src) || 'Música',
       startSec: 0,
       durSec: total,
       color: '#FFB800',

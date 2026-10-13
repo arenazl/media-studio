@@ -10,6 +10,7 @@ import type { Project } from './projects';
 import { getFormato, mediosDeFormato } from './formato';
 import { storyboardToMontaje, type MontajePlan, type PalabraTiempo } from './montajePlan';
 import { afinarMontaje } from './montajista';
+import { conMusicaPropia } from './musicaGenerada';
 
 export function esHibrido(comercial: Comercial): boolean {
   const medios = mediosDeFormato(getFormato(comercial.formatoId));
@@ -24,7 +25,12 @@ async function transcribir(ref: string): Promise<readonly [string, PalabraTiempo
   } catch { return [ref, undefined] as const; }
 }
 
+// la música ya no sale del catálogo: se compone a medida de la pieza (musicaGenerada.ts)
 export async function armarMontaje(project: Project, comercial: Comercial): Promise<MontajePlan> {
+  return conMusicaPropia(await armarSinMusica(project, comercial), comercial);
+}
+
+async function armarSinMusica(project: Project, comercial: Comercial): Promise<MontajePlan> {
   const base = storyboardToMontaje(comercial);
   const marca = { exacto: project.marcaKit?.nombreExacto || project.brandKit?.name, fonetica: project.marcaKit?.fonetica || project.brandKit?.phonetic };
   if (comercial.tipo === 'animado') {

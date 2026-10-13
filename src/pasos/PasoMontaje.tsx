@@ -15,6 +15,8 @@ import { armarMontaje } from '../lib/armarMontaje';
 const PlayerMontaje = lazy(() => import('../remotion/PlayerMontaje'));
 import { pasoHabilitado, type QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
+import { componerMusica, moodDe, musicaDelPlan } from '../lib/musicaGenerada';
+import { resolverSrc } from '../remotion/derivar';
 
 const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
 const trackLabel = (url: string | undefined) => MUSIC_TRACKS.find((t) => t.url === url)?.label;
@@ -41,7 +43,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       }
     } else {
       if (audioRef.current) audioRef.current.pause();
-      const a = new Audio(url);
+      const a = new Audio(resolverSrc(API_BASE, url));   // la música compuesta es un archivo local (musica/...)
       audioRef.current = a;
       setPreviewUrl(url);
       a.play().catch(() => setPreviewUrl(null));
@@ -103,6 +105,22 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     const music = url ? { src: url, gain: 0.28, duck: true } : undefined;
     return { ...c, montaje: { ...m, plan: { ...m.plan, music } } };
   });
+
+  // música a medida (Lucas, 2026-10-12): otra composición del mismo clima, que dura lo que el video
+  const [componiendo, setComponiendo] = useState(false);
+  const componer = async () => {
+    const m0 = comercial?.montaje as MontajeState | undefined;
+    if (!comercial || !m0?.plan || componiendo) return;
+    setComponiendo(true); setError('');
+    try {
+      const m = await componerMusica(moodDe(comercial), Math.ceil(totalDuration(m0.plan) + 5), comercial.titulo);
+      setComercial((c) => {
+        const mm = c.montaje as MontajeState | undefined;
+        if (!mm?.plan) return c;
+        return { ...c, montaje: { ...mm, plan: { ...mm.plan, music: musicaDelPlan(m, mm.plan.music) } } };
+      });
+    } catch (e) { setError(errMsg(e)); } finally { setComponiendo(false); }
+  };
 
   const patch = (up: (p: MontajePlan) => MontajePlan) => setComercial((c) => {
     const m = c.montaje as MontajeState | undefined;
@@ -301,7 +319,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           <div className="mont-mixer">
             <div className="paso-card mont-music">
               <div className="paso-card-h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span><Music2 size={12} /> Música {plan.music ? `— ${trackLabel(plan.music.src) || 'elegida'}` : '— sin música'}</span>
+                <span><Music2 size={12} /> Música {plan.music ? `— ${plan.music.generada ? 'compuesta a medida' : trackLabel(plan.music.src) || 'elegida'}` : '— sin música'}</span>
                 {plan.music?.src && (
                   <button
                     className="rodaje-var"
@@ -316,8 +334,12 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <select className="mont-select" style={{ flex: 1 }} value={plan.music?.src || ''} onChange={(e) => setMusica(e.target.value)}>
                   <option value="">Sin música</option>
+                  {plan.music?.generada && <option value={plan.music.src}>Compuesta a medida{plan.music.mood ? ` · ${plan.music.mood}` : ''}</option>}
                   {MUSIC_TRACKS.map((t) => <option key={t.id} value={t.url}>{t.cat} · {t.label}</option>)}
                 </select>
+                <button className="rodaje-var" style={{ background: '#B45309', color: '#FFF', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={componer} disabled={componiendo} title="Componer otra música a medida de esta pieza (el clima del guion y lo que dura el video)">
+                  {componiendo ? <Loader2 size={14} className="paso-spin" /> : <Music2 size={14} />} {componiendo ? 'Componiendo…' : 'Otra a medida'}
+                </button>
                 {plan.music?.src && (
                   <button
                     className="rodaje-var"

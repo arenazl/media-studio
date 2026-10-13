@@ -66,7 +66,8 @@ export interface MontajePlan {
   width: number; height: number; fps: number;
   scenes: MontajeScene[];
   voice?: { src: string; at: number; fadeIn?: number; fadeOut?: number };
-  music?: { src: string; gain: number; duck: boolean; fadeIn?: number; fadeOut?: number };
+  // generada: compuesta a medida para esta pieza (ElevenLabs Music), con la duración y el clima con que se pidió
+  music?: { src: string; gain: number; duck: boolean; fadeIn?: number; fadeOut?: number; generada?: boolean; durSec?: number; mood?: string };
   silences: { antesDeEscena: number; durSec: number }[];   // anclados a escena; from/to se derivan
   texts: { text: string; preset: string; at: number; dur: number; nx?: number; ny?: number }[];
   logo?: { src: string };
@@ -101,7 +102,7 @@ export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; c
 
 export const DUCK_GAIN = 0.4;              // igual que el preview (montageAudio.ts)
 const SILENCE_ANTES_GAG = 0.8;            // el "toque final" del workflow de referencia
-const MUSIC_GAIN = 0.28;
+export const MUSIC_GAIN = 0.28;
 const CUT_DUR = 0.03;                      // "corte" = xfade mínimo (uniforma la cadena xfade)
 const XFADE_DUR = 0.4;
 

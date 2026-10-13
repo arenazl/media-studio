@@ -1068,6 +1068,29 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { voices });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error voces' }); }
     }
+    // Música A MEDIDA de cada pieza (Lucas, 2026-10-12: "lo más importante es la música; es un desastre la que hay"):
+    // ElevenLabs Music la compone con el clima del guion y la duración del video. Queda en storage/musica y se sirve por
+    // /api/storage como cualquier toma. body = { mood, durSec, nombre? } → { src, durSec, mood }
+    if (p === '/api/musica/generar' && req.method === 'POST') {
+      if (!ELEVEN_KEY) return json(res, 503, { error: 'falta ELEVENLABS_API_KEY (.env)' });
+      const b = JSON.parse((await readBody(req)) || '{}');
+      const durSec = Math.min(300, Math.max(10, Math.ceil(Number(b.durSec) || 30)));
+      const mood = String(b.mood || '').trim() || 'moderna, cálida y optimista';
+      const prompt = `Instrumental background music for a ${durSec}-second vertical social media commercial. Mood and style: ${mood}. Polished modern production with a clear rhythm from the first second; it sits under a voice-over, so no lead melody fighting the voice. No vocals, no singing. It builds slightly and ends with a clean, resolved ending.`;
+      try {
+        const r = await fetch(`${ELEVEN_API}/music`, {
+          method: 'POST',
+          headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+          body: JSON.stringify({ prompt, music_length_ms: durSec * 1000 }),
+        });
+        if (!r.ok) return json(res, 502, { error: `ElevenLabs no compuso la música (${r.status}): ${(await r.text()).slice(0, 200)}` });
+        const buf = Buffer.from(await r.arrayBuffer());
+        const nombre = `${String(b.nombre || 'pieza').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'pieza'}-${Date.now().toString(36)}.mp3`;
+        fs.mkdirSync(path.join(STORAGE_DIR, 'musica'), { recursive: true });
+        fs.writeFileSync(path.join(STORAGE_DIR, 'musica', nombre), buf);
+        return json(res, 200, { src: `musica/${nombre}`, durSec, mood });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo componer la música' }); }
+    }
     // Genera el audio de una voz — mismo body que iba al Cloud Run; devuelve audio/mpeg.
     if (p === '/api/tts/generate' && req.method === 'POST') {
       if (!ELEVEN_KEY) return json(res, 503, { error: 'falta ELEVENLABS_API_KEY (.env)' });

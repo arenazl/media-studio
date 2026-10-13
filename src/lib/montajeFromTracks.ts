@@ -124,6 +124,8 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
       duck: musClip.meta != null ? musClip.meta === 'con ducking' : (base.music?.duck ?? true),
       ...(musClip.fadeIn != null ? { fadeIn: musClip.fadeIn } : {}),
       ...(musClip.fadeOut != null ? { fadeOut: musClip.fadeOut } : {}),
+      // la compuesta a medida conserva con qué duración y clima se pidió (el armado la reusa si alcanza)
+      ...(base.music?.generada && base.music.src === musClip.fileRef ? { generada: true, durSec: base.music.durSec, mood: base.music.mood } : {}),
     }
     : base.music;
 

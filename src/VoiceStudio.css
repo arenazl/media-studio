@@ -44,7 +44,9 @@
 }
 
 /* ===== FILA 1: paneles de control — fluida: wrap + base mínima, reflowa sola ===== */
+/* más alta que el resto de la app: en una notebook (768 px) la lista de voces quedaba sin lugar debajo de los filtros */
 .vs-row1 {
+  --panel-max-h: clamp(330px, 52vh, 540px);
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;

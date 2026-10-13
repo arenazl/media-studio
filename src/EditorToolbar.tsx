@@ -1,7 +1,7 @@
 // Barra superior del editor multipista (prototipo.dc.html líneas 840-857). Navegación (back/publicar)
 // + herramientas de edición del clip seleccionado (split/duplicar/eliminar) + deshacer/rehacer sobre
 // el historial local (lib/editorEdits.ts) + chips de estado.
-import { ArrowLeft, Undo2, Redo2, Scissors, CopyPlus, Trash2, Sparkles, Check, Pencil, Eye, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Undo2, Redo2, Scissors, CopyPlus, Trash2, Sparkles, Check, Pencil, Eye, Save, Loader2, Music2 } from 'lucide-react';
 import './EditorToolbar.css';
 
 export interface EditorToolbarProps {
@@ -26,13 +26,15 @@ export interface EditorToolbarProps {
   onDelete: () => void;
   onSave: () => void;
   onAutoArmar: () => void;
+  componiendo?: boolean;  // se está componiendo la música a medida
+  onOtraMusica?: () => void;
   previewFocus: boolean;
   onTogglePreviewFocus: () => void;
   onPublish: () => void;
 }
 
 export default function EditorToolbar({
-  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canPublish, guardable, saveHint, canAutoArmar, autoArmando,
+  onBack, pieceName, aspect, durationLabel, dirty, canUndo, canRedo, canEdit, canSave, canPublish, guardable, saveHint, canAutoArmar, autoArmando, componiendo, onOtraMusica,
   onUndo, onRedo, onSplit, onDuplicate, onDelete, onSave, onAutoArmar, previewFocus, onTogglePreviewFocus, onPublish,
 }: EditorToolbarProps) {
   return (
@@ -45,6 +47,11 @@ export default function EditorToolbar({
         <button className="ed-chip ed-chip--gold ed-chip--btn" disabled={!canAutoArmar} onClick={onAutoArmar} title="Armar la timeline sola con lo ya generado: clips de Flow, mockups, música, transiciones y placa (el mismo armado del paso Montaje)">
           {autoArmando ? <><Loader2 size={11} className="paso-spin" /> Armando…</> : <><Sparkles size={11} /> Auto-armar</>}
         </button>
+        {onOtraMusica && (
+          <button className="ed-chip ed-chip--gold ed-chip--btn" disabled={componiendo || autoArmando} onClick={onOtraMusica} title="Componer otra música a medida de esta pieza (el clima del guion y lo que dura el video)">
+            {componiendo ? <><Loader2 size={11} className="paso-spin" /> Componiendo…</> : <><Music2 size={11} /> Otra música</>}
+          </button>
+        )}
         {/* el chip de estado sólo tiene sentido si HAY dónde guardar: sin pieza abierta pintaba un
             "Guardado" verde que mentía (no se persistió nada — ver `puedeGuardar` en Editor.tsx). */}
         {guardable && (

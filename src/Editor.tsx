@@ -16,6 +16,8 @@ import {
 } from './lib/editorTracks';
 import { tracksToMontaje } from './lib/montajeFromTracks';
 import { armarMontaje } from './lib/armarMontaje';
+import { componerMusica, moodDe, musicaDelPlan } from './lib/musicaGenerada';
+import { totalDuration } from './lib/montajePlan';
 import type { MezclaPista, MontajePlan, MontajeState } from './lib/montajePlan';
 import type { PlayerRef } from '@remotion/player';
 import {
@@ -215,6 +217,23 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
     } finally { setAutoArmando(false); }
   };
 
+  // otra música compuesta a medida (Lucas, 2026-10-12: "lo más importante es la música"): reemplaza la de la pista
+  // Música con una nueva del mismo clima y que dura lo que el video. Entra al historial: deshacible.
+  const [componiendo, setComponiendo] = useState(false);
+  const onOtraMusica = async () => {
+    if (!comercial || componiendo) return;
+    setComponiendo(true);
+    try {
+      const plan = tracksToMontaje(draftTracks, basePlan);
+      const m = await componerMusica(moodDe(comercial), Math.ceil(totalDuration(plan) + 5), comercial.titulo);
+      const music = musicaDelPlan(m, plan.music);
+      setBasePlan((b) => ({ ...b, music }));
+      mutate(() => pistasDe({ ...plan, music }));
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : 'No se pudo componer la música');
+    } finally { setComponiendo(false); }
+  };
+
   // AL ENTRAR (Lucas, 2026-10-11: "el auto-armar debería llamarse al entrar a la pantalla para tener algo para
   // arrancar"): si el montaje todavía es el automático (no se guardó a mano ni se exportó), se rearma con el armado
   // vigente y se guarda como automático. Lo que Lucas ya editó o aprobó no se toca: para eso está el botón.
@@ -412,6 +431,8 @@ export default function Editor({ project, onBack, onPublish, onSaveMontaje }: Ed
         saveHint={puedeGuardar ? undefined : 'Abrí una pieza para guardar'}
         canAutoArmar={!!comercial?.storyboard?.length && !autoArmando}
         autoArmando={autoArmando}
+        componiendo={componiendo}
+        onOtraMusica={comercial ? onOtraMusica : undefined}
         onUndo={onUndo}
         onRedo={onRedo}
         onSplit={onSplit}
