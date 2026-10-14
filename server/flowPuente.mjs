@@ -55,7 +55,24 @@ export function descargaLista(info) {
   console.log('[media-studio] puente-flow: Chrome terminó una descarga:', info.filename);
 }
 
-function pedir(job, accion, args = {}, timeoutMs = 120000) {
+// La pestaña de Flow quedó dormida o sin el script de la extensión (2026-10-14: dos pedidos de SalesBot murieron con
+// "Receiving end does not exist"). El paso no llegó a ejecutarse, así que no gastó nada: la extensión recarga la pestaña
+// (eso lo hace sin necesitar la página) y el paso se pide de nuevo, una sola vez.
+const SIN_CONEXION = /Receiving end does not exist|Could not establish connection/i;
+async function pedir(job, accion, args = {}, timeoutMs = 120000) {
+  // con la pestaña traída al frente para todo el trabajo, se devuelve recién al final (ver iniciarJob)
+  if (accion === 'devolverPestana' && job.alFrente && !args.final) return { omitida: true };
+  try { return await pedirUnaVez(job, accion, args, timeoutMs); }
+  catch (e) {
+    if (!SIN_CONEXION.test(e.message) || accion === 'recargar') throw e;
+    const aviso = `la pestaña de Flow no contestaba ("${accion}"); la recargo y sigo`;
+    if (Array.isArray(job.log)) job.log.push(`${new Date().toTimeString().slice(0, 8)} ${aviso}`);
+    console.log('[media-studio] puente-flow:', aviso);
+    await pedirUnaVez(job, 'recargar', {}, 90000);
+    return pedirUnaVez(job, accion, args, timeoutMs);
+  }
+}
+function pedirUnaVez(job, accion, args = {}, timeoutMs = 120000) {
   const id = `p${++seq}`;
   const paso = { id, jobId: job.id, accion, args, proyectoUrl: job.flowProjectUrl || null };
   cola.push(paso);
@@ -116,21 +133,37 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
     // primer contacto: dónde está la pestaña
     const est = await pedir(job, 'estado', {}, 600000);
     log(`pestaña de Flow: ${est.url}`);
+    // Flow no abre sus menús en una pestaña que no está a la vista (2026-10-14: con la ventana atrás o minimizada, los
+    // pedidos morían con "no encontré el ítem del menú"). Se trae al frente para todo el trabajo y al final se devuelve.
+    if (est.visible === false) { await pedir(job, 'traerAlFrente', {}, 20000).catch(() => {}); job.alFrente = true; log('traigo la pestaña de Flow al frente: escondida, Flow no abre sus menús'); }
+    // Flow manda a /404?reason=project un proyecto que ya no existe (borrado o de otra cuenta). Le pasó al de SalesBot el
+    // 2026-10-13/14: las ventanas que se abrían solas quedaban en ese error y los pedidos morían sin decir por qué.
+    const proyectoMuerto = (u) => /flow\.google\.com\/404\b/.test(String(u || ''));
     if (job.flowProjectUrl) {
+      let muerto = false;
       if (!est.url.startsWith(job.flowProjectUrl)) {
         setPaso('abriendo el proyecto de Flow');
         // la navegación la hace el background de la extensión (la página se recarga); después se confirma por "estado"
         await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch((e) => log(`ir: ${e.message}`));
         let ok = false;
-        for (let i = 0; i < 12 && !ok; i++) {
+        for (let i = 0; i < 12 && !ok && !muerto; i++) {
           const e2 = await pedir(job, 'estado', {}, 30000).catch(() => null);
+          muerto = !!e2 && proyectoMuerto(e2.url);
           ok = !!e2 && e2.url.startsWith(job.flowProjectUrl);
-          if (!ok) await new Promise((r) => setTimeout(r, 2000));
+          if (!ok && !muerto) await new Promise((r) => setTimeout(r, 2000));
         }
-        if (!ok) throw new Error('la pestaña no llegó al proyecto de Flow');
-        log('proyecto de Flow abierto');
+        if (!ok && !muerto) throw new Error('la pestaña no llegó al proyecto de Flow');
       }
-    } else {
+      // Flow puede cargar la dirección del proyecto y recién después mandar al 404: se mira de nuevo un momento más tarde
+      if (!muerto) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const e3 = await pedir(job, 'estado', {}, 30000).catch(() => null);
+        muerto = !!e3 && proyectoMuerto(e3.url);
+      }
+      if (muerto) { log(`el proyecto de Flow ya no existe (${job.flowProjectUrl}); creo uno nuevo`); job.flowProjectUrl = null; est.url = 'https://flow.google.com/404'; }
+      else log('proyecto de Flow abierto');
+    }
+    if (!job.flowProjectUrl) {
       // sin proyecto de Flow asociado: se crea uno nuevo desde la portada (no se mezcla con el que el dueño tenga abierto)
       setPaso('creando un proyecto nuevo en Flow');
       if (!/^https:\/\/flow\.google\.com\/?(\?.*)?$/.test(est.url)) await pedir(job, 'ir', { url: 'https://flow.google.com/' }, 90000).catch((e) => log(`ir: ${e.message}`));
@@ -413,6 +446,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       try { const mk = await generarMockups(log); log(`mockups de la app: ${mk.length} renderizado(s)`); }
       catch (e) { log(`mockups de la app: ${e instanceof Error ? e.message : e}`); }
     }
+    if (job.alFrente) await pedir(job, 'devolverPestana', { final: true }, 20000).catch(() => {});
     job.estado = 'listo'; job.fin = Date.now();
     const bajadas = job.escenas.filter((x) => x.estado === 'importada').length;
     setPaso(job.fallas.length
@@ -421,6 +455,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
   })().catch((e) => {
     job.estado = 'error'; job.error = e instanceof Error ? e.message : String(e); job.fin = Date.now();
     log(`ERROR: ${job.error}`);
+    if (job.alFrente) pedir(job, 'devolverPestana', { final: true }, 20000).catch(() => {});
   });
   return resumen(job);
 }

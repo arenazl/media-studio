@@ -114,12 +114,14 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
   const sinFlowAvisado = new Set();
   const fabricarYContestar = async (pedido, etiqueta, hacer) => {
     // Flow hace una cosa por vez en la pestaña de Lucas: si está ocupado (una pieza de la app), el pedido espera
-    if (ocupado()) { log(`pedido ${pedido.id}: Flow está ocupado; lo tomo en la próxima vuelta`); return; }
+    // (2026-10-14: un pedido rehecho a mano y uno de la consulta arrancaron a la vez en la misma pestaña: el "en curso"
+    // se marca antes de cualquier espera y lo miran los dos caminos)
+    if (estado.enCurso || ocupado()) { log(`pedido ${pedido.id}: Flow está ocupado; lo tomo en la próxima vuelta`); return; }
     // sin una pestaña de Flow abierta el pedido NO se toma: queda pendiente hasta que Lucas la abra (2026-10-13: el
     // pedido 28 esperó 10 minutos tomado y se cerró con error justo antes de que se abriera la pestaña)
     if (!flowListo()) { if (!sinFlowAvisado.has(pedido.id)) { sinFlowAvisado.add(pedido.id); log(`pedido ${pedido.id}: no hay una pestaña de Flow abierta; queda pendiente`); } return; }
-    await tomar(pedido.id);
     estado.enCurso = pedido.id;
+    try { await tomar(pedido.id); } catch (e) { estado.enCurso = null; throw e; }
     try {
       // regenerar la foto que fijó la cara: la personalidad pierde esa cara y esta foto le hace una nueva
       const ya = pedido.personalidad ? leerPermitidos().personajes?.[pedido.personalidad] : null;
@@ -196,15 +198,18 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
   // volver a hacer un pedido que quedó con error: se fabrica igual que si llegara de nuevo. Si SalesBot ya no recibe el
   // resultado en ese pedido, el medio queda en el banco de la personalidad.
   rehacerLocal = async (id) => {
-    if (!clave) clave = await leerClave();
-    const { pedidos = [] } = await api('/pedidos?estado=error');
-    const pedido = pedidos.find((p) => String(p.id) === String(id));
-    if (!pedido) throw new Error(`no encontré el pedido ${id} entre los que quedaron con error`);
+    // se marca "en curso" antes de cualquier espera, así la consulta normal no arranca otro pedido en la misma pestaña
     if (estado.enCurso || ocupado()) throw new Error('Flow está ocupado con otro pedido');
-    const { etiqueta, motor, hacer } = comoSeHace(pedido);
-    if (!motor) throw new Error('todavía no hay cómo fabricarlo');
-    estado.enCurso = pedido.id;
+    estado.enCurso = `rehacer-${id}`;
     try {
+      if (!clave) clave = await leerClave();
+      // el pedido puede estar con error, otra vez pendiente (SalesBot lo reabrió) o tomado (se cortó a la mitad)
+      let pedido = null;
+      for (const e of ['error', 'pendiente', 'en_curso']) { pedido = ((await api(`/pedidos?estado=${e}`)).pedidos || []).find((p) => String(p.id) === String(id)) || null; if (pedido) break; }
+      if (!pedido) throw new Error(`no encontré el pedido ${id} entre los que quedaron con error, pendientes o tomados`);
+      await tomar(pedido.id).catch(() => {});   // pendiente: se toma para que la consulta normal no lo haga dos veces
+      const { etiqueta, motor, hacer } = comoSeHace(pedido);
+      if (!motor) throw new Error('todavía no hay cómo fabricarlo');
       const archivo = await hacer();
       if (archivo.error) { log(`${etiqueta} ${pedido.id}: rehecho, no salió (${archivo.error})`); return archivo; }
       const { _muestraLaCara, ...medio } = archivo;
