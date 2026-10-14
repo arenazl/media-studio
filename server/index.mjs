@@ -1341,8 +1341,13 @@ ${src}`;
         if (!mk) return json(res, 404, { error: 'no pude leer el media kit de esa app' });
         return json(res, 200, { app: { id: app.id, name: app.nombre, soloKit: true }, kb: kbDesdeMediaKit(mk, app.nombre) });
       }
-      try { return json(res, 200, { app: { id: app.id, name: app.nombre }, kb: await fetchKbFor(app) }); }
-      catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error trayendo el KB' }); }
+      try {
+        const kb = await fetchKbFor(app);
+        // la app tiene integración propia Y un media kit en su repo (Habláh, sin vueltas): se asocia solo, así el proyecto
+        // trae sus pantallas y sus mockups. Antes el kit sólo entraba en las apps que no tenían integración (2026-10-13)
+        if (kb && !kb.media_kit_id && scanMediaKits(MEDIA_KIT_ROOT).some((k) => k.id === app.id && k.valido)) kb.media_kit_id = app.id;
+        return json(res, 200, { app: { id: app.id, name: app.nombre }, kb });
+      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error trayendo el KB' }); }
     }
     // trae el KB + chequea la salud (1.2: pantallas = METADATA descriptiva, no URLs; logo inline/URL).
     if (p === '/api/kb/inspect' && req.method === 'POST') {
