@@ -534,7 +534,7 @@ async function personajeDeSalesbot(pedido) {
 // la primera foto que muestra a la personalidad fija su cara: lo que ese pedido dijo de cómo se ve
 function guardarCaraSb(slugPersonalidad, personaje) {
   const todo = leerPersonajesSb();
-  const { sinCara, ...cara } = personaje;
+  const { sinCara, esElla, ...cara } = personaje;   // esElla es del pedido, no de la cara
   todo.personajes = { ...(todo.personajes || {}), [slugPersonalidad]: { ...cara, fijada: new Date().toISOString().slice(0, 10) } };
   fs.writeFileSync(SALESBOT_PERSONAJES, JSON.stringify(todo, null, 2) + '\n');
 }
