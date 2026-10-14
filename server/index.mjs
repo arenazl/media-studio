@@ -539,6 +539,13 @@ function guardarCaraSb(slugPersonalidad, personaje) {
   fs.writeFileSync(SALESBOT_PERSONAJES, JSON.stringify(todo, null, 2) + '\n');
 }
 
+// El prompt EXACTO que se manda a Flow, para que SalesBot lo muestre al lado del pedido (Lucas, 2026-10-14: "entender
+// qué se generó y por qué"): el de la escena y, si va una persona, el del retrato con el que Flow la crea
+const promptParaAuditoria = (pack) => [
+  ...(pack.escenas || []).map((e) => e.prompt),
+  ...(pack.personajes || []).map((p) => `Personaje @${p.nombre} (su retrato en Flow): ${p.promptImagen}`),
+].filter(Boolean).join('\n\n').slice(0, 8000);
+
 // La foto: con el preset Ahorro o Calidad se pide a Flow como IMAGEN y no se genera un video; con Normal (o con la
 // extensión vieja, que sólo sabe pedir video) es un cuadro de un video (Lucas, 2026-10-14: gastar menos créditos)
 const modoFoto = (kind) => (kind === 'imagen' && presetActual().foto === 'imagen' && extensionAlMenos(puente.estadoPuente().version, EXTENSION_CON_IMAGEN) ? 'imagen' : 'video');
@@ -552,11 +559,16 @@ async function cuadroDe(fileRef, seg) {
 
 async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   // sin cara todavía: la situación se pide como un pedido de texto y esa foto le fija la cara (2026-10-14: acá no se frena nada)
-  if (personaje.sinCara) return fabricarLibreParaSalesbot({ pedido: { ...pedido, contexto: descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion }, personaje: { ...personaje, esElla: true }, log, subir });
+  if (personaje.sinCara) {
+    const copia = { ...pedido, contexto: descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion };
+    try { return await fabricarLibreParaSalesbot({ pedido: copia, personaje: { ...personaje, esElla: true }, log, subir }); }
+    finally { pedido._promptFlow = copia._promptFlow; }
+  }
   const p1 ={ id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn };
   const cast = { personajes: [p1], lugar: { descripcionEn: personaje.lugarEn } };
   const escena = { n: 1, rol: 'desarrollo', personajes: ['p1'], dialogo: '', accionEn: `${accionDeSituacion(pedido.situacion, personaje.flowNombre)} The setting: ${personaje.lugarEn}.`, plano: pedido.situacion === 'selfie' ? 'medium close-up' : 'medium shot' };
   const pack = { estilo: estiloPara('9:16'), personajes: [{ id: 'p1', nombre: personaje.flowNombre, promptImagen: promptImagen(p1, cast.lugar) }], escenas: [{ escenaN: 1, rol: 'desarrollo', prompt: promptEscena(escena, { cast, lugar: cast.lugar, aspecto: '9:16' }) }] };
+  pedido._promptFlow = promptParaAuditoria(pack);
   const dir = path.join(STORAGE_DIR, 'salesbot');
   fs.mkdirSync(dir, { recursive: true });
   const toma = await new Promise((resolve, reject) => {
@@ -650,6 +662,7 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   log(`pedido libre ${pedido.id}: "${texto.slice(0, 80)}" → ${kind} de ${durSec} s, ${aspecto}`);
   const personajes = conCara ? [{ id: 'p1', nombre: personaje.flowNombre, promptImagen: promptImagen({ id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn }, { descripcionEn: personaje.lugarEn }) }] : [];
   const pack = { estilo: estiloPara(aspecto), personajes, escenas: [{ escenaN: 1, rol: 'desarrollo', prompt }] };
+  pedido._promptFlow = promptParaAuditoria(pack);
   const dir = path.join(STORAGE_DIR, 'salesbot');
   fs.mkdirSync(dir, { recursive: true });
   const toma = await new Promise((resolve, reject) => {

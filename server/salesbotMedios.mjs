@@ -18,6 +18,8 @@ const PERSONAJES = path.resolve('server/salesbot-personajes.json');
 
 // lo que hace el personaje en cada situación (genérico: el personaje pone su cara, su ropa y su lugar)
 export const ACCION_POR_SITUACION = {
+  // la foto de perfil (SalesBot, 2026-10-14): es la cara de la personalidad
+  perfil: 'in a head-and-shoulders profile portrait, looks straight into the camera with a relaxed, natural expression',
   saludo: 'looks into the camera with a warm, natural smile and raises a hand in a friendly hello',
   buenos_dias: 'in soft morning light, holding a mate, looks at the camera and smiles as if saying good morning',
   selfie: 'holds the phone at arm\'s length in a front-camera selfie framing, relaxed and smiling, small natural movements',
@@ -28,6 +30,7 @@ export const ACCION_POR_SITUACION = {
 };
 // lo mismo en castellano, para la descripción que guarda SalesBot (el bot elige el medio por lo que se ve)
 const SITUACION_ES = {
+  perfil: 'en su foto de perfil, de los hombros para arriba, mirando a cámara',
   saludo: 'saluda a cámara con una sonrisa y levanta la mano',
   buenos_dias: 'da los buenos días con un mate, con luz de mañana',
   selfie: 'se saca una selfie con el celular, relajado y sonriendo',
@@ -80,7 +83,11 @@ function olvidarCara(slugPersonalidad) {
 export const TOPE_POR_DIA = 5;
 const CUPO = path.resolve('server/storage/salesbot-cupo.json');
 const hoyART = () => new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 10);
-const esDelBot = (pedido) => !!pedido.personalidad && !/^(panel|lucas)/i.test(String(pedido.origen || ''));
+const esPerfil = (pedido) => String(pedido.situacion || '').toLowerCase() === 'perfil';
+// la foto de perfil no es una foto de charla: no cuenta para el tope
+const esDelBot = (pedido) => !!pedido.personalidad && !/^(panel|lucas)/i.test(String(pedido.origen || '')) && !esPerfil(pedido);
+// el prompt exacto que se mandó a Flow (auditoría): va en cada resultado si el pedido llegó a Flow
+const conPrompt = (pedido) => (pedido._promptFlow ? { prompt_flow: String(pedido._promptFlow).slice(0, 8000) } : {});
 function leerCupo() {
   try { const c = JSON.parse(fs.readFileSync(CUPO, 'utf8')); if (c.dia === hoyART()) return c; } catch { /* sin cupo todavía */ }
   return { dia: hoyART(), porBot: {} };
@@ -145,6 +152,12 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
     try {
       // regenerar la foto que fijó la cara: la personalidad pierde esa cara y esta foto le hace una nueva
       const ya = pedido.personalidad ? leerPermitidos().personajes?.[pedido.personalidad] : null;
+      // la foto de PERFIL pedida desde el panel es la cara (Lucas, por SalesBot, 2026-10-14): si ya tenía una, la reemplaza.
+      // La de perfil automática (la primera charla con una personalidad sin perfil) usa la cara que ya tenga
+      if (esPerfil(pedido) && /^(panel|lucas)/i.test(String(pedido.origen || '')) && ya?.retratoEn) {
+        olvidarCara(pedido.personalidad);
+        log(`pedido ${pedido.id}: foto de perfil desde el panel; reemplaza la cara de "${pedido.personalidad}"`);
+      }
       if (pedido.regenerar_medio != null && ya?.medioCara != null && String(ya.medioCara) === String(pedido.regenerar_medio)) {
         olvidarCara(pedido.personalidad);
         log(`pedido ${pedido.id}: regenera la foto que fijó la cara de "${pedido.personalidad}"; le hago una cara nueva`);
@@ -152,14 +165,14 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
       const archivo = await hacer();
       // _muestraLaCara es nuestro (si la foto muestra a la personalidad): no viaja a SalesBot
       const { _muestraLaCara, ...paraSalesbot } = archivo;
-      const r = await contestar(pedido.id, archivo.error ? { error: archivo.error } : { archivo: paraSalesbot });
+      const r = await contestar(pedido.id, { ...(archivo.error ? { error: archivo.error } : { archivo: paraSalesbot }), ...conPrompt(pedido) });
       if (!archivo.error && _muestraLaCara && pedido.personalidad) guardarMedioCara(pedido.personalidad, r?.medio_id);
       if (!archivo.error && esDelBot(pedido)) sumarHoy(pedido.personalidad);
       if (archivo.error) estado.rechazados += 1; else estado.atendidos += 1;
       log(`${etiqueta} ${pedido.id}: ${archivo.error ? `no salió (${archivo.error})` : `entregado (${archivo.url})`}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      await contestar(pedido.id, { error: `Media Studio no pudo fabricarlo: ${msg}` }).catch(() => {});
+      await contestar(pedido.id, { error: `Media Studio no pudo fabricarlo: ${msg}`, ...conPrompt(pedido) }).catch(() => {});
       log(`${etiqueta} ${pedido.id}: no salió (${msg})`);
     } finally { estado.enCurso = null; }
   };
@@ -243,7 +256,7 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
       if (archivo.error) { log(`${etiqueta} ${pedido.id}: rehecho, no salió (${archivo.error})`); return archivo; }
       const { _muestraLaCara, ...medio } = archivo;
       let medioId = null, entregadoEn = 'el pedido';
-      try { medioId = (await contestar(pedido.id, { archivo: medio }))?.medio_id ?? null; }
+      try { medioId = (await contestar(pedido.id, { archivo: medio, ...conPrompt(pedido) }))?.medio_id ?? null; }
       catch (e) {
         if (!pedido.personalidad) throw e;
         const r = await api('', { method: 'POST', body: JSON.stringify({ ...medio, kind: /^(jpe?g|png|webp)$/i.test(String(medio.formato || '')) ? 'imagen' : 'video', personalidad: pedido.personalidad, proyecto: pedido.proyecto, situacion: pedido.situacion || 'libre' }) });
