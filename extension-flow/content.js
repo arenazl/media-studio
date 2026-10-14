@@ -67,6 +67,19 @@
   function nombresDeTiles() { return q(SEL.tile).map(nombreDeTile); }
   const mismoNombre = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
   const centro = (el) => { const r = el.getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) }; };
+  // los dos tipos del panel de ajustes y el desplegable del modelo (Veo para video; Imagen, Nano Banana o Gemini para imagen)
+  const RE_VIDEO = /V[ií]deo|Video/;
+  const RE_IMAGEN = /\bIm[aá]gen(es)?\b|\bImages?\b/i;
+  const comboModelo = () => q('button, [role="combobox"]').filter((b) => b.getAttribute('role') !== 'radio')
+    .find((b) => /Veo|Omni|Imagen|Nano|Gemini|Banana/i.test(textoDe(b)) && textoDe(b).length < 60 && b.getBoundingClientRect().top > 350) || null;
+  const opcionesAbiertas = () => {
+    const capa = document.querySelector('.cdk-overlay-container') || document;
+    return [...capa.querySelectorAll('[role="option"], [role="menuitem"], [role="menuitemradio"], mat-option, li')].filter(visible);
+  };
+  // un tile de imagen: tiene una imagen real (no el ícono) y no es un video ni un personaje
+  const esVideoTile = (t) => /play_circle/.test(textoDe(t)) || !!t.querySelector('video');
+  const imagenDe = (t) => { const im = [...t.querySelectorAll('img')].find((i) => /^https?:/.test(i.currentSrc || i.src || '') && (i.naturalWidth || 0) >= 200); return im ? (im.currentSrc || im.src) : ''; };
+  const esImagenTile = (t) => !esVideoTile(t) && !/accessibility_new/.test(textoDe(t)) && !!imagenDe(t);
 
   const acciones = {
     async estado() { return { url: location.href, titulo: document.title, visible: !document.hidden }; },
@@ -169,32 +182,76 @@
 
     // el panel de ajustes: pastillas (role=radio) para Imagen/Vídeo, Fotogramas/Ingredientes, 16:9/9:16 y x1..x4; el
     // modelo es un desplegable. Resolución y duración se verifican leyendo la pastilla ("Vídeo · 720p · 8 s ...").
-    async ajustes({ duracion = '8 s', salidas = 'x1', formato = '9:16' } = {}) {
+    // 2026-10-14: tipo, modelos y resolución salen del preset de calidad que elige Lucas (server/calidadFlow.mjs);
+    // `modelos` es una lista de expresiones en orden de preferencia: se elige la primera que esté en el desplegable.
+    async ajustes({ tipo = 'video', modelos = null, resolucion = '720p', duracion = '8 s', salidas = 'x1', formato = '9:16' } = {}) {
+      const esImagen = tipo === 'imagen';
+      const prefer = (Array.isArray(modelos) && modelos.length ? modelos : (esImagen ? [] : ['Veo 3\\.1.*Fast'])).map((s) => new RegExp(s, 'i'));
       const trigger = await esperar(() => q(SEL.ajustes)[0], 15000, 'la pastilla de ajustes');
       const abrir = async () => { if (!q(SEL.radio).length) { trigger.click(); await espera(700); } };
       const cerrar = async () => { if (q(SEL.radio).length) { trigger.click(); await espera(400); } };
       await abrir();
       const radio = async (re) => { const r = q(SEL.radio).find((b) => re.test(textoDe(b))); if (r && !marcado(r)) { r.click(); await espera(350); } return !!r; };
-      await radio(/V[ií]deo|Video/);
+      const hayTipo = await radio(esImagen ? RE_IMAGEN : RE_VIDEO);
+      if (esImagen && !hayTipo) throw new Error('[antes de enviar] no encontré la opción Imagen en los ajustes de Flow');
       await espera(300);
-      await radio(/Ingredientes|Ingredients/);
+      if (!esImagen) await radio(/Ingredientes|Ingredients/);
       await radio(new RegExp(`\\b${formato}\\b`));
-      const combo = q('button, [role="combobox"]').find((b) => /Veo|Omni/i.test(textoDe(b)) && textoDe(b).length < 40 && b.getBoundingClientRect().top > 350);
-      if (combo && !/Veo 3\.1.*Fast/i.test(textoDe(combo))) {
+      const combo = comboModelo();
+      if (combo && prefer.length && !prefer.some((re) => re.test(textoDe(combo)))) {
         combo.click(); await espera(600);
-        const ops = q('[role="option"], [role="menuitem"], mat-option, li');
-        const op = ops.find((o) => /Veo 3\.1.*Fast/i.test(textoDe(o))) || ops.find((o) => /Veo 3\.1/i.test(textoDe(o)));
+        const ops = opcionesAbiertas();
+        let op = null;
+        for (const re of prefer) { op = ops.find((o) => re.test(textoDe(o))); if (op) break; }
         if (op) { op.click(); await espera(400); }
         // sin opción: el menú se cierra tocando el fondo (un Escape sintético no lo cierra)
-        if (q('[role="menu"]').length) { const fondo = q('.cdk-overlay-backdrop')[0]; if (fondo) fondo.click(); else combo.click(); await espera(300); }
+        if (q('[role="menu"], [role="listbox"]').length) { const fondo = q('.cdk-overlay-backdrop')[0]; if (fondo) fondo.click(); else combo.click(); await espera(300); }
       }
-      await radio(/^720p$/);
-      await radio(new RegExp(`^${duracion.replace(' ', '\\s?')}$`));
+      if (!esImagen) {
+        await radio(new RegExp(`^${resolucion}$`));
+        await radio(new RegExp(`^${duracion.replace(' ', '\\s?')}$`));
+      }
       await radio(new RegExp(`^${salidas}$`));
       await espera(300);
       await cerrar();
       const pastilla = textoDe(q(SEL.ajustes)[0] || trigger);
-      return { pastilla, res720: /720p/.test(pastilla), dur8: /\b8\s?s\b/.test(pastilla), modelo: combo ? textoDe(combo).replace(/arrow_drop_down/, '').trim() : null };
+      const elegido = comboModelo();
+      return { pastilla, tipo, res720: /720p/.test(pastilla), dur8: /\b8\s?s\b/.test(pastilla), resolucion: (/\b(720p|1080p|4K)\b/i.exec(pastilla) || [])[1] || null, modelo: elegido ? textoDe(elegido).replace(/arrow_drop_down/, '').trim() : (combo ? textoDe(combo).replace(/arrow_drop_down/, '').trim() : null) };
+    },
+
+    // lo que ofrece el panel de ajustes de ESTA cuenta (2026-10-14): tipos, modelos con su texto tal cual (ahí Flow dice
+    // los créditos), resoluciones y duraciones. Con esto se ajustan los presets a lo que hay de verdad.
+    async leerAjustes() {
+      const trigger = await esperar(() => q(SEL.ajustes)[0], 15000, 'la pastilla de ajustes');
+      if (!q(SEL.radio).length) { trigger.click(); await espera(700); }
+      const radios = () => q(SEL.radio).map((r) => ({ texto: textoDe(r), marcado: marcado(r) }));
+      const leerModelos = async () => {
+        const c = comboModelo();
+        if (!c) return { actual: null, opciones: [] };
+        const actual = textoDe(c);
+        c.click(); await espera(700);
+        const opciones = opcionesAbiertas().map(textoDe).filter(Boolean);
+        const fondo = q('.cdk-overlay-backdrop')[0]; if (fondo) fondo.click(); else c.click();
+        await espera(400);
+        return { actual, opciones };
+      };
+      const out = { pastilla: textoDe(trigger), radios: radios() };
+      for (const [clave, re] of [['video', RE_VIDEO], ['imagen', RE_IMAGEN]]) {
+        const r = q(SEL.radio).find((b) => re.test(textoDe(b)));
+        if (!r) { out[clave] = null; continue; }
+        r.click(); await espera(600);
+        out[clave] = { radios: radios(), modelos: await leerModelos() };
+      }
+      const rv = q(SEL.radio).find((b) => RE_VIDEO.test(textoDe(b))); if (rv && !marcado(rv)) { rv.click(); await espera(400); }
+      if (q(SEL.radio).length) { trigger.click(); await espera(300); }
+      return out;
+    },
+
+    // el primer tile de la grilla tal cual (para relevar cómo se ve una imagen nueva en la interfaz de Flow)
+    async leerTile() {
+      const t = q(SEL.tile)[0];
+      if (!t) return { hay: false };
+      return { hay: true, texto: textoDe(t).slice(0, 300), imgs: [...t.querySelectorAll('img')].map((i) => ({ src: String(i.currentSrc || i.src || '').slice(0, 200), w: i.naturalWidth, h: i.naturalHeight })), videos: t.querySelectorAll('video').length, html: t.outerHTML.slice(0, 2500) };
     },
 
     // cierra menús y ventanitas que quedaron abiertas (el buscador de @, un desplegable) y vacía la caja de prompt
@@ -289,7 +346,15 @@
     // derecho no apareció con la ventana de Flow al fondo y se cortó la rutina entera)
     // el video del clip más nuevo de la grilla (el que acaba de terminar): se toma apenas termina cada escena, así la
     // bajada no depende de la posición (un clip con error que desaparece al recargar corría el reparto, 2026-10-12)
-    async urlDelMasNuevo() {
+    async urlDelMasNuevo({ tipo = 'video' } = {}) {
+      // 2026-10-14: una foto pedida como imagen (preset Ahorro o Calidad): la URL es la de la imagen del primer tile
+      if (tipo === 'imagen') {
+        if (!/\/project\//.test(location.pathname)) return { url: '', motivo: 'la pestaña no está en el proyecto' };
+        for (let i = 0; i < 20 && !(q(SEL.tile)[0] && esImagenTile(q(SEL.tile)[0])); i++) await espera(500);
+        const t = q(SEL.tile)[0];
+        if (!t || !esImagenTile(t)) return { url: '', motivo: 'el primer tile no es una imagen' };
+        return { url: imagenDe(t), esElPrimero: true };
+      }
       const esVideo = (t) => /play_circle/.test(textoDe(t)) || !!t.querySelector('video');
       const urlDe = (t) => { const v = t.querySelector('video'); if (!v) return ''; const src = v.currentSrc || v.src || (v.querySelector('source') || {}).src || ''; return /^https?:/.test(src) ? src : ''; };
       const pasar = (t, tipos) => { for (const el of [t, ...t.querySelectorAll('*')].slice(0, 15)) for (const tipo of tipos) el.dispatchEvent(new MouseEvent(tipo, { bubbles: /over|out/.test(tipo), cancelable: true, view: window })); };

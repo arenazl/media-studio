@@ -164,6 +164,13 @@ async function clickReal(tabId, x, y) {
 }
 
 async function ejecutar(paso) {
+  // Media Studio actualizó los archivos de la extensión (2026-10-14): se recarga sola, sin pedirle un click a Lucas.
+  // Contesta primero, porque después de recargar ya no queda quién conteste. No necesita ninguna pestaña.
+  if (paso.accion === 'recargarExtension') {
+    await post('/api/flow/puente/resultado', { jobId: paso.jobId, pasoId: paso.id, ok: true, data: { version: chrome.runtime.getManifest().version } });
+    setTimeout(() => chrome.runtime.reload(), 500);
+    return;
+  }
   // el service worker no se duerme mientras dura el paso (hay pasos de minutos: esperar la generación), y Media Studio
   // sigue viendo el latido aunque el bucle esté ocupado con este paso
   const vivo = setInterval(() => {

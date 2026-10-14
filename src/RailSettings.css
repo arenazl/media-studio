@@ -62,3 +62,6 @@
 .rs-tema-mas:hover { background: var(--rd-surface-2); color: var(--rd-ink); }
 
 .rs-tema-panel { padding: 4px 10px 6px; }
+
+/* la nota de la calidad de Flow (presets de gasto de créditos, 2026-10-14) */
+.rs-nota { display: block; padding: 4px 10px 6px; line-height: 1.35; }

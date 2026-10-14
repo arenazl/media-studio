@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSyncExternalStore } from 'react';
 import { Settings, Check } from 'lucide-react';
 import { getAiModel, setAiModel, subscribeAiModel, type AiModelSetting } from './lib/settings';
+import { API_BASE } from './config';
 import { ToggleTema } from './tema/ToggleTema';
 import { PanelApariencia } from './tema/PanelApariencia';
 import { tema } from './tema/store';
@@ -22,8 +23,26 @@ const AI_MODEL_OPTIONS: { value: AiModelSetting; label: string; hint: string }[]
   { value: 'performante', label: 'Performante', hint: 'Opus también en cast, storyboard y QA' },
 ];
 
+// 3. La CALIDAD DE FLOW (Lucas, 2026-10-14: "3 presets de calidad / gasto de créditos"): vale para todo lo que se genera
+//    en Flow, los comerciales y los pedidos de SalesBot. Vive en el backend (los pedidos de SalesBot no pasan por acá).
+type CalidadFlow = { elegido: string; presets: { id: string; nombre: string; detalle: string }[]; fotoComoImagen: boolean };
+
+function useCalidadFlow(abierto: boolean) {
+  const [calidad, setCalidad] = useState<CalidadFlow | null>(null);
+  useEffect(() => {
+    if (!abierto) return;
+    fetch(`${API_BASE}/api/flow/calidad`).then((r) => r.json()).then(setCalidad).catch(() => setCalidad(null));
+  }, [abierto]);
+  const elegir = async (id: string) => {
+    const r = await fetch(`${API_BASE}/api/flow/calidad`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ preset: id }) });
+    if (r.ok) setCalidad((c) => (c ? { ...c, elegido: id } : c));
+  };
+  return { calidad, elegir };
+}
+
 export default function RailSettings() {
   const [open, setOpen] = useState(false);
+  const { calidad, elegir } = useCalidadFlow(open);
   // La apariencia se despliega dentro del mismo popover y arranca PLEGADA: el engranaje se abre
   // casi siempre para cambiar el modelo, y seis fondos más ocho acentos tapaban esa decisión.
   const [verApariencia, setVerApariencia] = useState(false);
@@ -59,6 +78,22 @@ export default function RailSettings() {
               {aiModel === o.value && <Check size={14} />}
             </button>
           ))}
+
+          <div className="rs-sep" />
+
+          <div className="rs-menu-lbl">Calidad de Flow · gasto de créditos</div>
+          {calidad ? calidad.presets.map((o) => (
+            <button key={o.id} className={calidad.elegido === o.id ? 'rs-menu-item rs-menu-item--on' : 'rs-menu-item'} onClick={() => void elegir(o.id)}>
+              <span className="rs-menu-item-txt">
+                <span className="rs-menu-item-name">{o.nombre}</span>
+                <span className="rs-menu-item-hint">{o.detalle}</span>
+              </span>
+              {calidad.elegido === o.id && <Check size={14} />}
+            </button>
+          )) : <div className="rs-menu-item-hint rs-nota">No pude leer los presets: ¿está prendido el backend?</div>}
+          {calidad && !calidad.fotoComoImagen && (
+            <div className="rs-menu-item-hint rs-nota">Para que las fotos salgan como imagen, recargá una vez la extensión Puente Flow en Chrome.</div>
+          )}
 
           <div className="rs-sep" />
 

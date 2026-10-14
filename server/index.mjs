@@ -48,6 +48,7 @@ import { renderMockupReel } from './mockupReel.mjs';
 import { renderComercial } from './renderComercial.mjs';
 import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
+import { presetActual, presetElegido, elegirPreset, listaPresets, extensionAlMenos, EXTENSION_CON_IMAGEN } from './calidadFlow.mjs';
 import { createHash as _sha } from 'node:crypto';
 import { abrirFlow } from './abrirFlow.mjs';
 import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, descripcionDeSituacion, pedidoLibreLocal, rehacerPedido } from './salesbotMedios.mjs';
@@ -535,6 +536,17 @@ function guardarCaraSb(slugPersonalidad, personaje) {
   fs.writeFileSync(SALESBOT_PERSONAJES, JSON.stringify(todo, null, 2) + '\n');
 }
 
+// La foto: con el preset Ahorro o Calidad se pide a Flow como IMAGEN y no se genera un video; con Normal (o con la
+// extensión vieja, que sólo sabe pedir video) es un cuadro de un video (Lucas, 2026-10-14: gastar menos créditos)
+const modoFoto = (kind) => (kind === 'imagen' && presetActual().foto === 'imagen' && extensionAlMenos(puente.estadoPuente().version, EXTENSION_CON_IMAGEN) ? 'imagen' : 'video');
+// el JPG de la foto: si Flow dio una imagen, se convierte; si dio un video, se toma el cuadro del segundo `seg`
+async function cuadroDe(fileRef, seg) {
+  const esImagen = /\.(png|jpe?g|webp)$/i.test(fileRef);
+  const cuadro = fileRef.replace(/\.\w+$/i, esImagen ? '-foto.jpg' : '.jpg');
+  await runFfmpeg(esImagen ? ['-y', '-i', fileRef, '-q:v', '2', cuadro] : ['-y', '-ss', String(seg), '-i', fileRef, '-frames:v', '1', '-q:v', '2', cuadro]);
+  return cuadro;
+}
+
 async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   // sin cara todavía: la situación se pide como un pedido de texto y esa foto le fija la cara (2026-10-14: acá no se frena nada)
   if (personaje.sinCara) return fabricarLibreParaSalesbot({ pedido: { ...pedido, contexto: descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion }, personaje: { ...personaje, esElla: true }, log, subir });
@@ -547,7 +559,7 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   const toma = await new Promise((resolve, reject) => {
     let t = null;
     const job = puente.iniciarJob({
-      projectId: 'salesbot-medios', reelId: pedido.personalidad, retomar: false, pack, escenasStoryboard: [escena], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
+      projectId: 'salesbot-medios', reelId: pedido.personalidad, retomar: false, modo: modoFoto(pedido.kind), pack, escenasStoryboard: [escena], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
       guardarClip: async (buffer, nombre) => { const f = path.join(dir, nombre); fs.writeFileSync(f, buffer); return { fileRef: f, durSec: 8 }; },
       agregarToma: async (_n, tm) => { t = tm; },
       guardarFlowUrl: async (u) => guardarEstadoSb({ flowProjectUrl: u }),
@@ -559,8 +571,7 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
     }, 3000);
   });
   let archivo = toma.fileRef, tipo = 'video/mp4';
-  const cuadro = toma.fileRef.replace(/\.mp4$/i, '.jpg');
-  await runFfmpeg(['-y', '-ss', '4', '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', cuadro]);
+  const cuadro = await cuadroDe(toma.fileRef, 4);
   if (pedido.kind === 'imagen') { archivo = cuadro; tipo = 'image/jpeg'; }
   const visto = await mirarOSeguir(cuadro, descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion, log, pedido.id);
   if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
@@ -641,7 +652,7 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   const toma = await new Promise((resolve, reject) => {
     let t = null;
     const job = puente.iniciarJob({
-      projectId: 'salesbot-medios', reelId: `libre-${pedido.id}`, retomar: false, pack, escenasStoryboard: [{ n: 1, personajes: conCara ? ['p1'] : [] }], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
+      projectId: 'salesbot-medios', reelId: `libre-${pedido.id}`, retomar: false, modo: modoFoto(kind), pack, escenasStoryboard: [{ n: 1, personajes: conCara ? ['p1'] : [] }], flowProjectUrl: leerEstadoSb().flowProjectUrl, escenasConCrudo: [],
       guardarClip: async (buffer, nombre) => { const f = path.join(dir, nombre); fs.writeFileSync(f, buffer); return { fileRef: f, durSec: 8 }; },
       agregarToma: async (_n, tm) => { t = tm; },
       guardarFlowUrl: async (u) => guardarEstadoSb({ flowProjectUrl: u }),
@@ -652,8 +663,7 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
     }, 3000);
   });
   let archivo = toma.fileRef.replace(/\.mp4$/i, `-${durSec}s.mp4`), tipo = 'video/mp4';
-  const cuadro = toma.fileRef.replace(/\.mp4$/i, '.jpg');
-  await runFfmpeg(['-y', '-ss', String(Math.min(4, durSec / 2)), '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', cuadro]);
+  const cuadro = await cuadroDe(toma.fileRef, Math.min(4, durSec / 2));
   if (kind === 'imagen') {
     archivo = cuadro;
     tipo = 'image/jpeg';
@@ -1934,6 +1944,23 @@ ${src}`;
     if (p === '/api/flow/jobs' && req.method === 'GET') return json(res, 200, { jobs: puente.listarJobs(), extension: puente.extensionViva() });
     // integración con SalesBot (2026-10-12): estado de la consulta de pedidos
     if (p === '/api/salesbot/estado' && req.method === 'GET') return json(res, 200, estadoSalesbot());
+    // los tres presets de calidad y gasto de créditos de Flow (2026-10-14): cuál está elegido y si la extensión ya sabe
+    // pedir la foto como imagen
+    if (p === '/api/flow/calidad' && req.method === 'GET') {
+      const version = puente.estadoPuente().version;
+      return json(res, 200, { elegido: presetElegido(), presets: listaPresets(), extension: version || null, fotoComoImagen: extensionAlMenos(version, EXTENSION_CON_IMAGEN) });
+    }
+    if (p === '/api/flow/calidad' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      try { return json(res, 200, { elegido: elegirPreset(String(body.preset || '')) }); }
+      catch (e) { return json(res, 400, { error: e instanceof Error ? e.message : 'no se pudo' }); }
+    }
+    // recargar la extensión Puente Flow después de actualizar sus archivos (anda desde la 0.5.0)
+    if (p === '/api/flow/puente/recargar-extension' && req.method === 'POST') {
+      if (puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando')) return json(res, 409, { error: 'Flow está ocupado con otro trabajo' });
+      try { return json(res, 200, { pasos: await puente.recargarExtension() }); }
+      catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo' }); }
+    }
     // volver a hacer un pedido de SalesBot que quedó con error (se fabrica igual que si llegara de nuevo)
     if (p === '/api/salesbot/rehacer' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
