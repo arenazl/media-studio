@@ -7,28 +7,32 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+// Relevado en la cuenta de Lucas el 2026-10-14 con leerAjustes: para video hay Omni 1.1 Flash, Veo 3.1 - Lite,
+// Veo 3.1 - Fast y Veo 3.1 - Quality; para imagen, Nano Banana 2.1. La resolución no se elige en el panel (Flow da 720p).
+const VEO_LITE = 'Veo 3\\.1.*Lite';
 const VEO_RAPIDO = 'Veo 3\\.1.*(Fast|R[aá]pido)';
+const VEO_CALIDAD = 'Veo 3\\.1.*(Quality|Calidad)';
 export const PRESETS = {
   ahorro: {
     nombre: 'Ahorro',
-    detalle: 'Las fotos salen como imagen, sin generar un video. Los videos, con Veo rápido a 720p y en baja prioridad si tu cuenta la tiene.',
+    detalle: 'Las fotos salen como imagen (Nano Banana), sin generar un video. Los videos, con Veo 3.1 Lite, el más liviano.',
     foto: 'imagen',
     imagen: { modelos: [] },
-    video: { modelos: ['Lower Priority|Baja prioridad|Prioridad baja', VEO_RAPIDO], resolucion: '720p', duracion: '8 s', salidas: 'x1' },
+    video: { modelos: [VEO_LITE, VEO_RAPIDO], resolucion: '720p', duracion: '8 s', salidas: 'x1' },
   },
   normal: {
     nombre: 'Normal',
-    detalle: 'Como hasta hoy: la foto es un cuadro de un video de Veo rápido a 720p, y los videos salen igual.',
+    detalle: 'Como hasta hoy: la foto es un cuadro de un video de Veo 3.1 Fast, y los videos salen con Veo 3.1 Fast.',
     foto: 'video',
     imagen: { modelos: [] },
     video: { modelos: [VEO_RAPIDO], resolucion: '720p', duracion: '8 s', salidas: 'x1' },
   },
   calidad: {
     nombre: 'Calidad',
-    detalle: 'Las fotos salen como imagen. Los videos, con Veo de calidad a 1080p: gasta bastante más por video.',
+    detalle: 'Las fotos salen como imagen (Nano Banana). Los videos, con Veo 3.1 Quality: gasta bastante más por video.',
     foto: 'imagen',
     imagen: { modelos: [] },
-    video: { modelos: ['Veo 3\\.1(?!.*(Fast|R[aá]pido|Lower|Baja|Prioridad))'], resolucion: '1080p', duracion: '8 s', salidas: 'x1' },
+    video: { modelos: [VEO_CALIDAD], resolucion: '720p', duracion: '8 s', salidas: 'x1' },
   },
 };
 const PREDETERMINADO = 'normal';

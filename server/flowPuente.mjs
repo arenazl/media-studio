@@ -432,7 +432,9 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       const info = await pedir(job, 'descargarUrl', { url: enOrden[i], nombre: `esc${esc.escenaN}-${job.id}.${ext}` }, 200000);
       log(`escena ${esc.escenaN}: bajada a ${info.filename}`);
       const buffer = fs.readFileSync(info.filename);
-      const toma = await guardarClip(buffer, `esc${esc.escenaN}-${path.basename(info.filename, path.extname(info.filename))}.${ext}`);
+      // la extensión real del archivo (Chrome guarda la imagen de Flow como .jpg aunque se pida .png)
+      const extReal = path.extname(info.filename).slice(1).toLowerCase() || ext;
+      const toma = await guardarClip(buffer, `esc${esc.escenaN}-${path.basename(info.filename, path.extname(info.filename))}.${extReal}`);
       // la red (2026-10-12): el clip tiene que decir la frase de su escena. Si no la dice, no entra a la pieza (un clip ajeno
       // o una frase inventada por Flow) y queda para volver a generar.
       const dialogo = String(sb[esc.escenaN]?.dialogo || esc.dialogo || '').trim();   // esc.dialogo: la presentadora del cierre
