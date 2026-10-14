@@ -3,9 +3,10 @@
 // Media Studio corre en la PC de Lucas, así que es el que llama: cada 25 s consulta los pedidos pendientes de SalesBot.
 // - Todas las personalidades tienen imágenes y Media Studio no filtra ni juzga los pedidos (Lucas, 2026-10-12:
 //   "solamente tenés que generar; todo lo demás corre por cuenta mía"): les suma lo profesional y los manda a Flow.
-//   Cada personalidad tiene su cara: la fija la primera foto que Lucas le pide y queda en server/salesbot-personajes.json
-//   (`personajeDe`, de index.mjs).
-// - Los pedidos libres los escribe Lucas en el panel (origen "panel").
+//   Cada personalidad tiene su cara: la fija la primera foto que la muestra, la pida quien la pida (Lucas en el panel o
+//   la personalidad en una charla), y queda en server/salesbot-personajes.json (`personajeDe`, de index.mjs).
+// - Media Studio no frena ningún pedido (Lucas, 2026-10-14: "tu rol no es poner freno de nada, tu rol es generar; si
+//   alguien va a frenar algo, va a ser la herramienta que está atrás").
 // La clave (MEDIA_STUDIO_KEY, Secret Manager de salesbot-prod) se lee con gcloud al arrancar y queda sólo en memoria.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -44,6 +45,9 @@ export const accionDeSituacion = (situacion, nombre) => `${nombre} ${ACCION_POR_
 // un pedido libre hecho desde la app (sin pasar por WhatsApp): lo arma iniciarSalesbotMedios cuando arranca
 let libreLocal = null;
 export const pedidoLibreLocal = (contexto, kind, extra = {}) => (libreLocal ? libreLocal(contexto, kind, extra) : Promise.reject(new Error('la integración con SalesBot no está activa')));
+// volver a hacer un pedido de SalesBot que quedó con error
+let rehacerLocal = null;
+export const rehacerPedido = (id) => (rehacerLocal ? rehacerLocal(id) : Promise.reject(new Error('la integración con SalesBot no está activa')));
 
 const estado = { activo: false, conectado: false, ultimaConsulta: null, ultimoError: '', atendidos: 0, rechazados: 0, enCurso: null };
 export const estadoSalesbot = () => ({ ...estado, conCara: Object.keys(leerPermitidos().personajes || {}) });
@@ -52,7 +56,7 @@ export const estadoSalesbot = () => ({ ...estado, conCara: Object.keys(leerPermi
 // nombre de carpeta para Cloudinary: minúsculas, sin acentos, guiones
 const slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
 
-// La primera foto que muestra a una personalidad fija su cara (Lucas, 2026-10-12). Se guarda qué medio de SalesBot fue:
+// La primera foto que muestra a una personalidad fija su cara, la pida quien la pida. Se guarda qué medio de SalesBot fue:
 // si Lucas regenera ESA foto, la personalidad pierde la cara y la próxima foto le hace una nueva; si regenera otra, la
 // cara se mantiene.
 function guardarMedioCara(slugPersonalidad, medioId) {
@@ -106,7 +110,6 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
   };
   const tomar = (id) => api(`/pedidos/${id}/tomar`, { method: 'POST' });
   const contestar = (id, cuerpo) => api(`/pedidos/${id}/resultado`, { method: 'POST', body: JSON.stringify(cuerpo) });
-  const rechazar = async (pedido, motivo) => { await tomar(pedido.id); await contestar(pedido.id, { error: motivo }); estado.rechazados += 1; log(`pedido ${pedido.id}: ${motivo}`); };
   // fabrica y contesta; `hacer` devuelve el archivo o {error} con el motivo
   const sinFlowAvisado = new Set();
   const fabricarYContestar = async (pedido, etiqueta, hacer) => {
@@ -130,38 +133,36 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
       const r = await contestar(pedido.id, archivo.error ? { error: archivo.error } : { archivo: paraSalesbot });
       if (!archivo.error && _muestraLaCara && pedido.personalidad) guardarMedioCara(pedido.personalidad, r?.medio_id);
       if (archivo.error) estado.rechazados += 1; else estado.atendidos += 1;
-      log(`${etiqueta} ${pedido.id}: ${archivo.error ? `no se hace (${archivo.error})` : `entregado (${archivo.url})`}`);
+      log(`${etiqueta} ${pedido.id}: ${archivo.error ? `no salió (${archivo.error})` : `entregado (${archivo.url})`}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       await contestar(pedido.id, { error: `Media Studio no pudo fabricarlo: ${msg}` }).catch(() => {});
       log(`${etiqueta} ${pedido.id}: no salió (${msg})`);
     } finally { estado.enCurso = null; }
   };
-  const atender = async (pedido) => {
-    // pedido libre (2026-10-12, Lucas usa el bot como intermediario): lo escribe Lucas en el panel de SalesBot (origen
-    // "panel"), con o sin personalidad; el texto manda y, si hay personalidad, puede aparecer con su cara. Los pedidos
-    // del bot (personalidad + situación) siguen por el camino de abajo.
+  // Cómo se hace cada pedido. TODOS se hacen: da igual quién pide (Lucas en el panel, la personalidad en una charla), de
+  // qué proyecto es y si la personalidad ya tiene cara. Acá no se rechaza nada: si algo no sale, es porque Flow no lo dio.
+  const comoSeHace = (pedido) => {
+    const texto = String(pedido.contexto || '').trim();
     const desdeElPanel = /^(panel|lucas)/i.test(String(pedido.origen || ''));
-    const libre = String(pedido.contexto || '').trim() && (pedido.personalidad || pedido.proyecto === 'libre' || pedido.proyecto === 'munify');
-    if (libre && !pedido.personalidad && !desdeElPanel) return rechazar(pedido, 'Los pedidos libres son sólo de Lucas, desde el panel.');
-    if (libre && desdeElPanel) {
-      if (!fabricarLibre) return;
-      return fabricarYContestar(pedido, 'pedido libre', async () => fabricarLibre({ pedido, personaje: pedido.personalidad ? await personajeDe(pedido) : null, log, subir }));
+    // con texto, el texto manda. Si lo pidió la personalidad en una charla (SalesBot, 2026-10-12: "fue a andar a caballo
+    // y le piden la foto"), la foto es de ella y va sola a esa charla; si todavía no tiene cara, esta foto se la fija
+    if (texto) {
+      const deElla = !!pedido.personalidad && !desdeElPanel;
+      return { etiqueta: deElla ? 'pedido del bot' : 'pedido libre', motor: fabricarLibre, hacer: async () => {
+        const personaje = pedido.personalidad ? await personajeDe(pedido) : null;
+        return fabricarLibre({ pedido, personaje: personaje && deElla ? { ...personaje, esElla: true } : personaje, log, subir });
+      } };
     }
-    // la personalidad pide en la charla una foto suya que no tiene (SalesBot, 2026-10-12: "fue a andar a caballo y le
-    // piden la foto"): el mismo motor que los libres, siempre con ella en la foto y con su cara. Sin cara todavía, se
-    // contesta con el motivo: la primera foto la genera Lucas desde el panel. La foto va sola a esa charla.
-    if (libre && pedido.personalidad) {
-      if (!fabricarLibre) return;
-      return fabricarYContestar(pedido, 'pedido del bot', async () => {
-        const personaje = await personajeDe(pedido);
-        if (personaje.sinCara) return { error: `${personaje.nombre} todavía no tiene cara: la primera foto se la genera Lucas desde el panel.` };
-        return fabricarLibre({ pedido, personaje: { ...personaje, esElla: true }, log, subir });
-      });
-    }
-    if (!pedido.personalidad) return rechazar(pedido, `Media Studio necesita la personalidad para saber a quién mostrar ("${pedido.proyecto || 'sin proyecto'}").`);
-    if (!fabricar) { log(`pedido ${pedido.id}: todavía no hay cómo fabricarlo; queda pendiente`); return; }
-    return fabricarYContestar(pedido, 'pedido', async () => fabricar({ pedido, personaje: await personajeDe(pedido), log, subir }));
+    // sin texto: la personalidad en una situación (saludo, selfie...)
+    if (pedido.personalidad) return { etiqueta: 'pedido', motor: fabricar, hacer: async () => fabricar({ pedido, personaje: await personajeDe(pedido), log, subir }) };
+    // sin texto y sin personalidad: la situación sola, con quien ponga Flow
+    return { etiqueta: 'pedido libre', motor: fabricarLibre, hacer: async () => fabricarLibre({ pedido: { ...pedido, contexto: descripcionDeSituacion(pedido.situacion, 'Una persona').descripcion }, personaje: null, log, subir }) };
+  };
+  const atender = async (pedido) => {
+    const { etiqueta, motor, hacer } = comoSeHace(pedido);
+    if (!motor) { log(`pedido ${pedido.id}: todavía no hay cómo fabricarlo; queda pendiente`); return; }
+    return fabricarYContestar(pedido, etiqueta, hacer);
   };
   const vuelta = async () => {
     try {
@@ -191,6 +192,34 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
     const r = await api('', { method: 'POST', body: JSON.stringify({ ...medio, kind: /^(jpe?g|png|webp)$/i.test(String(medio.formato || '')) ? 'imagen' : 'video', personalidad: pedido.personalidad, proyecto: pedido.proyecto, situacion: 'libre' }) });
     if (_muestraLaCara) guardarMedioCara(pedido.personalidad, r?.id);
     return { ...medio, medio_id: r?.id };
+  };
+  // volver a hacer un pedido que quedó con error: se fabrica igual que si llegara de nuevo. Si SalesBot ya no recibe el
+  // resultado en ese pedido, el medio queda en el banco de la personalidad.
+  rehacerLocal = async (id) => {
+    if (!clave) clave = await leerClave();
+    const { pedidos = [] } = await api('/pedidos?estado=error');
+    const pedido = pedidos.find((p) => String(p.id) === String(id));
+    if (!pedido) throw new Error(`no encontré el pedido ${id} entre los que quedaron con error`);
+    if (estado.enCurso || ocupado()) throw new Error('Flow está ocupado con otro pedido');
+    const { etiqueta, motor, hacer } = comoSeHace(pedido);
+    if (!motor) throw new Error('todavía no hay cómo fabricarlo');
+    estado.enCurso = pedido.id;
+    try {
+      const archivo = await hacer();
+      if (archivo.error) { log(`${etiqueta} ${pedido.id}: rehecho, no salió (${archivo.error})`); return archivo; }
+      const { _muestraLaCara, ...medio } = archivo;
+      let medioId = null, entregadoEn = 'el pedido';
+      try { medioId = (await contestar(pedido.id, { archivo: medio }))?.medio_id ?? null; }
+      catch (e) {
+        if (!pedido.personalidad) throw e;
+        const r = await api('', { method: 'POST', body: JSON.stringify({ ...medio, kind: /^(jpe?g|png|webp)$/i.test(String(medio.formato || '')) ? 'imagen' : 'video', personalidad: pedido.personalidad, proyecto: pedido.proyecto, situacion: pedido.situacion || 'libre' }) });
+        medioId = r?.id ?? null; entregadoEn = 'el banco de la personalidad';
+      }
+      if (_muestraLaCara && pedido.personalidad) guardarMedioCara(pedido.personalidad, medioId);
+      estado.atendidos += 1;
+      log(`${etiqueta} ${pedido.id}: rehecho y entregado en ${entregadoEn} (${medio.url})`);
+      return { ...medio, medio_id: medioId, entregadoEn };
+    } finally { estado.enCurso = null; }
   };
   log(`integración activa: consulta los pedidos de SalesBot cada ${CADA_MS / 1000} s`);
   setTimeout(vuelta, 3000);

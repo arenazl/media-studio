@@ -50,7 +50,7 @@ import { renderMockups, renderRemotion } from './renderRemotion.mjs';
 import * as puente from './flowPuente.mjs';
 import { createHash as _sha } from 'node:crypto';
 import { abrirFlow } from './abrirFlow.mjs';
-import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, descripcionDeSituacion, pedidoLibreLocal } from './salesbotMedios.mjs';
+import { iniciarSalesbotMedios, estadoSalesbot, accionDeSituacion, descripcionDeSituacion, pedidoLibreLocal, rehacerPedido } from './salesbotMedios.mjs';
 import { promptEscena, promptImagen, estiloPara } from './flowCompiler.mjs';
 import { generarMockupsApp, catalogoDeApp } from './mockupsApp.mjs';
 import { escribirTarjetasPlantilla, progresoDe } from './tarjetasPlantilla.mjs';
@@ -515,8 +515,9 @@ const nombreEnFlow = (slugPersonalidad, nombre) => {
   const resto = String(slugPersonalidad).replace(/^intendente-/, '').replace(new RegExp(`^${pila.toLowerCase()}-*`), '');
   return `${pila}${resto.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`.replace(/[^A-Za-z0-9]/g, '').slice(0, 24);
 };
-// La cara no se inventa a partir de la personalidad (Lucas, 2026-10-12: "es contraproducente; lo genero yo"): una
-// personalidad sin cara la recibe de la primera foto que Lucas le pide y que la muestra; de ahí en adelante es esa.
+// La cara no se inventa a partir de la descripción de la personalidad (Lucas, 2026-10-12: "es contraproducente"): una
+// personalidad sin cara la recibe de la primera foto que la muestra, la pida quien la pida (Lucas, 2026-10-14: "la
+// primera foto no la genero yo"); de ahí en adelante es esa.
 async function personajeDeSalesbot(pedido) {
   const ya = leerPersonajesSb().personajes?.[pedido.personalidad];
   if (ya?.retratoEn) return { ...ya, flowNombre: ya.flowNombre || nombreEnFlow(pedido.personalidad, ya.nombre) };
@@ -526,7 +527,7 @@ async function personajeDeSalesbot(pedido) {
   const base = nombreEnFlow(pedido.personalidad, nombre);
   return { sinCara: true, nombre, flowNombre: caraNro > 1 ? `${base.slice(0, 21)}${caraNro}` : base, ...(caraNro > 1 ? { caraNro } : {}) };
 }
-// la primera foto que muestra a la personalidad fija su cara: lo que el pedido de Lucas dijo de cómo se ve
+// la primera foto que muestra a la personalidad fija su cara: lo que ese pedido dijo de cómo se ve
 function guardarCaraSb(slugPersonalidad, personaje) {
   const todo = leerPersonajesSb();
   const { sinCara, ...cara } = personaje;
@@ -535,7 +536,8 @@ function guardarCaraSb(slugPersonalidad, personaje) {
 }
 
 async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
-  if (personaje.sinCara) return { error: `${personaje.nombre} todavía no tiene cara: la primera foto se la genera Lucas desde el panel.` };
+  // sin cara todavía: la situación se pide como un pedido de texto y esa foto le fija la cara (2026-10-14: acá no se frena nada)
+  if (personaje.sinCara) return fabricarLibreParaSalesbot({ pedido: { ...pedido, contexto: descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion }, personaje: { ...personaje, esElla: true }, log, subir });
   const p1 ={ id: 'p1', nombre: personaje.flowNombre, fisicoEn: personaje.retratoEn, vestuarioEn: personaje.vestuarioEn, lugarEn: personaje.lugarEn };
   const cast = { personajes: [p1], lugar: { descripcionEn: personaje.lugarEn } };
   const escena = { n: 1, rol: 'desarrollo', personajes: ['p1'], dialogo: '', accionEn: `${accionDeSituacion(pedido.situacion, personaje.flowNombre)} The setting: ${personaje.lugarEn}.`, plano: pedido.situacion === 'selfie' ? 'medium close-up' : 'medium shot' };
@@ -560,7 +562,7 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   const cuadro = toma.fileRef.replace(/\.mp4$/i, '.jpg');
   await runFfmpeg(['-y', '-ss', '4', '-i', toma.fileRef, '-frames:v', '1', '-q:v', '2', cuadro]);
   if (pedido.kind === 'imagen') { archivo = cuadro; tipo = 'image/jpeg'; }
-  const visto = await mirarMedio(cuadro, descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion);
+  const visto = await mirarOSeguir(cuadro, descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion, log, pedido.id);
   if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
   const etiquetas = [...new Set([...visto.etiquetas, personaje.nombre.toLowerCase(), String(pedido.situacion || '').replace(/_/g, ' ')].filter(Boolean))];
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'personalidades', producto: pedido.personalidad, nombre: pedido.situacion });
@@ -577,6 +579,18 @@ async function mirarMedio(cuadro, loPedido) {
   return { coincide: r.coincide === true, descripcion, etiquetas: Array.isArray(r.etiquetas) ? r.etiquetas.map((e) => String(e).trim().toLowerCase()).filter(Boolean).slice(0, 8) : [] };
 }
 
+// Mirar el cuadro sirve para describirlo y para no entregar el archivo de otro pedido; no es un permiso. Si la IA que
+// mira no contesta, el medio se entrega igual, con la descripción del pedido.
+async function mirarOSeguir(cuadro, loPedido, log, id) {
+  try { return await mirarMedio(cuadro, loPedido); }
+  catch (e) {
+    log(`pedido ${id}: no pude mirar el cuadro (${e instanceof Error ? e.message : String(e)}); se entrega con la descripción del pedido`);
+    return { coincide: true, descripcion: String(loPedido || '').trim().slice(0, 200), etiquetas: [] };
+  }
+}
+// lo técnico que se le suma al texto cuando la IA que lo arma no contesta: el pedido va a Flow igual
+const TECNICA_ESTANDAR = 'Medium shot, 50mm lens, shallow depth of field, soft natural light, photorealistic skin texture and fabric detail, subtle handheld micro-movement, an almost still frame.';
+
 // Un pedido LIBRE de Lucas desde el panel de SalesBot (2026-10-12): Claude lo convierte en un pedido de Flow y Flow lo genera.
 // El texto del pedido va a Flow TAL CUAL (Lucas, 2026-10-12: "mandá generar el prompt exactamente como lo puse yo");
 // la IA sólo le suma lo técnico (plano, cámara, luz) y dice el formato y la duración.
@@ -590,17 +604,25 @@ Formato vertical 9:16 salvo que pida horizontal.`;
 async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
   // parado sobre una personalidad: si el pedido la muestra, va con su cara; si todavía no tiene, esta foto se la fija
   const contextoPersona = !personaje ? ''
+    : personaje.esElla && personaje.sinCara ? `El medio es una foto de ${personaje.nombre}, que la pidió en una charla y todavía no tiene cara: aparece haciendo lo que dice el texto. "muestra" es true y en "retratoEn" escribí cómo se ve según el texto (edad, pelo, rasgos, piel, contextura), en inglés, completando de forma común lo que no diga: va a ser su cara de ahí en adelante.
+`
     : personaje.esElla ? `El medio es una foto de ${personaje.nombre}, que la pidió en una charla: aparece haciendo lo que dice el texto. "muestra" es true.
 `
     : personaje.sinCara ? `Se pidió parado sobre ${personaje.nombre}, que todavía no tiene cara. Si el medio lo muestra (también si dice "la misma persona", "él" o "ella"), "muestra" es true y en "retratoEn" escribí cómo se ve según el texto (edad, pelo, rasgos, piel, contextura), en inglés, completando de forma común lo que no diga: va a ser su cara de ahí en adelante.
 `
     : `Se pidió parado sobre ${personaje.nombre}. Si el medio lo muestra (también si dice "la misma persona", "él" o "ella"), "muestra" es true.
 `;
-  const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona, personaje?.esElla ? `${personaje.nombre}, en una charla,` : undefined), model: 'sonnet', functionId: 'flowpack' });
   // Media Studio no juzga el pedido (Lucas, 2026-10-12: "solamente tenés que generar; todo lo demás corre por cuenta
-  // mía"): si la IA que lo arma no devuelve el pedido, se dice eso, con sus palabras
+  // mía"; 2026-10-14: "si alguien va a frenar algo, va a ser la herramienta que está atrás"). La IA sólo suma lo técnico:
+  // si no lo devuelve, el texto va a Flow igual, con una técnica estándar, y el que decide es Flow.
   let plan;
-  try { plan = extractJson(text); } catch { return { error: `La IA que arma el pedido a Flow no lo armó; contestó: "${String(text || '').trim().slice(0, 300)}"` }; }
+  try {
+    const { text } = await runAI({ prompt: PEDIDO_LIBRE(String(pedido.contexto || ''), pedido.kind, contextoPersona, personaje?.esElla ? `${personaje.nombre}, en una charla,` : undefined), model: 'sonnet', functionId: 'flowpack' });
+    plan = extractJson(text);
+  } catch (e) {
+    log(`pedido libre ${pedido.id}: la IA no armó lo técnico (${(e instanceof Error ? e.message : String(e)).slice(0, 120)}); va el texto tal cual con la técnica estándar`);
+    plan = { kind: pedido.kind, durSec: 6, aspecto: '9:16', tecnica: TECNICA_ESTANDAR, muestra: !!personaje?.esElla, retratoEn: '' };
+  }
   const kind = plan.kind === 'imagen' || pedido.kind === 'imagen' ? 'imagen' : 'video';
   const durSec = Math.max(2, Math.min(8, Number(plan.durSec) || 6));
   const aspecto = plan.aspecto === '16:9' ? '16:9' : '9:16';
@@ -640,7 +662,7 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
     await runFfmpeg(['-y', '-i', toma.fileRef, '-t', String(durSec), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', archivo]);
   }
   // para que el bot identifique el medio y sepa cuándo usarlo (Lucas, 2026-10-12): qué se ve, mirando el cuadro real
-  const visto = await mirarMedio(cuadro, String(pedido.contexto || ''));
+  const visto = await mirarOSeguir(cuadro, String(pedido.contexto || ''), log, pedido.id);
   if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
   const { descripcion, etiquetas } = visto;
   if (conCara && personaje.sinCara) guardarCaraSb(pedido.personalidad, personaje);
@@ -1912,6 +1934,12 @@ ${src}`;
     if (p === '/api/flow/jobs' && req.method === 'GET') return json(res, 200, { jobs: puente.listarJobs(), extension: puente.extensionViva() });
     // integración con SalesBot (2026-10-12): estado de la consulta de pedidos
     if (p === '/api/salesbot/estado' && req.method === 'GET') return json(res, 200, estadoSalesbot());
+    // volver a hacer un pedido de SalesBot que quedó con error (se fabrica igual que si llegara de nuevo)
+    if (p === '/api/salesbot/rehacer' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      try { return json(res, 200, await rehacerPedido(body.id)); }
+      catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo' }); }
+    }
     // un pedido libre desde la app, igual que si llegara por WhatsApp: genera en Flow, sube a SalesBot y devuelve la url
     if (p === '/api/salesbot/libre' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
