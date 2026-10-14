@@ -367,7 +367,8 @@
       // 2026-10-14: una foto pedida como imagen (preset Ahorro o Calidad): la URL es la de la imagen del primer tile
       if (tipo === 'imagen') {
         if (!/\/project\//.test(location.pathname)) return { url: '', motivo: 'la pestaña no está en el proyecto' };
-        for (let i = 0; i < 20 && !(q(SEL.tile)[0] && esImagenTile(q(SEL.tile)[0])); i++) await espera(500);
+        // hasta 20 s: la imagen nueva tarda en cargarse en la grilla (2026-10-14: a los 10 s todavía no estaba)
+        for (let i = 0; i < 40 && !(q(SEL.tile)[0] && esImagenTile(q(SEL.tile)[0])); i++) await espera(500);
         const t = q(SEL.tile)[0];
         if (!t || !esImagenTile(t)) return { url: '', motivo: 'el primer tile no es una imagen' };
         return { url: imagenDe(t), esElPrimero: true };

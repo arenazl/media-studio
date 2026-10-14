@@ -60,9 +60,23 @@ export function descargaLista(info) {
 // "Receiving end does not exist"). El paso no llegó a ejecutarse, así que no gastó nada: la extensión recarga la pestaña
 // (eso lo hace sin necesitar la página) y el paso se pide de nuevo, una sola vez.
 const SIN_CONEXION = /Receiving end does not exist|Could not establish connection/i;
+// Los pasos que necesitan la página de Flow a la vista: con la pestaña escondida, Flow no abre sus menús ni carga las
+// imágenes de la grilla (2026-10-14: con Lucas usando la compu, la ventana de Chrome quedaba atrás a mitad del trabajo
+// y el pedido moría con "no encontré el ítem del menú"). Antes de cada uno se mira y, si hace falta, se trae al frente.
+const PASOS_A_LA_VISTA = new Set(['irAContenido', 'personajeExiste', 'prepararPersonaje', 'esperarPersonaje', 'renombrarUltimoPersonaje', 'ajustes', 'generar', 'nuevoProyecto', 'apagarAgente', 'urlDelMasNuevo', 'urlsDeClips']);
 async function pedir(job, accion, args = {}, timeoutMs = 120000) {
   // con la pestaña traída al frente para todo el trabajo, se devuelve recién al final (ver iniciarJob)
   if (accion === 'devolverPestana' && job.alFrente && !args.final) return { omitida: true };
+  if (PASOS_A_LA_VISTA.has(accion) && job.estado === 'corriendo') {
+    const e = await pedirUnaVez(job, 'estado', {}, 20000).catch(() => null);
+    if (e && e.visible === false) {
+      await pedirUnaVez(job, 'traerAlFrente', {}, 20000).catch(() => {});
+      job.alFrente = true;
+      const aviso = `la pestaña de Flow quedó escondida antes de "${accion}"; la traigo al frente`;
+      if (Array.isArray(job.log)) job.log.push(`${new Date().toTimeString().slice(0, 8)} ${aviso}`);
+      console.log('[media-studio] puente-flow:', aviso);
+    }
+  }
   try { return await pedirUnaVez(job, accion, args, timeoutMs); }
   catch (e) {
     if (!SIN_CONEXION.test(e.message) || accion === 'recargar') throw e;
@@ -166,6 +180,16 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         await new Promise((r) => setTimeout(r, 3000));
         const e3 = await pedir(job, 'estado', {}, 30000).catch(() => null);
         muerto = !!e3 && proyectoMuerto(e3.url);
+      }
+      // un corte de internet también muestra "proyecto no encontrado" (2026-10-14, 03:02): antes de darlo por perdido se
+      // recarga y se vuelve a mirar, para no crear un proyecto nuevo (y perder sus personajes) por un corte de un minuto
+      if (muerto) {
+        await pedir(job, 'recargar', {}, 90000).catch(() => {});
+        await new Promise((r) => setTimeout(r, 5000));
+        await pedir(job, 'ir', { url: job.flowProjectUrl }, 90000).catch(() => {});
+        await new Promise((r) => setTimeout(r, 4000));
+        const e4 = await pedir(job, 'estado', {}, 30000).catch(() => null);
+        muerto = !e4 || proyectoMuerto(e4.url);
       }
       if (muerto) { log(`el proyecto de Flow ya no existe (${job.flowProjectUrl}); creo uno nuevo`); job.flowProjectUrl = null; est.url = 'https://flow.google.com/404'; }
       else log('proyecto de Flow abierto');
@@ -429,7 +453,17 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       }
       setPaso(`bajando la escena ${esc.escenaN} (${i + 1} de ${escenas.length})`);
       const ext = job.modo === 'imagen' ? 'png' : 'mp4';
-      const info = await pedir(job, 'descargarUrl', { url: enOrden[i], nombre: `esc${esc.escenaN}-${job.id}.${ext}` }, 200000);
+      // lo generado ya está en Flow: si la descarga se corta (internet, 2026-10-14 03:02) se vuelve a BAJAR, nunca a
+      // generar (Lucas: "no los rehagas, ¿no ves que ya están en Flow? así pierdo créditos")
+      let info = null;
+      for (let intento = 1; intento <= 4 && !info; intento++) {
+        try { info = await pedir(job, 'descargarUrl', { url: enOrden[i], nombre: `esc${esc.escenaN}-${job.id}.${ext}` }, 200000); }
+        catch (e) {
+          if (intento === 4 || !/NETWORK|FAILED|interrump|no termin|no empez/i.test(e.message)) throw new Error(`${e.message} · lo generado sigue en Flow: se puede bajar de ahí sin volver a generarlo`);
+          log(`escena ${esc.escenaN}: la descarga se cortó (${e.message}); la vuelvo a bajar en ${intento * 15} s, sin generar de nuevo`);
+          await new Promise((r) => setTimeout(r, intento * 15000));
+        }
+      }
       log(`escena ${esc.escenaN}: bajada a ${info.filename}`);
       const buffer = fs.readFileSync(info.filename);
       // la extensión real del archivo (Chrome guarda la imagen de Flow como .jpg aunque se pida .png)

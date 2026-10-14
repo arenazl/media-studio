@@ -1977,6 +1977,9 @@ ${src}`;
     // volver a hacer un pedido de SalesBot que quedó con error (se fabrica igual que si llegara de nuevo)
     if (p === '/api/salesbot/rehacer' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
+      // rehacer GENERA de nuevo y gasta créditos: sólo si Lucas lo pidió para ese pedido (2026-10-14: rehice el 49 y el 50
+      // que ya estaban generados en Flow). Sin { generarDeNuevo: true } no se hace.
+      if (body.generarDeNuevo !== true) return json(res, 400, { error: 'rehacer vuelve a generar y gasta créditos: sólo con generarDeNuevo: true, cuando Lucas lo pide. Si ya está en Flow, se baja de ahí.' });
       try { return json(res, 200, await rehacerPedido(body.id)); }
       catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo' }); }
     }
