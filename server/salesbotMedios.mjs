@@ -50,7 +50,7 @@ let rehacerLocal = null;
 export const rehacerPedido = (id) => (rehacerLocal ? rehacerLocal(id) : Promise.reject(new Error('la integración con SalesBot no está activa')));
 
 const estado = { activo: false, conectado: false, ultimaConsulta: null, ultimoError: '', atendidos: 0, rechazados: 0, enCurso: null };
-export const estadoSalesbot = () => ({ ...estado, conCara: Object.keys(leerPermitidos().personajes || {}) });
+export const estadoSalesbot = () => ({ ...estado, conCara: Object.keys(leerPermitidos().personajes || {}), cupo: cupoDeHoy() });
 
 
 // nombre de carpeta para Cloudinary: minúsculas, sin acentos, guiones
@@ -73,6 +73,26 @@ function olvidarCara(slugPersonalidad) {
   todo.personajes[slugPersonalidad] = { categoria: p.categoria, caraNro: (p.caraNro || 1) + 1 };
   fs.writeFileSync(PERSONAJES, JSON.stringify(todo, null, 2) + '\n');
 }
+
+// TOPE POR DÍA (Lucas, 2026-10-14: "¿cuál es el límite que le dejaste a cada bot por día? Yo diría 5 por ahora").
+// Cuenta las fotos y videos ENTREGADOS que pidió cada bot desde una charla, por día de Argentina. Lo que pide Lucas
+// desde el panel no cuenta. Se guarda en disco para que un reinicio no lo ponga en cero.
+export const TOPE_POR_DIA = 5;
+const CUPO = path.resolve('server/storage/salesbot-cupo.json');
+const hoyART = () => new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 10);
+const esDelBot = (pedido) => !!pedido.personalidad && !/^(panel|lucas)/i.test(String(pedido.origen || ''));
+function leerCupo() {
+  try { const c = JSON.parse(fs.readFileSync(CUPO, 'utf8')); if (c.dia === hoyART()) return c; } catch { /* sin cupo todavía */ }
+  return { dia: hoyART(), porBot: {} };
+}
+const usadosHoy = (slugPersonalidad) => leerCupo().porBot[slugPersonalidad] || 0;
+function sumarHoy(slugPersonalidad) {
+  const c = leerCupo();
+  c.porBot[slugPersonalidad] = (c.porBot[slugPersonalidad] || 0) + 1;
+  fs.mkdirSync(path.dirname(CUPO), { recursive: true });
+  fs.writeFileSync(CUPO, JSON.stringify(c, null, 1) + '\n');
+}
+export const cupoDeHoy = () => ({ tope: TOPE_POR_DIA, ...leerCupo() });
 
 function leerPermitidos() {
   try { return JSON.parse(fs.readFileSync(PERSONAJES, 'utf8')); } catch { return { personajes: {}, proyectos: {} }; }
@@ -134,6 +154,7 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
       const { _muestraLaCara, ...paraSalesbot } = archivo;
       const r = await contestar(pedido.id, archivo.error ? { error: archivo.error } : { archivo: paraSalesbot });
       if (!archivo.error && _muestraLaCara && pedido.personalidad) guardarMedioCara(pedido.personalidad, r?.medio_id);
+      if (!archivo.error && esDelBot(pedido)) sumarHoy(pedido.personalidad);
       if (archivo.error) estado.rechazados += 1; else estado.atendidos += 1;
       log(`${etiqueta} ${pedido.id}: ${archivo.error ? `no salió (${archivo.error})` : `entregado (${archivo.url})`}`);
     } catch (e) {
@@ -164,6 +185,14 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
   const atender = async (pedido) => {
     const { etiqueta, motor, hacer } = comoSeHace(pedido);
     if (!motor) { log(`pedido ${pedido.id}: todavía no hay cómo fabricarlo; queda pendiente`); return; }
+    // el tope del día que dictó Lucas para los pedidos que hace el bot desde una charla (2026-10-14: "5 por ahora")
+    if (esDelBot(pedido) && usadosHoy(pedido.personalidad) >= TOPE_POR_DIA) {
+      await tomar(pedido.id).catch(() => {});
+      await contestar(pedido.id, { error: `${pedido.personalidad} ya mandó sus ${TOPE_POR_DIA} fotos de hoy (tope por día que puso Lucas)` }).catch(() => {});
+      estado.rechazados += 1;
+      log(`pedido ${pedido.id}: ${pedido.personalidad} llegó al tope de ${TOPE_POR_DIA} por día; no se genera`);
+      return;
+    }
     return fabricarYContestar(pedido, etiqueta, hacer);
   };
   const vuelta = async () => {
@@ -221,6 +250,7 @@ export function iniciarSalesbotMedios({ fabricar, fabricarLibre, personajeDe, oc
         medioId = r?.id ?? null; entregadoEn = 'el banco de la personalidad';
       }
       if (_muestraLaCara && pedido.personalidad) guardarMedioCara(pedido.personalidad, medioId);
+      if (esDelBot(pedido)) sumarHoy(pedido.personalidad);
       estado.atendidos += 1;
       log(`${etiqueta} ${pedido.id}: rehecho y entregado en ${entregadoEn} (${medio.url})`);
       return { ...medio, medio_id: medioId, entregadoEn };

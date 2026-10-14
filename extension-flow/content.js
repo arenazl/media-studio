@@ -247,6 +247,23 @@
       return out;
     },
 
+    // las líneas de la página y las etiquetas que coinciden con un texto (2026-10-14: dónde muestra Flow los créditos).
+    // `tocar`: antes de leer, toca el botón cuya etiqueta coincide (el de la cuenta, por ejemplo) y después lo cierra.
+    async buscarTexto({ re = 'cr[eé]dito', tocar = '' } = {}) {
+      const rx = new RegExp(re, 'i');
+      let tocado = null;
+      if (tocar) {
+        const rt = new RegExp(tocar, 'i');
+        tocado = [...document.querySelectorAll('button, a, [role="button"], img')].filter(visible).find((b) => rt.test(b.getAttribute('aria-label') || b.getAttribute('title') || b.getAttribute('alt') || textoDe(b)));
+        if (tocado) { (tocado.closest('button, a, [role="button"]') || tocado).click(); await espera(1500); }
+      }
+      const lineas = (document.body.innerText || '').split('\n').map((l) => l.trim()).filter((l) => l && rx.test(l)).slice(0, 30);
+      const etiquetas = [...document.querySelectorAll('[aria-label], [title]')].map((e) => e.getAttribute('aria-label') || e.getAttribute('title')).filter((t) => t && rx.test(t)).slice(0, 30);
+      const botones = [...document.querySelectorAll('button, a, [role="button"]')].filter(visible).map((b) => b.getAttribute('aria-label') || textoDe(b)).filter(Boolean).slice(0, 60);
+      if (tocado) { for (let i = 0; i < 2; i++) { const f = q('.cdk-overlay-backdrop')[0]; if (f) { f.click(); await espera(300); } } document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true })); }
+      return { lineas, etiquetas, tocado: tocado ? (tocado.getAttribute('aria-label') || textoDe(tocado)).slice(0, 80) : null, botones };
+    },
+
     // el primer tile de la grilla tal cual (para relevar cómo se ve una imagen nueva en la interfaz de Flow)
     async leerTile() {
       const t = q(SEL.tile)[0];
