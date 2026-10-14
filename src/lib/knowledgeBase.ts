@@ -38,7 +38,7 @@ export interface KnowledgeBase {
   thesis?: KBThesis;
   contract_version: string;
   last_updated?: string;
-  business: { name: string; tagline?: string; description: string; value_story?: string; industry?: string; target_audience?: string; website?: string };
+  business: { name: string; tagline?: string; description: string; value_story?: string; industry?: string; zone?: string; target_audience?: string; website?: string };
   key_messages?: string[];          // 1.2: mensajes centrales que van en CADA reel (enfoque global)
   offerings: KBOffering[];
   pricing?: { model?: string; summary?: string; promotions?: string[] };
@@ -78,6 +78,7 @@ export function kbToBrief(kb: KnowledgeBase): string {
   L.push(b.description);
   if (b.value_story) { L.push(''); L.push('### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)'); L.push(b.value_story); }
   if (b.industry) L.push(`- Rubro: ${b.industry}`);
+  if (b.zone) L.push(`- Zona: ${b.zone}`);
   if (b.target_audience) L.push(`- Público: ${b.target_audience}`);
   if (kb.key_messages?.length) {
     L.push('');

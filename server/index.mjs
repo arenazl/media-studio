@@ -147,7 +147,10 @@ function kbDesdeMediaKit(mk, nombreApp) {
       tagline: mk.negocio?.queEs,
       description: mk.negocio?.queVende,
       target_audience: mk.negocio?.audienciaPrioritaria || (Array.isArray(mk.negocio?.aQuien) ? mk.negocio.aQuien.join(', ') : ''),
-      industry: mk.negocio?.zona,
+      // el rubro es lo que la app ES, en pocas palabras (lo que dice queEs hasta el primer ":" o "."); antes salía de la
+      // zona y la tarjeta del proyecto decía "Argentina" o "AMBA... Barrio de ejemplo: Villa Urquiza" (2026-10-14)
+      industry: (String(mk.negocio?.queEs || '').split(/[:.]/)[0].trim().slice(0, 80)) || mk.negocio?.zona,
+      zone: mk.negocio?.zona,
     },
     differentiators: mk.negocio?.diferenciales || [],
     // la tesis (38 §3 5bis): lo que se vende, contra qué, el momento mágico, a quién primero; va arriba del brief
@@ -1379,7 +1382,17 @@ ${src}`;
         // trae sus pantallas y sus mockups. Antes el kit sólo entraba en las apps que no tenían integración (2026-10-13)
         if (kb && !kb.media_kit_id && scanMediaKits(MEDIA_KIT_ROOT).some((k) => k.id === app.id && k.valido)) kb.media_kit_id = app.id;
         return json(res, 200, { app: { id: app.id, name: app.nombre }, kb });
-      } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error trayendo el KB' }); }
+      } catch (e) {
+        const motivo = e instanceof Error ? e.message : 'error trayendo el KB';
+        // la integración de la app no contesta pero su media kit está (2026-10-14: Habláh dio 503 "KB secrets not
+        // configured" después de un deploy): el proyecto sale del kit, con el aviso a la vista, en vez de no salir
+        const mk = scanMediaKits(MEDIA_KIT_ROOT).some((k) => k.id === app.id && k.valido) ? readMediaKit(app.id) : null;
+        if (mk) {
+          console.log(`[media-studio] kb: ${motivo}; uso el media kit de ${app.id}`);
+          return json(res, 200, { app: { id: app.id, name: app.nombre, soloKit: true }, kb: { ...kbDesdeMediaKit(mk, app.nombre), aviso_integracion: `El KB salió del media kit porque la integración no respondió (${motivo}).` } });
+        }
+        return json(res, 502, { error: motivo });
+      }
     }
     // trae el KB + chequea la salud (1.2: pantallas = METADATA descriptiva, no URLs; logo inline/URL).
     if (p === '/api/kb/inspect' && req.method === 'POST') {
