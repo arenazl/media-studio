@@ -1,0 +1,132 @@
+{
+ "totalSeg": 194,
+ "fallas": [],
+ "tiempos": [
+  {
+   "caso": 11,
+   "paso": "strategy",
+   "seg": 35.1,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 12,
+   "paso": "strategy",
+   "seg": 59.8,
+   "modelo": "claude-opus-5",
+   "molde": "strategy/2.1",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 11,
+   "paso": "concept",
+   "seg": 52.6,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 12,
+   "paso": "concept",
+   "seg": 51.9,
+   "modelo": "claude-opus-5",
+   "molde": "concept/3.3",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 11,
+   "paso": "script",
+   "seg": 39.3,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 11,
+   "paso": "cast",
+   "seg": 9.7,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 12,
+   "paso": "script",
+   "seg": 37.8,
+   "modelo": "claude-opus-5",
+   "molde": "script/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 11,
+   "paso": "storyboard",
+   "seg": 22.1,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 12,
+   "paso": "cast",
+   "seg": 10,
+   "modelo": "claude-sonnet-5",
+   "molde": "cast/2.5",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 11,
+   "paso": "flowpack",
+   "seg": 5,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 12,
+   "paso": "storyboard",
+   "seg": 19.1,
+   "modelo": "claude-sonnet-5",
+   "molde": "storyboard/3.10",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 11,
+   "paso": "montageDirection",
+   "seg": 19.8,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 12,
+   "paso": "flowpack",
+   "seg": 6.1,
+   "modelo": "claude-sonnet-5",
+   "molde": "flowpack/3.2-compilado",
+   "reparado": false,
+   "errores": 0
+  },
+  {
+   "caso": 12,
+   "paso": "montageDirection",
+   "seg": 9,
+   "modelo": "claude-opus-5",
+   "molde": "montageDirection/1.0",
+   "reparado": false,
+   "errores": 0
+  }
+ ]
+}

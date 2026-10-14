@@ -1,5 +1,5 @@
 {
-  "_nota": "Los casos de la corrida en seco. Cada uno es UN spot: la app integrada (id de /api/kb/apps), el objetivo de campaña, el tipo de historia y el clima, como los elige el usuario en la app. Valores válidos — objetivo: awareness, demo, conversion, campaña, solo-mockups · enfoque: caso, producto, dos-lados, antes-despues, testimonio, institucional, humor · tratamiento: natural, sobrio, calido, aspiracional, humor. Para correr sólo algunos: npm run corrida-seco -- --casos 1,4,7 · 13/10: Habláh (503, su API sigue en Heroku) y TasAR (404) no responden la integración; sus casos se pasaron a apps que andan.",
+  "_nota": "Los casos de la corrida en seco. Cada uno es UN spot: la app integrada (id de /api/kb/apps), el objetivo de campaña, el tipo de historia y el clima, como los elige el usuario en la app. Valores válidos — objetivo: awareness, demo, conversion, campaña, solo-mockups · enfoque: caso, producto, dos-lados, antes-despues, testimonio, institucional, humor · tratamiento: natural, sobrio, calido, aspiracional, humor. Para correr sólo algunos: npm run corrida-seco -- --casos 1,4,7 · 13/10: TasAR (404) no responde la integración; Habláh volvió (Infra la pasó a Cloud Run).",
   "formatoId": "reel-hibrido-9-16",
   "casos": [
     {
@@ -68,6 +68,20 @@
     {
       "n": 10,
       "app": "repareya",
+      "objetivo": "campaña",
+      "enfoque": "antes-despues",
+      "tratamiento": "humor"
+    },
+    {
+      "n": 11,
+      "app": "hablah",
+      "objetivo": "demo",
+      "enfoque": "caso",
+      "tratamiento": "aspiracional"
+    },
+    {
+      "n": 12,
+      "app": "hablah",
       "objetivo": "campaña",
       "enfoque": "antes-despues",
       "tratamiento": "humor"

@@ -1,0 +1,364 @@
+{
+ "caso": {
+  "n": 11,
+  "app": "hablah",
+  "objetivo": "demo",
+  "enfoque": "caso",
+  "tratamiento": "aspiracional"
+ },
+ "formatoId": "reel-hibrido-9-16",
+ "app": {
+  "id": "hablah",
+  "nombre": "Hablah",
+  "rubro": "EdTech / aprendizaje de idiomas",
+  "brief": "# Hablah — brief (desde el KB de la app)\n> Coach de ingles por voz, en vivo, que se adapta a vos.\n\n## El negocio\nHablah es una plataforma de aprendizaje de ingles basada en conversacion por voz con inteligencia artificial. El alumno elige un topico, habla con el coach de IA y la clase se adapta en tiempo real a su nivel CEFR, sus intereses y su historial. No hay fichas ni gramatica memorizada: se aprende hablando, como en la vida real. Tiene un modo adultos (A0 a C2) y un modo Kids adaptado para chicos de 4 a 17 anos.\n\n### La propuesta completa (el hilo — cada reel cuenta ESTO, no un módulo)\nEl alumno no aprende ingles leyendo fichas — lo aprende hablando. Hablah le da un coach de IA que lo escucha en tiempo real, corrige sin interrumpir y recuerda lo que aprendio clase a clase. El adulto practica 10-15 minutos al dia sobre temas que le interesan; el chico tiene un coach que se adapta a su edad y le hace divertida la clase. El resultado: mas practica oral real que con cualquier metodo tradicional, sin agenda y sin excusas.\n- Rubro: EdTech / aprendizaje de idiomas\n- Público: Adultos hispanohablantes que necesitan hablar ingles para el trabajo, para emigrar o para desenvolverse en viajes. Y familias con chicos de 4 a 17 anos que quieren empezar el idioma con una experiencia oral desde el primer dia.\n\n## Mensajes clave (van en CADA reel)\n- Se aprende ingles hablando, no memorizando — Hablah te da el coach en vivo que necesitas.\n- El coach recuerda lo que ya sabes y donde te trabas: cada clase parte de donde dejaste.\n- 10-15 minutos al dia, a la hora que quieras, sobre temas que te importan.\n- Modo Kids: un coach disenado para cada edad (Mini 4-7, Junior 8-12, Teen 13-17).\n- Mas practica oral real en una semana que en un ano de clases tradicionales.\n\n## Qué ofrece\n- **Clases de ingles por voz (adultos)**: El alumno elige un topico de mas de 400 opciones organizadas por nivel CEFR (A0 a C2) y arranca a hablar con el coach de IA. El coach abre la clase, corrige de forma implicita, recicla vocabulario y cierra con un resumen. Cada clase dura 10-20 minutos segun el nivel.\n  - Mas de 400 topicos: trabajo, viajes, cultura pop, tecnologia y mas\n  - Niveles A0 a C2 — arranca desde cero absoluto\n  - Coach que recuerda errores recurrentes y vocab ya trabajado\n  - Dashboard con racha diaria, nivel CEFR actual y proximo hito\n  - Historial completo con resumen y feedback por sesion\n- **Modo Kids (4-17 anos)**: Clases de ingles disenadas para chicos, con coach que adapta ritmo, vocabulario y correccion a la edad y nivel del chico. Mini (4-7 anos), Junior (8-12) y Teen (13-17). El tutor puede seguir el progreso desde su cuenta.\n  - Tres bandas: Mini, Junior y Teen — cada una con su perfil pedagogico\n  - Topicos pensados para cada edad (animales, colores, deportes, redes sociales...)\n  - Coach calido en Mini, conversacional en Teen\n  - Entorno seguro: sin pantallas de riesgo\n  - Panel del tutor para ver el progreso de los chicos\n\n## Por qué (diferenciadores)\n- El coach de IA habla en tiempo real: no es un chatbot con respuestas enlatadas.\n- Se aprende hablando desde el primer minuto, no memorizando reglas.\n- El coach recuerda errores y vocabulario clase a clase — la continuidad que un tutor humano pierde.\n- Mas de 400 topicos reales: el alumno practica lo que necesita, no un libro.\n- Modo Kids con pedagogia diferenciada por edad: Mini no aprende igual que un Teen.\n- Sin nivel minimo: de cero absoluto (A0) a conversacion avanzada (C2).\n- 10-15 minutos al dia: cabe en cualquier rutina, sin agenda con nadie.\n\n## Dolores y objeciones (en palabras del cliente)\n- \"Prefiero una app con ejercicios escritos, mas estructurada.\" → Los metodos con fichas funcionan para leer, no para hablar. Hablah entrena lo que siempre falta: producir ingles en vivo sin tiempo para pensar. Es el complemento ideal si ya usas otro metodo.\n- \"Una IA no puede reemplazar a un profesor humano.\" → No la reemplaza, la escala. Con un humano tenes 1-2 horas de clase por semana; con Hablah practicas todos los dias a la hora que queres. El volumen de practica oral es lo que hace la diferencia.\n- \"No se si mi nivel es suficiente para hablar con una IA.\" → Hay alumnos que arrancan sin saber decir 'hello'. El coach empieza donde estas vos y sube de a poco. En A0 mezcla castellano e ingles para que entiendas todo.\n- \"Mi hijo es muy chico para aprender ingles con una IA.\" → El modo Mini es para chicos de 4 a 7 anos: vocabulario muy basico, coach muy calido y temas que le gustan (animales, colores, juguetes). No es una pantalla de riesgo: es una clase guiada con ritmo de nene.\n\n## Oferta / CTA\n- Hablah funciona por suscripcion mensual o anual. Los precios no se publican; un asesor los comparte al consultar.\n\n## A evitar (do_not_say)\n- No prometer fluency en X semanas ni garantizar un nivel CEFR especifico en un plazo.\n- No comparar con Duolingo ni con otras apps sin datos reales que lo soporten.\n- No afirmar que el coach es un humano ni que tiene certificacion oficial.\n- No inventar precios ni descuentos: el precio lo cierra un asesor.\n- No decir que sirve para rendir examenes oficiales (IELTS, TOEFL) sin confirmacion.\n- No usar emojis en ningun mensaje ni material generado."
+ },
+ "estrategia": {
+  "pieza": {
+   "id": "v1",
+   "objective": "awareness",
+   "angle": "Hablando en un minuto",
+   "messageScope": "demo",
+   "primaryMessage": "En Hablah elegís un tópico y ya estás hablando inglés con el coach de IA, sin fichas ni gramática memorizada.",
+   "supportingFacts": [
+    "El alumno elige un tópico de más de 400 opciones organizadas por nivel CEFR (A0 a C2) y arranca a hablar con el coach de IA.",
+    "El coach abre la clase, corrige de forma implícita, recicla vocabulario y cierra con un resumen.",
+    "Cada clase dura 10-20 minutos según el nivel.",
+    "El coach de IA habla en tiempo real: no es un chatbot con respuestas enlatadas."
+   ],
+   "format": "9:16 para Instagram / TikTok",
+   "durationSec": 26,
+   "creativeBrief": "Pieza de demostración pura del flujo de uso: pantalla de selección de tópico por nivel CEFR, inicio de la conversación por voz y cierre con el resumen de la clase. El mensaje principal es que hablar empieza en el primer minuto, sin ejercicios escritos de por medio. Prueba la parte de la propuesta que dice que el inglés se aprende hablando, con un coach que escucha y corrige en vivo. CTA: consultá los planes con un asesor."
+  },
+  "piezasPropuestas": 3
+ },
+ "conceptosPropuestos": [
+  {
+   "id": "c1",
+   "topico": "Primer minuto hablando",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Una analista que necesita inglés en reuniones usa el rato antes de salir. Abre Hablah, elige un tópico de su nivel y en el primer minuto ya está hablando. El coach la escucha, corrige sin cortarla y cierra con el resumen. Firma de marca e invitación a consultar planes con un asesor.",
+   "tono": "Sobrio, enfocado, confiado; voz baja y decisión clara",
+   "estetica": "Interior de departamento con luz de mañana, paleta cálida y neutra, foco en el rostro que habla y en el dispositivo apoyado",
+   "referencia": "Spot demo de producto con protagonista única",
+   "porQueFunciona": "Muestra el flujo completo en orden real: elegir, hablar, cerrar con resumen. El beneficio se ve, no se promete."
+  },
+  {
+   "id": "c2",
+   "topico": "El cuaderno cerrado",
+   "tipoGancho": "CONTRASTE MATERIAL",
+   "idea": "Un cuaderno lleno de verbos subrayados y una persona que todavía no se escuchó decir una frase. Cierra el cuaderno, elige un tópico en Hablah y empieza a hablar. El coach le devuelve la corrección mientras conversan, y el resumen final muestra qué trabajó hoy. Lo escrito quedó; lo hablado arrancó. Cierra invitando a consultar planes con un asesor.",
+   "tono": "Reflexivo al principio, resuelto al final; nada solemne",
+   "estetica": "Mesa de estudio, papel y lápiz en primer término, luz de tarde; el cuaderno queda fuera de foco cuando empieza la voz",
+   "referencia": "Antes y después de método, en un mismo plano de vida",
+   "porQueFunciona": "Opone de forma visual el estudio escrito con la práctica oral y ubica a Hablah del lado que falta."
+  },
+  {
+   "id": "c3",
+   "topico": "Cero absoluto conversando",
+   "tipoGancho": "INVERSIÓN DE EXPECTATIVA",
+   "idea": "Un hombre que arranca de cero se sienta esperando un examen de nivel. Elige el tópico más básico y el coach le habla: en segundos contesta mezclando palabras, sin que nadie lo detenga. El resumen final le muestra lo que ya dijo en inglés. Invitación a consultar planes con un asesor.",
+   "tono": "Tensión contenida que afloja; honesto, sin autoburla",
+   "estetica": "Living sencillo de noche, lámpara única, encuadre cercano; el alivio se lee en la respiración y los hombros",
+   "referencia": "Demostración con objeción del público puesta en escena",
+   "porQueFunciona": "Desarma la objeción de nivel insuficiente mostrando que el primer minuto es conversación, no prueba."
+  }
+ ],
+ "comercial": {
+  "id": "com-hablando-en-un-minuto-5cl8",
+  "titulo": "Hablando en un minuto",
+  "tipo": "filmado",
+  "enfoque": "caso",
+  "tratamiento": "aspiracional",
+  "estados": {
+   "negocio": "pendiente",
+   "concepto": "pendiente",
+   "guion": "pendiente",
+   "cast": "pendiente",
+   "storyboard": "pendiente",
+   "pack": "pendiente",
+   "render": "pendiente",
+   "rodaje": "pendiente",
+   "montaje": "pendiente",
+   "publicar": "pendiente"
+  },
+  "formatoId": "reel-hibrido-9-16",
+  "angulo": "Hablando en un minuto",
+  "creativeBrief": "Pieza de demostración pura del flujo de uso: pantalla de selección de tópico por nivel CEFR, inicio de la conversación por voz y cierre con el resumen de la clase. El mensaje principal es que hablar empieza en el primer minuto, sin ejercicios escritos de por medio. Prueba la parte de la propuesta que dice que el inglés se aprende hablando, con un coach que escucha y corrige en vivo. CTA: consultá los planes con un asesor.",
+  "messageScope": "demo",
+  "primaryMessage": "En Hablah elegís un tópico y ya estás hablando inglés con el coach de IA, sin fichas ni gramática memorizada.",
+  "supportingFacts": [
+   "El alumno elige un tópico de más de 400 opciones organizadas por nivel CEFR (A0 a C2) y arranca a hablar con el coach de IA.",
+   "El coach abre la clase, corrige de forma implícita, recicla vocabulario y cierra con un resumen.",
+   "Cada clase dura 10-20 minutos según el nivel.",
+   "El coach de IA habla en tiempo real: no es un chatbot con respuestas enlatadas."
+  ],
+  "perfilCampana": "demo",
+  "concepto": {
+   "id": "c1",
+   "topico": "Primer minuto hablando",
+   "tipoGancho": "DEMOSTRACIÓN DIRECTA",
+   "idea": "Una analista que necesita inglés en reuniones usa el rato antes de salir. Abre Hablah, elige un tópico de su nivel y en el primer minuto ya está hablando. El coach la escucha, corrige sin cortarla y cierra con el resumen. Firma de marca e invitación a consultar planes con un asesor.",
+   "tono": "Sobrio, enfocado, confiado; voz baja y decisión clara",
+   "estetica": "Interior de departamento con luz de mañana, paleta cálida y neutra, foco en el rostro que habla y en el dispositivo apoyado",
+   "referencia": "Spot demo de producto con protagonista única",
+   "porQueFunciona": "Muestra el flujo completo en orden real: elegir, hablar, cerrar con resumen. El beneficio se ve, no se promete."
+  },
+  "guion": {
+   "blocks": [
+    {
+     "role": "hook",
+     "quien": "Lucía",
+     "narration": "Reunión en inglés nueve y media. Tengo veinte minutos.",
+     "visual": "Lucía de pie en la cocina con luz de mañana, el teléfono apoyado contra una taza.",
+     "durSec": 4
+    },
+    {
+     "role": "desarrollo",
+     "quien": "Lucía",
+     "narration": "Dame el de reuniones de trabajo. Okay. Last month our numbers went down... bajaron. Went down. Eso. Dale, seguime preguntando.",
+     "visual": "El listado de tópicos por nivel en la pantalla apoyada; ella contesta en voz baja mientras se pone el saco.",
+     "durSec": 12
+    },
+    {
+     "role": "giro",
+     "quien": "Lucía",
+     "narration": "Quince minutos. A la reunión entro hablando, no leyendo.",
+     "visual": "El resumen de la sesión queda en la pantalla; ella lo lee, asiente y cierra la mochila.",
+     "durSec": 5
+    },
+    {
+     "role": "cta",
+     "quien": "placa",
+     "narration": "Hablah. Suscripción mensual o anual: consultá los planes con un asesor.",
+     "visual": "Placa final sobre fondo cálido y neutro con el logo de Hablah.",
+     "durSec": 5
+    }
+   ],
+   "music": {
+    "mood": "cálido, enfocado, ascendente"
+   }
+  },
+  "cast": {
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Lucía",
+     "rol": "Protagonista, analista que practica inglés antes de su reunión",
+     "fisicoEn": "Woman in her late twenties, shoulder-length dark hair loosely tied back, light olive skin tone, focused expression, minimal makeup, professional but relaxed appearance, natural posture suggesting competence and quiet confidence",
+     "fisicoEs": "Mujer de unos 28 años, pelo oscuro a la altura de los hombros, expresión concentrada",
+     "vestuario": "Saco de oficina sobre remera simple, prendas cómodas de entrecasa",
+     "vestuarioEn": "Office blazer over a simple top, casual at-home clothes underneath",
+     "personalidad": "Decidida, enfocada",
+     "lugarEn": "Standing in her kitchen in the morning, soft natural light coming through a nearby window, phone propped against a mug on the counter, everyday domestic objects visible but not emphasized",
+     "quien": "Lucía"
+    }
+   ],
+   "lugar": {
+    "nombre": "Cocina de departamento, mañana",
+    "descripcionEn": "A small apartment kitchen in early morning light, warm and neutral tones, a counter with a mug holding a propped phone, simple domestic objects in soft focus, calm and lived-in atmosphere suggesting the start of a workday",
+    "luz": "Luz natural cálida de mañana"
+   }
+  },
+  "storyboard": [
+   {
+    "n": 1,
+    "rol": "hook",
+    "durSec": 4,
+    "plano": "medium shot",
+    "angulo": "frontal, altura de ojos",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Lucía habla apurada mirando el teléfono apoyado contra la taza",
+    "accionEn": "Lucía stands in her kitchen in the early morning, speaking to herself with urgency as she checks the time, aware the meeting is close and there's little room to waste. She glances toward the phone propped against the mug on the counter, then returns her focus forward, composed but hurried. The light is warm and natural, the kitchen calm and lived-in around her.",
+    "dialogo": "Reunión en inglés nueve y media. Tengo veinte minutos.",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 2,
+    "rol": "desarrollo",
+    "durSec": 6.5,
+    "plano": "medium close-up",
+    "angulo": "ligeramente lateral",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Lucía pide el tema de reuniones y repite una frase en inglés",
+    "accionEn": "Lucía speaks toward the phone propped against the mug, asking it directly for the work meetings topic, treating it like a quick, practical request she makes every morning. She listens, then repeats an English phrase slowly to get the pronunciation right, concentrating but relaxed, confident in the routine. The kitchen light is soft and warm around her.",
+    "dialogo": "Dame el de reuniones de trabajo. Okay. Last month our numbers went down... bajaron. Went down.",
+    "continuidad": "misma luz y lugar que escena anterior",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 3,
+    "rol": "desarrollo",
+    "durSec": 4,
+    "plano": "medium shot",
+    "angulo": "frontal",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Lucía se pone el saco y pide que le sigan preguntando",
+    "accionEn": "Lucía confirms she got the phrase right, satisfied with herself, then asks for the practice to continue while she puts on her blazer over her casual top, treating the exercise as something she can do while getting ready. Her tone is confident and efficient, speaking toward the phone on the counter as if it were a quick conversation partner. The kitchen light stays warm and consistent.",
+    "dialogo": "Eso. Dale, seguime preguntando.",
+    "continuidad": "mismo lugar, se pone el saco",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 4,
+    "rol": "desarrollo",
+    "durSec": 2.5,
+    "plano": "close-up",
+    "angulo": "detalle del listado",
+    "personajes": [],
+    "accion": "Listado de tópicos por nivel en la pantalla apoyada",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "misma pantalla apoyada contra la taza",
+    "pantalla": "Listado de tópicos por nivel",
+    "durSecModelo": 4
+   },
+   {
+    "n": 5,
+    "rol": "giro",
+    "durSec": 4,
+    "plano": "medium close-up",
+    "angulo": "frontal",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Lucía afirma que entrará a la reunión hablando",
+    "accionEn": "Lucía looks at the time, realizing she's ready sooner than expected, and says with quiet confidence that she's going into the meeting ready to speak, not just read. There's a small sense of relief and pride in her expression, the payoff of the morning practice. She speaks to herself, grounded and composed, standing in the same kitchen light.",
+    "dialogo": "Quince minutos. A la reunión entro hablando, no leyendo.",
+    "continuidad": "mismo lugar, saco ya puesto",
+    "pantalla": "",
+    "durSecModelo": 8
+   },
+   {
+    "n": 6,
+    "rol": "giro",
+    "durSec": 2,
+    "plano": "over-the-shoulder",
+    "angulo": "sobre el hombro hacia la pantalla",
+    "personajes": [
+     "p1"
+    ],
+    "accion": "Lucía lee el resumen de la sesión, asiente y cierra la mochila",
+    "accionEn": "Lucía reads over the session summary on the phone propped on the counter, nodding to herself with quiet satisfaction as she registers what she practiced. She reaches down and closes her bag, a small physical punctuation to the moment, signaling she's ready to leave. The gesture is natural and unhurried despite the time pressure, in the same warm kitchen light.",
+    "dialogo": "",
+    "continuidad": "mismo lugar, mismo saco",
+    "pantalla": "Resumen de la sesión",
+    "durSecModelo": 3
+   },
+   {
+    "n": 7,
+    "rol": "cta",
+    "durSec": 3,
+    "plano": "",
+    "angulo": "",
+    "personajes": [],
+    "accion": "Hablah. Suscripción mensual o anual: consultá los planes con un asesor.",
+    "accionEn": "",
+    "dialogo": "",
+    "continuidad": "",
+    "pantalla": "",
+    "durSecModelo": 5
+   }
+  ],
+  "packFlow": {
+   "estilo": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect.",
+   "personajes": [
+    {
+     "id": "p1",
+     "nombre": "Lucía",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine Woman in her late twenties, shoulder-length dark hair loosely tied back, light olive skin tone, focused expression, minimal makeup, professional but relaxed appearance, natural posture suggesting competence and quiet confidence, standing and looking at the camera, natural pose, neutral background with a hint of a small apartment kitchen in early morning light, warm and neutral tones. A still photo, no action, no dialogue."
+    },
+    {
+     "id": "presentadora",
+     "nombre": "Presentadora",
+     "promptImagen": "Full-body portrait, 9:16, photorealistic, not CGI-perfect, of an Argentine a friendly, confident woman presenter in her early thirties, natural makeup, warm smile, neat hair, an ordinary everyday face, standing and looking at the camera, natural pose, neutral background. A still photo, no action, no dialogue.",
+     "noCrear": true,
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ],
+   "escenas": [
+    {
+     "escenaN": 1,
+     "rol": "hook",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Lucía, an Argentine woman in her late twenties, shoulder-length dark hair loosely tied back, light olive skin tone, focused expression, wearing Office blazer over a simple top, casual at-home clothes underneath. Lucía stands in her kitchen in the early morning, speaking to herself with urgency as she checks the time, aware the meeting is close and there's little room to waste. She glances toward the phone propped against the mug on the counter, then returns her focus forward, composed but hurried. The light is warm and natural, the kitchen calm and lived-in around her. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Reunión en inglés nueve y media. Tengo veinte minutos.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 2,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Lucía, an Argentine woman in her late twenties, shoulder-length dark hair loosely tied back, light olive skin tone, focused expression, wearing Office blazer over a simple top, casual at-home clothes underneath. Lucía speaks toward the phone propped against the mug, asking it directly for the work meetings topic, treating it like a quick, practical request she makes every morning. She listens, then repeats an English phrase slowly to get the pronunciation right, concentrating but relaxed, confident in the routine. The kitchen light is soft and warm around her. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Dame el de reuniones de trabajo. Okay. Last month our numbers went down.. bajaron. Went down.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 3,
+     "rol": "desarrollo",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Lucía, an Argentine woman in her late twenties, shoulder-length dark hair loosely tied back, light olive skin tone, focused expression, wearing Office blazer over a simple top, casual at-home clothes underneath. Lucía confirms she got the phrase right, satisfied with herself, then asks for the practice to continue while she puts on her blazer over her casual top, treating the exercise as something she can do while getting ready. Her tone is confident and efficient, speaking toward the phone on the counter as if it were a quick conversation partner. The kitchen light stays warm and consistent. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Eso. Dale, seguime preguntando.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium shot, waist up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 5,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Lucía, an Argentine woman in her late twenties, shoulder-length dark hair loosely tied back, light olive skin tone, focused expression, wearing Office blazer over a simple top, casual at-home clothes underneath. Lucía looks at the time, realizing she's ready sooner than expected, and says with quiet confidence that she's going into the meeting ready to speak, not just read. There's a small sense of relief and pride in her expression, the payoff of the morning practice. She speaks to herself, grounded and composed, standing in the same kitchen light. She starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Quince minutos. A la reunión entro hablando, no leyendo.' Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 6,
+     "rol": "giro",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Lucía, an Argentine woman in her late twenties, shoulder-length dark hair loosely tied back, light olive skin tone, focused expression, wearing Office blazer over a simple top, casual at-home clothes underneath. Lucía reads over the session summary on the phone propped on the counter, nodding to herself with quiet satisfaction as she registers what she practiced. She reaches down and closes her bag, a small physical punctuation to the moment, signaling she's ready to leave. The gesture is natural and unhurried despite the time pressure, in the same warm kitchen light. No dialogue: ambient sound only. Over-the-shoulder shot, natural handheld feel, shallow depth of field. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "estado": "pendiente"
+    },
+    {
+     "escenaN": 90,
+     "rol": "cierre",
+     "prompt": "Photorealistic, professional cinematic vertical 9:16, clean and well-lit, natural light, realistic expressive faces, not over-rendered and not CGI-perfect. Presentadora, a friendly, confident woman presenter, stands in a bright, clean, modern space with soft light and a softly blurred background. She looks straight into the camera, smiles and starts speaking within the first second and says, in Argentine Rioplatense Spanish (voseo), naturally and only once, exactly these words and nothing else: 'Hablah. Hablah. Suscripción mensual o anual: consultá los planes con un asesor.' Warm, close and confident, like a presenter closing a commercial. Realistic, expressive face, nothing staged. After the line there are no more words: the scene ends on the gesture, in silence or with the ambient sound. Medium close-up, chest up, eye level, static camera with a very subtle slow push-in. Leave some empty headroom at the top of the frame; nothing drawn or written there. Never show or recreate an app interface: any phone or computer screen faces away from the camera. No on-screen text. No subtitles, no captions.",
+     "dialogo": "Hablah. Hablah. Suscripción mensual o anual: consultá los planes con un asesor.",
+     "estado": "pendiente",
+     "flowProjectUrl": "https://flow.google.com/project/1c6046c1-5a7e-4c4e-b1e7-4e8c3d0e1972"
+    }
+   ]
+  }
+ },
+ "montaje": {
+  "diagnostico": "Es una demo en tiempo real donde el valor está en oír a Lucía corregirse sola en inglés, así que el montaje tiene que proteger la voz y dejar respirar los dos planos mudos.",
+  "decisiones": [
+   {
+    "recurso": "cut",
+    "escenaN": 2,
+    "cuando": "antes",
+    "durSec": 0,
+    "motivo": "Del 'tengo veinte minutos' al pedido del tópico hay una decisión inmediata: corte seco para que se sienta que no hay trámite previo, se elige y se habla."
+   },
+   {
+    "recurso": "music_dip",
+    "escenaN": 2,
+    "cuando": "final",
+    "durSec": 0.6,
+    "motivo": "Sobre 'bajaron. Went down.' está la autocorrección, que es el beneficio del producto; bajar la música deja esa frase limpia sin frenar el clip."
+   },
+   {
+    "recurso": "dissolve",
+    "escenaN": 4,
+    "cuando": "antes",
+    "durSec": 0.8,
+    "motivo": "La escena 4 no tiene diálogo y la muestra siguiendo la clase mientras se arregla para salir: una transición suave sostiene el tono aspiracional en lugar de cortar sobre el silencio."
+   },
+   {
+    "recurso": "music_lift",
+    "escenaN": 6,
+    "cuando": "inicio",
+    "durSec": 0.8,
+    "motivo": "La escena 6 es muda y cierra el gesto de la mochila después de 'entro hablando, no leyendo'; el lift lleva ese movimiento hasta la placa de marca sin pisar ninguna voz."
+   }
+  ]
+ }
+}
