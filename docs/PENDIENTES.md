@@ -155,3 +155,16 @@ Una línea por pendiente, con el dato que lo justifica y dónde está el detalle
 - HECHO (2026-10-13): la modelo de Munify es el personaje "Presentadora" del proyecto de Flow `1c6046c1…`
   (`server/presentadora.json`); su escena de cierre se genera ahí, en un segundo trabajo después del pack principal.
   FALTA verificar con una corrida real (sale en la próxima generación de un pack).
+
+## Mockups de Habláh (2026-10-14)
+- HECHO: las siete tarjetas de Habláh desde su media kit (`src/remotion/apps/hablah/`), publicadas para que Lucas las
+  juzgue en https://looklogic.com.ar/docs/mediastudio/mockups-hablah/ (clips completos en
+  `docs/16-montaje-flow/mockups-hablah/`). La plantilla ganó las piezas `Voz` y `Subtitulo` para cualquier app con
+  conversación por voz, y `marcaDesdeKit` lee bien primario, fondo de noche y tipografía.
+- FALTA: que el mockup de la clase SUENE. El kit trae la voz real del tutor por estado (`estados[].audio`, WAV) y hoy
+  las tarjetas salen mudas y los insertos van silenciados en el montaje. Depende de dónde va el mockup en el armado
+  (pedido 04 a ChatGPT): un mockup que habla necesita su propio momento, no ir encima del actor que habla.
+- FALTA: los dibujos de chicos (Merengue, Habi, el perro). El kit trae la pantalla entera, no los dibujos sueltos; se
+  le pidieron a Habláh en `media-kit/assets/`. Cuando lleguen: pieza `Imagen` en la plantilla que lea archivos del kit.
+- OJO: en "Clase de adultos en vivo" una cuarta pieza se corta abajo cerca del segundo 3; en "Inicio de chicos" las
+  tres pastillas de abajo quedan apretadas. Se rehacen con `POST /api/mockups-app/escribir {appId, soloIds}`.
