@@ -203,7 +203,13 @@ function AppPrincipal() {
     <div className="ms-shell">
       <Rail route={route} onNavigate={goRoute} />
       <div className="ms-maincol">
-        {route === 'project' && activeProject ? (
+        {route === 'project' && activeProject && !(activeProject.reels || []).length ? (
+          // un proyecto sin comerciales (creado desde una integración y sin arrancar) abre "Empezá tu campaña" en vez de
+          // un pipeline vacío (Lucas, 2026-10-14: "Urbanify no, nada")
+          <div className="ms-page">
+            <ProjectWizard key={activeProject.id} project={activeProject} onDone={(p) => openProject(p)} onCancel={() => goRoute('home')} />
+          </div>
+        ) : route === 'project' && activeProject ? (
           <Pipeline key={activeProject.id} project={activeProject} onChange={updateProject} onFlush={flushPending} onHome={() => goRoute('home')} onGoEditor={() => goRoute('editor')} />
         ) : route === 'wizard' ? (
           <div className="ms-page">
