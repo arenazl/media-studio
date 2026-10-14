@@ -9,27 +9,29 @@ import path from 'node:path';
 
 // Relevado en la cuenta de Lucas el 2026-10-14 con leerAjustes: para video hay Omni 1.1 Flash, Veo 3.1 - Lite,
 // Veo 3.1 - Fast y Veo 3.1 - Quality; para imagen, Nano Banana 2.1. La resolución no se elige en el panel (Flow da 720p).
+// Créditos por generación, valores de Google para una cuenta que no es Ultra (los pasó Lucas el 2026-10-14): Lite 10,
+// Fast 20, Quality 100. Se cobra por generación: x2 son dos, por eso los tres presets piden x1.
 const VEO_LITE = 'Veo 3\\.1.*Lite';
 const VEO_RAPIDO = 'Veo 3\\.1.*(Fast|R[aá]pido)';
 const VEO_CALIDAD = 'Veo 3\\.1.*(Quality|Calidad)';
 export const PRESETS = {
   ahorro: {
     nombre: 'Ahorro',
-    detalle: 'Las fotos salen como imagen (Nano Banana), sin generar un video. Los videos, con Veo 3.1 Lite, el más liviano.',
+    detalle: 'Las fotos salen como imagen (Nano Banana), sin generar un video. Los videos, con Veo 3.1 Lite: 10 créditos cada uno.',
     foto: 'imagen',
     imagen: { modelos: [] },
     video: { modelos: [VEO_LITE, VEO_RAPIDO], resolucion: '720p', duracion: '8 s', salidas: 'x1' },
   },
   normal: {
     nombre: 'Normal',
-    detalle: 'Como hasta hoy: la foto es un cuadro de un video de Veo 3.1 Fast, y los videos salen con Veo 3.1 Fast.',
+    detalle: 'Como hasta hoy: cada foto es un video de Veo 3.1 Fast del que se saca un cuadro, y cada video también: 20 créditos cada uno.',
     foto: 'video',
     imagen: { modelos: [] },
     video: { modelos: [VEO_RAPIDO], resolucion: '720p', duracion: '8 s', salidas: 'x1' },
   },
   calidad: {
     nombre: 'Calidad',
-    detalle: 'Las fotos salen como imagen (Nano Banana). Los videos, con Veo 3.1 Quality: gasta bastante más por video.',
+    detalle: 'Las fotos salen como imagen (Nano Banana). Los videos, con Veo 3.1 Quality: 100 créditos cada uno.',
     foto: 'imagen',
     imagen: { modelos: [] },
     video: { modelos: [VEO_CALIDAD], resolucion: '720p', duracion: '8 s', salidas: 'x1' },
