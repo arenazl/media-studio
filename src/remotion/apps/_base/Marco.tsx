@@ -10,6 +10,8 @@ import { AbsoluteFill, Easing, Img, Sequence, interpolate, useCurrentFrame, useV
 // ── contrato ──
 export interface Marca {
   acento: string; acentoOscuro: string;
+  /** El segundo color de la marca (el "acento" del kit cuando no es el primario; si no hay, el color aclarado). */
+  secundario: string;
   fondo: string; fondoProfundo: string; superficie: string; superficie2: string; borde: string;
   texto: string; texto2: string; texto3: string;
   exito: string; alerta: string; error: string; info: string;
@@ -154,6 +156,52 @@ export const Numero: React.FC<{ m: Marca; texto: string; etiqueta?: string; colo
     <div style={{ fontFamily: m.fuenteTitulo, fontSize: 64, fontWeight: 700, color: color || m.texto, fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>{texto}</div>
   </div>
 );
+
+/** Conversación por voz: el aro que late mientras alguien habla y se aquieta cuando calla (un tutor, un asistente, una
+ *  llamada). `habla` 0..1 = cuánto está hablando en este cuadro, por ejemplo ease(f, a, a + 8) * (1 - ease(f, b, b + 10)).
+ *  `color` cambia con el turno (habla el otro / te toca a vos). Mide unos 300 de alto con el rótulo. */
+export const Voz: React.FC<{ m: Marca; f: number; habla: number; color?: string; rotulo?: string; style?: React.CSSProperties }> = ({ m, f, habla, color, rotulo, style }) => {
+  const c = color || m.acento;
+  const h = Math.max(0, Math.min(1, habla));
+  const late = h * (0.55 * pulso(f, 13) + 0.45 * pulso(f + 5, 7));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '26px 0 0', ...style }}>
+      <div style={{ position: 'relative', width: 220, height: 220 }}>
+        {[0, 1, 2].map((i) => {
+          const t = ((f + i * 10) % 30) / 30; // ondas que salen del aro mientras habla
+          return <div key={i} style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `4px solid ${c}`, opacity: h * (1 - t) * 0.5, transform: `scale(${1 + t * 0.5})` }} />;
+        })}
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `12px solid ${c}`, background: `radial-gradient(circle at 50% 38%, ${c}45, ${c}12 70%)`, boxShadow: `0 0 ${28 + 64 * late}px ${c}99, inset 0 0 44px ${c}55`, transform: `scale(${0.95 + 0.09 * late})`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          {[0.5, 0.85, 1, 0.7, 0.45].map((alto, i) => (
+            <div key={i} style={{ width: 14, borderRadius: 7, background: c, height: 18 + 84 * alto * h * (0.35 + 0.65 * pulso(f + i * 9, 9 + i * 2)) }} />
+          ))}
+        </div>
+      </div>
+      {rotulo ? <div style={{ fontFamily: m.fuenteTexto, fontSize: 26, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', color: c }}>{rotulo}</div> : null}
+    </div>
+  );
+};
+
+/** Lo que se dice, escrito palabra por palabra al ritmo de la voz. `avance` 0..1 = cuánto va dicho; `resaltar` = las
+ *  palabras que van en color (la palabra nueva, la corregida). Entran unos 28 caracteres por renglón: dos renglones miden
+ *  unos 170 (con `quien`, 210). */
+export const Subtitulo: React.FC<{ m: Marca; texto: string; avance: number; resaltar?: string[]; color?: string; quien?: string; style?: React.CSSProperties }> = ({ m, texto, avance, resaltar = [], color, quien, style }) => {
+  const palabras = texto.split(/\s+/).filter(Boolean);
+  const limpia = (p: string) => p.toLowerCase().replace(/[^\p{L}\p{N}']/gu, '');
+  const marcadas = resaltar.map(limpia);
+  const hasta = Math.max(0, Math.min(1, avance)) * palabras.length;
+  return (
+    <div style={{ padding: '26px 30px', borderRadius: 24, background: m.superficie2, textAlign: 'center', ...style }}>
+      {quien ? <div style={{ fontFamily: m.fuenteTexto, fontSize: 24, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', color: m.texto3, marginBottom: 8 }}>{quien}</div> : null}
+      <div style={{ fontFamily: m.fuenteTitulo, fontSize: 46, fontWeight: 700, lineHeight: 1.25, color: m.texto }}>
+        {palabras.map((p, i) => {
+          const e = Math.max(0, Math.min(1, hasta - i)); // la palabra que todavía no se dijo ya ocupa su lugar: el renglón no salta
+          return <span key={i} style={{ display: 'inline-block', marginRight: '0.26em', opacity: e, transform: `translateY(${(1 - e) * 10}px)`, color: marcadas.includes(limpia(p)) ? color || m.secundario : undefined }}>{p}</span>;
+        })}
+      </div>
+    </div>
+  );
+};
 
 /** Dedo que toca: x, y en px dentro del cuadro; `apreta` 0..1. */
 export const Toque: React.FC<{ x: number; y: number; apreta?: number; visible?: number }> = ({ x, y, apreta = 0, visible = 1 }) => (

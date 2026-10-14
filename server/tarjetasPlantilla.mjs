@@ -66,23 +66,31 @@ const hex6 = (c) => { const m = S(c).match(/^#([0-9a-f]{6})$/i); return m ? `#${
 const canales = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
 const mezcla = (a, b, t) => { const x = canales(a), y = canales(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('').toUpperCase(); };
 const luz = (c) => { const [r, g, b] = canales(c).map((v) => v / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
-const familia = (t) => S(t).split(',')[0].trim();
+// "Sora (Google Fonts), pesos 700 a 900" → "Sora": el nombre de la familia, sin la aclaración entre paréntesis
+const familia = (t) => S(t).split(',')[0].replace(/\([^)]*\)/g, '').trim();
 
 export function marcaDesdeKit(kit) {
   const c = kit.marca?.colores || {};
-  const acento = hex6(c.acento) || hex6(c.primario) || '#4F7CFF';
-  // las tarjetas van de noche: el tono más oscuro de la marca, o el acento llevado casi a negro
-  const oscuros = [c.bandasProfundo, c.bandas, c.fondoOscuro, c.oscuro, c.texto].map(hex6).filter((x) => x && luz(x) < 0.2);
+  // el color de la marca es el PRIMARIO; el "acento" del kit es su segundo color (Habláh: verde y ámbar; EventMarker:
+  // violeta y ámbar). Antes se tomaba el acento primero y Habláh salía dorada sobre marrón (2026-10-13)
+  const acento = hex6(c.primario) || hex6(c.acento) || '#4F7CFF';
+  const segundo = hex6(c.acento) && hex6(c.acento) !== acento ? hex6(c.acento) : '';
+  // las tarjetas van de noche: el tono más oscuro de la marca (su fondo, si la app ya es oscura), o el color llevado casi a negro
+  const oscuros = [c.bandasProfundo, c.bandas, c.fondoOscuro, c.oscuro, c.fondo, c.texto].map(hex6).filter((x) => x && luz(x) < 0.2);
   const fondoProfundo = oscuros[0] ? mezcla(oscuros[0], '#000000', 0.15) : mezcla(acento, '#000000', 0.9);
   const fondo = oscuros[1] || mezcla(fondoProfundo, acento, 0.08);
-  const claro = [c.fondo, c.superficie].map(hex6).find((x) => x && luz(x) > 0.85) || '#F5F5F5';
+  const claro = [c.fondo, c.superficie, c.texto, c.fondoClaro].map(hex6).find((x) => x && luz(x) > 0.85) || '#F5F5F5';
+  // en la plantilla "alerta" es el aviso ámbar y "error" el rojo; varios kits llaman "alerta" a su rojo (Habláh,
+  // EventMarker): ese va a error y el aviso queda ámbar
+  const alertaKit = hex6(c.alerta);
+  const alertaEsRoja = !!alertaKit && (() => { const [r, g, b] = canales(alertaKit); return r > g * 1.6 && r > b * 1.6; })();
   const dominio = S(kit.marca?.dominio) || S(kit.cta?.url).replace(/^https?:\/\//, '').replace(/\/.*$/, '');
   return {
     colores: {
-      acento, acentoOscuro: hex6(c.primarioOscuro) || mezcla(acento, '#000000', 0.2),
+      acento, acentoOscuro: hex6(c.primarioOscuro) || mezcla(acento, '#000000', 0.2), secundario: segundo || mezcla(acento, '#FFFFFF', 0.35),
       fondo, fondoProfundo, superficie: mezcla(fondo, '#FFFFFF', 0.05), superficie2: mezcla(fondo, '#FFFFFF', 0.1), borde: mezcla(fondo, '#FFFFFF', 0.16),
       texto: claro, texto2: mezcla(claro, fondoProfundo, 0.3), texto3: mezcla(claro, fondoProfundo, 0.5),
-      exito: hex6(c.exito) || '#22C55E', alerta: hex6(c.alerta) || '#F59E0B', error: hex6(c.error) || '#EF4444', info: hex6(c.info) || '#3B82F6',
+      exito: hex6(c.exito) || '#22C55E', alerta: alertaKit && !alertaEsRoja ? alertaKit : '#F59E0B', error: hex6(c.error) || (alertaEsRoja ? alertaKit : '#EF4444'), info: hex6(c.info) || '#3B82F6',
       lema: S(kit.marca?.claim), dominio,
     },
     familiaTitulo: familia(kit.marca?.tipografias?.titulos) || 'Inter',
@@ -157,12 +165,13 @@ export function pedidoTarjeta({ kit, kitDir, root, p, plantilla, ejemplo }) {
   L.push('');
   L.push('3. EL PROCEDIMIENTO (fijo: no lo cambies)');
   L.push('La plantilla ya resuelve la resolución, el fondo, el logo con el lema, el título debajo de la tarjeta, los colores y fuentes de la marca y las medidas. Vos elegís qué piezas van adentro de la tarjeta, con qué datos de la captura y en qué momento entra cada una.');
-  L.push('- Una sola <Tarjeta> con el ícono, el título de la pantalla tal cual la captura y una bajada corta. Adentro, hasta cuatro piezas: Fila, Pastilla, Boton, Aviso, Barra, Numero. Toque para el dedo que aprieta.');
-  L.push('- Tienen que ENTRAR: debajo del encabezado quedan unos 740 px de alto. Una Fila mide unos 120, una Fila con detalle 150, un Boton 104, un Aviso 120, un Numero 130, una Barra 16, y entre pieza y pieza van 22. Si no entran todas a la vez, una reemplaza a otra en el tiempo (la que sale se va antes de que entre la nueva). La bajada del encabezado es un renglón corto.');
+  L.push('- Una sola <Tarjeta> con el ícono, el título de la pantalla tal cual la captura y una bajada corta. Adentro, hasta cuatro piezas: Fila, Pastilla, Boton, Aviso, Barra, Numero. Toque para el dedo que aprieta. Si la pantalla es una conversación por voz, la tarjeta se arma con Voz (el aro que late mientras alguien habla y cambia de color con el turno) y Subtitulo (lo que se dice, palabra por palabra, con la palabra clave resaltada); con esas dos entra UNA pieza más, que puede cambiar por otra en el tiempo.');
+  L.push('- Tienen que ENTRAR: debajo del encabezado quedan unos 740 px de alto. Una Fila mide unos 120, una Fila con detalle 150, un Boton 104, un Aviso 120, un Numero 130, una Barra 16, una Voz 300, un Subtitulo de dos renglones 170, y entre pieza y pieza van 22. Si no entran todas a la vez, una reemplaza a otra en el tiempo (la que sale se va antes de que entre la nueva). La bajada del encabezado es un renglón corto y la pastilla de la derecha, una o dos palabras.');
   L.push('- El método: momento(dur, q), entra, ease, cuenta, pulso, pesos. Los momentos se reparten entre el 10% y el 90% de dur; algo chico sigue vivo hasta el final.');
-  L.push('- Los colores salen de m (m.acento, m.exito, m.alerta, m.error, m.texto2...). Nunca escribas un color ni un tamaño de letra a mano: las piezas ya los traen.');
+  L.push('- Los colores salen de m (m.acento es el color de la marca; m.secundario, su segundo color; m.exito, m.alerta, m.error, m.texto2...). Nunca escribas un color ni un tamaño de letra a mano: las piezas ya los traen.');
   L.push('- Cada texto está tal cual en la captura o en sus estados. Nada inventado.');
   L.push('- Nada se monta: un Aviso ocupa su lugar en la columna o reemplaza a otra pieza.');
+  L.push('- Sin emojis: un dibujo de la pantalla (un animal, un personaje) se cuenta con su palabra y un ícono de la plantilla.');
   L.push('');
   L.push('LA PLANTILLA (src/remotion/apps/_base/Marco.tsx):');
   L.push('```tsx', plantilla, '```');
@@ -197,6 +206,12 @@ function erroresPorArchivo(root, appId) {
     const m = l.slice(i + pref.length).match(/^tarjetas\/([^.(]+)\.tsx/);
     const k = m ? m[1] : '_indice';
     (por[k] = por[k] || []).push(l.slice(i).slice(0, 300));
+  }
+  // la casa no usa emojis: una tarjeta que trae uno se corrige igual que una que no compila
+  const dirT = path.join(dirApp(root, appId), 'tarjetas');
+  for (const a of fs.existsSync(dirT) ? fs.readdirSync(dirT).filter((x) => x.endsWith('.tsx')) : []) {
+    const emojis = [...new Set(fs.readFileSync(path.join(dirT, a), 'utf8').match(/\p{Extended_Pictographic}/gu) || [])];
+    if (emojis.length) (por[a.slice(0, -4)] = por[a.slice(0, -4)] || []).push(`tarjetas/${a}: trae emojis (${emojis.join(' ')}); sacalos: un dibujo se cuenta con su palabra y un ícono de la plantilla (Icono)`);
   }
   return por;
 }

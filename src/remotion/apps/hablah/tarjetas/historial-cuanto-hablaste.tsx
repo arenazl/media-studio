@@ -1,0 +1,51 @@
+import React from 'react';
+import { Fila, Numero, Pastilla, Tarjeta, cuenta, ease, entra, momento, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) los tres números cuentan desde cero
+  const n0 = momento(dur, 0.1), n1 = momento(dur, 0.5);
+  // 2) la fila de la charla de hoy entra abajo con su puntaje
+  const charla = momento(dur, 0.58);
+  const p0 = momento(dur, 0.62), p1 = momento(dur, 0.9);
+  const puntaje = Math.round(cuenta(f, p0, p1, 0, 70));
+  const listo = ease(f, momento(dur, 0.82), momento(dur, 0.9));
+  return (
+    <Tarjeta
+      f={f}
+      m={m}
+      icono="reloj"
+      titulo="1 charla, 0h 04min hablando."
+      bajada="HISTORIAL · ultimas 30d"
+      derecha={<Pastilla m={m} texto="30d" color={m.acento} />}
+    >
+      <div style={{ display: 'flex', gap: 18, ...entra(f, n0) }}>
+        <Numero m={m} etiqueta="Fluidez promedio" texto={String(Math.round(cuenta(f, n0, n1, 0, 70)))} color={m.exito} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="Tiempo hablado" texto={`0:0${Math.round(cuenta(f, n0, n1, 0, 4))}`} color={m.texto} style={{ flex: 1 }} />
+      </div>
+      <Numero
+        m={m}
+        etiqueta="Errores corregidos"
+        texto={String(Math.round(cuenta(f, momento(dur, 0.26), momento(dur, 0.52), 0, 3)))}
+        color={m.alerta}
+        style={entra(f, momento(dur, 0.26))}
+      />
+      <Fila
+        m={m}
+        etiqueta="ESTA SEMANA"
+        detalle="1 charla · 4 min · fluidez prom. 70"
+        style={{ ...entra(f, momento(dur, 0.44)), background: 'transparent', padding: '10px 28px' }}
+      />
+      <Fila
+        m={m}
+        icono="chat"
+        etiqueta="Mi último viaje"
+        detalle="1 acierto notable · 3 puntos a pulir"
+        valor={String(puntaje)}
+        destacada={listo > 0.4}
+        color={m.exito}
+        pastilla={<Pastilla m={m} texto="Tutor" color={m.texto2} style={{ opacity: 0.5 + 0.5 * pulso(f, 30) }} />}
+        style={entra(f, charla, 14)}
+      />
+    </Tarjeta>
+  );
+};

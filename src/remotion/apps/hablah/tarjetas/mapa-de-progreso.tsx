@@ -1,0 +1,62 @@
+// Habláh · Mapa de progreso (adultos). Lo que cuenta: cada tópico es una ruta con estaciones que se
+// desbloquean charlando. "Bases" se enciende en verde con ACÁ VAS, la línea avanza hacia la siguiente
+// (que sigue bloqueada) y al final aparece el botón Empezar.
+import React from 'react';
+import { Barra, Boton, Fila, Numero, Pastilla, Tarjeta, Toque, ease, entra, lin, momento, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) los números del mapa y la ruta entran
+  const nums = momento(dur, 0.1), ruta = momento(dur, 0.22), bases = momento(dur, 0.34), sig = momento(dur, 0.44);
+  // 2) "Bases" se enciende en verde
+  const enc = momento(dur, 0.52);
+  const encendida = ease(f, enc, enc + 12);
+  // 3) la línea avanza hacia la siguiente, que sigue con candado
+  const l0 = momento(dur, 0.58), l1 = momento(dur, 0.78);
+  // 4) la estación bloqueada deja su lugar al botón Empezar
+  const sale = momento(dur, 0.76), entraBtn = momento(dur, 0.84), toca = momento(dur, 0.9);
+  const fuera = lin(f, sale, sale + 8);
+  const apreta = ease(f, toca, toca + 8) * (1 - ease(f, toca + 14, toca + 22));
+
+  return (
+    <Tarjeta
+      f={f} m={m} icono="grafico"
+      titulo="Mapa de progreso"
+      bajada="0 estaciones desbloqueadas, 24 por delante."
+      derecha={<Pastilla m={m} texto="0 / 4 tópicos" color={m.acento} />}
+    >
+      <div style={{ display: 'flex', gap: 18, ...entra(f, nums) }}>
+        <Numero m={m} etiqueta="Charlas totales" texto="1" color={m.exito} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="Estaciones" texto="0 / 24" style={{ flex: 1 }} />
+      </div>
+
+      <Fila
+        m={m} icono="pin" etiqueta="Mi último viaje" detalle="VIAJES · 0 / 6 estaciones"
+        pastilla={<Pastilla m={m} texto="Tus rutas" color={m.info} />}
+        style={entra(f, ruta)}
+      />
+
+      <Barra m={m} valor={lin(f, l0, l1)} color={m.exito} tramos={4} />
+
+      <Fila
+        m={m} icono="chat" etiqueta="Bases" detalle="estación 1 de 4"
+        destacada={encendida > 0.1} color={encendida > 0.5 ? m.exito : m.texto2}
+        pastilla={encendida > 0.5
+          ? <Pastilla m={m} texto="Acá vas" color={m.exito} style={{ transform: `scale(${0.8 + 0.2 * encendida})`, opacity: 0.7 + 0.3 * pulso(f, 26) }} />
+          : <Pastilla m={m} texto="bloqueada" color={m.texto3} />}
+        style={entra(f, bases)}
+      />
+
+      {fuera < 1 ? (
+        <Fila
+          m={m} icono="escudo" etiqueta="Conceptos clave" detalle="Profundización · Casos reales"
+          pastilla={<Pastilla m={m} texto="bloqueada" color={m.texto3} />}
+          style={{ ...entra(f, sig), opacity: ease(f, sig, sig + 12) * (1 - fuera), transform: `translateY(${fuera * -18}px)` }}
+        />
+      ) : (
+        <Boton m={m} texto="Empezar" icono="flecha" color={m.exito} apretado={apreta} style={entra(f, entraBtn, 10)} />
+      )}
+
+      {f > entraBtn + 6 ? <Toque x={540} y={1068} apreta={apreta} visible={ease(f, entraBtn + 6, entraBtn + 14)} /> : null}
+    </Tarjeta>
+  );
+};

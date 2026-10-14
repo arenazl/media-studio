@@ -1,0 +1,56 @@
+```tsx
+import React from 'react';
+import { Aviso, Boton, Fila, Pastilla, Subtitulo, Tarjeta, Voz, ease, entra, momento, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) habla Merengue: el aro late en dorado
+  const hablaIn = momento(dur, 0.08), hablaOut = momento(dur, 0.72);
+  const habla = ease(f, hablaIn, hablaIn + 8) * (1 - ease(f, hablaOut, hablaOut + 10));
+
+  // 2) el subtítulo se escribe de a pedazos: '¡Qué bien!' → 'Perro se dice' → 'dog' → 'Dog.' → 'Ahora vos.'
+  const d0 = momento(dur, 0.12), d1 = momento(dur, 0.80);
+  const avance = ease(f, d0, d1);
+
+  // 3) cuando dice 'dog' cae la tarjeta del dibujo, y después le pasa el turno al chico
+  const cae = momento(dur, 0.42);
+  const turno = momento(dur, 0.74);
+  const esTurno = ease(f, turno, turno + 10);
+  const color = esTurno > 0.5 ? m.exito : m.acento;
+
+  return (
+    <Tarjeta
+      f={f} m={m} icono="chat"
+      titulo="Animales de la granja y la selva"
+      bajada="Hablando con Merengue"
+      derecha={<Pastilla m={m} texto="En vivo" color={color} style={{ opacity: 0.65 + 0.35 * pulso(f, 30) }} />}
+    >
+      <Voz m={m} f={f} habla={habla} color={color} rotulo={esTurno > 0.5 ? 'Tu turno' : 'Merengue te está hablando'} />
+
+      {esTurno < 0.5 ? (
+        <Fila
+          m={m} icono="estrella" etiqueta="Dog" detalle="perro"
+          pastilla={<Pastilla m={m} texto="Palabra nueva" color={m.secundario} />}
+          destacada color={m.secundario}
+          style={entra(f, cae, 10)}
+        />
+      ) : (
+        <Aviso m={m} titulo="Tu turno — Decí la frase" texto="Ahora vos." color={m.exito} icono="campana" style={entra(f, turno, 10)} />
+      )}
+
+      <Subtitulo
+        m={m} quien="Merengue"
+        texto="¡Qué bien! Perro se dice dog. Dog. Ahora vos."
+        avance={avance}
+        resaltar={['dog']}
+        color={m.secundario}
+      />
+
+      <Boton m={m} texto="Terminar" icono="chat" color={color} apretado={0} style={{ opacity: 0.001 }} />
+    </Tarjeta>
+  );
+};
+```
+
+```json
+{"chip": "Chicos", "titulo": "Aprende una palabra hablando", "resaltar": "hablando", "sub": "Merengue la dice, aparece el dibujo y le toca al chico.", "durSec": 6}
+```

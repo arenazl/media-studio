@@ -1,0 +1,64 @@
+// Habláh · pantalla "Inicio de chicos: la aventura de hoy" (captura 02-chicos-inicio.png + estados a y b).
+// Lo que cuenta: el chico entra y ya tiene una charla de cinco minutos propuesta; si quiere otra, elige el tema por su dibujo.
+import React from 'react';
+import { Aviso, Boton, Fila, Numero, Pastilla, Tarjeta, Toque, ease, entra, lin, momento, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) las monedas y la aventura del día
+  const a0 = momento(dur, 0.1);            // TUS MONEDAS 0
+  const a1 = momento(dur, 0.2);            // AVENTURA DEL DÍA: Hablamos de mi familia
+  const a2 = momento(dur, 0.3);            // botón ¡A hablar con Habi!
+  const a3 = momento(dur, 0.4);            // píldoras 5 minutos / hasta +20 monedas
+
+  // 2) el botón late una vez y el dedo lo aprieta
+  const toca = momento(dur, 0.5);
+  const apretado = ease(f, toca, toca + 6) * (1 - ease(f, toca + 10, toca + 20));
+  const late = 1 + 0.03 * Math.sin(Math.min(1, lin(f, a2 + 10, a2 + 40)) * Math.PI) * pulso(f, 30);
+
+  // 3) la pantalla sube: "Elegir de qué hablar" reemplaza al bloque de la aventura
+  const sube = momento(dur, 0.6);
+  const viejo = 1 - ease(f, sube, sube + 10);
+  const t1 = momento(dur, 0.68);           // Mi familia + Mis colores favoritos
+  const t2 = momento(dur, 0.78);           // Animales de la granja y la selva + Abrir juguetes
+
+  return (
+    <Tarjeta
+      f={f}
+      m={m}
+      icono="chat"
+      titulo="Tu aventura de hoy: mi familia"
+      bajada="¡Buen día, Timo! · 5 minutos con Habi"
+      derecha={<Pastilla m={m} texto="¡Hola, Timo!" color={m.secundario} />}
+    >
+      {viejo > 0.02 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22, opacity: viejo }}>
+          <Numero m={m} etiqueta="Tus monedas" texto="0" color={m.alerta} style={entra(f, a0)} />
+          <Aviso
+            m={m}
+            icono="estrella"
+            color={m.exito}
+            titulo="Aventura del día: Hablamos de mi familia"
+            texto="Vas a charlar con Habi 5 minutos y ganarás monedas si nombrás 3 cosas distintas."
+            style={entra(f, a1)}
+          />
+          <div style={{ ...entra(f, a2), transform: `${entra(f, a2).transform} scale(${late})` }}>
+            <Boton m={m} texto="¡A hablar con Habi!" icono="chat" color={m.exito} apretado={apretado} />
+          </div>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', ...entra(f, a3) }}>
+            <Pastilla m={m} texto="5 minutos" color={m.info} />
+            <Pastilla m={m} texto="hasta +20 monedas" color={m.alerta} />
+            <Pastilla m={m} texto="Elegir de qué hablar" color={m.texto2} />
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          <Fila m={m} icono="usuario" etiqueta="Mi familia" detalle="mamá, papá, hermanos" color={m.secundario} destacada style={entra(f, t1)} />
+          <Fila m={m} icono="estrella" etiqueta="Mis colores favoritos" detalle="rojo, azul, amarillo" color={m.alerta} style={entra(f, t1 + 6)} />
+          <Fila m={m} icono="casa" etiqueta="Animales de la granja y la selva" detalle="granja y selva" color={m.exito} style={entra(f, t2)} />
+          <Fila m={m} icono="mas" etiqueta="Abrir juguetes" detalle="cajas y sorpresas" color={m.info} style={entra(f, t2 + 6)} />
+        </div>
+      )}
+      {f > toca - 14 && f < toca + 26 ? <Toque x={540} y={812} apreta={apretado} visible={ease(f, toca - 14, toca - 4) * (1 - ease(f, toca + 16, toca + 26))} /> : null}
+    </Tarjeta>
+  );
+};

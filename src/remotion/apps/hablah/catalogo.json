@@ -1,0 +1,91 @@
+{
+  "logo": "logo-blanco.svg",
+  "dominio": "hablah.com.ar",
+  "metodo": "plantilla",
+  "tarjetas": [
+    {
+      "id": "clase-de-chicos-en-vivo",
+      "pantalla": "screens/01-chicos-clase-en-vivo.png",
+      "nombre": "Clase de chicos en vivo",
+      "patron": "",
+      "microAnimacion": "Conversación por voz. El perro respira y se mueve dentro del aro; el aro dorado late con la voz mientras habla Merengue. El subtítulo se escribe de a pedazos al ritmo de la voz: '¡Qué bien!' → 'Perro se dice' → 'dog' (entra resaltada en ámbar) → 'Dog.' → 'Ahora vos.' (subrayado verde). Cuando dice 'dog', la tarjeta con el dibujo del perro cae desde arriba sobre el aro. Al terminar la frase, el aro y el botón del micrófono pasan de dorado a verde y aparece 'TU TURNO'. De fondo, el piso de bloques y las lomas se desplazan despacio hacia la izquierda.",
+      "chip": "Chicos",
+      "titulo": "Aprende una palabra hablando",
+      "resaltar": "hablando",
+      "sub": "Merengue la dice, aparece el dibujo y le toca al chico.",
+      "durSec": 6
+    },
+    {
+      "id": "inicio-de-chicos-la-aventura-de-hoy",
+      "pantalla": "screens/02-chicos-inicio.png",
+      "nombre": "Inicio de chicos: la aventura de hoy",
+      "patron": "lista que se llena",
+      "microAnimacion": "La tarjeta verde entra desde abajo y el botón '¡A hablar con Habi!' late una vez. Después la pantalla sube y las tarjetas de temas entran de a dos, cada una con su dibujo moviéndose apenas (la vaca, las pelotas de colores, la familia).",
+      "chip": "Chicos",
+      "titulo": "La charla ya está lista",
+      "resaltar": "ya está lista",
+      "sub": "Entra y tiene cinco minutos con Habi; si quiere otro tema, lo elige por el dibujo.",
+      "durSec": 6
+    },
+    {
+      "id": "clase-de-adultos-en-vivo",
+      "pantalla": "screens/03-adultos-clase-en-vivo.png",
+      "nombre": "Clase de adultos en vivo",
+      "patron": "",
+      "microAnimacion": "Conversación por voz. El aro turquesa se deforma y late con la voz del tutor; cuando el tutor calla, se aquieta y el rótulo pasa de 'EL TUTOR HABLA' a 'TU TURNO'. La frase del tutor se escribe palabra por palabra entre comillas. En 'Transcripción' entra la burbuja del tutor y, debajo de cada oración, aparece en cursiva la ayuda en castellano. Cuando habla el alumno, entra arriba su burbuja 'VOS' y el aro vuelve a moverse.",
+      "chip": "Adultos",
+      "titulo": "Hablás y te entienden",
+      "resaltar": "te entienden",
+      "sub": "Cada frase del tutor, escrita y con su ayuda en castellano.",
+      "durSec": 6
+    },
+    {
+      "id": "devolucion-despues-de-la-charla",
+      "pantalla": "screens/04-adultos-devolucion.png",
+      "nombre": "Devolución después de la charla",
+      "patron": "números que suben",
+      "microAnimacion": "Primero 'Analizando tu charla…' sobre el verde. Después la tarjeta se completa: la frase destacada se escribe y los tres números cuentan desde cero (119, 60, 20/25). La pantalla baja y en 'Puntos a pulir' entra la frase dicha en rojo con una cruz; debajo aparece la frase corregida en verde con un tilde. Más abajo entran de a una las píldoras de conectores y las palabras de vocabulario.",
+      "chip": "Devolución",
+      "titulo": "Te muestra qué decir mejor",
+      "resaltar": "qué decir mejor",
+      "sub": "Tu frase y la corregida, una al lado de la otra.",
+      "durSec": 6
+    },
+    {
+      "id": "elegir-de-que-hablar",
+      "pantalla": "screens/05-adultos-elegir-tema.png",
+      "nombre": "Elegir de qué hablar",
+      "patron": "confirmación o pago",
+      "microAnimacion": "La tarjeta 'Recomendado para hoy' se marca al tocarla, sube desde abajo la barra 'Tópico elegido: Mi último viaje' y el botón 'Empezar charla' se enciende; al tocarlo pasa a 'Arrancando…'.",
+      "chip": "Tópicos",
+      "titulo": "Hablás de lo que te interesa",
+      "resaltar": "lo que te interesa",
+      "sub": "La app te recomienda el tópico de hoy y arrancás con un toque.",
+      "durSec": 6
+    },
+    {
+      "id": "historial-cuanto-hablaste",
+      "pantalla": "screens/06-adultos-historial.png",
+      "nombre": "Historial: cuánto hablaste",
+      "patron": "números que suben",
+      "microAnimacion": "Los números cuentan desde cero (fluidez 70, errores corregidos 3) y la fila de la charla de hoy entra abajo con su puntaje.",
+      "chip": "Progreso",
+      "titulo": "Se mide en minutos hablados",
+      "resaltar": "minutos hablados",
+      "sub": "Fluidez, tiempo al aire y errores corregidos: nada de ejercicios completados.",
+      "durSec": 6
+    },
+    {
+      "id": "mapa-de-progreso",
+      "pantalla": "screens/07-adultos-mapa-de-progreso.png",
+      "nombre": "Mapa de progreso",
+      "patron": "avanza por pasos",
+      "microAnimacion": "La primera estación, 'Bases', se enciende en verde con el rótulo 'ACÁ VAS' y la línea avanza hacia la siguiente, que sigue con candado.",
+      "chip": "Progreso",
+      "titulo": "Cada tema, una ruta que avanza",
+      "resaltar": "una ruta que avanza",
+      "sub": "Las estaciones se desbloquean charlando: Bases ya está encendida.",
+      "durSec": 6
+    }
+  ]
+}
