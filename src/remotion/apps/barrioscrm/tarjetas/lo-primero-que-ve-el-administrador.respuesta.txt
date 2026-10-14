@@ -1,0 +1,73 @@
+```tsx
+import React from 'react';
+import { Barra, Fila, Numero, Pastilla, Subtitulo, Tarjeta, cuenta, ease, entra, momento, pulso, type TarjetaProps } from '../../_base/Marco';
+
+/** $ 20,4M a partir de un número en millones. */
+const millones = (n: number) => '$ ' + n.toFixed(1).replace('.', ',') + 'M';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) los tres montos cuentan desde cero
+  const a0 = momento(dur, 0.10), a1 = momento(dur, 0.42);
+  // 2) la barra de cobranza se llena hasta el 82%
+  const b0 = momento(dur, 0.30), b1 = momento(dur, 0.52);
+  // 3) los dos contadores de gestión
+  const c0 = momento(dur, 0.34), c1 = momento(dur, 0.58);
+  // 4) recién ahí se escribe la frase, de izquierda a derecha
+  const t0 = momento(dur, 0.60), t1 = momento(dur, 0.92);
+
+  return (
+    <Tarjeta
+      f={f}
+      m={m}
+      icono="grafico"
+      titulo="Cómo viene la cobranza"
+      bajada="De todo el padrón · Octubre 2026"
+      derecha={<Pastilla m={m} texto="Octubre" color={m.acento} />}
+    >
+      <Subtitulo
+        m={m}
+        texto="Cobraste el 82% de octubre: $ 16,7M en cuenta de $ 20,4M emitidos"
+        avance={ease(f, t0, t1)}
+        resaltar={['82%', '16,7M', '20,4M']}
+        color={m.exito}
+        style={entra(f, 2)}
+      />
+
+      <div style={{ display: 'flex', gap: 18, ...entra(f, a0 - 6) }}>
+        <Numero m={m} etiqueta="Emitido" texto={millones(cuenta(f, a0, a1, 0, 20.4))} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="Cobrado" texto={millones(cuenta(f, a0 + 4, a1 + 4, 0, 16.7))} color={m.exito} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="En la calle" texto={millones(cuenta(f, a0 + 8, a1 + 8, 0, 7.5))} color={m.alerta} style={{ flex: 1 }} />
+      </div>
+
+      <Barra m={m} valor={ease(f, b0, b1) * 0.82} color={m.exito} />
+
+      <div style={{ display: 'flex', gap: 18, ...entra(f, c0) }}>
+        <Fila
+          m={m}
+          icono="campana"
+          etiqueta="En alarma"
+          detalle="3+ períodos"
+          valor={String(Math.round(cuenta(f, c0, c1, 0, 8)))}
+          color={m.error}
+          destacada
+          pastilla={<Pastilla m={m} texto="Portería" color={m.error} style={{ opacity: 0.55 + 0.45 * pulso(f, 26) }} />}
+          style={{ flex: 1 }}
+        />
+        <Fila
+          m={m}
+          icono="lista"
+          etiqueta="Tu cola"
+          detalle="43 a validar · 7 a gestionar"
+          valor={String(Math.round(cuenta(f, c0 + 6, c1 + 6, 0, 50)))}
+          color={m.secundario}
+          style={{ flex: 1 }}
+        />
+      </div>
+    </Tarjeta>
+  );
+};
+```
+
+```json
+{"chip": "Cobranza", "titulo": "El barrio en una pantalla", "resaltar": "una pantalla", "sub": "Cuánto se emitió, cuánto entró y a quién hay que ir a buscar hoy.", "durSec": 6}
+```

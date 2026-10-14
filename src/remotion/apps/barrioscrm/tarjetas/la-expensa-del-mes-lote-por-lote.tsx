@@ -1,0 +1,49 @@
+import React from 'react';
+import { Fila, Numero, Pastilla, Tarjeta, cuenta, ease, entra, momento, pesos, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) entran los lotes del período, de arriba hacia abajo
+  const l1 = momento(dur, 0.1), l2 = momento(dur, 0.2), l3 = momento(dur, 0.3);
+  // 2) las pastillas de estado pasan a pagada, de a una
+  const c1 = momento(dur, 0.42), c2 = momento(dur, 0.56), c3 = momento(dur, 0.7);
+  const p1 = ease(f, c1, c1 + 10), p2 = ease(f, c2, c2 + 10), p3 = ease(f, c3, c3 + 10);
+  // 3) el cobrado sube mientras tanto y sigue hasta el final
+  const k0 = momento(dur, 0.38), k1 = momento(dur, 0.9);
+
+  const estado = (av: number, pendiente: string, color: string) =>
+    av < 0.5
+      ? <Pastilla m={m} texto={pendiente} color={color} style={{ opacity: 0.55 + 0.45 * pulso(f, 24) }} />
+      : <Pastilla m={m} texto="Pagada" color={m.exito} style={{ transform: `scale(${0.8 + 0.2 * av})` }} />;
+
+  return (
+    <Tarjeta
+      f={f} m={m} icono="tarjeta"
+      titulo="Lo que el barrio tiene que cobrar"
+      bajada="Expensas · Octubre 2026 · 240 expensas"
+      derecha={<Pastilla m={m} texto="Todas 240" color={m.acento} />}
+    >
+      <Fila
+        m={m} icono="casa" etiqueta="M01-L001" detalle="María · vence 10/10/2026" valor="$85.000"
+        destacada={p1 < 1} color={p1 < 0.5 ? m.alerta : m.exito}
+        pastilla={estado(p1, 'En revisión', m.alerta)}
+        style={entra(f, l1)}
+      />
+      <Fila
+        m={m} icono="casa" etiqueta="M01-L002" detalle="Pedro · vence 10/10/2026" valor="$85.000"
+        destacada={p2 < 1} color={p2 < 0.5 ? m.alerta : m.exito}
+        pastilla={estado(p2, 'En revisión', m.alerta)}
+        style={entra(f, l2)}
+      />
+      <Fila
+        m={m} icono="casa" etiqueta="M01-L003" detalle="Manzana 01 · vence 10/10/2026" valor="$85.000"
+        destacada={p3 < 1} color={p3 < 0.5 ? m.error : m.exito}
+        pastilla={estado(p3, 'Vencida', m.error)}
+        style={entra(f, l3)}
+      />
+      <div style={{ display: 'flex', gap: 18, ...entra(f, k0) }}>
+        <Numero m={m} etiqueta="Emitido" texto="$ 20,4M" color={m.texto} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="Cobrado" texto={pesos(cuenta(f, k0, k1, 0, 16700000))} color={m.exito} style={{ flex: 1 }} />
+      </div>
+    </Tarjeta>
+  );
+};

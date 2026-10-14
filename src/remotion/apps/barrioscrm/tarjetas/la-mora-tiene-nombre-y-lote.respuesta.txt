@@ -1,0 +1,56 @@
+```tsx
+import React from 'react';
+import { Fila, Numero, Pastilla, Tarjeta, cuenta, ease, entra, momento, pesos, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) las filas entran de a una desde abajo
+  const r1 = momento(dur, 0.12), r2 = momento(dur, 0.26), r3 = momento(dur, 0.4);
+  // 2) en la última se enciende la alarma
+  const alarma = momento(dur, 0.52);
+  const encendida = ease(f, alarma, alarma + 10);
+  // 3) la deuda en pantalla cuenta sola hasta el final
+  const d0 = momento(dur, 0.62), d1 = momento(dur, 0.92);
+  return (
+    <Tarjeta
+      f={f} m={m} icono="campana"
+      titulo="La mora tiene nombre y lote"
+      bajada="44 lotes figuran con deuda · 43 ya informaron el pago"
+      derecha={<Pastilla m={m} texto="Octubre" color={m.error} />}
+    >
+      <Fila
+        m={m} icono="casa" etiqueta="M04-L019" detalle="Pago informado, sin validar" valor={pesos(85000)}
+        pastilla={<Pastilla m={m} texto="1 período" color={m.alerta} />}
+        style={entra(f, r1)}
+      />
+      <Fila
+        m={m} icono="casa" etiqueta="M04-L020" detalle="Pago informado, sin validar" valor={pesos(85000)}
+        pastilla={<Pastilla m={m} texto="1 período" color={m.alerta} />}
+        style={entra(f, r2)}
+      />
+      <Fila
+        m={m} icono="casa" etiqueta="M10-L018" detalle="Sin gestiones" valor={pesos(680000)}
+        destacada={encendida > 0.4} color={m.error}
+        pastilla={
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <Pastilla m={m} texto="8 períodos" color={m.error} />
+            <Pastilla
+              m={m} texto="Alarma activa" color={m.error}
+              style={{ opacity: encendida * (0.65 + 0.35 * pulso(f, 22)), transform: `scale(${0.8 + 0.2 * encendida})` }}
+            />
+          </div>
+        }
+        style={entra(f, r3)}
+      />
+      <div style={{ display: 'flex', gap: 18, ...entra(f, d0) }}>
+        <Numero m={m} etiqueta="Deben 1" texto={String(Math.round(cuenta(f, d0, d1, 0, 24)))} color={m.alerta} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="Crónicos 3+" texto={String(Math.round(cuenta(f, d0, d1, 0, 8)))} color={m.error} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="Deuda en pantalla" texto="$ 7,5M" color={m.texto} style={{ flex: 1.3 }} />
+      </div>
+    </Tarjeta>
+  );
+};
+```
+
+```json
+{"chip": "Morosidad", "titulo": "Sabés a quién ir a cobrar", "resaltar": "a quién", "sub": "44 lotes con deuda, cada uno con su atraso, su última gestión y su próximo paso.", "durSec": 6}
+```

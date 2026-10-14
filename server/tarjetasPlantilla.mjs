@@ -170,6 +170,7 @@ export function pedidoTarjeta({ kit, kitDir, root, p, plantilla, ejemplo }) {
   L.push('- El método: momento(dur, q), entra, ease, cuenta, pulso, pesos. Los momentos se reparten entre el 10% y el 90% de dur; algo chico sigue vivo hasta el final.');
   L.push('- Los colores salen de m (m.acento es el color de la marca; m.secundario, su segundo color; m.exito, m.alerta, m.error, m.texto2...). Nunca escribas un color ni un tamaño de letra a mano: las piezas ya los traen.');
   L.push('- Cada texto está tal cual en la captura o en sus estados. Nada inventado.');
+  L.push('- Las marcas de demostración no van en la tarjeta: "[DEMO]" se saca, y un nombre con apellido de prueba (Testeo, Demo, Prueba) va sólo con el nombre de pila ("Rosa"); si no hay nombre de pila ("Vecino Demo", "Admin Demo"), va el lote o el rol ("M10-L018", "Administración").');
   L.push('- Nada se monta: un Aviso ocupa su lugar en la columna o reemplaza a otra pieza.');
   L.push('- Sin emojis: un dibujo de la pantalla (un animal, un personaje) se cuenta con su palabra y un ícono de la plantilla.');
   L.push('');

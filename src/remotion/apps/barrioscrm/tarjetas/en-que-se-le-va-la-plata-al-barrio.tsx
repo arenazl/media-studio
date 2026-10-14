@@ -1,0 +1,80 @@
+import React from 'react';
+import { Barra, Fila, Numero, Pastilla, Tarjeta, cuenta, ease, entra, momento, pesos, pulso, type TarjetaProps } from '../../_base/Marco';
+
+export const Mockup: React.FC<TarjetaProps> = ({ f, dur, m }) => {
+  // 1) los gastos entran de abajo hacia arriba y el total del encabezado sube con cada uno
+  const g1 = momento(dur, 0.12), g2 = momento(dur, 0.26), g3 = momento(dur, 0.4);
+  const total = cuenta(f, g1, momento(dur, 0.52), 0, 19176000);
+
+  // 2) se resalta el rubro más caro y aparece el 34%
+  const caro = momento(dur, 0.6);
+  const resalta = ease(f, caro, caro + 12);
+  const pct = cuenta(f, caro, momento(dur, 0.82), 0, 34);
+
+  // 3) al final, la obra particular: el único gasto que no entra en la expensa
+  const obra = momento(dur, 0.84);
+
+  return (
+    <Tarjeta
+      f={f}
+      m={m}
+      icono="grafico"
+      titulo="En qué se le va la plata al barrio"
+      bajada="Gastos del barrio · octubre de 2026"
+      derecha={<Pastilla m={m} texto="11 gastos" color={m.acento} />}
+    >
+      <div style={{ display: 'flex', gap: 18, ...entra(f, g1 - 6) }}>
+        <Numero m={m} etiqueta="Total del mes" texto={pesos(total)} color={m.acento} style={{ flex: 1 }} />
+        <Numero m={m} etiqueta="Obra particular" texto={f >= obra ? '1' : '—'} color={m.alerta} style={{ flex: 1 }} />
+      </div>
+
+      <Barra m={m} valor={ease(f, g1, momento(dur, 0.52))} color={m.acento} />
+
+      <Fila
+        m={m}
+        icono="documento"
+        etiqueta="Honorarios de administración"
+        detalle="Administración"
+        valor="$767.040"
+        style={entra(f, g1)}
+      />
+      <Fila
+        m={m}
+        icono="escudo"
+        etiqueta="Seguro integral del consorcio"
+        detalle="Seguros"
+        valor="$575.280"
+        style={entra(f, g2)}
+      />
+      {f < obra ? (
+        <Fila
+          m={m}
+          icono="escudo"
+          etiqueta="Vigilancia del mes"
+          detalle="Seguridad y vigilancia"
+          valor={resalta > 0.4 ? `${Math.round(pct)}%` : '—'}
+          destacada={resalta > 0.4}
+          color={resalta > 0.4 ? m.secundario : m.texto2}
+          pastilla={
+            resalta > 0.4 ? (
+              <Pastilla m={m} texto="Lo más caro" color={m.secundario} style={{ opacity: 0.65 + 0.35 * pulso(f, 26) }} />
+            ) : undefined
+          }
+          style={entra(f, g3)}
+        />
+      ) : (
+        <Fila
+          m={m}
+          icono="casa"
+          etiqueta="Obra particular de un lote"
+          detalle="no entra en la expensa"
+          valor="1"
+          destacada
+          color={m.alerta}
+          pastilla={<Pastilla m={m} texto="Fuera" color={m.alerta} />}
+          style={entra(f, obra)}
+        />
+      )}
+    </Tarjeta>
+  );
+};

@@ -1,0 +1,115 @@
+{
+  "logo": "logo-blanco.svg",
+  "dominio": "urbanify.com.ar",
+  "metodo": "plantilla",
+  "tarjetas": [
+    {
+      "id": "lo-primero-que-ve-el-administrador",
+      "pantalla": "screens/01-dashboard.png",
+      "nombre": "Lo primero que ve el administrador",
+      "patron": "números que suben",
+      "microAnimacion": "los cinco números de los KPIs cuentan desde cero hasta su valor, y recién cuando llegan se escribe la frase de arriba de izquierda a derecha, con cada número tomando su color al aparecer",
+      "chip": "Cobranza",
+      "titulo": "El barrio en una pantalla",
+      "resaltar": "una pantalla",
+      "sub": "Cuánto se emitió, cuánto entró y a quién hay que ir a buscar hoy.",
+      "durSec": 6
+    },
+    {
+      "id": "la-mora-tiene-nombre-y-lote",
+      "pantalla": "screens/02-morosidad.png",
+      "nombre": "La mora tiene nombre y lote",
+      "patron": "lista que se llena",
+      "microAnimacion": "las filas entran de a una desde abajo; al aparecer cada una, su pastilla de atraso toma color —ámbar un período, rojo tres o más— y en la última se enciende 'Alarma activa'",
+      "chip": "Morosidad",
+      "titulo": "Sabés a quién ir a cobrar",
+      "resaltar": "a quién",
+      "sub": "44 lotes con deuda, cada uno con su atraso, su última gestión y su próximo paso.",
+      "durSec": 6
+    },
+    {
+      "id": "en-que-se-le-va-la-plata-al-barrio",
+      "pantalla": "screens/04-gastos.png",
+      "nombre": "En qué se le va la plata al barrio",
+      "patron": "lista que se llena",
+      "microAnimacion": "la fila de gastos se llena de abajo hacia arriba y, a medida que entra cada una, el total del encabezado sube; al final se resalta el rubro más caro y aparece el 34%",
+      "chip": "Gastos",
+      "titulo": "La expensa se explica sola",
+      "resaltar": "se explica sola",
+      "sub": "Cada gasto entra por rubro y de ahí sale la liquidación.",
+      "durSec": 6
+    },
+    {
+      "id": "lo-que-se-construye-y-quien-lo-paga",
+      "pantalla": "screens/05-obras.png",
+      "nombre": "Lo que se construye, y quién lo paga",
+      "patron": "estado que cambia",
+      "microAnimacion": "la barra de avance de cada obra crece hasta su porcentaje, y después los dos KPIs del final se separan en dos columnas: lo que el barrio reparte y lo que paga otro",
+      "chip": "Obras",
+      "titulo": "Quién paga decide la expensa",
+      "resaltar": "decide la expensa",
+      "sub": "De $55,5M ejecutados, $51,2M no se reparte entre los vecinos.",
+      "durSec": 6
+    },
+    {
+      "id": "la-expensa-del-mes-lote-por-lote",
+      "pantalla": "screens/06-expensas.png",
+      "nombre": "La expensa del mes, lote por lote",
+      "patron": "estado que cambia",
+      "microAnimacion": "las pastillas de estado de la columna derecha cambian de pendiente a pagada de a una, de arriba hacia abajo, mientras el contador de cobrado sube",
+      "chip": "Expensas",
+      "titulo": "Cobrás el mes lote por lote",
+      "resaltar": "lote por lote",
+      "sub": "Qué se emitió, cuánto entró y qué falta cobrar.",
+      "durSec": 6
+    },
+    {
+      "id": "el-barrio-pintado-por-su-mora",
+      "pantalla": "screens/08-mapa.png",
+      "nombre": "El barrio, pintado por su mora",
+      "patron": "mapa con puntos",
+      "microAnimacion": "los lotes aparecen en gris y se van pintando manzana por manzana —verde la mayoría, después los ámbar, y al final los ocho rojos, que quedan latiendo un instante",
+      "chip": "Territorio",
+      "titulo": "La mora se ve en el mapa",
+      "resaltar": "se ve en el mapa",
+      "sub": "Cada lote del color de su atraso, manzana por manzana.",
+      "durSec": 6
+    },
+    {
+      "id": "la-ronda-del-portero-desde-el-telefono",
+      "pantalla": "screens/09-porteria-en-la-vereda.png",
+      "nombre": "La ronda del portero, desde el teléfono",
+      "patron": "avanza por pasos",
+      "microAnimacion": "el botón 'Decilo' late una vez, se abre la hoja de dictado con la onda de voz, y al cerrarse la tarjeta del lote pasa de 'Sin gestiones aún' a mostrar la gestión recién registrada con su próximo paso",
+      "chip": "Portería",
+      "titulo": "La cobranza toca el timbre",
+      "resaltar": "toca el timbre",
+      "sub": "La lista de a quién visitar y la gestión dictada, sin escribir.",
+      "durSec": 6
+    },
+    {
+      "id": "lo-que-ve-el-vecino-al-entrar",
+      "pantalla": "screens/10-vecino-mi-barrio.png",
+      "nombre": "Lo que ve el vecino al entrar",
+      "patron": "aviso que llega",
+      "microAnimacion": "la pantalla entra desde abajo como una app de celular y la barra inferior se enciende ícono por ícono",
+      "chip": "Vecino",
+      "titulo": "Su cuenta al entrar",
+      "resaltar": "al entrar",
+      "sub": "Lote, saldo y comunicados en el primer pantallazo.",
+      "durSec": 6
+    },
+    {
+      "id": "la-cuenta-del-vecino-periodo-por-periodo",
+      "pantalla": "screens/11-vecino-estado-de-cuenta.png",
+      "nombre": "La cuenta del vecino, período por período",
+      "patron": "confirmación o pago",
+      "microAnimacion": "se toca 'Informar un pago', se abre la hoja con la cámara, y al volver el período de arriba pasa de rojo a la pastilla azul de 'En revisión'",
+      "chip": "Vecino",
+      "titulo": "El comprobante desde el celular",
+      "resaltar": "desde el celular",
+      "sub": "Ve todos sus períodos y sube el pago sin mandar mensajes.",
+      "durSec": 6
+    }
+  ]
+}
