@@ -7,6 +7,8 @@ import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import { pasoHabilitado, type Concepto, type TipoComercial } from '../lib/comercial';
 import { getFunction } from '../lib/functionCatalog';
+import BotonChatGPT from './BotonChatGPT';
+import { pedidoPaso } from '../lib/paraChatGPT';
 
 // concept/3.0 (curación 2026-10-10): lo que el dueño elige antes de pedir propuestas. Intensidad y mecanismo sólo con humor.
 type Eleccion = 'enfoque' | 'tratamiento' | 'intensidadHumor' | 'recursoHumorId';
@@ -116,6 +118,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
       functionId="concept" estado={estadoDelPaso('concepto', comercial)}
+      chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'concepto')} nombre={`${comercial.titulo}-concepto`} /> : undefined}
     >
       {/* WO-K3: el material REAL del media kit a la vista desde el primer paso (sin kit no se monta). */}
       <KitTira pantallas={project.pantallasKit} />

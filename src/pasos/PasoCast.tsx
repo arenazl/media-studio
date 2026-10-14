@@ -5,6 +5,8 @@ import { Users, MapPin, Sun, ChevronDown, ChevronRight } from 'lucide-react';
 import { PasoShell, PasoEmpty, runMolde, errMsg, InlineEdit, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { pasoHabilitado, type Cast, type CharacterSheet } from '../lib/comercial';
+import BotonChatGPT from './BotonChatGPT';
+import { pedidoPaso } from '../lib/paraChatGPT';
 
 export default function PasoCast({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
@@ -44,6 +46,7 @@ export default function PasoCast({ project, comercial, setComercial, goNext }: P
       hasContent={!!cast} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!cast?.personajes?.length} approveLabel="Cast listo, al storyboard"
       functionId="cast" estado={estadoDelPaso('cast', comercial)}
+      chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'cast')} nombre={`${comercial.titulo}-personajes`} /> : undefined}
     >
       {cast ? (
         <>

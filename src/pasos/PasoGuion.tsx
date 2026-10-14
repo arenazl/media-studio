@@ -9,6 +9,8 @@ import { mediaKitParaMolde } from '../lib/mediaKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { getFormato } from '../lib/formato';
 import { pasoHabilitado, type GuionEstructurado, type GuionBloque, type EstadoPaso } from '../lib/comercial';
+import BotonChatGPT from './BotonChatGPT';
+import { pedidoPaso } from '../lib/paraChatGPT';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', giro: 'Giro', gag: 'Remate', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
@@ -80,6 +82,7 @@ export default function PasoGuion({ project, reelId, comercial, setComercial, go
       hasContent={blocks.length > 0} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={blocks.length > 0} approveLabel="Guion listo, al cast"
       functionId="script" estado={estadoDelPaso('guion', comercial)}
+      chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'guion')} nombre={`${comercial.titulo}-guion`} /> : undefined}
     >
       {/* WO-K3: con qué capturas reales se va a armar el video (solo lectura; sin kit no se monta). */}
       <KitTira pantallas={project.pantallasKit} />

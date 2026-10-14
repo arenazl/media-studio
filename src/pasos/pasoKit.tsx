@@ -154,7 +154,7 @@ export function PasoGate({ motivo, children }: { motivo: string; children: React
 }
 
 export function PasoShell({
-  titulo, sub, hasContent, busy, onGenerate, generarLabel, error, children, onApprove, canApprove, approveLabel, functionId, estado,
+  titulo, sub, hasContent, busy, onGenerate, generarLabel, error, children, onApprove, canApprove, approveLabel, functionId, estado, chatgpt,
 }: {
   titulo: string; sub: string; hasContent: boolean; busy: boolean;
   onGenerate: (provider?: 'claude' | 'gemini') => void;
@@ -162,6 +162,7 @@ export function PasoShell({
   onApprove?: () => void; canApprove?: boolean; approveLabel?: string;
   functionId?: string;   // id del molde (functionCatalog) — pinta el hint "IA: <modelo efectivo>" bajo el botón
   estado?: string;       // línea de estado/contexto del PIE (derivada del estado real vía estadoDelPaso)
+  chatgpt?: ReactNode;   // el botoncito "ChatGPT" de esta pantalla (BotonChatGPT), 2026-10-13
 }) {
   const modelHint = useEffectiveModel(functionId);
   const corrida = useUltimaCorrida(functionId);
@@ -205,6 +206,8 @@ export function PasoShell({
               {r.texto}
             </span>
           ); })()}
+          {/* ChatGPT (2026-10-13, Lucas: "un botoncito chiquito por función"): lo de esta pantalla para que ChatGPT lo analice */}
+          {chatgpt}
           {/* Orquestador (2026-10-10): el prompt de este paso por capas, sin correrlo; Pipeline escucha el evento y abre el panel */}
           {functionId && (
             <button className="paso-corrida" type="button" onClick={() => window.dispatchEvent(new CustomEvent('ms:orquestador'))} title="Ver el prompt de este paso por capas (no llama al modelo)">Orquestador</button>

@@ -20,6 +20,8 @@ import { MUSIC_TRACKS } from '../lib/music';
 import { componerMusica, moodDe, musicaDelPlan } from '../lib/musicaGenerada';
 import { resolverSrc } from '../remotion/derivar';
 import { aplicarPropuestaMontaje, type PropuestaMontaje } from '../lib/direccionMontaje';
+import BotonChatGPT from './BotonChatGPT';
+import { pedidoPaso } from '../lib/paraChatGPT';
 
 
 const roleKind = (r: string | undefined) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
@@ -346,6 +348,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           <p className="paso-sub">Se arma solo desde el storyboard y el montajista lo afina: recorta el aire de cada clip, corta en frase, mete pantallas reales cuando la voz las nombra, subtitula palabra por palabra y cierra con la placa de la marca.</p>
         </div>
         <div className="paso-head-actions">
+          {comercial && <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'montaje')} nombre={`${comercial.titulo}-montaje`} />}
           {/* el cierre (2026-10-12): placa grande, la pantalla clave de la app o la presentadora (su clip sale de "Generar pieza") */}
           <div className="veo-chips" title="Cómo termina el comercial">
             {/* nombres que se entienden solos (Lucas, 2026-10-13: "vi los botones, no los entiendo") */}

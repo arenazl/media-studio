@@ -9,9 +9,9 @@ import { PasoShell, PasoEmpty, runMolde, errMsg, type PasoProps } from './pasoKi
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { packProgress, pasoHabilitado, type EscenaFlow, type PersonajeFlow } from '../lib/comercial';
 import BrandBlock from '../BrandBlock';
-import CuracionGuion, { conGuionCurado } from './CuracionGuion';
 import CrudosFlow from './CrudosFlow';
-import { getFormato } from '../lib/formato';
+import BotonChatGPT from './BotonChatGPT';
+import { pedidoPaso } from '../lib/paraChatGPT';
 
 const ROL_LABEL: Record<string, string> = { hook: 'Hook', desarrollo: 'Desarrollo', giro: 'Giro', gag: 'Remate', cta: 'CTA' };
 const roleKind = (r: string) => (r === 'hook' ? 'hook' : r === 'cta' ? 'cta' : (r === 'gag' || r === 'giro') ? 'gag' : 'mid');
@@ -27,7 +27,6 @@ function downloadTxt(name: string, text: string) {
 interface FlowJob { id: string; estado: string; paso: string; log: string[]; escenas: { escenaN: number; estado: string; fileRef: string | null; motivo?: string }[]; fallas?: string[]; error: string | null; flowProjectUrl: string | null; extension?: boolean; pestanas?: number }
 
 export default function PasoPack({ project, reelId, comercial, setComercial, goNext }: PasoProps) {
-  const [avisoCur, setAvisoCur] = useState('');
   const [job, setJob] = useState<FlowJob | null>(null);
   const [autoBusy, setAutoBusy] = useState(false);
   const [verLog, setVerLog] = useState(false);
@@ -169,15 +168,8 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
       hasContent={esNuevo} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={esNuevo && !!escenas.length} approveLabel="Videos listos, a los mockups"
       functionId="flowpack" estado={estadoDelPaso('pack', comercial)}
+      chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'pack')} nombre={`${comercial.titulo}-pedidos-flow`} /> : undefined}
     >
-      {/* curación con ChatGPT (2026-10-10): el camino entero, con lo que se le manda a Flow, antes de generar los videos */}
-      {comercial?.guion && (
-        <CuracionGuion project={project} comercial={comercial}
-          durationSec={project.reels.find((r) => r.id === reelId)?.durationSec ?? getFormato(comercial.formatoId)?.duracion.default ?? 20}
-          formatoNombre={getFormato(comercial.formatoId)?.nombre || ''}
-          onAplicar={(g, info) => { setComercial((c) => conGuionCurado(c, g, info.archivo)); setAvisoCur(`Guion curado con ChatGPT aplicado. Personajes, storyboard y este pack se habían armado con el guion anterior: regeneralos en orden antes de generar los videos.${info.conPrompts ? ' La curación de los prompts y de las descripciones para Flow quedó guardada, pendiente de tu dale.' : ''}`); }} />
-      )}
-      {avisoCur && <div className="paso-empty" style={{ marginBottom: 8 }}>{avisoCur}</div>}
       {esViejo && (
         <div className="pack-migrate">
           <AlertTriangle size={16} />

@@ -9,6 +9,8 @@ import { getFormato } from '../lib/formato';
 import { API_BASE } from '../config';
 import type { PublishPack } from '../lib/comercial';
 import type { MontajeState } from '../lib/montajePlan';
+import BotonChatGPT from './BotonChatGPT';
+import { pedidoCompleto } from '../lib/paraChatGPT';
 
 export default function PasoPublicar({ project, comercial, setComercial, goNext }: PasoProps) {
   const [busy, setBusy] = useState(false);
@@ -48,6 +50,7 @@ export default function PasoPublicar({ project, comercial, setComercial, goNext 
       hasContent={!!pub} busy={busy} onGenerate={generar} error={error}
       onApprove={goNext} canApprove={!!pub} approveLabel="Marcar publicada"
       functionId="publish" estado={estadoDelPaso('publicar', comercial)}
+      chatgpt={comercial ? <BotonChatGPT armar={() => pedidoCompleto(project, comercial)} nombre={`${comercial.titulo}-pieza-completa`} completo /> : undefined}
     >
       {pub ? (
         <div className="pub-grid">
