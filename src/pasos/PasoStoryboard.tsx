@@ -70,7 +70,7 @@ export default function PasoStoryboard({ project, reelId, comercial, setComercia
     <PasoShell
       titulo="Storyboard" sub="Escenas numeradas: plano, ángulo, duración, acción, diálogo, continuidad."
       hasContent={escenas.length > 0} busy={busy} onGenerate={generar} error={error}
-      onApprove={goNext} canApprove={escenas.length > 0} approveLabel="Storyboard listo"
+      onApprove={goNext} canApprove={escenas.length > 0} approveLabel="Storyboard listo, a mockups / preproducción"
       functionId="storyboard" estado={estadoDelPaso('storyboard', comercial)}
       chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'storyboard')} nombre={`${comercial.titulo}-storyboard`} /> : undefined}
     >
