@@ -8,6 +8,7 @@ import FormatsCatalog from './FormatsCatalog';
 import Pipeline from './Pipeline';
 import Editor from './Editor';
 import Rail from './Rail';
+import ProbadorFlow from './ProbadorFlow';
 import Home from './Home';
 import Integrar from './Integrar';
 import DemoReels from './components/DemoReels';
@@ -229,6 +230,8 @@ function AppPrincipal() {
           </div>
         ) : route === 'videos' ? (
           <div className="ms-workspace"><VideosTab onGoEditor={() => goRoute('editor')} /></div>
+        ) : route === 'probador' ? (
+          <div className="ms-page"><ProbadorFlow /></div>
         ) : route === 'audio' ? (
           <div className="ms-workspace">
             <AudioWorkspace
