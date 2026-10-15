@@ -307,6 +307,32 @@ html[data-theme="light"] {
 /* el chip elegido no tenía regla: los dos se veían igual y no se leía cuál estaba activo */
 .paso-chip--on { background: var(--pw-bg-3); color: var(--pw-text-1); }
 
+/* Concepto (2026-10-15): enfoque y tratamiento como tarjetas con su explicación, y el resumen del comercial con el
+   botón que pide las ideas. Nada se marca hasta que el dueño elige. */
+.concepto-linea { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.concepto-opcs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.concepto-opc {
+  display: flex; flex-direction: column; gap: 3px; text-align: left;
+  padding: 9px 12px; border-radius: var(--pw-r-s); cursor: pointer;
+  background: var(--pw-field); border: 1px solid var(--pw-line-1); color: var(--pw-text-2);
+  transition: border-color var(--pw-dur) var(--pw-ease), background var(--pw-dur) var(--pw-ease);
+}
+.concepto-opc b { font-size: 12.5px; font-weight: 600; color: var(--pw-text-1); }
+.concepto-opc span { font-size: 11.5px; line-height: 1.4; color: var(--pw-text-3); }
+.concepto-opc:hover:not(:disabled) { border-color: var(--pw-line-2); }
+.concepto-opc:disabled { cursor: default; opacity: 0.6; }
+.concepto-opc--on { background: var(--pw-bg-3); border-color: var(--pw-gold); }
+.concepto-opc--on span { color: var(--pw-text-2); }
+.concepto-resumen {
+  display: flex; flex-direction: column; gap: 6px; margin: 2px 0 16px;
+  padding: 14px 16px; border-radius: var(--pw-r-m);
+  background: var(--pw-bg-2); border: 1px solid var(--pw-line-2);
+}
+.concepto-resumen p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--pw-text-1); }
+.concepto-resumen p b { font-weight: 700; }
+.concepto-resumen .concepto-resumen-pie { color: var(--pw-text-3); font-size: 12.5px; }
+.concepto-disparar { align-self: flex-start; margin-top: 6px; }
+
 /* técnica FIJADA por el formato: mismo peso visual que un chip, pero informativa (no se toca) */
 .paso-tipo-fijo {
   display: inline-flex; align-items: center; gap: 7px;

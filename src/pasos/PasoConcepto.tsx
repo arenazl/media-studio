@@ -13,8 +13,8 @@ import { pedidoPaso } from '../lib/paraChatGPT';
 // concept/3.0 (curación 2026-10-10): lo que el dueño elige antes de pedir propuestas. Intensidad y mecanismo sólo con humor.
 type Eleccion = 'enfoque' | 'tratamiento' | 'intensidadHumor' | 'recursoHumorId';
 const ELECCIONES: { id: Eleccion; label: string; def: string; soloHumor?: boolean }[] = [
-  { id: 'enfoque', label: 'Enfoque', def: 'caso' },
-  { id: 'tratamiento', label: 'Tratamiento', def: 'natural' },
+  { id: 'enfoque', label: 'Enfoque · cómo se cuenta la historia', def: 'caso' },
+  { id: 'tratamiento', label: 'Tratamiento · cómo se siente', def: 'natural' },
   { id: 'intensidadHumor', label: 'Intensidad del humor', def: 'sutil', soloHumor: true },
   { id: 'recursoHumorId', label: 'Mecanismo de humor', def: 'auto', soloHumor: true },
 ];
@@ -38,21 +38,15 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   const idsOpciones = opciones.map((o) => o.id).join('|');
   useEffect(() => { setPreviewCptId(null); }, [idsOpciones]);
 
-  // AUTO-DISPARO sólo cuando la técnica YA está decidida (dueño, 2026-10-07): el molde concept
-  // cambia el prompt y las propuestas según Filmado/Animado (bloque de técnica + pantallas). Si la
-  // pieza nació con formato, la técnica viene fija de ahí y el selector ni se muestra: generar al
-  // entrar es correcto. Si no hay formato (pieza vieja), la técnica se elige acá y hay que esperar.
-  const hasAutoFired = useRef(false);
-  useEffect(() => {
-    const tecnicaFija = !!formato;
-    const hayInsumo = !!(project.brief || comercial?.angulo || comercial?.creativeBrief);
-    const listo = !!comercial && pasoHabilitado(comercial, 'concepto') && hayInsumo && tecnicaFija;
-    if (listo && opciones.length === 0 && !busy && !error && !hasAutoFired.current) {
-      hasAutoFired.current = true;
-      generar();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // SIN auto-disparo (2026-10-15, Lucas: "es una corrida perdida"): la pieza nace con "caso + cotidiano" de fábrica y
+  // Concepto pedía propuestas al entrar, antes de que el dueño eligiera; si después cambiaba el enfoque, esa vuelta se
+  // tiraba. Ahora se eligen las dos líneas, se ve el resumen del comercial y se dispara a mano.
+  // Una línea cuenta como elegida cuando el dueño la tocó en esta pantalla, o cuando la pieza ya tiene concepto (ya pasó).
+  const [elegidas, setElegidas] = useState(() => ({ enfoque: !!comercial?.concepto, tratamiento: !!comercial?.concepto }));
+  const lasDos = elegidas.enfoque && elegidas.tratamiento;
+  // al completar la segunda línea, el resumen aparece abajo del todo: se lo trae a la vista para que se vea el botón
+  const resumenRef = useRef<HTMLElement>(null);
+  useEffect(() => { if (lasDos) resumenRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, [lasDos]);
 
   const generar = async (provider?: 'claude' | 'gemini') => {
     setBusy(true); setError('');
@@ -94,6 +88,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   // enfoque anterior.
   const [aviso, setAviso] = useState('');
   const elegirOpcion = (k: Eleccion, v: string) => {
+    if (k === 'enfoque' || k === 'tratamiento') { setElegidas((el) => ({ ...el, [k]: true })); setAviso(''); }
     if ((comercial?.[k] || ELECCIONES.find((e) => e.id === k)?.def) === v) return;
     const habiaConcepto = !!comercial?.concepto;
     setComercial((c) => {
@@ -107,6 +102,15 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
   };
   const conHumor = (comercial?.enfoque || 'caso') === 'humor' || (comercial?.tratamiento || 'natural') === 'humor';
   const opcionesConcept = getFunction('concept')?.options || [];
+  const elegidaDe = (k: 'enfoque' | 'tratamiento') => {
+    const v = comercial?.[k] || ELECCIONES.find((e) => e.id === k)?.def;
+    return opcionesConcept.find((o) => o.id === k)?.choices?.find((ch) => ch.value === v);
+  };
+  // los botones de arriba ("Plan Claude/Gemini") tampoco disparan sin las dos líneas elegidas
+  const pedirIdeas = (provider?: 'claude' | 'gemini') => {
+    if (!lasDos) { setAviso('Elegí primero las dos líneas: cómo se cuenta la historia y cómo se siente.'); return; }
+    generar(provider);
+  };
 
   const previewCpt = opciones.find(c => c.id === previewCptId);
 
@@ -115,7 +119,7 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       titulo="Concepto"
       sub="Elegí qué historia querés contar y con qué clima. La IA propone tres ideas diferentes dentro del objetivo comercial de la pieza."
       hasContent={opciones.length > 0}
-      busy={busy} onGenerate={generar} error={error}
+      busy={busy} onGenerate={pedirIdeas} error={error}
       onApprove={goNext} canApprove={!!elegido} approveLabel="Concepto listo, al guion"
       functionId="concept" estado={estadoDelPaso('concepto', comercial)}
       chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'concepto')} nombre={`${comercial.titulo}-concepto`} /> : undefined}
@@ -143,10 +147,28 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
         )}
       </div>
 
-      <p className="paso-sub" style={{ margin: '10px 0 8px' }}>Tipo de historia = estructura del relato (caso, producto, antes/después…). Clima = cómo se siente (cotidiano, sobrio, cálido…). Son independientes del objetivo comercial. El humor sólo entra si lo elegís.</p>
+      <p className="paso-sub" style={{ margin: '10px 0 8px' }}>Elegí las dos líneas: cómo se cuenta la historia y cómo se siente. Con las dos elegidas ves el resumen del comercial y recién ahí se piden las ideas.</p>
       {ELECCIONES.filter((e) => !e.soloHumor || conHumor).map((e) => {
         const opt = opcionesConcept.find((o) => o.id === e.id);
         const actual = comercial?.[e.id] || e.def;
+        // las dos líneas principales van como tarjetas con su explicación; nada se ve marcado hasta que el dueño elige
+        if (e.id === 'enfoque' || e.id === 'tratamiento') {
+          const tocada = elegidas[e.id];
+          return (
+            <div className="concepto-linea" key={e.id}>
+              <span className="paso-tipo-lbl">{e.label}</span>
+              <div className="concepto-opcs">
+                {(opt?.choices || []).map((ch) => (
+                  <button key={ch.value} type="button" disabled={busy} onClick={() => elegirOpcion(e.id, ch.value)}
+                    className={tocada && actual === ch.value ? 'concepto-opc concepto-opc--on' : 'concepto-opc'}>
+                    <b>{ch.label}</b>
+                    {ch.ayuda && <span>{ch.ayuda}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        }
         return (
           <div className="paso-tipo" key={e.id}>
             <span className="paso-tipo-lbl">{e.label}</span>
@@ -160,6 +182,29 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
       })}
 
       {aviso && <div className="paso-empty" style={{ marginBottom: 8 }}>{aviso}</div>}
+
+      {/* Con las dos líneas elegidas: cómo va a ser el comercial, armado con lo que ya se sabe de la pieza (sin llamar a la
+          IA), y el botón que pide las ideas. */}
+      {lasDos && opciones.length === 0 && (() => {
+        const enf = elegidaDe('enfoque');
+        const trat = elegidaDe('tratamiento');
+        const conApp = (t = '') => t.replace(/la app/g, project.name || 'la app');
+        const queda = comercial?.primaryMessage || comercial?.angulo || '';
+        return (
+          <section className="concepto-resumen" ref={resumenRef}>
+            <span className="paso-tipo-lbl">Así va a ser el comercial</span>
+            <p>{tipo === 'animado' ? 'Animado' : 'Filmado'}, de unos 20 segundos{comercial?.titulo ? `, sobre «${comercial.titulo}»` : ''}.</p>
+            {enf && <p><b>Cómo se cuenta:</b> {enf.label.toLowerCase()}. {conApp(enf.ayuda)}</p>}
+            {trat && <p><b>Cómo se siente:</b> {trat.label.toLowerCase()}. {trat.ayuda}</p>}
+            {queda && <p><b>Lo que tiene que quedar:</b> {queda}</p>}
+            <p className="concepto-resumen-pie">La IA propone tres ideas distintas dentro de esto; elegís una y sigue al guion.</p>
+            <button type="button" className="paso-gen concepto-disparar" onClick={() => generar()}
+              disabled={busy || !comercial || !pasoHabilitado(comercial, 'concepto')}>
+              <Wand2 size={15} /> {busy ? 'Pidiendo las ideas…' : 'Pedir las tres ideas'}
+            </button>
+          </section>
+        );
+      })()}
 
       {opciones.length > 0 ? (
         !previewCpt ? (
@@ -256,13 +301,11 @@ export default function PasoConcepto({ project, comercial, setComercial, goNext 
           </div>
         )
       ) : (
-        !busy && (
+        // el botón para pedir las ideas vive en el resumen; acá sólo se indica qué falta elegir
+        !busy && !lasDos && (
           <div className="paso-empty paso-empty--full">
             <Lightbulb size={34} strokeWidth={1.5} className="paso-empty-ico" />
-            <span>Elegí la técnica arriba y pedí las propuestas: tres ideas distintas pensadas para un comercial {tipo === 'animado' ? 'animado sobre las pantallas reales' : 'filmado con personas'}.</span>
-            <button className="paso-gen paso-empty-cta" onClick={() => generar()}>
-              <Wand2 size={15} /> Generar 3 propuestas · {tipo === 'animado' ? 'Animado' : 'Filmado'}
-            </button>
+            <span>Elegí arriba cómo se cuenta la historia y cómo se siente. Con las dos aparece el resumen del comercial {tipo === 'animado' ? 'animado' : 'filmado'} y el botón para pedir las tres ideas.</span>
           </div>
         )
       )}
