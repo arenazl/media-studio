@@ -3,6 +3,7 @@ import { API_BASE } from './config';
 
 interface Escena { escenaN: number; estado: string; fileRef: string | null; motivo?: string }
 interface Job { id: string; estado: string; paso: string; escenas: Escena[]; fallas?: string[]; error?: string | null; log?: string[]; flowProjectUrl?: string | null; ajustesReales?: { modelo?: string; resolucion?: string; pastilla?: string } | null }
+interface Resultado { id: string; fileRef: string; prompt: string; modeloPedido: string; modeloReal: string; resolucion: string; fecha: number }
 const MODELOS = [
   { id: 'omni360', label: 'Omni Flash 1.1 · 360p', info: 'Costo: verificar el importe dentro de tu Flow.' },
   { id: 'lite', label: 'Veo 3.1 Lite · 720p', info: 'Referencia: 10 créditos por clip, según plan.' },
@@ -16,6 +17,12 @@ export default function ProbadorFlow() {
   const [flowProjectUrl, setFlowProjectUrl] = useState(() => localStorage.getItem('probadorFlowUrl') || '');
   const [personaje, setPersonaje] = useState(() => localStorage.getItem('probadorPersonaje') || '');
   const [job, setJob] = useState<Job | null>(null);
+  const [modeloEnCurso, setModeloEnCurso] = useState('lite');
+  const [promptEnCurso, setPromptEnCurso] = useState('');
+  const [resultados, setResultados] = useState<Resultado[]>(() => {
+    try { const raw = JSON.parse(localStorage.getItem('probadorFlowResultados') || '[]'); return Array.isArray(raw) ? raw.slice(0, 12) : []; }
+    catch { return []; }
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [consulta, setConsulta] = useState('');
@@ -26,7 +33,22 @@ export default function ProbadorFlow() {
         const r = await fetch(`${API_BASE}/api/flow/jobs/${encodeURIComponent(job.id)}`);
         const d = await r.json();
         if (r.ok && d.job) {
-          setJob(d.job as Job);
+          const actualizado = d.job as Job;
+          setJob(actualizado);
+          const tomaFinal = actualizado.escenas?.find((e) => e.fileRef);
+          if ((actualizado.estado === 'listo' || actualizado.estado === 'error') && tomaFinal?.fileRef) {
+            setResultados((prev) => {
+              if (prev.some((x) => x.id === actualizado.id)) return prev;
+              const siguiente = [{
+                id: actualizado.id, fileRef: tomaFinal.fileRef as string,
+                modeloPedido: modeloEnCurso, prompt: promptEnCurso, fecha: Date.now(),
+                modeloReal: actualizado.ajustesReales?.modelo || 'no detectado',
+                resolucion: actualizado.ajustesReales?.resolucion || 'no detectada',
+              }, ...prev].slice(0, 12);
+              localStorage.setItem('probadorFlowResultados', JSON.stringify(siguiente));
+              return siguiente;
+            });
+          }
           if (d.job.flowProjectUrl) {
             setFlowProjectUrl(d.job.flowProjectUrl);
             localStorage.setItem('probadorFlowUrl', d.job.flowProjectUrl);
@@ -35,11 +57,12 @@ export default function ProbadorFlow() {
       } catch { /* se consulta de nuevo */ }
     }, 3000);
     return () => clearInterval(timer);
-  }, [job?.id, job?.estado]);
+  }, [job?.id, job?.estado, modeloEnCurso, promptEnCurso]);
 
   const generar = async () => {
     if (!window.confirm('Esto puede consumir créditos reales de Flow. Se solicitará UNA generación, sin reintentos automáticos. ¿Generar?')) return;
     setBusy(true); setError(''); setJob(null);
+    setModeloEnCurso(modelo); setPromptEnCurso(prompt);
     try {
       const r = await fetch(`${API_BASE}/api/flow/probador`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -112,6 +135,20 @@ export default function ProbadorFlow() {
         {toma?.fileRef && <video src={`${API_BASE}/api/storage/${toma.fileRef}`} controls playsInline style={{ maxWidth: '100%', maxHeight: 500 }} />}
         {!!job.log?.length && <details><summary>Registro de pasos</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{job.log.join('\n')}</pre></details>}
       </div>}
+      {!!resultados.length && <section style={{ marginTop: 30 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+          <h2>Comparar resultados ({resultados.length})</h2>
+          <button onClick={() => { if (window.confirm('¿Quitar los resultados del historial del probador? Los archivos locales no se borran.')) { setResultados([]); localStorage.removeItem('probadorFlowResultados'); } }}>Limpiar historial</button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+          {resultados.map((r) => <article key={r.id} style={{ border: '1px solid #7776', borderRadius: 10, padding: 12, minWidth: 0 }}>
+            <strong>{MODELOS.find((m) => m.id === r.modeloPedido)?.label || r.modeloPedido}</strong>
+            <p style={{ fontSize: 12, opacity: 0.8 }}>Flow: {r.modeloReal} · {r.resolucion}</p>
+            <video src={`${API_BASE}/api/storage/${r.fileRef}`} controls playsInline preload="metadata" style={{ width: '100%', maxHeight: 380 }} />
+            <details><summary>Prompt original</summary><p style={{ whiteSpace: 'pre-wrap' }}>{r.prompt}</p></details>
+          </article>)}
+        </div>
+      </section>}
       <p style={{ marginTop: 24 }}>Extensión: <code>extension-flow-lab</code> v0.6.0. Desactivá el Puente Flow anterior durante las pruebas: ambos usan la misma cola local.</p>
     </section>
   );
