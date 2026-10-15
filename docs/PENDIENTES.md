@@ -4,6 +4,10 @@ Una línea por pendiente, con el dato que lo justifica y dónde está el detalle
 
 ## Concepto 3.0 (curación del 2026-10-10)
 
+- (2026-10-15, Lucas) Un solo menú en vez de dos líneas (enfoque y tratamiento), con el tipo y el humor atados, y la
+  opción de que genere varios a la vez porque en Concepto "uno se traba mucho". Lo cura Lucas por afuera; se aplica lo
+  que traiga. Hoy: dos líneas con explicación y resumen antes de pedir las ideas (commit `f07fd6a` en master).
+
 - Correr la tabla de pruebas A–F del LEEME de la curación con el mismo brief de Munify (hoy sólo la A: caso + sobrio) y
   comparar contra concept/2.0. Detalle: `base-compartida/mediastudio/curaciones/01-concepto-con-enfoque/LEEME-integracion.md`.
 - Fase opcional de evaluación sólo de las propuestas con humor (devolver alternativas sin tocar el resto). Mismo LEEME.
