@@ -20,6 +20,7 @@ import PasoCast from './pasos/PasoCast';
 import PasoStoryboard from './pasos/PasoStoryboard';
 import PasoPack from './pasos/PasoPack';
 import PasoMockups from './pasos/PasoMockups';
+import PasoPreproduccion from './pasos/PasoPreproduccion';
 import PasoMontaje from './pasos/PasoMontaje';
 import PasoPublicar from './pasos/PasoPublicar';
 import PasoRender from './pasos/PasoRender';
@@ -139,6 +140,7 @@ export default function Pipeline({ project, onChange, onFlush, onHome, onGoEdito
       case 'storyboard': return <PasoStoryboard {...pasoProps} />;
       case 'pack': return <PasoPack {...pasoProps} />;
       case 'rodaje': return <PasoMockups {...pasoProps} />;
+      case 'preproduccion': return <PasoPreproduccion {...pasoProps} />;
       case 'render': return <PasoRender {...pasoProps} />;
       case 'montaje': return <PasoMontaje {...pasoProps} onGoEditor={onGoEditor} />;
       case 'publicar': return <PasoPublicar {...pasoProps} />;
