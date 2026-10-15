@@ -5,17 +5,17 @@ import {
 } from './comercial';
 
 describe('pasosVisibles', () => {
-  it('filmado tiene 9 pasos, sin render, con cast/pack/rodaje', () => {
+  it('filmado tiene 10 pasos, sin render; preproducción entre mockups y Pack Flow', () => {
     const v = pasosVisibles('filmado');
-    expect(v).toEqual(['negocio', 'concepto', 'guion', 'cast', 'storyboard', 'pack', 'rodaje', 'montaje', 'publicar']);
-    expect(v).toHaveLength(9);
+    expect(v).toEqual(['negocio', 'concepto', 'guion', 'cast', 'storyboard', 'rodaje', 'preproduccion', 'pack', 'montaje', 'publicar']);
+    expect(v).toHaveLength(10);
     expect(v).not.toContain('render');
   });
 
-  it('animado tiene 7 pasos, con render, sin cast/pack/rodaje', () => {
+  it('animado tiene 8 pasos, con preproducción antes del render, sin cast/pack/rodaje', () => {
     const v = pasosVisibles('animado');
-    expect(v).toEqual(['negocio', 'concepto', 'guion', 'storyboard', 'render', 'montaje', 'publicar']);
-    expect(v).toHaveLength(7);
+    expect(v).toEqual(['negocio', 'concepto', 'guion', 'storyboard', 'preproduccion', 'render', 'montaje', 'publicar']);
+    expect(v).toHaveLength(8);
     for (const p of ['cast', 'pack', 'rodaje'] as const) expect(v).not.toContain(p);
   });
 });
@@ -74,10 +74,10 @@ describe('pasoHabilitado', () => {
     for (const p of ['cast', 'pack', 'rodaje'] as const) expect(pasoHabilitado(anim, p)).toBe(false);
   });
 
-  it('montaje (filmado) se habilita cuando rodaje ≥ generado', () => {
+  it('montaje (filmado) se habilita cuando Pack Flow ≥ generado (va después de preproducción)', () => {
     let c = nuevoComercial('x', 'filmado');
     expect(pasoHabilitado(c, 'montaje')).toBe(false);
-    c = avanzarEstado(c, 'rodaje', 'generado');
+    c = avanzarEstado(c, 'pack', 'generado');
     expect(pasoHabilitado(c, 'montaje')).toBe(true);
   });
 

@@ -107,6 +107,17 @@ export const COPILOTO: Record<PasoId, CopilotoStep> = {
     ],
     tip: 'Los mockups se escriben una vez por app: en otra pieza de la misma app alcanza con pasarlos a video.',
   },
+  // paso Preproducción (2026-10-15): el animatic local para comparar propuestas antes de gastar en Flow
+  preproduccion: {
+    queEs: 'Un borrador animado del comercial con las capturas, los mockups y los diálogos, para verlo antes de gastar en Flow.',
+    hizoIA: 'Armó el animatic con el storyboard elegido; las otras propuestas se preparan sólo si las pedís.',
+    hace: [
+      'Reproducí el animatic y revisá el orden, las frases y los tiempos.',
+      'Si querés comparar, prepará otra propuesta y mirala.',
+      'Aprobá la que va a producción: recién ahí se habilita Pack Flow.',
+    ],
+    tip: 'Las voces de prueba son opcionales y gastan ElevenLabs; el animatic se puede ver en silencio.',
+  },
   montaje: {
     queEs: 'Se arma el comercial completo y se exporta el mp4 final.',
     hizoIA: 'Ordenó las escenas, puso la música según el mood, el silencio antes del remate y el ducking.',

@@ -47,7 +47,7 @@ export function planAnimatic(project: Project, comercial: Comercial, concepto: C
     const cap = pantallas.find((p) => p.archivo === e.archivoCaptura)
       || pantallas.find((p) => e.pantalla && norm(p.nombre) === norm(e.pantalla))
       || pantallas.find((p) => e.screen && norm(p.nombre) === norm(e.screen));
-    const mk = (e.pantalla || e.screen) && mockups.find((m) => norm(m.nombre) === norm(e.pantalla || e.screen || ''));
+    const mk = (e.pantalla || e.screen) ? mockups.find((m) => norm(m.nombre) === norm(e.pantalla || e.screen || '')) : undefined;
     const actor = e.personajes?.map((id) => nombres.get(id) || id).join(', ') || '';
     const vozElegida = prototipo.vozPorActor?.[actor];
     const audio = audios.find((a) => a.escenaN === e.n && a.texto === texto
