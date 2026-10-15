@@ -866,6 +866,10 @@ async function uploadToCloudinary(buffer, filename, folder = CLD_FOLDER) {
 // el front. En local los archivos viven en STORAGE_DIR y se sirven por /api/storage/<ruta>.
 // El día que vayas online: IS_PROD=true → Cloudinary; o el botón "Actualizar nube" sincroniza.
 const STORAGE_DIR = process.env.STORAGE_DIR || path.resolve('server/storage');
+// el historial del probador de Flow (ver /api/flow/probador/resultados)
+const PROBADOR_HIST = path.join(STORAGE_DIR, 'probador-resultados.json');
+const leerHistProbador = () => { try { const h = JSON.parse(fs.readFileSync(PROBADOR_HIST, 'utf8')); return Array.isArray(h) ? h : []; } catch { return []; } };
+const probadorMeta = new Map();
 const MIME_MORE = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4' };   // svg: un logo vectorial del kit no se dibujaba en el render (2026-10-13)
 
 // Los mockups de UNA pieza (2026-10-12): las tarjetas de una app son las mismas para todas sus piezas, así que si otra
@@ -1896,7 +1900,24 @@ ${src}`;
           return { fileRef: saved.public_id, durSec: 8 };
         },
       });
+      probadorMeta.set(job.id, { id: job.id, modeloPedido: modeloId, prompt, personaje, fecha: Date.now() });
       return json(res, 202, { job });
+    }
+    // el historial del probador vive en el servidor (2026-10-15): la pantalla muestra todos los clips, también los que
+    // se lanzan por la API, y no se pierden si se borra el navegador
+    if (p === '/api/flow/probador/resultados' && req.method === 'GET') {
+      const hist = leerHistProbador();
+      let cambio = false;
+      for (const [id, meta] of probadorMeta) {
+        if (hist.some((h) => h.id === id)) continue;
+        const j = puente.verJob(id);
+        if (!j || (j.estado !== 'listo' && j.estado !== 'error')) continue;
+        const toma = (j.escenas || []).find((e) => e.fileRef);
+        hist.unshift({ ...meta, estado: j.estado, fileRef: toma?.fileRef || null, error: j.error || null, modeloReal: j.ajustesReales?.modelo || 'no detectado', resolucion: j.ajustesReales?.resolucion || 'no detectada', segundos: j.fin && j.inicio ? Math.round((j.fin - j.inicio) / 1000) : null });
+        cambio = true;
+      }
+      if (cambio) fs.writeFileSync(PROBADOR_HIST, JSON.stringify(hist.slice(0, 60), null, 1));
+      return json(res, 200, { resultados: hist.filter((h) => h.fileRef) });
     }
 
     // ── Automatizar la creación en Flow (rutina Playwright): arranca un job y devuelve su id; el front lo sigue por GET ──

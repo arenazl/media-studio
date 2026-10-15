@@ -214,10 +214,11 @@
         if (q('[role="menu"], [role="listbox"]').length) { const fondo = q('.cdk-overlay-backdrop')[0]; if (fondo) fondo.click(); else combo.click(); await espera(300); }
       }
       if (!esImagen) {
-        const hayRes = await radio(new RegExp(`^${resolucion}$`));
-        if (estricto && !hayRes) throw new Error(`[antes de enviar] la resolución ${resolucion} no está disponible`);
-        const hayDuracion = await radio(new RegExp(`^${duracion.replace(' ', '\\s?')}$`));
-        if (estricto && !hayDuracion) throw new Error(`[antes de enviar] la duración ${duracion} no está disponible`);
+        // el botón de 360p trae un ícono de ayuda pegado ("360p info"): se compara el comienzo, no el texto entero
+        // con Veo no hay botón de resolución ni de duración con Ingredientes (Flow los fija en 720p y 8 s): si el botón no
+        // está, no se frena acá; lo confirma la pastilla de ajustes más abajo, en modo estricto (2026-10-15)
+        await radio(new RegExp(`^${resolucion}\\b`));
+        await radio(new RegExp(`^${duracion.replace(' ', '\\s?')}$`));
       }
       const haySalidas = await radio(new RegExp(`^${salidas}$`));
        if (estricto && !haySalidas) throw new Error(`[antes de enviar] Flow no ofrece ${salidas} salida`);
@@ -229,8 +230,8 @@
          const modeloFinal = textoDe(elegido || combo).replace(/arrow_drop_down/, '').trim();
          if (!prefer.some((re) => re.test(modeloFinal))) throw new Error(`[antes de enviar] Flow quedó en otro modelo: ${modeloFinal || '?'}`);
          if (!new RegExp(`\\b${resolucion}\\b`, 'i').test(pastilla)) throw new Error(`[antes de enviar] la pastilla no confirma ${resolucion}: ${pastilla}`);
-         if (!/\\bx\\s?1\\b/i.test(pastilla)) throw new Error(`[antes de enviar] no está confirmada la salida x1: ${pastilla}`);
-         if (!/\\b8\\s?s\\b/i.test(pastilla)) throw new Error(`[antes de enviar] la pastilla no confirma 8 s: ${pastilla}`);
+         if (!/\bx\s?1\b/i.test(pastilla)) throw new Error(`[antes de enviar] no está confirmada la salida x1: ${pastilla}`);
+         if (!/\b8\s?s\b/i.test(pastilla)) throw new Error(`[antes de enviar] la pastilla no confirma 8 s: ${pastilla}`);
        }
        return { pastilla, tipo, res720: /720p/.test(pastilla), dur8: /\b8\s?s\b/.test(pastilla), resolucion: (/\b(360p|720p|1080p|4K)\b/i.exec(pastilla) || [])[1] || null, modelo: elegido ? textoDe(elegido).replace(/arrow_drop_down/, '').trim() : (combo ? textoDe(combo).replace(/arrow_drop_down/, '').trim() : null) };
     },

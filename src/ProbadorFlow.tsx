@@ -26,6 +26,18 @@ export default function ProbadorFlow() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [consulta, setConsulta] = useState('');
+  // el historial del servidor (2026-10-15): también los clips lanzados por la API, no sólo los de esta pantalla
+  useEffect(() => {
+    const traer = () => fetch(`${API_BASE}/api/flow/probador/resultados`).then((r) => r.json()).then((d) => {
+      const delServidor: Resultado[] = (d.resultados || []).map((x: { id: string; fileRef: string; prompt?: string; modeloPedido?: string; modeloReal?: string; resolucion?: string; fecha?: number }) => ({
+        id: x.id, fileRef: x.fileRef, prompt: x.prompt || '', modeloPedido: x.modeloPedido || '', modeloReal: x.modeloReal || 'no detectado', resolucion: x.resolucion || 'no detectada', fecha: x.fecha || 0,
+      }));
+      setResultados((prev) => [...delServidor.filter((s) => !prev.some((p) => p.id === s.id)), ...prev].sort((a, b) => b.fecha - a.fecha).slice(0, 24));
+    }).catch(() => { /* sin servidor: queda lo local */ });
+    void traer();
+    const t = window.setInterval(() => void traer(), 15000);
+    return () => clearInterval(t);
+  }, []);
   useEffect(() => {
     if (!job || job.estado === 'listo' || job.estado === 'error') return;
     const timer = window.setInterval(async () => {
