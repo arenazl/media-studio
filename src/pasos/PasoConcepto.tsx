@@ -40,7 +40,8 @@ export default function PasoConcepto({ project, reelId, comercial, setComercial,
         ...(mediaKit ? { mediaKit } : {}),
       };
       const res = await runMolde('concept', project, piece, { molde: 'director', perfil: comercial.perfilCampana || 'campaña' }, undefined, comercial, provider);
-      const opciones = (res.conceptos as Concepto[] | undefined) || [];
+      const lote = Date.now().toString(36);
+      const opciones = ((res.conceptos as Concepto[] | undefined) || []).map((o, i) => ({ ...o, id: `${o.id || i + 1}-${lote}` }));
       if (opciones.length !== 3 || opciones.some((o) => !o.id || !o.idea || !o.topico)) {
         throw new Error('La IA no devolvió tres propuestas completas. Volvé a intentarlo.');
       }
@@ -91,7 +92,7 @@ export default function PasoConcepto({ project, reelId, comercial, setComercial,
       titulo="Tres caminos para tu publicidad"
       sub="Media Studio estudia el negocio y propone tres comerciales concretos. Vos elegís la historia; el motor resuelve enfoque, tratamiento y técnica."
       hasContent={propuestas.length > 0} busy={busy} onGenerate={generar} error={error}
-      onApprove={goNext} canApprove={!!elegido} approveLabel="Trabajar esta propuesta → guion"
+      onApprove={goNext} canApprove={!!elegido && propuestas.some((o) => o.id === elegido.id)} approveLabel="Trabajar esta propuesta → guion"
       functionId="concept" estado={estadoDelPaso('concepto', comercial)}
       chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'concepto')} nombre={`${comercial.titulo}-concepto`} /> : undefined}
     >
