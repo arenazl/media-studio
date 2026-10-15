@@ -21,7 +21,7 @@ export function latido() { ultimoLatido = Date.now(); }
 export function extensionViva() { return Date.now() - ultimoLatido < 20000; }
 export function verJob(id) { const j = jobs.get(id); return j ? resumen(j) : null; }
 export function listarJobs() { return [...jobs.values()].map(resumen); }
-function resumen(j) { return { id: j.id, estado: j.estado, paso: j.paso, log: j.log.slice(-80), escenas: j.escenas, fallas: j.fallas || [], error: j.error, flowProjectUrl: j.flowProjectUrl, inicio: j.inicio, fin: j.fin, extension: extensionViva(), pestanas: pestanasFlow }; }
+function resumen(j) { return { id: j.id, estado: j.estado, paso: j.paso, log: j.log.slice(-80), escenas: j.escenas, fallas: j.fallas || [], error: j.error, flowProjectUrl: j.flowProjectUrl, inicio: j.inicio, fin: j.fin, extension: extensionViva(), pestanas: pestanasFlow, ajustesReales: j.ajustesReales || null }; }
 
 // la pestaña pide el próximo paso
 // ¿hace falta abrir Flow? Sólo si pasó la gracia del arranque (45 s) y, con la extensión viva, lleva 30 s sin ver una
@@ -136,7 +136,7 @@ export async function consultar(flowProjectUrl, pasos) {
 }
 
 // modo 'imagen' (2026-10-14): la foto se pide a Flow como imagen y no se genera un video (preset Ahorro o Calidad)
-export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, retomar = true, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip, modo = 'video' }) {
+export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, retomar = true, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip, modo = 'video', ajustesOverride = null, unIntento = false }) {
   const id = `flow-${Date.now()}`;
   // soloDescargar: el clip ya está generado en Flow (una corrida anterior se cortó después de generar); se baja sin volver a gastar créditos
   const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], fallas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, retomar: retomar !== false, modo: modo === 'imagen' ? 'imagen' : 'video', inicio: Date.now(), fin: null };
@@ -260,9 +260,16 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
     await pedir(job, 'apagarAgente').catch(() => {});
     // los ajustes salen del preset de calidad que eligió Lucas (Ajustes del rail; server/calidadFlow.mjs)
     const preset = presetActual();
-    const pedidoAjustes = ajustesFlow(preset, job.modo);
-    setPaso(`ajustes de ${job.modo === 'imagen' ? 'imagen' : 'video'} · preset ${preset.nombre}`);
-    const aj = await pedirConReintentos(job, 'ajustes', pedidoAjustes, 60000, 3, 4000, log);
+    const pedidoAjustes = ajustesOverride || ajustesFlow(preset, job.modo);
+    setPaso(`ajustes de ${job.modo === 'imagen' ? 'imagen' : 'video'} · ${ajustesOverride ? 'probador controlado' : `preset ${preset.nombre}`}`);
+    const aj = await pedirConReintentos(job, 'ajustes', pedidoAjustes, 60000, ajustesOverride ? 1 : 3, 4000, log);
+    job.ajustesReales = aj;
+    if (ajustesOverride) {
+      const coincide = (pedidoAjustes.modelos || []).some((re) => new RegExp(re, 'i').test(String(aj.modelo || '')));
+      if (!coincide || aj.resolucion !== pedidoAjustes.resolucion || !/\bx\s?1\b/i.test(String(aj.pastilla || ''))) {
+        throw new Error('PROBADOR: ajustes distintos antes de generar: ' + JSON.stringify({ modelo: aj.modelo, resolucion: aj.resolucion, salidas: aj.pastilla }));
+      }
+    }
     const resolucionMal = job.modo === 'video' && aj.resolucion && pedidoAjustes.resolucion && aj.resolucion !== pedidoAjustes.resolucion;
     log(`ajustes: ${String(aj.pastilla || '').replace(/\s+/g, ' ')}${aj.modelo ? ` · modelo ${aj.modelo}` : ''}${resolucionMal ? ` · OJO: pedí ${pedidoAjustes.resolucion} y Flow quedó en ${aj.resolucion}` : ''}${job.modo === 'video' && aj.dur8 === false ? ' · OJO: no veo 8 s en la pastilla, revisalo en Flow' : ''}`);
     // 2026-10-11 (RepareHoy "Nadie te contesta"): con Flow en x2 cada pedido deja DOS clips en la grilla y el reparto de uno
@@ -293,10 +300,10 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       // el video más nuevo de la grilla justo antes de pedir: al terminar, el de esta escena tiene que ser OTRO
       const anotarPrevio = async () => { reg.previo = (await pedir(job, 'urlDelMasNuevo', { tipo: job.modo }, 60000).catch(() => ({ url: '' }))).url || ''; };
       let g = null;
-      for (let intento = 1; intento <= 3 && !g; intento++) {
+      for (let intento = 1; intento <= (unIntento ? 1 : 3) && !g; intento++) {
         const personajes = intento === 3 ? [] : quienes;
         await anotarPrevio();
-        try { g = await pedir(job, 'generar', { prompt: esc.prompt, personajes }, 120000); }
+        try { g = await pedir(job, 'generar', { prompt: esc.prompt, personajes, unIntento }, 120000); }
         catch (e) {
           if (!/antes de enviar|no apareció|no encontré/i.test(e.message) || intento === 3) throw e;
           log(`escena ${esc.escenaN}: ${e.message} · reintento ${intento} de 2${intento === 2 ? ' (el último va sin las menciones @)' : ''}`);
@@ -312,7 +319,8 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         reg.salidas = g.tiles - g.antes;
         if (reg.salidas > 1) log(`escena ${esc.escenaN}: Flow dejó ${reg.salidas} clips para este pedido; se baja uno`);
       }
-      if (!g.disparado && g.enviar) {
+      if (unIntento && !g.disparado) throw new Error('PROBADOR: envío incierto; no vuelvo a pulsar generar para evitar doble gasto. Revisá Flow.');
+       if (!g.disparado && g.enviar) {
         log(`escena ${esc.escenaN}: el click programado no disparó, hago un click real`);
         await pedir(job, 'clickReal', g.enviar, 30000).catch((e) => log(`clickReal: ${e.message}`));
         await new Promise((r) => setTimeout(r, 2500));
@@ -335,7 +343,7 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
       // - "no se pudo generar el audio": se reintenta tal cual;
       // - otro motivo: una vez igual y la última sin las referencias @ (el prompt describe a la persona).
       let refs = [...quienes];
-      for (let intento = 1; intento <= 3 && e.conError; intento++) {
+      for (let intento = 1; intento <= (unIntento ? 0 : 3) && e.conError; intento++) {
         const texto = String(e.texto || '');
         let que = 'la vuelvo a pedir';
         if (/famos|famous|celebrit/i.test(texto) && refs.length) {
