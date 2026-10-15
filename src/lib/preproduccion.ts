@@ -27,9 +27,10 @@ export interface PlanAnimatic {
   escenas: AnimaticSlide[];
 }
 
-export function vozDelStoryboard(escena: Escena, guion?: GuionEstructurado): string {
+export function vozDelStoryboard(escena: Escena, guion?: GuionEstructurado, vozEnOff = false): string {
   if (escena.dialogo?.trim()) return escena.dialogo.trim();
-  if (escena.rol === 'cta') return '';
+  // Una escena filmada muda queda MUDA. Sólo el animado usa guion como voz en off.
+  if (!vozEnOff || escena.rol === 'cta') return '';
   return guion?.blocks?.find((b) => b.role === escena.rol)?.narration?.trim() || '';
 }
 
@@ -42,7 +43,7 @@ export function planAnimatic(project: Project, comercial: Comercial, concepto: C
   const nombres = new Map((prototipo.cast?.personajes || []).map((p) => [p.id, p.nombre]));
   const audios = prototipo.audios || [];
   const clips: AnimaticSlide[] = escenas.map((e) => {
-    const texto = vozDelStoryboard(e, prototipo.guion);
+    const texto = vozDelStoryboard(e, prototipo.guion, comercial.tipo === 'animado');
     const cap = pantallas.find((p) => p.archivo === e.archivoCaptura)
       || pantallas.find((p) => e.pantalla && norm(p.nombre) === norm(e.pantalla))
       || pantallas.find((p) => e.screen && norm(p.nombre) === norm(e.screen));
