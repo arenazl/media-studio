@@ -170,6 +170,23 @@
       const tiles = nombresDeTiles();
       return { ok: tiles.some((t) => mismoNombre(t, nombre)), tiles: tiles.map((t) => t.slice(0, 40)) };
     },
+    // el nombre del proyecto, con la misma técnica que el del personaje (el campo entra en edición con un click y se
+    // escribe como si se tipeara; asignar el valor solo no lo guarda, 2026-10-15)
+    async renombrarProyecto({ nombre }) {
+      const inp = await esperar(() => q(SEL.tituloEditable)[0], 10000, 'el título del proyecto');
+      for (const t of ['mousedown', 'mouseup', 'click']) inp.dispatchEvent(new MouseEvent(t, { bubbles: true, cancelable: true }));
+      await espera(600);
+      const ed = q(SEL.tituloEditable).find((i) => i.classList.contains('editing')) || inp;
+      ed.focus(); ed.select();
+      document.execCommand('insertText', false, nombre);
+      ed.dispatchEvent(new Event('input', { bubbles: true }));
+      await espera(200);
+      for (const tipo of ['keydown', 'keypress', 'keyup']) ed.dispatchEvent(new KeyboardEvent(tipo, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+      await espera(1500);
+      return { valor: ed.value, enEdicion: ed.classList.contains('editing'), titulo: document.title };
+    },
+    // coordenadas del primer elemento visible de un selector (para el tipeo real del background)
+    async coordsDe({ selector }) { const el = await esperar(() => q(selector)[0], 10000, selector); return centro(el); },
     // coordenadas de un control para el click real del background (cuando el click programado no dispara)
     async coordsEnviar() { const b = await esperar(() => q(SEL.enviar)[0], 10000, 'la flecha de generar'); return centro(b); },
 
@@ -279,6 +296,101 @@
       const botones = [...document.querySelectorAll('button, a, [role="button"]')].filter(visible).map((b) => b.getAttribute('aria-label') || textoDe(b)).filter(Boolean).slice(0, 60);
       if (tocado) { for (let i = 0; i < 2; i++) { const f = q('.cdk-overlay-backdrop')[0]; if (f) { f.click(); await espera(300); } } document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true })); }
       return { lineas, etiquetas, tocado: tocado ? (tocado.getAttribute('aria-label') || textoDe(tocado)).slice(0, 80) : null, botones };
+    },
+
+    // relevar la pantalla: botones, campos para subir archivos y campos de texto (para automatizar pantallas nuevas de
+    // Flow sin adivinar, 2026-10-15)
+    async explorar() {
+      const botones = [...document.querySelectorAll('button, a, [role="button"], [role="menuitem"], [role="tab"]')].filter(visible)
+        .map((b) => ({ etiqueta: b.getAttribute('aria-label') || '', texto: textoDe(b).slice(0, 60) })).slice(0, 140);
+      const archivos = [...document.querySelectorAll('input[type="file"]')].map((i) => ({ accept: i.accept, multiple: i.multiple, visible: visible(i) }));
+      const campos = [...document.querySelectorAll('input, textarea, [contenteditable="true"]')].filter(visible)
+        .map((e) => ({ tag: e.tagName, clase: String(e.className || '').slice(0, 60), valor: String(e.value || textoDe(e)).slice(0, 60), placeholder: e.getAttribute('placeholder') || '', etiqueta: e.getAttribute('aria-label') || '' })).slice(0, 40);
+      return { url: location.href, titulo: document.title, botones, archivos, campos };
+    },
+    // tocar un botón, ítem de menú o pestaña por su etiqueta o su texto
+    async tocar({ re, indice = 0 }) {
+      const rx = new RegExp(re, 'i');
+      const els = [...document.querySelectorAll('button, a, [role="button"], [role="menuitem"], [role="tab"], [role="option"]')].filter(visible)
+        .filter((b) => rx.test(b.getAttribute('aria-label') || '') || rx.test(textoDe(b)));
+      const el = els[indice];
+      if (!el) throw new Error(`no encontré nada que diga ${re}`);
+      el.click(); await espera(1500);
+      return { tocado: (el.getAttribute('aria-label') || textoDe(el)).slice(0, 80), opciones: els.length, url: location.href };
+    },
+    // subir una imagen a un campo de archivo de la página (la imagen viaja en el paso, en base64)
+    async subirArchivo({ base64, nombre = 'imagen.jpg', tipo = 'image/jpeg', indice = 0 }) {
+      const inputs = [...document.querySelectorAll('input[type="file"]')];
+      const input = inputs[indice];
+      if (!input) throw new Error('no hay un campo para subir archivos en esta pantalla');
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const dt = new DataTransfer();
+      dt.items.add(new File([bytes], nombre, { type: tipo }));
+      input.files = dt.files;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      await espera(3000);
+      return { subido: nombre, campos: inputs.length };
+    },
+    // soltar o pegar una imagen en la página, como si se arrastrara desde el escritorio (no abre ningún selector de
+    // archivos). destino: 'caja' pega en la caja de pedidos; 'grilla' la suelta sobre el contenido del proyecto
+    async soltarArchivo({ base64, nombre = 'imagen.jpg', tipo = 'image/jpeg', destino = 'grilla' }) {
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const dt = new DataTransfer();
+      dt.items.add(new File([bytes], nombre, { type: tipo }));
+      if (destino === 'caja') {
+        const c = caja();
+        if (!c) throw new Error('no encontré la caja de pedidos');
+        c.focus();
+        c.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+      } else {
+        const zona = document.querySelector('main') || document.body;
+        const r = zona.getBoundingClientRect();
+        const xy = { clientX: Math.round(r.left + r.width / 2), clientY: Math.round(r.top + r.height / 2) };
+        for (const tipoEv of ['dragenter', 'dragover', 'drop']) zona.dispatchEvent(new DragEvent(tipoEv, { dataTransfer: dt, bubbles: true, cancelable: true, ...xy }));
+      }
+      await espera(4000);
+      return { soltado: nombre, destino, tiles: q(SEL.tile).length };
+    },
+
+    // escribir en un campo (input de título, nombre del personaje…) y confirmar con Enter si hace falta
+    async escribirEn({ selector, texto, indice = 0, enter = false }) {
+      const el = [...document.querySelectorAll(selector)].filter(visible)[indice];
+      if (!el) throw new Error(`no encontré ${selector}`);
+      el.focus();
+      if ('value' in el) {
+        // como si se tipeara: seleccionar todo y escribir encima (Angular escucha eventos reales de teclado)
+        el.select?.();
+        const ok = document.execCommand('insertText', false, texto);
+        if (!ok || el.value !== texto) {
+          const set = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value')?.set;
+          if (set) set.call(el, texto); else el.value = texto;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } else { await vaciar(el); await escribir(el, texto); }
+      if (enter) {
+        for (const t of ['keydown', 'keypress', 'keyup']) el.dispatchEvent(new KeyboardEvent(t, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }));
+        el.dispatchEvent(new FocusEvent('focusout', { bubbles: true })); el.blur();
+      }
+      await espera(1000);
+      return { ok: true, valor: String(el.value || textoDe(el)).slice(0, 80) };
+    },
+
+    // cada tile de la grilla con su descripción (la que Flow le pone, "Woman speaking…") y la URL de su archivo, para
+    // encontrar un video o una imagen por lo que muestra (2026-10-15: identificar a la presentadora de Munify)
+    async tilesDetalle({ max = 40 } = {}) {
+      const pasar = (t, tipos) => { for (const el of [t, ...t.querySelectorAll('*')].slice(0, 15)) for (const tipo of tipos) el.dispatchEvent(new MouseEvent(tipo, { bubbles: /over|out/.test(tipo), cancelable: true, view: window })); };
+      const urlVideo = (t) => { const v = t.querySelector('video'); if (!v) return ''; const s = v.currentSrc || v.src || (v.querySelector('source') || {}).src || ''; return /^https?:/.test(s) ? s : ''; };
+      const out = [];
+      for (const t of q(SEL.tile).slice(0, max)) {
+        const etiqueta = t.getAttribute('aria-label') || '';
+        const video = esVideoTile(t);
+        let url = video ? urlVideo(t) : imagenDe(t);
+        if (video && !url) { pasar(t, ['pointerover', 'pointerenter', 'mouseover', 'mouseenter']); for (let i = 0; i < 10 && !(url = urlVideo(t)); i++) await espera(300); pasar(t, ['pointerout', 'pointerleave', 'mouseout', 'mouseleave']); }
+        out.push({ etiqueta, texto: textoDe(t).slice(0, 120), video, url });
+      }
+      return { total: q(SEL.tile).length, tiles: out };
     },
 
     // el primer tile de la grilla tal cual (para relevar cómo se ve una imagen nueva en la interfaz de Flow)

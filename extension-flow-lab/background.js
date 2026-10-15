@@ -128,6 +128,45 @@ async function devolverPestana(tabId) {
   return { ok: true, data: { devuelta: prev != null } };
 }
 
+// tipeo "de verdad" por el depurador de Chrome (2026-10-15): el título del proyecto sólo se guarda con teclas reales.
+// Hace click en el campo (por selector, sus coordenadas se piden con el depurador adjunto), selecciona todo, escribe y
+// confirma con Enter.
+async function tipearReal(tabId, { selector, texto }) {
+  try { await traerAlFrente(tabId); } catch { /* sigue igual */ }
+  const target = { tabId };
+  try { await chrome.debugger.attach(target, '1.3'); }
+  catch (e) { return { ok: false, error: `no pude adjuntar el depurador a la pestaña: ${String((e && e.message) || e)}` }; }
+  try {
+    await dormir(600);
+    const r = await chrome.tabs.sendMessage(tabId, { tipo: 'paso', paso: { accion: 'coordsDe', args: { selector } } });
+    if (!r || !r.ok || !r.data || !Number.isFinite(r.data.x)) return { ok: false, error: `no encontré ${selector}` };
+    let zoom = 1;
+    try { zoom = (await chrome.tabs.getZoom(tabId)) || 1; } catch { /* 100% */ }
+    const x = Math.round(r.data.x * zoom), y = Math.round(r.data.y * zoom);
+    const enviar = (m, p) => chrome.debugger.sendCommand(target, m, p);
+    await enviar('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+    for (const clickCount of [1, 2]) {
+      await enviar('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount });
+      await enviar('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount });
+      await dormir(250);
+    }
+    // Ctrl+A para reemplazar lo que haya
+    await enviar('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, modifiers: 2 });
+    await enviar('Input.dispatchKeyEvent', { type: 'keyUp', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, modifiers: 2 });
+    await enviar('Input.insertText', { text: String(texto || '') });
+    await dormir(200);
+    await enviar('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+    await enviar('Input.dispatchKeyEvent', { type: 'char', key: 'Enter', text: '\r', windowsVirtualKeyCode: 13 });
+    await enviar('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+    await dormir(1500);
+    return { ok: true, data: { tipeado: texto } };
+  } catch (e) {
+    return { ok: false, error: `el tipeo real falló: ${String((e && e.message) || e)}` };
+  } finally {
+    try { await chrome.debugger.detach(target); } catch { /* ya suelto */ }
+  }
+}
+
 async function clickReal(tabId, x, y) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return { ok: false, error: 'clickReal sin coordenadas' };
   // verificado el 2026-10-10: con la pestaña en segundo plano ni el click real dispara la generación del personaje
@@ -193,7 +232,38 @@ async function ejecutar(paso) {
       out = await clickReal(tabId, Number(paso.args.x), Number(paso.args.y));
     } else if (paso.accion === 'traerAlFrente') out = await traerAlFrente(tabId).catch((e) => ({ ok: false, error: String((e && e.message) || e) }));
     else if (paso.accion === 'devolverPestana') out = await devolverPestana(tabId);
-    else if (paso.accion === 'recargar') {
+    else if (paso.accion === 'tipearReal') out = await tipearReal(tabId, paso.args || {});
+    else if (paso.accion === 'prepararSubida') {
+      // El botón "Subir" de Flow abre el selector de archivos de Windows, que no se puede manejar (2026-10-15). Se deja
+      // preparada la página (en su propio mundo, donde corre Flow): el próximo selector de archivos que abra NO se abre y
+      // recibe directamente esta imagen. Vale una sola vez.
+      const [r] = await chrome.scripting.executeScript({
+        target: { tabId }, world: 'MAIN',
+        args: [String(paso.args.base64 || ''), String(paso.args.nombre || 'imagen.jpg'), String(paso.args.tipo || 'image/jpeg')],
+        func: (b64, nombre, tipo) => {
+          const archivo = () => { const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)); return new File([bytes], nombre, { type: tipo }); };
+          const clickOriginal = HTMLInputElement.prototype.click;
+          const pickerOriginal = window.showOpenFilePicker;
+          const restaurar = () => { HTMLInputElement.prototype.click = clickOriginal; if (pickerOriginal) window.showOpenFilePicker = pickerOriginal; };
+          HTMLInputElement.prototype.click = function () {
+            if (this.type !== 'file') return clickOriginal.call(this);
+            const dt = new DataTransfer(); dt.items.add(archivo());
+            this.files = dt.files;
+            this.dispatchEvent(new Event('input', { bubbles: true }));
+            this.dispatchEvent(new Event('change', { bubbles: true }));
+            restaurar();
+            window.__subidaHecha = nombre;
+          };
+          if (pickerOriginal) window.showOpenFilePicker = async () => { restaurar(); window.__subidaHecha = nombre; return [{ kind: 'file', name: nombre, getFile: async () => archivo() }]; };
+          window.__subidaHecha = '';
+          return { preparada: nombre, bytes: Math.round(b64.length * 0.75) };
+        },
+      });
+      out = { ok: true, data: r ? r.result : null };
+    } else if (paso.accion === 'subidaHecha') {
+      const [r] = await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN', func: () => window.__subidaHecha || '' });
+      out = { ok: true, data: { subida: r ? r.result : '' } };
+    } else if (paso.accion === 'recargar') {
       // un clip que quedó "cargando" con error en Flow aparece bien después de refrescar (Lucas, 2026-10-10)
       await chrome.tabs.reload(tabId);
       await esperarCarga(tabId);
