@@ -154,6 +154,7 @@ export interface Prototipo {
   cast?: Cast;
   storyboard?: Escena[];
   audios?: { escenaN: number; texto: string; voiceId: string; src: string; durSec?: number }[];
+  vozPorActor?: Record<string, string>; // IDs de ElevenLabs (una voz por personaje, sin tocar tags)
   aprobado?: boolean;
 }
 
