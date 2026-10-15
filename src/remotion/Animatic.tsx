@@ -17,7 +17,7 @@ const Escena: React.FC<{ escena: AnimaticSlide; plan: PlanAnimatic; frames: numb
         <Img src={escena.imagen} style={{ width: '100%', height: '100%', objectFit: 'contain', transform: `scale(${avance})` }} />
       ) : (
         <AbsoluteFill style={{ background: `radial-gradient(circle at 40% 30%, ${plan.color}55 0%, #12101a 65%)`, justifyContent: 'center', alignItems: 'center', padding: `0 ${80 * u}px` }}>
-          <div style={{ padding: `${15 * u}px ${28 * u}px`, border, borderRadius: 14 * u, textAlign: 'center' }}>
+          <div style={{ padding: `${15 * u}px ${28 * u}px`, border: borde, borderRadius: 14 * u, textAlign: 'center' }}>
             <div style={{ fontSize: 26 * u, opacity: .7, marginBottom: 18 * u }}>STORYBOARD · ESCENA {escena.n}</div>
             <div style={{ fontSize: 54 * u, fontWeight: 800, lineHeight: 1.16 }}>{escena.titulo}</div>
             <div style={{ fontSize: 28 * u, marginTop: 30 * u, opacity: .78 }}>{escena.descripcion}</div>
@@ -28,7 +28,7 @@ const Escena: React.FC<{ escena: AnimaticSlide; plan: PlanAnimatic; frames: numb
         PREPRODUCCIÓN · #{escena.n}
       </div>
       {escena.dialogo && (
-        <div style={{ position: 'absolute', left: '6%', right: '6%', bottom: '9%', background: 'rgba(6,6,12,.85)', borderRadius: 20 * u, padding: `${22 * u}px ${28 * u}px`, border, textAlign: 'center' }}>
+        <div style={{ position: 'absolute', left: '6%', right: '6%', bottom: '9%', background: 'rgba(6,6,12,.85)', borderRadius: 20 * u, padding: `${22 * u}px ${28 * u}px`, border: borde, textAlign: 'center' }}>
           {escena.actor && <div style={{ fontSize: 21 * u, color: '#d9c7ff', marginBottom: 9 * u }}>{escena.actor}</div>}
           <div style={{ fontSize: 37 * u, fontWeight: 650, lineHeight: 1.25 }}>{escena.dialogo}</div>
           {!escena.audio && <div style={{ fontSize: 20 * u, opacity: .6, marginTop: 10 * u }}>Audio pendiente · se puede previsualizar sin voz</div>}
