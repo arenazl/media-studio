@@ -47,12 +47,15 @@ export function planAnimatic(project: Project, comercial: Comercial, concepto: C
       || pantallas.find((p) => e.pantalla && norm(p.nombre) === norm(e.pantalla))
       || pantallas.find((p) => e.screen && norm(p.nombre) === norm(e.screen));
     const mk = (e.pantalla || e.screen) && mockups.find((m) => norm(m.nombre) === norm(e.pantalla || e.screen || ''));
-    const audio = audios.find((a) => a.escenaN === e.n && a.texto === texto);
+    const actor = e.personajes?.map((id) => nombres.get(id) || id).join(', ') || '';
+    const vozElegida = prototipo.vozPorActor?.[actor];
+    const audio = audios.find((a) => a.escenaN === e.n && a.texto === texto
+      && (!vozElegida || a.voiceId === vozElegida));
     return {
       n: e.n,
       titulo: e.rol === 'cta' ? 'Cierre' : (e.accion || concepto.topico || `Escena ${e.n}`),
       descripcion: [e.plano, e.accion, e.continuidad].filter(Boolean).join(' · '),
-      actor: e.personajes?.map((id) => nombres.get(id) || id).join(', ') || '',
+      actor,
       dialogo: texto,
       durSec: Math.max(2.5, e.durSec || 4, (audio?.durSec || 0) + (audio ? 0.6 : 0)),
       ...(cap?.url ? { imagen: cap.url } : {}),
