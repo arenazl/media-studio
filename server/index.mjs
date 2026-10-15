@@ -588,30 +588,31 @@ async function fabricarParaSalesbot({ pedido, personaje, log, subir }) {
   let archivo = toma.fileRef, tipo = 'video/mp4';
   const cuadro = await cuadroDe(toma.fileRef, 4);
   if (pedido.kind === 'imagen') { archivo = cuadro; tipo = 'image/jpeg'; }
+  // mirar el cuadro sólo DESCRIBE lo que se ve (para el banco de SalesBot); nunca frena la entrega (Lucas, 2026-10-14:
+  // "ustedes son un pasamano nada más; la única regla es no más de 5 imágenes por bot por día")
   const visto = await mirarOSeguir(cuadro, descripcionDeSituacion(pedido.situacion, personaje.nombre).descripcion, log, pedido.id);
-  if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
   const etiquetas = [...new Set([...visto.etiquetas, personaje.nombre.toLowerCase(), String(pedido.situacion || '').replace(/_/g, ' ')].filter(Boolean))];
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'personalidades', producto: pedido.personalidad, nombre: pedido.situacion });
   return { url: sub.url, duracion_s: sub.duracion_s ?? undefined, ancho: sub.ancho, alto: sub.alto, formato: sub.formato, descripcion: `${personaje.nombre}: ${visto.descripcion}`, etiquetas, _muestraLaCara: true, nota: `${personaje.nombre} · ${personaje.retratoEn} · ${personaje.vestuarioEn}` };
 }
 
-// Antes de entregar a SalesBot se mira el cuadro real (2026-10-12: la prueba de la taza entregó el video de los perros de
-// un pedido anterior). Si lo que se ve no es lo pedido, no se entrega; la descripción y las etiquetas salen de lo que se ve.
-async function mirarMedio(cuadro, loPedido) {
-  const { text } = await runAI({ model: 'sonnet', imageBuffer: fs.readFileSync(cuadro), prompt: `Es un cuadro de un medio que se pidió así: "${loPedido}". Respondé SOLO un JSON: { "coincide": true | false, "descripcion": "<en castellano, una frase: qué se ve>", "etiquetas": ["<3 a 6 palabras sueltas en castellano: sujetos, lugar, momento>"] }. "coincide" es false sólo si lo que se ve es otra cosa por completo, como si fuera de otro pedido (otro tema, otros sujetos); si es lo pedido aunque cambie un detalle (la ropa, el color, el estilo, el lugar), es true.` });
+// Se mira el cuadro real SÓLO para describirlo: la descripción y las etiquetas van al banco de SalesBot para que el bot
+// sepa qué es cada medio. No juzga ni frena nada (Lucas, 2026-10-14: "ustedes son un pasamano nada más"). Que no se
+// entregue el archivo de otro pedido lo asegura la rutina de Flow (toma sólo el tile nuevo), no este paso.
+async function mirarMedio(cuadro) {
+  const { text } = await runAI({ model: 'sonnet', imageBuffer: fs.readFileSync(cuadro), prompt: 'Es un cuadro de una foto o un video. Respondé SOLO un JSON: { "descripcion": "<en castellano, una frase: qué se ve>", "etiquetas": ["<3 a 6 palabras sueltas en castellano: sujetos, lugar, momento>"] }' });
   const r = extractJson(text);
   const descripcion = String(r.descripcion || '').trim();
   if (!descripcion) throw new Error('no pude mirar el cuadro para describirlo');
-  return { coincide: r.coincide === true, descripcion, etiquetas: Array.isArray(r.etiquetas) ? r.etiquetas.map((e) => String(e).trim().toLowerCase()).filter(Boolean).slice(0, 8) : [] };
+  return { descripcion, etiquetas: Array.isArray(r.etiquetas) ? r.etiquetas.map((e) => String(e).trim().toLowerCase()).filter(Boolean).slice(0, 8) : [] };
 }
 
-// Mirar el cuadro sirve para describirlo y para no entregar el archivo de otro pedido; no es un permiso. Si la IA que
-// mira no contesta, el medio se entrega igual, con la descripción del pedido.
+// Si la IA que describe no contesta, el medio se entrega igual, con el texto del pedido como descripción.
 async function mirarOSeguir(cuadro, loPedido, log, id) {
-  try { return await mirarMedio(cuadro, loPedido); }
+  try { return await mirarMedio(cuadro); }
   catch (e) {
     log(`pedido ${id}: no pude mirar el cuadro (${e instanceof Error ? e.message : String(e)}); se entrega con la descripción del pedido`);
-    return { coincide: true, descripcion: String(loPedido || '').trim().slice(0, 200), etiquetas: [] };
+    return { descripcion: String(loPedido || '').trim().slice(0, 200), etiquetas: [] };
   }
 }
 // lo técnico que se le suma al texto cuando la IA que lo arma no contesta: el pedido va a Flow igual
@@ -688,8 +689,8 @@ async function fabricarLibreParaSalesbot({ pedido, personaje, log, subir }) {
     await runFfmpeg(['-y', '-i', toma.fileRef, '-t', String(durSec), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', archivo]);
   }
   // para que el bot identifique el medio y sepa cuándo usarlo (Lucas, 2026-10-12): qué se ve, mirando el cuadro real
+  // sólo describe; nunca frena la entrega (Lucas, 2026-10-14: "ustedes son un pasamano nada más")
   const visto = await mirarOSeguir(cuadro, String(pedido.contexto || ''), log, pedido.id);
-  if (!visto.coincide) return { error: `Flow dio otra cosa (${visto.descripcion}); no lo entrego` };
   const { descripcion, etiquetas } = visto;
   if (conCara && personaje.sinCara) guardarCaraSb(pedido.personalidad, personaje);
   const sub = await subir(fs.readFileSync(archivo), path.basename(archivo), tipo, { proyecto: pedido.proyecto || 'libre', producto: pedido.producto || pedido.personalidad || '', nombre: etiquetas.slice(0, 3).join(' ') || descripcion });
