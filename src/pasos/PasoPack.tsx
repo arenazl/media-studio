@@ -166,7 +166,7 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
       titulo="Pack Flow"
       sub="Los videos de cada escena filmada: Media Studio los genera en tu Flow y los baja acá."
       hasContent={esNuevo} busy={busy} onGenerate={generar} error={error}
-      onApprove={goNext} canApprove={esNuevo && !!escenas.length} approveLabel="Videos listos, a los mockups"
+      onApprove={goNext} canApprove={esNuevo && !!escenas.length} approveLabel="Videos listos, al montaje"
       functionId="flowpack" estado={estadoDelPaso('pack', comercial)}
       chatgpt={comercial ? <BotonChatGPT armar={() => pedidoPaso(project, comercial, 'pack')} nombre={`${comercial.titulo}-pedidos-flow`} /> : undefined}
     >
