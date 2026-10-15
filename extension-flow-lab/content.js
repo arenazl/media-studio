@@ -195,7 +195,11 @@
       const hayTipo = await radio(esImagen ? RE_IMAGEN : RE_VIDEO);
       if (esImagen && !hayTipo) throw new Error('[antes de enviar] no encontré la opción Imagen en los ajustes de Flow');
       await espera(300);
-      if (!esImagen && usarIngredientes) { const ok = await radio(/Ingredientes|Ingredients/); if (estricto && !ok) throw new Error('[antes de enviar] Flow no ofrece referencias de personaje en este modo'); }
+      if (!esImagen) {
+         const nombreModo = usarIngredientes ? 'Ingredientes' : 'Fotogramas';
+         const ok = await radio(usarIngredientes ? /Ingredientes|Ingredients/ : /Fotogramas|Frames/);
+         if (estricto && !ok) throw new Error(`[antes de enviar] Flow no ofrece ${nombreModo} en este modelo`);
+       }
       await radio(new RegExp(`\\b${formato}\\b`));
       const combo = comboModelo();
       if (estricto && !combo) throw new Error('[antes de enviar] no encontré el selector de modelos');
@@ -212,7 +216,8 @@
       if (!esImagen) {
         const hayRes = await radio(new RegExp(`^${resolucion}$`));
         if (estricto && !hayRes) throw new Error(`[antes de enviar] la resolución ${resolucion} no está disponible`);
-        await radio(new RegExp(`^${duracion.replace(' ', '\\s?')}$`));
+        const hayDuracion = await radio(new RegExp(`^${duracion.replace(' ', '\\s?')}$`));
+        if (estricto && !hayDuracion) throw new Error(`[antes de enviar] la duración ${duracion} no está disponible`);
       }
       const haySalidas = await radio(new RegExp(`^${salidas}$`));
        if (estricto && !haySalidas) throw new Error(`[antes de enviar] Flow no ofrece ${salidas} salida`);
@@ -225,6 +230,7 @@
          if (!prefer.some((re) => re.test(modeloFinal))) throw new Error(`[antes de enviar] Flow quedó en otro modelo: ${modeloFinal || '?'}`);
          if (!new RegExp(`\\b${resolucion}\\b`, 'i').test(pastilla)) throw new Error(`[antes de enviar] la pastilla no confirma ${resolucion}: ${pastilla}`);
          if (!/\\bx\\s?1\\b/i.test(pastilla)) throw new Error(`[antes de enviar] no está confirmada la salida x1: ${pastilla}`);
+         if (!/\\b8\\s?s\\b/i.test(pastilla)) throw new Error(`[antes de enviar] la pastilla no confirma 8 s: ${pastilla}`);
        }
        return { pastilla, tipo, res720: /720p/.test(pastilla), dur8: /\b8\s?s\b/.test(pastilla), resolucion: (/\b(360p|720p|1080p|4K)\b/i.exec(pastilla) || [])[1] || null, modelo: elegido ? textoDe(elegido).replace(/arrow_drop_down/, '').trim() : (combo ? textoDe(combo).replace(/arrow_drop_down/, '').trim() : null) };
     },
