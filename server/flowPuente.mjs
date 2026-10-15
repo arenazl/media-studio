@@ -79,7 +79,7 @@ async function pedir(job, accion, args = {}, timeoutMs = 120000) {
   }
   try { return await pedirUnaVez(job, accion, args, timeoutMs); }
   catch (e) {
-    if (!SIN_CONEXION.test(e.message) || accion === 'recargar') throw e;
+    if (!SIN_CONEXION.test(e.message) || accion === 'recargar' || (job.unIntento && accion === 'generar')) throw e;
     const aviso = `la pestaña de Flow no contestaba ("${accion}"); la recargo y sigo`;
     if (Array.isArray(job.log)) job.log.push(`${new Date().toTimeString().slice(0, 8)} ${aviso}`);
     console.log('[media-studio] puente-flow:', aviso);
@@ -139,7 +139,7 @@ export async function consultar(flowProjectUrl, pasos) {
 export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowProjectUrl, soloDescargar = false, retomar = true, escenasConCrudo = [], guardarClip, agregarToma, guardarFlowUrl, generarMockups, verificarClip, modo = 'video', ajustesOverride = null, unIntento = false }) {
   const id = `flow-${Date.now()}`;
   // soloDescargar: el clip ya está generado en Flow (una corrida anterior se cortó después de generar); se baja sin volver a gastar créditos
-  const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], fallas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, retomar: retomar !== false, modo: modo === 'imagen' ? 'imagen' : 'video', inicio: Date.now(), fin: null };
+  const job = { id, projectId, reelId, estado: 'iniciando', paso: '', log: [], escenas: [], fallas: [], error: null, flowProjectUrl: flowProjectUrl || null, soloDescargar: !!soloDescargar, retomar: retomar !== false, unIntento: !!unIntento, modo: modo === 'imagen' ? 'imagen' : 'video', inicio: Date.now(), fin: null };
   jobs.set(id, job);
   const log = (m) => { job.log.push(`${new Date().toTimeString().slice(0, 8)} ${m}`); console.log('[media-studio] puente-flow:', m); };
   const setPaso = (p) => { job.paso = p; log(p); };
