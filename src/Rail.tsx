@@ -1,14 +1,14 @@
 // Rail izquierdo (74px) — navegación GLOBAL nueva (reemplaza a la Topbar como nav de nivel
 // app; docs/rediseno/HANDOFF.md §2 + prototipo.dc.html líneas 33-46). Topbar sigue viva pero
 // SOLO dentro de route==='project' (secciones del proyecto: pipeline/negocio/audio/videos/editor).
-import { Play, Home, LayoutTemplate, Share2, Video, AudioLines } from 'lucide-react';
+import { Play, Home, LayoutTemplate, Share2, Video, AudioLines, FlaskConical } from 'lucide-react';
 import { RAIL_ROUTES, railGroupFor, type Route } from './lib/routes';
 import RailSettings from './RailSettings';
 import './Rail.css';
 
 // Solo los 5 ítems que viven en el rail (los contextuales — project/wizard/editor — no entran acá).
 const ICONS: Partial<Record<Route, typeof Home>> = {
-  home: Home, formats: LayoutTemplate, ksp: Share2, videos: Video, audio: AudioLines,
+  home: Home, formats: LayoutTemplate, ksp: Share2, videos: Video, audio: AudioLines, probador: FlaskConical,
 };
 
 export default function Rail({ route, onNavigate }: { route: Route; onNavigate: (r: Route) => void }) {
