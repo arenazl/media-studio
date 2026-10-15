@@ -11,7 +11,7 @@ import type { MarcaKit, MediaKitCta } from './mediaKit';
 // ── Pasos del pipeline ────────────────────────────────────────────────────────
 export type PasoId =
   | 'negocio' | 'concepto' | 'guion' | 'cast' | 'storyboard'
-  | 'pack' | 'render' | 'rodaje' | 'montaje' | 'publicar';
+  | 'pack' | 'render' | 'rodaje' | 'preproduccion' | 'montaje' | 'publicar';
 
 export type EstadoPaso = 'pendiente' | 'generado' | 'editado' | 'aprobado';
 export type TipoComercial = 'filmado' | 'animado';
@@ -28,6 +28,11 @@ export interface Concepto {
   estetica: string;          // dirección visual (luz, paleta, estilo de foto)
   referencia: string;        // a qué tipo de anuncio conocido se parece
   porQueFunciona: string;
+  audiencia?: string;         // para quién va esta propuesta (director)
+  mensaje?: string;           // mensaje que va a quedar
+  seVe?: string;             // anticipación visual concreta
+  enfoque?: string;           // decisión interna del director
+  tratamiento?: string;      // decisión interna del director
   editadoAMano?: boolean;    // 2026-10-10: el dueño la retocó a mano después de generarla (la radiografía lo dice)
 }
 
@@ -141,6 +146,17 @@ export interface QaResult {
   issues?: { severity: string; note: string }[];
 }
 
+// Un prototipo representa un camino completo; cada opción conserva sus crudos propios.
+// No guarda videos de Flow: son solamente imágenes, guion, casting y audios opcionales.
+export interface Prototipo {
+  conceptoId: string;
+  guion?: GuionEstructurado;
+  cast?: Cast;
+  storyboard?: Escena[];
+  audios?: { escenaN: number; texto: string; voiceId: string; src: string; durSec?: number }[];
+  aprobado?: boolean;
+}
+
 // La entidad central: cada versión/approach del proyecto es un `Comercial` que recorre el pipeline.
 export interface Comercial {
   id: string;
@@ -161,6 +177,8 @@ export interface Comercial {
   primaryMessage?: string;           // el mensaje principal de ESTA pieza (de `strategy`)
   supportingFacts?: string[];        // los hechos del brief que esta pieza usa (de `strategy`)
   estados: Record<PasoId, EstadoPaso>;
+  propuestas?: Concepto[];           // las tres rutas creativas (persistidas)
+  prototipos?: Prototipo[];           // variantes para comparar antes de Flow
   concepto?: Concepto;               // paso 2
   guion?: GuionEstructurado;         // paso 3
   guionCurado?: { fecha: number; fuente: string; archivo?: string };   // 2026-10-10: el guion vino de una curación externa (ChatGPT)
@@ -186,7 +204,7 @@ export interface Comercial {
 // ── Orden canónico + visibilidad por tipo ─────────────────────────────────────
 // Un único orden fuente; cada tipo esconde los pasos que no le aplican.
 const PASOS_ORDEN: PasoId[] = [
-  'negocio', 'concepto', 'guion', 'cast', 'storyboard', 'pack', 'render', 'rodaje', 'montaje', 'publicar',
+  'negocio', 'concepto', 'guion', 'cast', 'storyboard', 'rodaje', 'preproduccion', 'pack', 'render', 'montaje', 'publicar',
 ];
 
 // filmado: sin `render` (9 pasos). animado: sin `cast`/`pack`/`rodaje` (7 pasos — recrea pantallas, no castea personas).
@@ -241,6 +259,9 @@ export function pasoHabilitado(c: Comercial, paso: PasoId): boolean {
   if (idx === -1) return false;
   if (idx === 0) return true;                       // 'negocio' siempre
   if (rangoDe(c, paso) >= RANK.generado) return true;
+  // Pack Flow jamás se puede abrir antes de aprobar un prototipo. Mantener
+  // acceso al trabajo ya generado para preservar proyectos anteriores.
+  if (paso === 'pack' && rangoDe(c, 'preproduccion') !== RANK.aprobado) return false;
   const anterior = visibles[idx - 1];
   return rangoDe(c, anterior) >= RANK.generado;
 }
