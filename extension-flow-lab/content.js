@@ -298,6 +298,23 @@
       return { lineas, etiquetas, tocado: tocado ? (tocado.getAttribute('aria-label') || textoDe(tocado)).slice(0, 80) : null, botones };
     },
 
+    // el menú "Más opciones" de un tile de la grilla: devuelve sus ítems SIN tocar ninguno (2026-10-15: buscar el
+    // upscale de Omni y su costo antes de aceptar nada)
+    async menuDeTile({ indice = 0 }) {
+      const t = q(SEL.tile)[indice];
+      if (!t) throw new Error(`no hay tile ${indice}`);
+      for (const tipo of ['pointerover', 'pointerenter', 'mouseover', 'mouseenter']) t.dispatchEvent(new MouseEvent(tipo, { bubbles: /over/.test(tipo), cancelable: true, view: window }));
+      await espera(500);
+      const b = [...t.querySelectorAll('button')].find((x) => /more_vert|M[aá]s opciones/i.test(`${x.getAttribute('aria-label') || ''} ${textoDe(x)}`));
+      if (!b) throw new Error('el tile no tiene menú de opciones');
+      b.click(); await espera(1200);
+      const capa = document.querySelector('.cdk-overlay-container') || document;
+      const items = [...capa.querySelectorAll('[role="menuitem"], button, a')].filter(visible).map((m) => ({ etiqueta: m.getAttribute('aria-label') || '', texto: textoDe(m).slice(0, 100) }));
+      return { tile: t.getAttribute('aria-label') || textoDe(t).slice(0, 60), items };
+    },
+    // cerrar menús abiertos sin elegir nada
+    async cerrarMenus() { for (let i = 0; i < 3; i++) { const f = q('.cdk-overlay-backdrop')[0]; if (!f) break; f.click(); await espera(300); } return { ok: true }; },
+
     // relevar la pantalla: botones, campos para subir archivos y campos de texto (para automatizar pantallas nuevas de
     // Flow sin adivinar, 2026-10-15)
     async explorar() {

@@ -1,0 +1,276 @@
+[
+ {
+  "fechaART": "2026-10-15 02:53:59",
+  "jobId": "flow-1792043639022",
+  "estado": "listo",
+  "prompt": "Plano medio de Presentadora, con saco blanco, frente a un edificio municipal con la bandera argentina. Habla a cámara con naturalidad durante toda la toma, acompaña la explicación con las manos y sonríe al final. Dice: \"Ahora podés hacer tu reclamo desde el celular, y te avisamos apenas lo resolvemos.\" Expresiones y microgestos realistas, labios sincronizados con la voz. Sin subtítulos ni texto en pantalla.",
+  "proyectoFlow": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+  "modeloPedido": "omni360",
+  "modeloConfirmado": "Omni 1.1 Flash",
+  "resolucion": "360p",
+  "pastillaAjustes": "Vídeo · 360p · 8 s crop_9_16 x1",
+  "duracionPedida": "8 s",
+  "salidas": "x1",
+  "modoReferencia": "Ingredients con @Presentadora",
+  "voz": "erinome (Female, clear, mid pitch)",
+  "generadaEnSeg": 44,
+  "totalSeg": 72,
+  "fallas": [],
+  "error": null,
+  "saldoAntes": "no disponible (Flow no expone el saldo a la extensión)",
+  "saldoDespues": "no disponible",
+  "creditos": "no publicado (Google: la mitad que Omni 720p)",
+  "reembolso": "no corresponde",
+  "clipRemoto": "media-studio/probador-local/1792043708814-esc1-esc1-flow-1792043639022.mp4",
+  "archivoLocal": "C:\\Users\\look\\AppData\\Local\\Temp\\claude\\d--Code-media-studio\\80d79ba2-e9db-48cc-a527-ab12dae1a2ce\\scratchpad\\prueba-b\\b-omni360.mp4",
+  "registro": [
+   "02:54:01 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "02:54:06 proyecto de Flow abierto",
+   "02:54:06 personaje Presentadora",
+   "02:54:09 personaje Presentadora: ya existía",
+   "02:54:11 ajustes de video · probador controlado",
+   "02:54:14 ajustes: Vídeo · 360p · 8 s crop_9_16 x1 · modelo Omni 1.1 Flash",
+   "02:54:14 escena 1 (1 de 1) con @Presentadora",
+   "02:54:58 escena 1: generada en 44 s (desde el disparo hasta el clip listo)",
+   "02:54:58 bajando 1 clip(s) de Flow",
+   "02:55:06 bajando la escena 1 (1 de 1)",
+   "02:55:08 escena 1: bajada a C:\\Users\\look\\Downloads\\media-studio-flow\\esc1-flow-1792043639022.mp4",
+   "02:55:08 escena 1: en Pack Flow, Los crudos de Flow (media-studio/probador-local/1792043708814-esc1-esc1-flow-1792043639022.mp4)",
+   "02:55:08 clips de Flow bajados · 1 escena(s) en 70 s en total"
+  ],
+  "ffprobe": {
+   "programs": [],
+   "stream_groups": [],
+   "streams": [
+    {
+     "codec_type": "video",
+     "width": 360,
+     "height": 640,
+     "bit_rate": "540578"
+    },
+    {
+     "codec_type": "audio",
+     "bit_rate": "128069"
+    }
+   ],
+   "format": {
+    "duration": "8.000000",
+    "size": "682466"
+   }
+  },
+  "transcripcion": {
+   "text": "Ahora podés hacer tu reclamo desde el celular y te avisamos apenas lo resolvemos",
+   "words": [
+    {
+     "text": "Ahora",
+     "start": 1.08,
+     "end": 1.36
+    },
+    {
+     "text": "podés",
+     "start": 1.46,
+     "end": 1.7
+    },
+    {
+     "text": "hacer",
+     "start": 1.72,
+     "end": 1.96
+    },
+    {
+     "text": "tu",
+     "start": 2.02,
+     "end": 2.1
+    },
+    {
+     "text": "reclamo",
+     "start": 2.14,
+     "end": 2.58
+    },
+    {
+     "text": "desde",
+     "start": 2.62,
+     "end": 2.82
+    },
+    {
+     "text": "el",
+     "start": 2.84,
+     "end": 2.88
+    },
+    {
+     "text": "celular",
+     "start": 2.98,
+     "end": 3.42
+    },
+    {
+     "text": "y",
+     "start": 4.059,
+     "end": 4.08
+    },
+    {
+     "text": "te",
+     "start": 4.16,
+     "end": 4.22
+    },
+    {
+     "text": "avisamos",
+     "start": 4.26,
+     "end": 4.84
+    },
+    {
+     "text": "apenas",
+     "start": 5.06,
+     "end": 5.5
+    },
+    {
+     "text": "lo",
+     "start": 5.54,
+     "end": 5.6
+    },
+    {
+     "text": "resolvemos",
+     "start": 5.66,
+     "end": 6.36
+    }
+   ],
+   "modelo": "scribe_v1",
+   "creado": 1792043713051
+  }
+ },
+ {
+  "fechaART": "2026-10-15 02:55:13",
+  "jobId": "flow-1792043713056",
+  "estado": "listo",
+  "prompt": "Plano medio de Presentadora, con saco blanco, frente a un edificio municipal con la bandera argentina. Habla a cámara con naturalidad durante toda la toma, acompaña la explicación con las manos y sonríe al final. Dice: \"Ahora podés hacer tu reclamo desde el celular, y te avisamos apenas lo resolvemos.\" Expresiones y microgestos realistas, labios sincronizados con la voz. Sin subtítulos ni texto en pantalla.",
+  "proyectoFlow": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+  "modeloPedido": "lite",
+  "modeloConfirmado": "Veo 3.1 - Lite",
+  "resolucion": "720p",
+  "pastillaAjustes": "Vídeo · 720p · 8 s crop_9_16 x1",
+  "duracionPedida": "8 s",
+  "salidas": "x1",
+  "modoReferencia": "Ingredients con @Presentadora",
+  "voz": "erinome (Female, clear, mid pitch)",
+  "generadaEnSeg": 53,
+  "totalSeg": 80,
+  "fallas": [],
+  "error": null,
+  "saldoAntes": "no disponible (Flow no expone el saldo a la extensión)",
+  "saldoDespues": "no disponible",
+  "creditos": "10 créditos (publicado, cuenta no Ultra)",
+  "reembolso": "no corresponde",
+  "clipRemoto": "media-studio/probador-local/1792043790377-esc1-esc1-flow-1792043713056.mp4",
+  "archivoLocal": "C:\\Users\\look\\AppData\\Local\\Temp\\claude\\d--Code-media-studio\\80d79ba2-e9db-48cc-a527-ab12dae1a2ce\\scratchpad\\prueba-b\\b-lite.mp4",
+  "registro": [
+   "02:55:14 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "02:55:19 proyecto de Flow abierto",
+   "02:55:19 personaje Presentadora",
+   "02:55:21 personaje Presentadora: ya existía",
+   "02:55:24 ajustes de video · probador controlado",
+   "02:55:27 ajustes: Vídeo · 720p · 8 s crop_9_16 x1 · modelo Veo 3.1 - Lite",
+   "02:55:27 escena 1 (1 de 1) con @Presentadora",
+   "02:56:20 escena 1: generada en 53 s (desde el disparo hasta el clip listo)",
+   "02:56:20 bajando 1 clip(s) de Flow",
+   "02:56:28 bajando la escena 1 (1 de 1)",
+   "02:56:30 escena 1: bajada a C:\\Users\\look\\Downloads\\media-studio-flow\\esc1-flow-1792043713056.mp4",
+   "02:56:30 escena 1: en Pack Flow, Los crudos de Flow (media-studio/probador-local/1792043790377-esc1-esc1-flow-1792043713056.mp4)",
+   "02:56:30 clips de Flow bajados · 1 escena(s) en 77 s en total"
+  ],
+  "ffprobe": {
+   "programs": [],
+   "stream_groups": [],
+   "streams": [
+    {
+     "codec_type": "video",
+     "width": 720,
+     "height": 1280,
+     "bit_rate": "1183991"
+    },
+    {
+     "codec_type": "audio",
+     "bit_rate": "139760"
+    }
+   ],
+   "format": {
+    "duration": "8.000000",
+    "size": "1338253"
+   }
+  },
+  "transcripcion": {
+   "text": "Ahora podés hacer tu reclamo desde el celular y te avisamos apenas lo resolvemos. ",
+   "words": [
+    {
+     "text": "Ahora",
+     "start": 0.52,
+     "end": 0.78
+    },
+    {
+     "text": "podés",
+     "start": 0.88,
+     "end": 1.16
+    },
+    {
+     "text": "hacer",
+     "start": 1.2,
+     "end": 1.46
+    },
+    {
+     "text": "tu",
+     "start": 1.58,
+     "end": 1.68
+    },
+    {
+     "text": "reclamo",
+     "start": 1.74,
+     "end": 2.3
+    },
+    {
+     "text": "desde",
+     "start": 2.54,
+     "end": 2.76
+    },
+    {
+     "text": "el",
+     "start": 2.78,
+     "end": 2.84
+    },
+    {
+     "text": "celular",
+     "start": 2.96,
+     "end": 3.42
+    },
+    {
+     "text": "y",
+     "start": 4.24,
+     "end": 4.28
+    },
+    {
+     "text": "te",
+     "start": 4.34,
+     "end": 4.42
+    },
+    {
+     "text": "avisamos",
+     "start": 4.44,
+     "end": 5.1
+    },
+    {
+     "text": "apenas",
+     "start": 5.42,
+     "end": 5.94
+    },
+    {
+     "text": "lo",
+     "start": 6,
+     "end": 6.06
+    },
+    {
+     "text": "resolvemos.",
+     "start": 6.14,
+     "end": 6.92
+    }
+   ],
+   "modelo": "scribe_v1",
+   "creado": 1792043795857
+  }
+ }
+]
