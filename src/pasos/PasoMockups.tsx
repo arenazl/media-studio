@@ -217,8 +217,8 @@ export default function PasoMockups({ project, reelId, comercial, setComercial, 
       </div>
       <div className="paso-foot paso-foot--split">
         <span className="paso-estado">{estadoDelPaso('rodaje', comercial)}</span>
-        <button className="paso-approve" disabled={!tomas.length} onClick={goNext}>
-          Mockups listos, al montaje <ArrowRight size={15} />
+        <button className="paso-approve" disabled={!escenas.length || !!fase} onClick={goNext}>
+          Continuar a preproducción <ArrowRight size={15} />
         </button>
       </div>
     </div>
