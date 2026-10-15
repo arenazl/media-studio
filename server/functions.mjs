@@ -11,6 +11,7 @@ import { compileFlowPack, promptTraduccion, parseTraduccion, promptEscena } from
 import { lintCommercial } from './lintCommercial.mjs';
 import { PROMPT_VERSIONS, presupuestoLista, maxNarrationWords, esTalkingHead, WPS } from './prompting.mjs';
 import { buildConceptPromptV3, CATALOGO_CONCEPTO_V3 } from './media-studio-concept-v3.mjs';
+import { buildConceptPromptDirector } from './media-studio-concept-director.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -844,6 +845,12 @@ PANTALLAS DEL PRODUCTO: ${screensText(project) || '(sin pantallas en el KB: prop
       // el dueño elige el ENFOQUE (cómo se organiza la historia) y el TRATAMIENTO (cómo se siente); el humor sólo entra si
       // lo pide. El prompt y su catálogo viven en media-studio-concept-v3.mjs tal como vinieron. El 2.0 queda abajo para
       // comparar o volver (options.molde === 'v2'). Sin brief el 3.0 corta a propósito: no inventa capacidades desde el nombre.
+      // UX simplificada: la IA recomienda tres caminos desde el brief y asigna
+      // internamente enfoque/tratamiento. El viejo molde v3 sigue disponible.
+      if (options.molde === 'director') {
+        return { prompt: buildConceptPromptDirector({ name, brief, perfil, tipo,
+          bloquePieza, bloqueKit, bloqueTecnica, cierreMarca: String(piece.cierreMarca || '') }) };
+      }
       if (options.molde !== 'v2') {
         const sel = (k, def) => String(options[k] || piece[k] || def);
         return { prompt: buildConceptPromptV3({
