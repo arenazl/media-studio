@@ -5,7 +5,6 @@
 import { useState } from 'react';
 import { Rocket, Loader2, Sparkles, ArrowRight, Check, X } from 'lucide-react';
 import { API_BASE } from './config';
-import { getFunction } from './lib/functionCatalog';
 import { saveProject, type Project, type ProjectReel } from './lib/projects';
 import { nuevoComercial } from './lib/comercial';
 import { getFormato, tipoDesdeFormato } from './lib/formato';
@@ -21,10 +20,9 @@ const screensOf = (p: Project) => (Array.isArray(p.screens) && p.screens.length
   : (p.screenshots || []).map((s) => ({ label: (s.split('/').pop() || s).replace(/\.\w+$/, '').replace(/[-_]/g, ' ') })));
 
 export default function ProjectWizard({ project, onDone, onCancel }: { project: Project; onDone: (p: Project) => void; onCancel: () => void }) {
-  const fn = getFunction('strategy');
-  const perfilOpt = fn?.options.find((o) => o.id === 'perfil');
-  const [perfil, setPerfil] = useState(perfilOpt?.default || 'campaña');
-  // El wizard decide el OBJETIVO; tipo de historia y clima se eligen luego POR PIEZA en Concepto.
+  // Un único camino: la IA genera el plan desde el brief y decide el objetivo
+  // de cada pieza. El usuario elige entre tres rutas concretas en Concepto.
+  const perfil = 'campaña';
   const [phase, setPhase] = useState<'idle' | 'working' | 'error'>('idle');
   const [progress, setProgress] = useState('');
   const [err, setErr] = useState('');
@@ -112,7 +110,7 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
       <div className="paso-head">
         <div className="paso-head-txt">
           <h2 className="paso-title"><Rocket size={20} /> Empezá tu campaña</h2>
-          <p className="paso-sub">{project.name} · {project.type || 'proyecto'} — elegí el tipo y armo las piezas de la campaña (cada una con su ángulo, lista para el pipeline).</p>
+          <p className="paso-sub">{project.name} · {project.type || 'proyecto'} — generá el plan desde el negocio, sin tener que definir categorías publicitarias.</p>
         </div>
         <div className="paso-head-actions">
           <button className="wiz-cancel" onClick={onCancel} title="Cancelar"><X size={15} /></button>
@@ -120,25 +118,17 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
       </div>
 
       <div className="paso-body">
-        <div className="veo-field">
-          <span>Qué querés lograr con esta campaña</span>
-          <div className="veo-chips">
-            {(perfilOpt?.choices || []).map((c) => (
-              <button key={c.value} disabled={phase === 'working'} className={perfil === c.value ? 'veo-chip veo-chip--on' : 'veo-chip'} onClick={() => setPerfil(c.value)}>{c.label}</button>
-            ))}
-          </div>
+        <div className="veo-card">
+          <div className="veo-card-h"><Sparkles size={14} /> Primero generamos el plan</div>
+          <p>Media Studio analiza el negocio y propone las piezas recomendadas. No necesitás elegir ahora entre awareness, demo, conversión o campaña: el director creativo decide el objetivo de cada pieza desde la ficha.</p>
+          <p>Después, dentro de cada pieza, vas a ver tres propuestas de anuncios concretos y elegís la que más te cierre.</p>
         </div>
-        <p className="paso-sub" style={{ marginTop: 8 }}>
-          Acá decidís para qué necesitás el anuncio. El tipo de historia (caso, demostración, humor…) y el clima
-          (cotidiano, sobrio, cálido…) se eligen después, en Concepto, para cada pieza por separado.
-        </p>
-
         <div className="veo-card wiz-explain">
           <div className="veo-card-h"><Sparkles size={14} /> Qué te dejo armado (la base, después producís cada paso)</div>
           <ul className="wiz-list">
             <li>Las <strong>piezas</strong> de la campaña, cada una con su <strong>ángulo</strong> (según el tipo elegido)</li>
             <li>Cada pieza queda como un <strong>comercial</strong> listo para producir en el <strong>pipeline</strong></li>
-            <li>Concepto → guion → cast → storyboard → video: lo generás (y editás) paso a paso</li>
+            <li>Tres propuestas → guion → cast → storyboard → mockups → preproducción → aprobación → Flow → montaje</li>
             <li>Rápido: una sola pasada de estrategia, sin gastar tokens de más</li>
           </ul>
         </div>
@@ -148,10 +138,10 @@ export default function ProjectWizard({ project, onDone, onCancel }: { project: 
       </div>
 
       <div className="paso-foot paso-foot--split">
-        <span className="paso-estado">Una sola pasada de estrategia · el resto lo producís paso a paso, on-demand.</span>
+        <span className="paso-estado">El plan usa IA; no genera voces ni clips de Flow.</span>
         {phase !== 'working' && (
           <button className="veo-run wiz-cta" onClick={comenzar}>
-            {phase === 'error' ? 'Reintentar' : <><Check size={15} /> Comenzar — armar las piezas <ArrowRight size={14} /></>}
+            {phase === 'error' ? 'Reintentar' : <><Check size={15} /> Generar el plan de piezas <ArrowRight size={14} /></>}
           </button>
         )}
       </div>
