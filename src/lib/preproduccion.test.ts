@@ -46,6 +46,17 @@ describe('preproducción: compilador sin consumo de recursos', () => {
     expect(actual.escenas[0].durSec).toBe(7.6);
   });
 
+  it('no convierte en voz una escena filmada silenciosa', () => {
+    expect(vozDelStoryboard(storyboard[0], undefined)).toBe(storyboard[0].dialogo);
+    const muda = { ...storyboard[0], dialogo: '' };
+    expect(vozDelStoryboard(muda, { blocks: [{
+      role: 'desarrollo', narration: 'No se debería escuchar', visual: '',
+    }] })).toBe('');
+    expect(vozDelStoryboard(muda, { blocks: [{
+      role: 'desarrollo', narration: 'Voz en off para animado', visual: '',
+    }] }, true)).toBe('Voz en off para animado');
+  });
+
   it('no crea diálogos ficticios para placas CTA', () => {
     expect(vozDelStoryboard(storyboard[1], { blocks: [{
       role: 'cta', narration: 'Visitá Urbanify', visual: '',
