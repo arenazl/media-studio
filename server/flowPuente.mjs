@@ -319,7 +319,13 @@ export function iniciarJob({ projectId, reelId, pack, escenasStoryboard, flowPro
         reg.salidas = g.tiles - g.antes;
         if (reg.salidas > 1) log(`escena ${esc.escenaN}: Flow dejó ${reg.salidas} clips para este pedido; se baja uno`);
       }
-      if (unIntento && !g.disparado) throw new Error('PROBADOR: envío incierto; no vuelvo a pulsar generar para evitar doble gasto. Revisá Flow.');
+      // El click pudo haber llegado y Flow tarda en mostrar el clip (2026-10-15: Lite se generó y el probador lo dio por
+      // perdido). NUNCA se vuelve a pulsar: se espera la generación y, al final, si no hay un clip nuevo en la grilla, no se
+      // generó (lo dice la comprobación de "el más nuevo es el de antes").
+      if (unIntento && !g.disparado) {
+        log(`escena ${esc.escenaN}: no vi el clip enseguida; espero a ver si Flow lo está haciendo, sin volver a pulsar`);
+        g.disparado = true; g.enviar = null; reg.incierto = true;
+      }
        if (!g.disparado && g.enviar) {
         log(`escena ${esc.escenaN}: el click programado no disparó, hago un click real`);
         await pedir(job, 'clickReal', g.enviar, 30000).catch((e) => log(`clickReal: ${e.message}`));
