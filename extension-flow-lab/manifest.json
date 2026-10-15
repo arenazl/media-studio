@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Media Studio · Probador Flow",
+  "version": "0.6.0",
+  "description": "Extensión local experimental para el probador de modelos Flow; un clip por vez.",
+  "permissions": [
+    "downloads",
+    "storage",
+    "alarms",
+    "scripting",
+    "debugger"
+  ],
+  "host_permissions": [
+    "https://flow.google.com/*",
+    "https://labs.google/*",
+    "http://localhost:5301/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://flow.google.com/*",
+        "https://labs.google/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Media Studio · Probador Flow"
+  }
+}
