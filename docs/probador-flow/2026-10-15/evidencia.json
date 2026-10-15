@@ -1,0 +1,557 @@
+{
+ "nota": "Generado desde el backend local de Media Studio el 2026-10-15. Hora ART. Las corridas incluyen las fallidas. Los videos son los archivos que bajó el probador (o, en Lite de la primera ronda, el bajado de Flow sin regenerar).",
+ "prompt": "Plano medio de Presentadora, con saco blanco, frente a un edificio municipal con la bandera argentina. Mira a cámara, sonríe con naturalidad y dice: \"Qué bueno verte de nuevo\". Movimiento realista de ojos, manos y labios sincronizados, sin exagerar gestos. Sin subtítulos ni texto en pantalla.",
+ "proyectoFlow": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61 (Munify)",
+ "videos": [
+  {
+   "motor": "omni360",
+   "archivo": "omni-flash-1.1-360p.mp4",
+   "job": "flow-1792040932452",
+   "ffprobe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+     {
+      "codec_name": "h264",
+      "codec_type": "video",
+      "width": 360,
+      "height": 640,
+      "r_frame_rate": "24/1",
+      "bit_rate": "522944"
+     },
+     {
+      "codec_name": "aac",
+      "codec_type": "audio",
+      "sample_rate": "48000",
+      "channels": 2,
+      "r_frame_rate": "0/0",
+      "bit_rate": "128531"
+     }
+    ],
+    "format": {
+     "duration": "8.000000",
+     "size": "665295"
+    }
+   },
+   "transcripcion": {
+    "text": "¡Qué bueno verte de nuevo!",
+    "words": [
+     {
+      "text": "¡Qué",
+      "start": 1.78,
+      "end": 1.9
+     },
+     {
+      "text": "bueno",
+      "start": 1.96,
+      "end": 2.18
+     },
+     {
+      "text": "verte",
+      "start": 2.26,
+      "end": 2.54
+     },
+     {
+      "text": "de",
+      "start": 2.58,
+      "end": 2.64
+     },
+     {
+      "text": "nuevo!",
+      "start": 2.7,
+      "end": 3.06
+     }
+    ],
+    "modelo": "scribe_v1",
+    "creado": 1792041209991
+   },
+   "generadaEnSeg": 51,
+   "totalSeg": 85
+  },
+  {
+   "motor": "lite",
+   "archivo": "veo-3.1-lite-720p.mp4",
+   "job": "flow-1792041716462",
+   "ffprobe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+     {
+      "codec_name": "h264",
+      "codec_type": "video",
+      "width": 720,
+      "height": 1280,
+      "r_frame_rate": "24/1",
+      "bit_rate": "1113500"
+     },
+     {
+      "codec_name": "aac",
+      "codec_type": "audio",
+      "sample_rate": "48000",
+      "channels": 2,
+      "r_frame_rate": "0/0",
+      "bit_rate": "140041"
+     }
+    ],
+    "format": {
+     "duration": "8.000000",
+     "size": "1268052"
+    }
+   },
+   "transcripcion": {
+    "text": "¡Qué bueno verte de nuevo!",
+    "words": [
+     {
+      "text": "¡Qué",
+      "start": 5.5,
+      "end": 5.68
+     },
+     {
+      "text": "bueno",
+      "start": 5.7,
+      "end": 5.92
+     },
+     {
+      "text": "verte",
+      "start": 5.98,
+      "end": 6.26
+     },
+     {
+      "text": "de",
+      "start": 6.3,
+      "end": 6.36
+     },
+     {
+      "text": "nuevo!",
+      "start": 6.4,
+      "end": 6.78
+     }
+    ],
+    "modelo": "scribe_v1",
+    "creado": 1792041924737
+   },
+   "generadaEnSeg": 58,
+   "totalSeg": 84
+  },
+  {
+   "motor": "fast",
+   "archivo": "veo-3.1-fast-720p.mp4",
+   "job": "flow-1792041810310",
+   "ffprobe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+     {
+      "codec_name": "h264",
+      "codec_type": "video",
+      "width": 720,
+      "height": 1280,
+      "r_frame_rate": "24/1",
+      "bit_rate": "1082283"
+     },
+     {
+      "codec_name": "aac",
+      "codec_type": "audio",
+      "sample_rate": "48000",
+      "channels": 2,
+      "r_frame_rate": "0/0",
+      "bit_rate": "140120"
+     }
+    ],
+    "format": {
+     "duration": "8.000000",
+     "size": "1236907"
+    }
+   },
+   "transcripcion": {
+    "text": "¡Qué bueno! ¡Qué bueno verte de nuevo!",
+    "words": [
+     {
+      "text": "¡Qué",
+      "start": 1.96,
+      "end": 2.12
+     },
+     {
+      "text": "bueno!",
+      "start": 2.2,
+      "end": 2.6
+     },
+     {
+      "text": "¡Qué",
+      "start": 2.6,
+      "end": 5.8
+     },
+     {
+      "text": "bueno",
+      "start": 5.88,
+      "end": 6.12
+     },
+     {
+      "text": "verte",
+      "start": 6.22,
+      "end": 6.5
+     },
+     {
+      "text": "de",
+      "start": 6.56,
+      "end": 6.62
+     },
+     {
+      "text": "nuevo!",
+      "start": 6.68,
+      "end": 7.06
+     }
+    ],
+    "modelo": "scribe_v1",
+    "creado": 1792041926568
+   },
+   "generadaEnSeg": 49,
+   "totalSeg": 74
+  }
+ ],
+ "corridas": [
+  {
+   "id": "flow-1792040932452",
+   "estado": "listo",
+   "inicioART": "02:08:52",
+   "finART": "02:10:17",
+   "segundos": 85,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": {
+    "pastilla": "Vídeo · 360p · 8 s crop_9_16 x1",
+    "tipo": "video",
+    "res720": false,
+    "dur8": true,
+    "resolucion": "360p",
+    "modelo": "Omni 1.1 Flash"
+   },
+   "fallas": [],
+   "error": null,
+   "registro": [
+    "02:08:53 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+    "02:08:59 proyecto de Flow abierto",
+    "02:08:59 personaje Presentadora",
+    "02:09:01 personaje Presentadora: ya existía",
+    "02:09:11 la pestaña de Flow quedó escondida antes de \"apagarAgente\"; la traigo al frente",
+    "02:09:11 ajustes de video · probador controlado",
+    "02:09:14 ajustes: Vídeo · 360p · 8 s crop_9_16 x1 · modelo Omni 1.1 Flash",
+    "02:09:14 escena 1 (1 de 1) con @Presentadora",
+    "02:10:04 la pestaña de Flow quedó escondida antes de \"urlDelMasNuevo\"; la traigo al frente",
+    "02:10:05 escena 1: generada en 51 s (desde el disparo hasta el clip listo)",
+    "02:10:05 bajando 1 clip(s) de Flow",
+    "02:10:12 la pestaña de Flow quedó escondida antes de \"irAContenido\"; la traigo al frente",
+    "02:10:14 bajando la escena 1 (1 de 1)",
+    "02:10:17 escena 1: bajada a C:\\Users\\look\\Downloads\\media-studio-flow\\esc1-flow-1792040932452.mp4",
+    "02:10:17 escena 1: en Pack Flow, Los crudos de Flow (media-studio/probador-local/1792041017511-esc1-esc1-flow-1792040932452.mp4)",
+    "02:10:17 clips de Flow bajados · 1 escena(s) en 85 s en total"
+   ]
+  },
+  {
+   "id": "flow-1792041020876",
+   "estado": "listo",
+   "inicioART": "02:10:20",
+   "finART": "02:11:31",
+   "segundos": 71,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": {
+    "pastilla": "Vídeo · 720p · 8 s crop_9_16 x1",
+    "tipo": "video",
+    "res720": true,
+    "dur8": true,
+    "resolucion": "720p",
+    "modelo": "Veo 3.1 - Lite"
+   },
+   "fallas": [
+    "escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")"
+   ],
+   "error": null,
+   "registro": [
+    "02:10:22 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+    "02:10:24 traigo la pestaña de Flow al frente: escondida, Flow no abre sus menús",
+    "02:10:29 proyecto de Flow abierto",
+    "02:10:29 personaje Presentadora",
+    "02:10:31 personaje Presentadora: ya existía",
+    "02:10:34 ajustes de video · probador controlado",
+    "02:10:37 ajustes: Vídeo · 720p · 8 s crop_9_16 x1 · modelo Veo 3.1 - Lite",
+    "02:10:37 escena 1 (1 de 1) con @Presentadora",
+    "02:11:22 escena 1: NO SALIÓ después de los reintentos (Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")); sigo con la próxima",
+    "02:11:23 bajando 1 clip(s) de Flow",
+    "02:11:31 0 de 1 escena(s) bajadas en 71 s · no salieron: escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\") · volvé a tocar \"Automatizar\": retoma sólo lo que falta"
+   ]
+  },
+  {
+   "id": "flow-1792041093077",
+   "estado": "listo",
+   "inicioART": "02:11:33",
+   "finART": "02:12:45",
+   "segundos": 73,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": {
+    "pastilla": "Vídeo · 720p · 8 s crop_9_16 x1",
+    "tipo": "video",
+    "res720": true,
+    "dur8": true,
+    "resolucion": "720p",
+    "modelo": "Veo 3.1 - Fast"
+   },
+   "fallas": [
+    "escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")"
+   ],
+   "error": null,
+   "registro": [
+    "02:11:34 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+    "02:11:35 traigo la pestaña de Flow al frente: escondida, Flow no abre sus menús",
+    "02:11:40 proyecto de Flow abierto",
+    "02:11:40 personaje Presentadora",
+    "02:11:43 personaje Presentadora: ya existía",
+    "02:11:45 ajustes de video · probador controlado",
+    "02:11:48 ajustes: Vídeo · 720p · 8 s crop_9_16 x1 · modelo Veo 3.1 - Fast",
+    "02:11:48 escena 1 (1 de 1) con @Presentadora",
+    "02:12:37 escena 1: NO SALIÓ después de los reintentos (Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")); sigo con la próxima",
+    "02:12:37 bajando 1 clip(s) de Flow",
+    "02:12:45 0 de 1 escena(s) bajadas en 73 s · no salieron: escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\") · volvé a tocar \"Automatizar\": retoma sólo lo que falta"
+   ]
+  },
+  {
+   "id": "flow-1792041206968",
+   "estado": "listo",
+   "inicioART": "02:13:26",
+   "finART": "02:14:31",
+   "segundos": 65,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": {
+    "pastilla": "Vídeo · 720p · 8 s crop_9_16 x1",
+    "tipo": "video",
+    "res720": true,
+    "dur8": true,
+    "resolucion": "720p",
+    "modelo": "Veo 3.1 - Lite"
+   },
+   "fallas": [
+    "escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")"
+   ],
+   "error": null,
+   "registro": [
+    "02:13:28 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+    "02:13:29 traigo la pestaña de Flow al frente: escondida, Flow no abre sus menús",
+    "02:13:35 proyecto de Flow abierto",
+    "02:13:35 personaje Presentadora",
+    "02:13:37 personaje Presentadora: ya existía",
+    "02:13:39 ajustes de video · probador controlado",
+    "02:13:43 ajustes: Vídeo · 720p · 8 s crop_9_16 x1 · modelo Veo 3.1 - Lite",
+    "02:13:43 escena 1 (1 de 1) con @Presentadora",
+    "02:14:23 escena 1: NO SALIÓ después de los reintentos (Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")); sigo con la próxima",
+    "02:14:24 bajando 1 clip(s) de Flow",
+    "02:14:31 0 de 1 escena(s) bajadas en 65 s · no salieron: escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\") · volvé a tocar \"Automatizar\": retoma sólo lo que falta"
+   ]
+  },
+  {
+   "id": "flow-1792041275171",
+   "estado": "listo",
+   "inicioART": "02:14:35",
+   "finART": "02:15:44",
+   "segundos": 69,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": {
+    "pastilla": "Vídeo · 720p · 8 s crop_9_16 x1",
+    "tipo": "video",
+    "res720": true,
+    "dur8": true,
+    "resolucion": "720p",
+    "modelo": "Veo 3.1 - Fast"
+   },
+   "fallas": [
+    "escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")"
+   ],
+   "error": null,
+   "registro": [
+    "02:14:36 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+    "02:14:38 traigo la pestaña de Flow al frente: escondida, Flow no abre sus menús",
+    "02:14:43 proyecto de Flow abierto",
+    "02:14:43 personaje Presentadora",
+    "02:14:45 personaje Presentadora: ya existía",
+    "02:14:48 ajustes de video · probador controlado",
+    "02:14:51 ajustes: Vídeo · 720p · 8 s crop_9_16 x1 · modelo Veo 3.1 - Fast",
+    "02:14:51 escena 1 (1 de 1) con @Presentadora",
+    "02:15:35 escena 1: NO SALIÓ después de los reintentos (Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\")); sigo con la próxima",
+    "02:15:36 bajando 1 clip(s) de Flow",
+    "02:15:44 0 de 1 escena(s) bajadas en 69 s · no salieron: escena 1: Flow rechazó el clip después de los reintentos (Flow dice: \"warning Error No se ha podido generar el audio. Prueba con otra petición o envíanos tus comentarios. Puedes actualizar la configuración para generar vídeos sile\") · volvé a tocar \"Automatizar\": retoma sólo lo que falta"
+   ]
+  },
+  {
+   "id": "consulta-1792041363989",
+   "estado": "listo",
+   "inicioART": "02:16:03",
+   "finART": "02:16:09",
+   "segundos": 6,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61/character/804c495d-6584-41db-827e-fda9828f6ba9",
+   "ajustesReales": null,
+   "fallas": [],
+   "error": null,
+   "registro": []
+  },
+  {
+   "id": "consulta-1792041379995",
+   "estado": "listo",
+   "inicioART": "02:16:19",
+   "finART": "02:16:29",
+   "segundos": 10,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61/character/804c495d-6584-41db-827e-fda9828f6ba9",
+   "ajustesReales": null,
+   "fallas": [],
+   "error": null,
+   "registro": []
+  },
+  {
+   "id": "consulta-1792041397766",
+   "estado": "listo",
+   "inicioART": "02:16:37",
+   "finART": "02:16:43",
+   "segundos": 6,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61/character/804c495d-6584-41db-827e-fda9828f6ba9",
+   "ajustesReales": null,
+   "fallas": [],
+   "error": null,
+   "registro": []
+  },
+  {
+   "id": "consulta-1792041413867",
+   "estado": "listo",
+   "inicioART": "02:16:53",
+   "finART": "02:17:08",
+   "segundos": 15,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61/character/804c495d-6584-41db-827e-fda9828f6ba9",
+   "ajustesReales": null,
+   "fallas": [],
+   "error": null,
+   "registro": []
+  },
+  {
+   "id": "flow-1792041435154",
+   "estado": "error",
+   "inicioART": "02:17:15",
+   "finART": "02:20:01",
+   "segundos": 167,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": null,
+   "fallas": [],
+   "error": "la pestaña de Flow no respondió \"personajeExiste\" en 60 s (¿sigue abierta la pestaña de flow.google.com? Si Chrome la durmió, hacé click en ella)",
+   "registro": [
+    "02:17:16 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61/character/804c495d-6584-41db-827e-fda9828f6ba9",
+    "02:17:17 traigo la pestaña de Flow al frente: escondida, Flow no abre sus menús",
+    "02:17:22 proyecto de Flow abierto",
+    "02:17:22 personaje Presentadora",
+    "02:17:43 personajeExiste: no encontré el ítem /^Caracteres$|^Characters$/ del menú · la página seguía cargando, reintento 1 de 3 en 5 s",
+    "02:17:49 la pestaña de Flow quedó escondida antes de \"personajeExiste\"; la traigo al frente",
+    "02:18:10 personajeExiste: no encontré el ítem /^Caracteres$|^Characters$/ del menú · la página seguía cargando, reintento 2 de 3 en 5 s",
+    "02:18:16 la pestaña de Flow quedó escondida antes de \"personajeExiste\"; la traigo al frente",
+    "02:18:36 personajeExiste: no encontré el ítem /^Caracteres$|^Characters$/ del menú · la página seguía cargando, reintento 3 de 3 en 5 s",
+    "02:20:01 ERROR: la pestaña de Flow no respondió \"personajeExiste\" en 60 s (¿sigue abierta la pestaña de flow.google.com? Si Chrome la durmió, hacé click en ella)"
+   ]
+  },
+  {
+   "id": "consulta-1792041610374",
+   "estado": "listo",
+   "inicioART": "02:20:10",
+   "finART": "02:21:41",
+   "segundos": 91,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": null,
+   "fallas": [],
+   "error": null,
+   "registro": []
+  },
+  {
+   "id": "consulta-1792041710729",
+   "estado": "listo",
+   "inicioART": "02:21:50",
+   "finART": "02:21:56",
+   "segundos": 5,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": null,
+   "fallas": [],
+   "error": null,
+   "registro": []
+  },
+  {
+   "id": "flow-1792041716462",
+   "estado": "listo",
+   "inicioART": "02:21:56",
+   "finART": "02:23:20",
+   "segundos": 84,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": {
+    "pastilla": "Vídeo · 720p · 8 s crop_9_16 x1",
+    "tipo": "video",
+    "res720": true,
+    "dur8": true,
+    "resolucion": "720p",
+    "modelo": "Veo 3.1 - Lite"
+   },
+   "fallas": [],
+   "error": null,
+   "registro": [
+    "02:21:58 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+    "02:22:04 proyecto de Flow abierto",
+    "02:22:04 personaje Presentadora",
+    "02:22:06 personaje Presentadora: ya existía",
+    "02:22:08 la pestaña de Flow quedó escondida antes de \"irAContenido\"; la traigo al frente",
+    "02:22:10 ajustes de video · probador controlado",
+    "02:22:13 ajustes: Vídeo · 720p · 8 s crop_9_16 x1 · modelo Veo 3.1 - Lite",
+    "02:22:13 escena 1 (1 de 1) con @Presentadora",
+    "02:23:11 escena 1: generada en 58 s (desde el disparo hasta el clip listo)",
+    "02:23:11 bajando 1 clip(s) de Flow",
+    "02:23:18 bajando la escena 1 (1 de 1)",
+    "02:23:20 escena 1: bajada a C:\\Users\\look\\Downloads\\media-studio-flow\\esc1-flow-1792041716462.mp4",
+    "02:23:20 escena 1: en Pack Flow, Los crudos de Flow (media-studio/probador-local/1792041800271-esc1-esc1-flow-1792041716462.mp4)",
+    "02:23:20 clips de Flow bajados · 1 escena(s) en 84 s en total"
+   ]
+  },
+  {
+   "id": "flow-1792041810310",
+   "estado": "listo",
+   "inicioART": "02:23:30",
+   "finART": "02:24:43",
+   "segundos": 74,
+   "proyecto": "https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+   "ajustesReales": {
+    "pastilla": "Vídeo · 720p · 8 s crop_9_16 x1",
+    "tipo": "video",
+    "res720": true,
+    "dur8": true,
+    "resolucion": "720p",
+    "modelo": "Veo 3.1 - Fast"
+   },
+   "fallas": [],
+   "error": null,
+   "registro": [
+    "02:23:30 pestaña de Flow: https://flow.google.com/project/af6d39f0-7f8b-4e48-b658-3ff997d5ef61",
+    "02:23:31 traigo la pestaña de Flow al frente: escondida, Flow no abre sus menús",
+    "02:23:37 proyecto de Flow abierto",
+    "02:23:37 personaje Presentadora",
+    "02:23:40 personaje Presentadora: ya existía",
+    "02:23:42 ajustes de video · probador controlado",
+    "02:23:45 ajustes: Vídeo · 720p · 8 s crop_9_16 x1 · modelo Veo 3.1 - Fast",
+    "02:23:45 escena 1 (1 de 1) con @Presentadora",
+    "02:24:34 escena 1: generada en 49 s (desde el disparo hasta el clip listo)",
+    "02:24:34 bajando 1 clip(s) de Flow",
+    "02:24:42 bajando la escena 1 (1 de 1)",
+    "02:24:43 escena 1: bajada a C:\\Users\\look\\Downloads\\media-studio-flow\\esc1-flow-1792041810310.mp4",
+    "02:24:43 escena 1: en Pack Flow, Los crudos de Flow (media-studio/probador-local/1792041883727-esc1-esc1-flow-1792041810310.mp4)",
+    "02:24:43 clips de Flow bajados · 1 escena(s) en 74 s en total"
+   ]
+  },
+  {
+   "id": "consulta-1792041898442",
+   "estado": "listo",
+   "inicioART": "02:24:58",
+   "finART": "02:25:03",
+   "segundos": 5,
+   "proyecto": null,
+   "ajustesReales": null,
+   "fallas": [],
+   "error": null,
+   "registro": []
+  }
+ ]
+}
