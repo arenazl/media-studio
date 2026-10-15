@@ -1851,6 +1851,54 @@ ${src}`;
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'error bajando el asset' }); }
     }
 
+    // Laboratorio local: no persiste videos en campañas ni modifica los presets globales.
+    if (p === '/api/flow/probador/extension-version' && req.method === 'GET') {
+      try {
+        const labFiles = ['extension-flow-lab/manifest.json', 'extension-flow-lab/content.js', 'extension-flow-lab/background.js'];
+        const fingerprint = _sha('sha256').update(labFiles.map((f) => fs.readFileSync(path.resolve(f))).join('\n')).digest('hex').slice(0, 20);
+        const ocupado = puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando');
+        return json(res, 200, { fingerprint, ocupado });
+      } catch { return json(res, 503, { error: 'la extensión del laboratorio no está instalada en este checkout' }); }
+    }
+    if (p === '/api/flow/probador' && req.method === 'POST') {
+      const b = JSON.parse((await readBody(req)) || '{}');
+      const modelos = {
+        omni360: { modelos: ['Omni.*Flash.*1\\.1', 'Omni.*Flash'], resolucion: '360p' },
+        lite: { modelos: ['Veo 3\\.1.*Lite'], resolucion: '720p' },
+        fast: { modelos: ['Veo 3\\.1.*(Fast|R[aá]pido)'], resolucion: '720p' },
+        quality: { modelos: ['Veo 3\\.1.*(Quality|Calidad)'], resolucion: '720p' },
+      };
+      const modeloId = String(b.modelo || 'lite');
+      const opcion = modelos[modeloId];
+      const prompt = String(b.prompt || '').trim();
+      const personaje = String(b.personaje || '').trim();
+      const flowProjectUrl = String(b.flowProjectUrl || '').trim() || null;
+      if (!opcion) return json(res, 400, { error: 'modelo de prueba no reconocido' });
+      if (!prompt || prompt.length > 12000) return json(res, 400, { error: 'el prompt debe tener entre 1 y 12000 caracteres' });
+      if (personaje && (!flowProjectUrl || modeloId === 'quality')) return json(res, 400, { error: 'las referencias exigen un proyecto existente; Quality no admite referencias de personaje' });
+      if (flowProjectUrl) {
+        try {
+          const urlFlow = new URL(flowProjectUrl);
+          if (urlFlow.origin !== 'https://flow.google.com' || !/^\/project\/[a-zA-Z0-9_-]+\/?$/.test(urlFlow.pathname)) throw new Error();
+        } catch { return json(res, 400, { error: 'URL del proyecto Flow no válida' }); }
+      }
+      if (puente.listarJobs().some((j) => j.estado === 'corriendo' || j.estado === 'iniciando')) return json(res, 409, { error: 'Flow ya tiene un trabajo activo' });
+      if (!puente.extensionViva() || puente.estadoPuente().version !== '0.6.0') return json(res, 409, { error: 'activá únicamente Media Studio · Probador Flow v0.6.0 y abrí flow.google.com' });
+      const pack = { estilo: '', personajes: personaje ? [{ id: 'ref1', nombre: personaje, noCrear: true }] : [], escenas: [{ escenaN: 1, rol: 'hook', prompt }] };
+      const job = puente.iniciarJob({
+        projectId: 'probador-local', reelId: 'probador', pack,
+        escenasStoryboard: [{ n: 1, personajes: personaje ? ['ref1'] : [] }],
+        flowProjectUrl, retomar: false, escenasConCrudo: [], modo: 'video', unIntento: true,
+        ajustesOverride: { tipo: 'video', modelos: opcion.modelos, resolucion: opcion.resolucion, duracion: '8 s', salidas: 'x1', formato: '9:16', estricto: true, usarIngredientes: !!personaje },
+        guardarFlowUrl: async () => {}, agregarToma: async () => {},
+        guardarClip: async (buffer, nombre) => {
+          const saved = await saveAsset(buffer, nombre, CLD_FOLDER + '/probador-local', 'video/mp4');
+          return { fileRef: saved.public_id, durSec: 8 };
+        },
+      });
+      return json(res, 202, { job });
+    }
+
     // ── Automatizar la creación en Flow (rutina Playwright): arranca un job y devuelve su id; el front lo sigue por GET ──
     if (p === '/api/flow/automatizar' && req.method === 'POST') {
       const body = JSON.parse((await readBody(req)) || '{}');
