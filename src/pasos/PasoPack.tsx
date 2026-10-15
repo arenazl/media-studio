@@ -63,6 +63,11 @@ export default function PasoPack({ project, reelId, comercial, setComercial, goN
 
   const automatizar = async () => {
     if (!comercial?.packFlow || !Array.isArray(comercial.packFlow.escenas)) return;
+    if (comercial.estados.preproduccion !== 'aprobado') {
+      setError('Antes de gastar créditos de Flow, aprobá el prototipo en Preproducción.');
+      return;
+    }
+    if (!window.confirm('Esta acción GENERA videos en Google Flow y puede consumir créditos. ¿Autorizás comenzar la producción de esta pieza?')) return;
     setAutoBusy(true); setError('');
     try {
       const r = await fetch(`${API_BASE}/api/flow/automatizar`, {
