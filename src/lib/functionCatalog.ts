@@ -33,7 +33,7 @@ export interface FnOption {
   id: string;
   label: string;
   type: 'choice' | 'screens';          // choice = chips fijos · screens = las pantallas del proyecto (dinámico)
-  choices?: { value: string; label: string }[];
+  choices?: { value: string; label: string; ayuda?: string }[];   // ayuda = qué quiere decir, en una línea (se ve en pantalla)
   default?: string;
   unit?: string;                       // ej. 's' para segundos
 }
@@ -49,13 +49,27 @@ export interface StudioFunction {
 }
 
 // helper de chips
-const c = (value: string, label = value) => ({ value, label });
+const c = (value: string, label = value, ayuda?: string) => ({ value, label, ...(ayuda ? { ayuda } : {}) });
 // concept/3.0 (curación 2026-10-10): los ids y etiquetas son los de server/media-studio-enfoques-v3.json.
+// La ayuda resume en una línea criolla la "ideaCentral" (enfoques) y la "instruccion" (tratamientos) de ese catálogo:
+// Concepto la muestra en pantalla y arma con ella el resumen del comercial (2026-10-15, Lucas). En el resumen, "la app"
+// se reemplaza por el nombre del proyecto.
 const ENFOQUES = [
-  c('caso', 'Un caso de principio a fin'), c('producto', 'Producto a la vista'), c('dos-lados', 'Los dos lados'),
-  c('antes-despues', 'Antes y después'), c('testimonio', 'Voz de una persona'), c('institucional', 'Marca y visión'), c('humor', 'Situación con humor'),
+  c('caso', 'Un caso de principio a fin', 'Una persona con un problema real, y cómo la app se lo resuelve.'),
+  c('producto', 'Producto a la vista', 'Se ve la app haciendo una tarea útil.'),
+  c('dos-lados', 'Los dos lados', 'El que pide y el que atiende, unidos por la app.'),
+  c('antes-despues', 'Antes y después', 'Cómo era antes y cómo es con la app.'),
+  c('testimonio', 'Voz de una persona', 'Alguien lo cuenta en primera persona; se nota que es actuado, nunca un cliente inventado.'),
+  c('institucional', 'Marca y visión', 'La promesa de la marca, sin un protagonista.'),
+  c('humor', 'Situación con humor', 'Algo reconocible que da risa, y la app como respuesta.'),
 ];
-const TRATAMIENTOS = [c('natural', 'Cotidiano'), c('sobrio', 'Sobrio'), c('calido', 'Cálido'), c('aspiracional', 'Aspiracional'), c('humor', 'Con humor')];
+const TRATAMIENTOS = [
+  c('natural', 'Cotidiano', 'Gente creíble que habla natural.'),
+  c('sobrio', 'Sobrio', 'Calma y confianza, sin drama.'),
+  c('calido', 'Cálido', 'Cercano y humano, sin golpe bajo.'),
+  c('aspiracional', 'Aspiracional', 'Cómo mejora, con pruebas y sin promesas grandes.'),
+  c('humor', 'Con humor', 'Tiene chiste, sin que tape para qué sirve.'),
+];
 
 export const FUNCTION_CATALOG: StudioFunction[] = [
   // ── NIVEL PROYECTO ───────────────────────────────────────────────────────────
