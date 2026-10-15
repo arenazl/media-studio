@@ -18,9 +18,19 @@ const Escena: React.FC<{ escena: AnimaticSlide; plan: PlanAnimatic; frames: numb
       ) : (
         <AbsoluteFill style={{ background: `radial-gradient(circle at 40% 30%, ${plan.color}55 0%, #12101a 65%)`, justifyContent: 'center', alignItems: 'center', padding: `0 ${80 * u}px` }}>
           <div style={{ padding: `${15 * u}px ${28 * u}px`, border: borde, borderRadius: 14 * u, textAlign: 'center' }}>
-            <div style={{ fontSize: 26 * u, opacity: .7, marginBottom: 18 * u }}>STORYBOARD · ESCENA {escena.n}</div>
-            <div style={{ fontSize: 54 * u, fontWeight: 800, lineHeight: 1.16 }}>{escena.titulo}</div>
-            <div style={{ fontSize: 28 * u, marginTop: 30 * u, opacity: .78 }}>{escena.descripcion}</div>
+            {escena.titulo === 'Cierre' ? (
+              <>
+                {plan.logo && <Img src={plan.logo} style={{ maxWidth: '70%', maxHeight: 180 * u, objectFit: 'contain', display: 'block', margin: '0 auto 18px' }} />}
+                <div style={{ fontSize: 62 * u, fontWeight: 800 }}>{plan.marca}</div>
+                <div style={{ fontSize: 31 * u, marginTop: 28 * u, opacity: .85 }}>{escena.descripcion}</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 26 * u, opacity: .7, marginBottom: 18 * u }}>STORYBOARD · ESCENA {escena.n}</div>
+                <div style={{ fontSize: 54 * u, fontWeight: 800, lineHeight: 1.16 }}>{escena.titulo}</div>
+                <div style={{ fontSize: 28 * u, marginTop: 30 * u, opacity: .78 }}>{escena.descripcion}</div>
+              </>
+            )}
           </div>
         </AbsoluteFill>
       )}
