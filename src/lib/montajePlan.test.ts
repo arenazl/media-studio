@@ -147,3 +147,34 @@ describe('pickMusic', () => {
     expect(pickMusic('xyzzy qwerty')).toBeUndefined();
   });
 });
+
+
+describe('ducking por palabra y persistencia segura', () => {
+  it('si hay ASR atenúa sólo donde se habla; separa frases y preserva silencio entre ellas', () => {
+    const p: MontajePlan = { width: 1080, height: 1920, fps: 30, silences: [], texts: [], scenes: [
+      { escenaN: 1, src: 'v.mp4', in: 1, out: 9, audio: 'keep', dialogo: 'Dos frases',
+        words: [{ text: 'Hola', start: 2, end: 2.5 }, { text: 'chau', start: 7, end: 7.3 }] },
+    ] };
+    const iv = duckRanges(p);
+    expect(iv).toHaveLength(2);
+    expect(iv[0][0]).toBeCloseTo(0.88, 2);
+    expect(iv[0][1]).toBeCloseTo(1.72, 2);
+    expect(iv[1][0]).toBeGreaterThan(5);
+  });
+  it('sin transcripción, un proyecto histórico conserva el ducking por escena', () => {
+    const p: MontajePlan = { width: 1080, height: 1920, fps: 30, silences: [], texts: [], scenes: [
+      { escenaN: 1, src: 'v.mp4', in: 0, out: 6, audio: 'keep', dialogo: 'Hola' },
+    ] };
+    expect(duckRanges(p)).toEqual([[0, 6]]);
+  });
+  it('registrar export conserva variante, dirección y plan sin mutarlos', async () => {
+    const { registrarExportMontaje } = await import('./montajePlan');
+    const p: MontajePlan = { width: 1080, height: 1920, fps: 30, silences: [], texts: [], scenes: [] };
+    const m = { plan: p, base: p, variante: 'sobrio', armadoCon: 'clip.mp4', exports: [],
+      direccion: { diagnostico: 'OK', aplicadas: [], rechazadas: [], anterior: p } };
+    const after = registrarExportMontaje(m, 'export.mp4', 10);
+    expect(after).toMatchObject({ base: p, variante: 'sobrio', armadoCon: 'clip.mp4',
+      direccion: m.direccion, exports: [{ fileRef: 'export.mp4', createdAt: 10 }] });
+    expect(m.exports).toHaveLength(0);
+  });
+});

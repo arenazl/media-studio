@@ -8,7 +8,7 @@ import { API_BASE } from '../config';
 import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { mediaKitParaMolde } from '../lib/mediaKit';
-import { totalDuration, idInstancia, type MontajeState, type MontajePlan } from '../lib/montajePlan';
+import { totalDuration, idInstancia, registrarExportMontaje, type MontajeState, type MontajePlan } from '../lib/montajePlan';
 import { armarBase, materialDe, mockupsDe, tomaPresentadora } from '../lib/armarMontaje';
 import { aplicarVariante, variantesDisponibles } from '../lib/variantesMontaje';
 import { VOZ_LOCUTOR, fraseDeCierre, asegurarLocutor } from '../lib/locutorCierre';
@@ -362,8 +362,8 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       if (!r.ok) throw new Error(d.error || 'no se pudo renderizar');
       setComercial((c) => {
         const m = c.montaje as MontajeState | undefined;
-        const exps = [...(m?.exports || []), { fileRef: d.fileRef, createdAt: Date.now() }];
-        return { ...c, montaje: { ...m, plan: m?.plan || plan, exports: exps }, estados: { ...c.estados, montaje: 'aprobado' } };
+        const vigente = m || { plan, exports: [] };
+        return { ...c, montaje: registrarExportMontaje(vigente, d.fileRef, Date.now()), estados: { ...c.estados, montaje: 'aprobado' } };
       });
     } catch (e) { setError(errMsg(e)); } finally { setRendering(false); }
   };

@@ -75,7 +75,8 @@ export function aplicarPropuestaMontaje(base: MontajePlan, propuesta: PropuestaM
       const elegido = d.insertId
         ? insertos.findIndex((ins, k) => (ins.id || `${scenes[i].clipId || scenes[i].escenaN}:insert-${k}`) === d.insertId) : 0;
       if (elegido < 0) { rechazadas.push(`Inserto inexistente en escena ${d.escenaN}`); return; }
-      scenes[i].inserts = insertos.filter((_, k) => k !== elegido);
+      const restantes = insertos.filter((_, k) => k !== elegido);
+      if (restantes.length) scenes[i].inserts = restantes; else delete scenes[i].inserts;
     } else if (d.recurso === 'sfx_off') {
       const end = starts[i] + Math.max(0, scenes[i].out - scenes[i].in);
       const a = sfx?.length || 0;

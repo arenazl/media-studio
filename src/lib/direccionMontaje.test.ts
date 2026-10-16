@@ -35,7 +35,7 @@ describe('Director de montaje: decisiones ejecutables', () => {
       ],
     });
     expect(result.aplicadas).toHaveLength(3);
-    expect(result.plan.musicCues).toEqual([{ escenaN: 2, cuando: 'antes', durSec: 0.45, nivel: 0, motivo: 'La escena siguiente revela el cambio' }]);
+    expect(result.plan.musicCues).toEqual([{ escenaN: 2, clipId: 'video-2', origen: 'ia', cuando: 'antes', durSec: 0.45, nivel: 0, motivo: 'La escena siguiente revela el cambio' }]);
     expect(result.plan.scenes[0].transition).toBe('crossfade');
     expect(result.plan.scenes[0].inserts).toBeUndefined();
     expect(original.scenes[0].inserts).toHaveLength(1);
@@ -98,4 +98,43 @@ describe('Director de montaje: decisiones ejecutables', () => {
     const midpointFrame = Math.round((cue.desde + cue.hasta) * 0.5 * r.fps);
     expect(volumenMusica(midpointFrame, r)).toBeLessThan(0.005);
   });
+  it('proteger una pausa manual: dirección de cortes nunca borra musicCues', () => {
+    const p = base();
+    p.musicCues = [{ escenaN: 1, clipId: 'video-1', cuando: 'inicio', durSec: 0.3, nivel: 0, origen: 'manual' }];
+    const r = aplicarPropuestaMontaje(p, { diagnostico: 'Corte', decisiones: [
+      { recurso: 'cut', escenaN: 2, cuando: 'inicio', durSec: 0, motivo: 'La toma ya tiene continuidad' },
+    ] });
+    expect(r.plan.musicCues).toEqual(p.musicCues);
+    expect(p.scenes[0].clipId).toBeUndefined();
+  });
+  it('selecciona una instancia duplicada, no otra con el mismo escenaN', () => {
+    const p = base();
+    p.scenes = [
+      { ...p.scenes[0], escenaN: 1, clipId: 'original', transition: 'cut' },
+      { ...p.scenes[0], escenaN: 1, clipId: 'copia', transition: 'cut' },
+      p.scenes[2],
+    ];
+    const r = aplicarPropuestaMontaje(p, { diagnostico: 'Reacción en la copia', decisiones: [
+      { recurso: 'music_drop', escenaN: 1, clipId: 'copia', cuando: 'inicio', offsetSec: 1.2, durSec: 0.3, motivo: 'Una palabra en el segundo indicado' },
+    ] });
+    expect(r.plan.musicCues?.[0]).toMatchObject({ clipId: 'copia', offsetSec: 1.2 });
+    expect(intervalosMusica(r.plan)[0].desde).toBeCloseTo(3 - 0.03 + 1.2, 2);
+    const c = { ...nuevoComercial('test', 'filmado'), montaje: { plan: r.plan, exports: [] } };
+    const roundTrip = tracksToMontaje(buildEditorTimeline(c).tracks, r.plan);
+    expect(roundTrip.musicCues?.[0].clipId).toBe('copia');
+    expect(roundTrip.scenes.map((s) => s.clipId)).toEqual(['original', 'copia', 'video-3']);
+  });
+  it('un show_face sólo retira el inserto específico; sin id, rechaza escenas con varios', () => {
+    const p = base();
+    p.scenes[0].inserts = [
+      { id: 'grafico', atSec: 0.2, durSec: 1, src: 'grafico.png' },
+      { id: 'prueba', atSec: 1.5, durSec: 1, src: 'prueba.png' },
+    ];
+    const decision = { recurso: 'show_face' as const, escenaN: 1, cuando: 'inicio' as const, durSec: 0, motivo: 'Ver reacción' };
+    const rechazado = aplicarPropuestaMontaje(p, { diagnostico: 'Dos insertos', decisiones: [decision] });
+    expect(rechazado.aplicadas).toHaveLength(0);
+    const aceptado = aplicarPropuestaMontaje(p, { diagnostico: 'Inserto preciso', decisiones: [{ ...decision, insertId: 'grafico' }] });
+    expect(aceptado.plan.scenes[0].inserts?.map((ins) => ins.id)).toEqual(['prueba']);
+  });
+
 });

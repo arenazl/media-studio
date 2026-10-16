@@ -57,7 +57,7 @@ describe('derivarRender', () => {
     const finClips = Math.round((8.4 + 9.6 - 0.03) * 30);
     expect(r.endCard).toMatchObject({ from: finClips - 6, dur: 6 + 96, linea1: 'Armá tu evento' });
     expect(r.totalFrames).toBe(finClips - 6 + 6 + 96);
-    expect(r.music?.duckFrames.length).toBe(1);
+    expect(r.music?.duckFrames.length).toBe(2); // ASR distingue frases en dos tomas, no atenúa el plano entero
     expect(r.logo?.src).toBe('/api/media-kit/k/file/logo.svg');
   });
   it('sin placa, el total es el fin de los clips; sin escenas ni placa, un cuadro', () => {

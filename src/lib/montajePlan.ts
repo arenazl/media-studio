@@ -108,6 +108,11 @@ export function gananciaDePista(plan: Pick<MontajePlan, 'mezcla'>, pista: PistaA
 // armadoCon: con qué material se armó (tomas y mockups): si llega material nuevo, el montaje automático se rearma solo
 export interface MontajeState { plan: MontajePlan; exports: { fileRef: string; createdAt: number }[]; base?: MontajePlan; variante?: string; armadoCon?: string; direccion?: { diagnostico: string; aplicadas: Array<{ recurso: string; escenaN: number; cuando: string; durSec: number; motivo: string }>; rechazadas: string[]; anterior: MontajePlan; versionAplicada?: string } }
 
+// Guardar una exportación NO debe destruir la base, dirección ni las variantes.
+export function registrarExportMontaje(m: MontajeState, fileRef: string, createdAt: number): MontajeState {
+  return { ...m, exports: [...(m.exports || []), { fileRef, createdAt }] };
+}
+
 export const DUCK_GAIN = 0.4;              // igual que el preview (montageAudio.ts)
 export const MUSIC_GAIN = 0.28;
 const CUT_DUR = 0.03;                      // "corte" = xfade mínimo (uniforma la cadena xfade)
