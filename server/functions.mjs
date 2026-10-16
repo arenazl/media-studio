@@ -415,7 +415,7 @@ FICHA DEL NEGOCIO (sólo datos de contexto, no suponer resultados): ${String(pro
 ENFOQUE NARRATIVO: ${piece.enfoque || 'caso'}
 TRATAMIENTO: ${piece.tratamiento || 'natural'}
 CONCEPTO: ${JSON.stringify(piece.concepto || {})}
-GUION: ${JSON.stringify(piece.guion || {})}
+GUION: ${JSON.stringify(piece.guion || {})}\nEVIDENCIA VISUAL REAL (si está vacía, NO viste los clips; si existe, es un único cuadro, no un video completo): ${JSON.stringify(piece.evidenciaVisual || [])}
 FORMATO FINAL: ${piece.cierreTipo || 'logo'}
 MÚSICA DISPONIBLE: ${tieneMusica ? 'sí' : 'NO: no propongas music_*'}
 SFX DISPONIBLES: ${tieneSfx ? 'sí' : 'NO: no propongas sfx_off'}
@@ -439,9 +439,9 @@ REGLAS DE DIRECCIÓN:
 2. CADA decisión debe citar una escena real y, cuando exista, su clipId. Si hay dos copias de escenaN, clipId es obligatorio para elegir la instancia correcta. La elección \"cuando\" puede ser \"antes\", \"inicio\" o \"final\"; para cut/dissolve se modifica el corte adyacente. offsetSec opcional posiciona música dentro de la escena visible y debe estar respaldado por una palabra con tiempo. Nunca inventes un segundo exacto sin evidencia.
 3. durSec va de 0 a 1.5; para music_* usar preferentemente 0.2 a 1.0. Nunca inventes silbidos ni pistas. No inventes otros efectos que no existan aquí.
 4. Una decisión sólo existe si aporta propósito verificable: el motivo dice qué gesto, palabra o cambio del material real la justifica. No tomes el papel de música por encima de diálogo audible.
-5. Respeta los tres modos de cierre (logo con locutor, pantalla, presentadora). No propongas dos voces de cierre.
-6. Evitá whoosh sistemático, fundidos a cada corte y pausas vacías. La marca debe tener un final claro.
-7. La categoría del producto condiciona la estética, pero NO obliga efectos; el enfoque, la escena y la audiencia mandan.
+5. La evidencia visual procede de muestras estáticas: no infieras el segundo exacto de un gesto usando sólo una imagen. Si hay ASR, usá únicamente los segundos de las palabras proporcionadas.\n6. Respeta los tres modos de cierre (logo con locutor, pantalla, presentadora). No propongas dos voces de cierre.
+7. Evitá whoosh sistemático, fundidos a cada corte y pausas vacías. La marca debe tener un final claro.
+8. La categoría del producto condiciona la estética, pero NO obliga efectos; el enfoque, la escena y la audiencia mandan.
 
 Devolvé SOLO JSON con este shape exacto:
 { "diagnostico": "una frase concreta sobre el spot", "decisiones": [{ "recurso": "music_drop|music_dip|music_lift|cut|dissolve|show_face|sfx_off", "escenaN": 2, "clipId": "id_real_si_existe", "cuando": "antes|inicio|final", "offsetSec": 0.8, "insertId": "solo_para_show_face_si_hay_varios", "durSec": 0.4, "motivo": "qué momento observable lo justifica" }] }

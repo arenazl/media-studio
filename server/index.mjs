@@ -61,6 +61,7 @@ import { radiografia } from './radiografia.mjs';
 import { exportarGuion, importarGuion } from './curacionGuion.mjs';
 import { armarPedido, leerRespuesta, CONTRATO_VERSION } from './contratoMateriaPrima.mjs';
 import { transcribirArchivo } from './transcribir.mjs';
+import { resolverClipLocal, segundoDeMuestra } from './montageEvidence.mjs';
 import { sintetizar, MODELO_VOZ } from './vozEleven.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
@@ -2033,6 +2034,40 @@ ${src}`;
       const body = JSON.parse((await readBody(req)) || '{}');
       if (body.filename) puente.descargaLista(body);
       return json(res, 200, { ok: true });
+    }
+
+    // ── Evidencia visual: 1 fotograma real por clip local. Opt-in explícito en el UI. ──
+    if (p === '/api/montage-evidence' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      if (!Array.isArray(body.escenas) || body.escenas.length > 8) return json(res, 400, { error: 'máximo 8 escenas por solicitud' });
+      const evidencia = [], avisos = [];
+      const muestras = body.escenas.slice(0, 4);
+      for (const e of muestras) {
+        const file = resolverClipLocal(STORAGE_DIR, e.fileRef);
+        const id = String(e.clipId || '');
+        if (!file || !fs.existsSync(file)) { avisos.push(`Escena ${e.escenaN}: clip no disponible en storage local`); continue; }
+        const stat = fs.statSync(file);
+        if (!stat.isFile() || stat.size > 300 * 1024 * 1024) { avisos.push(`Escena ${e.escenaN}: archivo no apto para análisis`); continue; }
+        const segundo = segundoDeMuestra(e);
+        const fotograma = path.join(STORAGE_DIR, `.evidencia-${_sha('sha256').update(file + String(Date.now()) + Math.random()).digest('hex')}.jpg`);
+        try {
+          await runFfmpeg(['-y', '-ss', String(segundo), '-i', file, '-frames:v', '1', '-q:v', '4', fotograma]);
+          const { text } = await runAI({
+            model: 'sonnet',
+            imageBuffer: fs.readFileSync(fotograma),
+            prompt: 'Actuá como asistente de continuidad audiovisual. Observás UN SOLO FOTOGRAMA REAL de un spot. Describí únicamente información directamente visible: cara/expresión, objeto/acción visible y legibilidad de interfaces. NO inventes movimiento, diálogos, intención emocional ni marcas temporales. Devolvé SOLO JSON: {"descripcion":"máximo 30 palabras en castellano","caraVisible":true,"interfazVisible":false}.'
+          });
+          const parsed = extractJson(text);
+          const descripcion = String(parsed?.descripcion || '').trim().slice(0, 240);
+          if (descripcion) evidencia.push({ clipId: id, escenaN: e.escenaN, segundo: Math.round((segundo - (Number(e.in) || 0)) * 100) / 100,
+            descripcion, caraVisible: parsed?.caraVisible === true, interfazVisible: parsed?.interfazVisible === true });
+          else avisos.push(`Escena ${e.escenaN}: respuesta visual vacía`);
+        } catch (err) {
+          avisos.push(`Escena ${e.escenaN}: no se pudo analizar fotograma (${err instanceof Error ? err.message.slice(0, 130) : 'error'})`);
+        } finally { try { fs.unlinkSync(fotograma); } catch { /* cuadro temporal eliminado/no creado */ } }
+      }
+      if (body.escenas.length > muestras.length) avisos.push(`Límite de costo: sólo se observaron ${muestras.length} de ${body.escenas.length} escenas`);
+      return json(res, 200, { evidencia, avisos, alcance: 'un fotograma estático por escena, no analiza gestos ni continuidad entre cuadros' });
     }
 
     // ── Transcripción palabra por palabra de un clip del rodaje (montajista v2). Caché al lado del archivo. ──

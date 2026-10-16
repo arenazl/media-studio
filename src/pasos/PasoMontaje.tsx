@@ -32,6 +32,8 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const [armando, setArmando] = useState(false);
   const [direccionBusy, setDireccionBusy] = useState(false);
   const [direccionError, setDireccionError] = useState('');
+  const [analisisVisual, setAnalisisVisual] = useState(false);
+  const [avisosVisuales, setAvisosVisuales] = useState<string[]>([]);
   // Una propuesta es sólo un borrador. La IA jamás persiste un montaje sin aprobación explícita.
   const [propuestaPendiente, setPropuestaPendiente] = useState<{ propuesta: PropuestaMontaje; version: string } | null>(null);
   const [decisionesSeleccionadas, setDecisionesSeleccionadas] = useState<number[]>([]);
@@ -145,12 +147,32 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
         palabras: (sc.words || []).filter((w) => w.start >= sc.in && w.end <= sc.out)
           .map((w) => ({ palabra: w.text, segundo: +(w.start - sc.in).toFixed(2) })).slice(0, 80),
       }));
+      let evidenciaVisual: Array<{ clipId: string; escenaN: number; segundo: number; descripcion: string; caraVisible: boolean; interfazVisible: boolean }> = [];
+      setAvisosVisuales([]);
+      if (analisisVisual) {
+        try {
+          const respuesta = await fetch(`${API_BASE}/api/montage-evidence`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ escenas: plan.scenes.filter((s) => s.src).map((s,i) => ({
+              escenaN: s.escenaN, clipId: s.clipId || idInstancia(plan, s, plan.scenes.indexOf(s)),
+              fileRef: s.src, in: s.in, out: s.out
+            })) }),
+          });
+          const data = await respuesta.json();
+          if (!respuesta.ok) throw new Error(data.error || 'falló análisis visual');
+          evidenciaVisual = Array.isArray(data.evidencia) ? data.evidencia : [];
+          setAvisosVisuales(Array.isArray(data.avisos) ? data.avisos : []);
+        } catch (err) {
+          // La falta de un archivo local o del servicio visual no autoriza inventar evidencia.
+          setAvisosVisuales([errMsg(err)]);
+        }
+      }
       const raw = await runMolde('montageDirection', project, {
         titulo: comercial.titulo, objetivo: reel?.objetivo || comercial.primaryMessage || '',
         enfoque: comercial.enfoque || 'caso', tratamiento: comercial.tratamiento || 'natural',
         concepto: comercial.concepto, guion: comercial.guion,
         cierreTipo: plan.endCard?.tipo || comercial.cierre?.tipo || 'logo',
-        tieneMusica: !!plan.music?.src, tieneSfx: !!plan.sfx?.length, escenas,
+        tieneMusica: !!plan.music?.src, tieneSfx: !!plan.sfx?.length, escenas, evidenciaVisual,
       }, {}, undefined, comercial, 'claude');
       const propuesta = raw as unknown as PropuestaMontaje;
       const errores = validarPropuestaMontaje(propuesta);
@@ -437,7 +459,12 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
           )}
           <div className="paso-card">
             <div className="paso-card-h"><Clapperboard size={12} /> Director publicitario · edición asistida</div>
-            <div className="mont-sil">Analiza este concepto y las tomas disponibles. Sugiere pocos cortes, pausas y cambios musicales reales, sin reescribir el guion. Podés deshacer toda la propuesta.</div>
+            <div className="mont-sil">Propone cortes y música a partir del guion y las palabras transcritas. Primero revisás el borrador, elegís cada operación y recién después se aplica.</div>
+            <label className="mont-sil" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <input type="checkbox" checked={analisisVisual} onChange={(e) => setAnalisisVisual(e.target.checked)} disabled={direccionBusy} />
+              Agregar observación visual (1 fotograma por escena, máximo 4; usa IA adicional y requiere archivos locales)
+            </label>
+            {!!avisosVisuales.length && avisosVisuales.map((a, i) => <div className="mont-sil" key={i}>Evidencia visual: {a}</div>)}
             <div className="veo-chips" style={{ marginTop: 8 }}>
               <button className="rodaje-var" type="button" disabled={direccionBusy || armando || rendering || !conClip} onClick={() => void dirigirConIA()}>
                 {direccionBusy ? <Loader2 size={14} className="paso-spin" /> : <Clapperboard size={14} />} {direccionBusy ? 'Analizando escenas…' : 'Proponer dirección con IA'}
