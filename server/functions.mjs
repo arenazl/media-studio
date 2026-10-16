@@ -450,6 +450,12 @@ No agregues operaciones fuera del vocabulario. Nunca agregues escenas ni assets.
     parse(text) {
       const o = extractJson(text);
       if (!o || typeof o.diagnostico !== 'string' || !Array.isArray(o.decisiones)) throw new Error('montageDirection: JSON sin diagnostico o decisiones');
+      // el motivo se muestra en la pantalla con tope de 180 caracteres; la IA se pasa seguido y ni la reparación lo
+      // corrige siempre (2026-10-16): se recorta en una palabra en vez de tirar el borrador entero
+      for (const d of o.decisiones) {
+        const m = String(d?.motivo || '').trim();
+        if (m.length > 180) d.motivo = `${m.slice(0, 179).replace(/\s+\S*$/, '')}…`;
+      }
       return o;
     },
   },

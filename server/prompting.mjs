@@ -103,13 +103,20 @@ export const VALIDADORES = {
     if (!Array.isArray(o?.decisiones) || o.decisiones.length > 8) return [...E, 'decisiones: lista de 0 a 8'];
     const recursos = new Set(['music_drop','music_dip','music_lift','cut','dissolve','show_face','sfx_off']);
     const cuando = new Set(['antes','inicio','final']);
-    const escenas = new Set((body?.context?.piece?.escenas || []).filter(e => e.src).map(e => e.escenaN));
+    // el Montaje ya manda sólo escenas con clip; desde V1.1 sin la URL (src) y con clipId: cualquiera de los dos cuenta
+    const escenas = new Set((body?.context?.piece?.escenas || []).filter(e => e.src || e.clipId).map(e => e.escenaN));
     for (const [i,d] of o.decisiones.entries()) {
       if (!recursos.has(d?.recurso)) E.push(`decisión ${i}: recurso no válido`);
       if (!escenas.has(d?.escenaN)) E.push(`decisión ${i}: escena sin material disponible`);
       if (!cuando.has(d?.cuando)) E.push(`decisión ${i}: cuando no válido`);
       if (!Number.isFinite(d?.durSec) || d.durSec < 0 || d.durSec > 1.5) E.push(`decisión ${i}: durSec fuera de 0-1.5`);
       if (!String(d?.motivo || '').trim()) E.push(`decisión ${i}: falta motivo`);
+      // mismas reglas que la pantalla (src/lib/direccionMontaje.ts): si no, la pantalla tiraba el borrador entero y la
+      // reparación nunca le pedía a la IA que lo corrija
+      if (String(d?.motivo || '').length > 180) E.push(`decisión ${i}: motivo de más de 180 caracteres (acortalo)`);
+      if (d?.offsetSec != null && !(Number.isFinite(d.offsetSec) && d.offsetSec >= 0)) E.push(`decisión ${i}: offsetSec inválido`);
+      if (d?.clipId != null && !String(d.clipId).trim()) E.push(`decisión ${i}: clipId vacío`);
+      if (d?.insertId != null && !String(d.insertId).trim()) E.push(`decisión ${i}: insertId vacío`);
     }
     return E;
   },
