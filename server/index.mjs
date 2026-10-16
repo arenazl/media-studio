@@ -61,6 +61,7 @@ import { radiografia } from './radiografia.mjs';
 import { exportarGuion, importarGuion } from './curacionGuion.mjs';
 import { armarPedido, leerRespuesta, CONTRATO_VERSION } from './contratoMateriaPrima.mjs';
 import { transcribirArchivo } from './transcribir.mjs';
+import { sintetizar, MODELO_VOZ } from './vozEleven.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
 // No pisa lo ya seteado en el entorno; ignora líneas vacías/comentadas.
@@ -1163,18 +1164,15 @@ const server = http.createServer(async (req, res) => {
       if (!texto || !b.voice_id) return json(res, 400, { error: 'faltan la frase o la voz' });
       try {
         // la misma frase con la misma voz es el mismo archivo: no se vuelve a pedir a ElevenLabs (el armado la pide cada vez)
-        const huella = _sha('sha1').update(`${b.voice_id}|${texto}`).digest('hex').slice(0, 10);
+        // el motor entra en la huella: un audio del motor viejo (multilingual v2) no se reusa con el de SalesBot
+        const huella = _sha('sha1').update(`${b.voice_id}|${texto}|${MODELO_VOZ}`).digest('hex').slice(0, 10);
         const nombre = `${String(b.nombre || 'cierre').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'cierre'}-${huella}.mp3`;
         const archivo = path.join(STORAGE_DIR, 'voces', nombre);
         if (fs.existsSync(archivo)) return json(res, 200, { src: `voces/${nombre}`, durSec: (await probeDuration(archivo)) || null, reusada: true });
-        const r = await fetch(`${ELEVEN_API}/text-to-speech/${encodeURIComponent(b.voice_id)}`, {
-          method: 'POST',
-          headers: { 'xi-api-key': ELEVEN_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-          body: JSON.stringify({ text: texto, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.35, use_speaker_boost: true, speed: 1.0 } }),
-        });
-        if (!r.ok) return json(res, 502, { error: `ElevenLabs no generó la voz (${r.status}): ${(await r.text()).slice(0, 200)}` });
+        // el mismo motor que las personalidades de SalesBot, sin ajustes propios (server/vozEleven.mjs)
+        const audio = await sintetizar({ texto, voiceId: b.voice_id, key: ELEVEN_KEY });
         fs.mkdirSync(path.dirname(archivo), { recursive: true });
-        fs.writeFileSync(archivo, Buffer.from(await r.arrayBuffer()));
+        fs.writeFileSync(archivo, audio);
         return json(res, 200, { src: `voces/${nombre}`, durSec: (await probeDuration(archivo)) || null });
       } catch (e) { return json(res, 502, { error: e instanceof Error ? e.message : 'no se pudo generar la voz' }); }
     }

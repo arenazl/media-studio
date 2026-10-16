@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { resolveKitFile, MEDIA_KIT_ROOT } from './mediaKit.mjs';
+import { sintetizar } from './vozEleven.mjs';
 
 const scaleCrop = (w, h, fps) =>
   `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},fps=${fps},setsar=1`;
@@ -152,17 +153,8 @@ async function generateSceneTts(text, tmpDir, index) {
   const key = process.env.ELEVENLABS_API_KEY;
   if (!key) return null;
   try {
-    const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
-      method: 'POST',
-      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.4 },
-      }),
-    });
-    if (!r.ok) return null;
-    const buf = Buffer.from(await r.arrayBuffer());
+    // el mismo motor que SalesBot, sin ajustes propios (server/vozEleven.mjs)
+    const buf = await sintetizar({ texto: text, voiceId: '21m00Tcm4TlvDq8ikWAM', key });
     const dest = path.join(tmpDir, `tts-scene-${index}.mp3`);
     fs.writeFileSync(dest, buf);
     return dest;
