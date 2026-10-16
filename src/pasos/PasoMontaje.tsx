@@ -40,6 +40,9 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const [error, setError] = useState('');
   const qa = comercial?.qa ?? null;   // C9: el QA vive en el comercial (persiste); antes era useState y se perdía al salir del paso
   const [qaBusy, setQaBusy] = useState(false);
+  const [qaTecnicaBusy, setQaTecnicaBusy] = useState(false);
+  const [qaTecnica, setQaTecnica] = useState<{ fileRef: string; integratedLufs: number | null; truePeakDbfs: number | null; silencios: Array<{ desde: number; hasta: number | null }>; negros: Array<{ desde: number; hasta: number }>; avisos: string[]; alcance: string } | null>(null);
+  const [qaTecnicaError, setQaTecnicaError] = useState('');
   const [voiceBusy, setVoiceBusy] = useState(false);
   const voiceInput = useRef<HTMLInputElement | null>(null);
 
@@ -388,6 +391,21 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
         return { ...c, montaje: registrarExportMontaje(vigente, d.fileRef, Date.now()), estados: { ...c.estados, montaje: 'aprobado' } };
       });
     } catch (e) { setError(errMsg(e)); } finally { setRendering(false); }
+  };
+
+  const auditarUltimoMp4 = async () => {
+    if (!ultimo || qaTecnicaBusy) return;
+    setQaTecnicaBusy(true); setQaTecnicaError('');
+    try {
+      const r = await fetch(`${API_BASE}/api/render-qa`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileRef: ultimo.fileRef }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'No se pudo auditar este export');
+      setQaTecnica(d);
+    } catch (e) { setQaTecnicaError(errMsg(e)); }
+    finally { setQaTecnicaBusy(false); }
   };
 
   // segmentos ordenados de la timeline (silencio antes de su escena + escena), con duración para el ancho.
@@ -772,6 +790,21 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
                 <Download size={14} /> Descargar mp4
               </a>
               {exports.length > 1 && <span className="pack-prog">{exports.length} exports</span>}
+              <div style={{ marginTop: 10 }}>
+                <button type="button" className="rodaje-var" onClick={() => void auditarUltimoMp4()} disabled={qaTecnicaBusy}>
+                  {qaTecnicaBusy ? 'Analizando MP4…' : 'Auditar audio y cuadros negros del MP4'}
+                </button>
+                {qaTecnicaError && <div className="paso-error">{qaTecnicaError}</div>}
+                {qaTecnica?.fileRef === ultimo.fileRef && (
+                  <div className="mont-sil">
+                    <strong>Medición real:</strong> {qaTecnica.integratedLufs == null ? 'LUFS no medidos' : `${qaTecnica.integratedLufs} LUFS`}
+                    {' · '}{qaTecnica.truePeakDbfs == null ? 'Pico no medido' : `${qaTecnica.truePeakDbfs} dBFS true peak`}
+                    {' · '}{qaTecnica.silencios.length} silencios · {qaTecnica.negros.length} tramos negros.
+                    {qaTecnica.avisos.length ? qaTecnica.avisos.map((a, i) => <div key={i}>{a}</div>) : <div>Sin advertencias técnicas en los umbrales configurados.</div>}
+                    <small>{qaTecnica.alcance}</small>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           </>

@@ -62,6 +62,7 @@ import { exportarGuion, importarGuion } from './curacionGuion.mjs';
 import { armarPedido, leerRespuesta, CONTRATO_VERSION } from './contratoMateriaPrima.mjs';
 import { transcribirArchivo } from './transcribir.mjs';
 import { resolverClipLocal, segundoDeMuestra } from './montageEvidence.mjs';
+import { auditarRenderLocal } from './renderQa.mjs';
 import { sintetizar, MODELO_VOZ } from './vozEleven.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
@@ -2068,6 +2069,16 @@ ${src}`;
       }
       if (body.escenas.length > muestras.length) avisos.push(`Límite de costo: sólo se observaron ${muestras.length} de ${body.escenas.length} escenas`);
       return json(res, 200, { evidencia, avisos, alcance: 'un fotograma estático por escena, no analiza gestos ni continuidad entre cuadros' });
+    }
+
+    // ── Auditoría TÉCNICA opt-in de un MP4 exportado localmente (no juicio creativo) ──
+    if (p === '/api/render-qa' && req.method === 'POST') {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const file = resolverClipLocal(STORAGE_DIR, body.fileRef);
+      if (!file) return json(res, 400, { error: 'fileRef inválido' });
+      if (!fs.existsSync(file)) return json(res, 404, { error: 'El MP4 no está disponible en el almacenamiento local' });
+      try { return json(res, 200, { fileRef: body.fileRef, ...(await auditarRenderLocal(file)) }); }
+      catch (err) { return json(res, 502, { error: err instanceof Error ? err.message : 'No se pudo auditar' }); }
     }
 
     // ── Transcripción palabra por palabra de un clip del rodaje (montajista v2). Caché al lado del archivo. ──
