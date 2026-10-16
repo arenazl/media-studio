@@ -1,5 +1,62 @@
 {
   "_nota": "Las caras de las personalidades de SalesBot (Lucas, 2026-10-12): la cara de cada una sale de la primera foto que Lucas le pide y que la muestra, nunca de la personalidad; de ahí en adelante es esa. Cada una: slug de SalesBot -> { nombre, retratoEn, flowNombre, medioCara (el medio de SalesBot que la fijó: si Lucas lo regenera, la personalidad pierde la cara) }.",
-  "personajes": {},
+  "personajes": {
+    "laura-boliche-cordoba": {
+      "nombre": "Brenda",
+      "flowNombre": "BrendaLauraBolicheCordob",
+      "retratoEn": "A young adult woman in her late twenties, petite and short in stature, with dark brown (morocha) hair worn down in soft waves, warm olive skin tone, a round friendly face with high cheekbones, bright expressive dark eyes, and a wide, radiant smile showing straight white teeth. Slim but curvy build, average height around 1.55m, natural makeup with a healthy glow.",
+      "vestuarioEn": "",
+      "lugarEn": "",
+      "fijada": "2026-10-12",
+      "medioCara": 15
+    },
+    "mili--compania-del-gimnasio-red-gym-y1rf": {
+      "nombre": "Mili",
+      "flowNombre": "MiliCompaniaDelGimnasioR",
+      "retratoEn": "Young adult woman, mid-20s, long dark wavy hair, warm olive skin tone, soft facial features with defined cheekbones, medium build, natural makeup, friendly approachable expression",
+      "vestuarioEn": "",
+      "lugarEn": "",
+      "fijada": "2026-10-13",
+      "medioCara": 18
+    },
+    "laura-bartender-santelmo": {
+      "nombre": "Roxana",
+      "flowNombre": "RoxanaLauraBartenderSant",
+      "retratoEn": "Latina woman in her mid-20s, striking beauty, long dark brown wavy hair, olive-tan skin, warm brown eyes, defined cheekbones, full lips, athletic slim build, natural makeup look",
+      "vestuarioEn": "",
+      "lugarEn": "",
+      "fijada": "2026-10-13",
+      "medioCara": 22
+    },
+    "pibe-reclamando-plata": {
+      "nombre": "Promptera HOT",
+      "flowNombre": "PrompteraPibeReclamandoP",
+      "esElla": true,
+      "retratoEn": "Woman in her mid-20s with long dark wavy hair falling over one shoulder, sharp defined cheekbones, full lips slightly parted, almond-shaped eyes with a sultry half-lidded gaze, smooth olive skin with a natural glow, slender build, subtle makeup emphasizing eyes and lips, confident and alluring expression",
+      "vestuarioEn": "",
+      "lugarEn": "",
+      "fijada": "2026-10-14",
+      "medioCara": 25
+    },
+    "laura-perros-sanisidro": {
+      "nombre": "Juana",
+      "flowNombre": "JuanaLauraPerrosSanisidr",
+      "esElla": true,
+      "retratoEn": "young woman in her early twenties, long loose wavy brown hair, light olive skin, soft round face with warm brown eyes, relaxed casual features, slim build",
+      "vestuarioEn": "",
+      "lugarEn": "",
+      "fijada": "2026-10-14",
+      "medioCara": 31
+    },
+    "laura-instagram-neuquen": {
+      "nombre": "Ayelen",
+      "flowNombre": "AyelenLauraInstagramNeuq",
+      "retratoEn": "Argentine woman, 26 years old, athletic build, natural tanned skin with light freckles, light brown hair pulled back in a casual sporty ponytail with loose strands framing her face, warm brown (hazel-brown) expressive eyes, wide energetic smile with straight white teeth, defined cheekbones, straight natural eyebrows, medium-height nose, healthy glowing complexion typical of outdoor mountain life",
+      "vestuarioEn": "",
+      "lugarEn": "",
+      "fijada": "2026-10-14",
+      "medioCara": 43
+    }
+  },
   "proyectos": {}
 }
