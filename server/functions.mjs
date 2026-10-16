@@ -423,7 +423,7 @@ ESCENAS DISPONIBLES (material real; sólo estos números):
 ${JSON.stringify(escenas)}
 
 PATRONES EDITORIALES PERTINENTES (heurísticas, NO escenas ni pausas obligatorias):
-${JSON.stringify(patrones.length ? patrones : PATRONES_MONTAJE.patrones.slice(0, 1))}
+${JSON.stringify(patrones)}
 
 GRAMÁTICA DE RECURSOS REALES:
 - music_drop: cortar la música brevemente para una revelación, reacción o remate. NO corta las voces.
@@ -431,12 +431,12 @@ GRAMÁTICA DE RECURSOS REALES:
 - music_lift: enfatizar un momento visual sin voz (la voz sigue mandando por ducking).
 - cut: corte seco entre escenas.
 - dissolve: transición suave entre escenas.
-- show_face: retirar insertos de esa escena para permitir ver reacción/cara; sólo si tiene insertos.
+- show_face: retirar SOLO el inserto seleccionado (insertId); si la escena tiene más de un inserto, insertId es obligatorio.
 - sfx_off: suprimir efectos dentro de esa escena; sólo si hay efectos.
 
 REGLAS DE DIRECCIÓN:
 1. Elegí entre 0 y 5 decisiones; preferí ninguna a una arbitraria. Un spot institucional normalmente evita bromas y music drops. Un spot gracioso PUEDE usar un vacío sonoro si existe un momento con reacción verdadera; el humor no implica necesariamente pausa. Una demo prioriza inteligibilidad y visibilidad de la interfaz.
-2. CADA decisión debe citar un escenaN que tenga clip real. La elección \"cuando\" puede ser \"antes\", \"inicio\" o \"final\"; para cut/dissolve se modifica el corte adyacente.
+2. CADA decisión debe citar una escena real y, cuando exista, su clipId. Si hay dos copias de escenaN, clipId es obligatorio para elegir la instancia correcta. La elección \"cuando\" puede ser \"antes\", \"inicio\" o \"final\"; para cut/dissolve se modifica el corte adyacente. offsetSec opcional posiciona música dentro de la escena visible y debe estar respaldado por una palabra con tiempo. Nunca inventes un segundo exacto sin evidencia.
 3. durSec va de 0 a 1.5; para music_* usar preferentemente 0.2 a 1.0. Nunca inventes silbidos ni pistas. No inventes otros efectos que no existan aquí.
 4. Una decisión sólo existe si aporta propósito verificable: el motivo dice qué gesto, palabra o cambio del material real la justifica. No tomes el papel de música por encima de diálogo audible.
 5. Respeta los tres modos de cierre (logo con locutor, pantalla, presentadora). No propongas dos voces de cierre.
@@ -444,7 +444,7 @@ REGLAS DE DIRECCIÓN:
 7. La categoría del producto condiciona la estética, pero NO obliga efectos; el enfoque, la escena y la audiencia mandan.
 
 Devolvé SOLO JSON con este shape exacto:
-{ "diagnostico": "una frase concreta sobre el spot", "decisiones": [{ "recurso": "music_drop|music_dip|music_lift|cut|dissolve|show_face|sfx_off", "escenaN": 2, "cuando": "antes|inicio|final", "durSec": 0.4, "motivo": "qué momento observable lo justifica" }] }
+{ "diagnostico": "una frase concreta sobre el spot", "decisiones": [{ "recurso": "music_drop|music_dip|music_lift|cut|dissolve|show_face|sfx_off", "escenaN": 2, "clipId": "id_real_si_existe", "cuando": "antes|inicio|final", "offsetSec": 0.8, "insertId": "solo_para_show_face_si_hay_varios", "durSec": 0.4, "motivo": "qué momento observable lo justifica" }] }
 No agregues operaciones fuera del vocabulario. Nunca agregues escenas ni assets.` };
     },
     parse(text) {

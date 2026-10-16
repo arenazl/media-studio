@@ -72,7 +72,8 @@ export function aplicarPropuestaMontaje(base: MontajePlan, propuesta: PropuestaM
       const insertos = scenes[i].inserts || [];
       if (!insertos.length) { rechazadas.push(`Escena ${d.escenaN} sin insertos que retirar`); return; }
       if (!d.insertId && insertos.length > 1) { rechazadas.push(`Escena ${d.escenaN} tiene varios insertos: hay que indicar insertId`); return; }
-      const elegido = d.insertId ? insertos.findIndex((ins) => ins.id === d.insertId) : 0;
+      const elegido = d.insertId
+        ? insertos.findIndex((ins, k) => (ins.id || `${scenes[i].clipId || scenes[i].escenaN}:insert-${k}`) === d.insertId) : 0;
       if (elegido < 0) { rechazadas.push(`Inserto inexistente en escena ${d.escenaN}`); return; }
       scenes[i].inserts = insertos.filter((_, k) => k !== elegido);
     } else if (d.recurso === 'sfx_off') {

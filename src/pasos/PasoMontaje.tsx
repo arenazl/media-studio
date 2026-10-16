@@ -19,7 +19,7 @@ import { pasoHabilitado, type QaResult } from '../lib/comercial';
 import { MUSIC_TRACKS } from '../lib/music';
 import { componerMusica, moodDe, musicaDelPlan } from '../lib/musicaGenerada';
 import { resolverSrc } from '../remotion/derivar';
-import { aplicarPropuestaMontaje, type PropuestaMontaje } from '../lib/direccionMontaje';
+import { aplicarPropuestaMontaje, validarPropuestaMontaje, type PropuestaMontaje } from '../lib/direccionMontaje';
 import BotonChatGPT from './BotonChatGPT';
 import { pedidoPaso } from '../lib/paraChatGPT';
 
@@ -32,6 +32,9 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   const [armando, setArmando] = useState(false);
   const [direccionBusy, setDireccionBusy] = useState(false);
   const [direccionError, setDireccionError] = useState('');
+  // Una propuesta es sólo un borrador. La IA jamás persiste un montaje sin aprobación explícita.
+  const [propuestaPendiente, setPropuestaPendiente] = useState<{ propuesta: PropuestaMontaje; version: string } | null>(null);
+  const [decisionesSeleccionadas, setDecisionesSeleccionadas] = useState<number[]>([]);
   const [error, setError] = useState('');
   const qa = comercial?.qa ?? null;   // C9: el QA vive en el comercial (persiste); antes era useState y se perdía al salir del paso
   const [qaBusy, setQaBusy] = useState(false);
@@ -68,6 +71,15 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   }, []);
   const montaje = comercial?.montaje as MontajeState | undefined;
   const plan = montaje?.plan;
+  const versionPlan = plan ? JSON.stringify(plan) : '';
+  const propuestaDesactualizada = !!propuestaPendiente && propuestaPendiente.version !== versionPlan;
+  const direccionDesactualizada = !!(montaje?.direccion?.versionAplicada && montaje.direccion.versionAplicada !== versionPlan);
+  const previsualizacionDireccion = propuestaPendiente && plan && !propuestaDesactualizada
+    ? aplicarPropuestaMontaje(plan, {
+        ...propuestaPendiente.propuesta,
+        decisiones: propuestaPendiente.propuesta.decisiones.filter((_, i) => decisionesSeleccionadas.includes(i)),
+      })
+    : null;
   const playingTrack = !!(previewUrl && plan?.music?.src && previewUrl === plan.music.src);
   const playingVoice = !!(previewUrl && plan?.voice?.src && previewUrl === plan.voice.src);
   const exports = montaje?.exports || [];
@@ -119,11 +131,17 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     if (!comercial || !plan || direccionBusy || armando) return;
     setDireccionBusy(true); setDireccionError('');
     try {
+      const version = JSON.stringify(plan);
       const escenas = plan.scenes.filter((sc) => !!sc.src).map((sc) => ({
-        escenaN: sc.escenaN, src: sc.src, rol: sc.rol || '',
+        escenaN: sc.escenaN, clipId: sc.clipId, rol: sc.rol || '',
+        // No enviar URLs arbitrarias al LLM: sólo la evidencia editorial ya disponible.
         dialogo: sc.dialogo || '', durSec: +(sc.out - sc.in).toFixed(2),
-        tieneInsertos: !!sc.inserts?.length,
-        textoTranscripto: (sc.words || []).filter((w) => w.start >= sc.in && w.end <= sc.out).map((w) => w.text).join(' ').slice(0, 280),
+        insertos: (sc.inserts || []).map((ins, i) => ({
+          insertId: ins.id || `${sc.clipId || sc.escenaN}:insert-${i}`,
+          nombre: ins.nombre || 'Pantalla', atSec: ins.atSec, durSec: ins.durSec,
+        })),
+        palabras: (sc.words || []).filter((w) => w.start >= sc.in && w.end <= sc.out)
+          .map((w) => ({ palabra: w.text, segundo: +(w.start - sc.in).toFixed(2) })).slice(0, 80),
       }));
       const raw = await runMolde('montageDirection', project, {
         titulo: comercial.titulo, objetivo: reel?.objetivo || comercial.primaryMessage || '',
@@ -133,24 +151,44 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
         tieneMusica: !!plan.music?.src, tieneSfx: !!plan.sfx?.length, escenas,
       }, {}, undefined, comercial, 'claude');
       const propuesta = raw as unknown as PropuestaMontaje;
-      const { plan: nuevo, aplicadas, rechazadas } = aplicarPropuestaMontaje(plan, propuesta);
-      setComercial((c) => {
-        const m = c.montaje as MontajeState | undefined;
-        if (!m) return c;
-        return {
-          ...c,
-          montaje: { ...m, plan: nuevo, direccion: {
-            diagnostico: propuesta.diagnostico, aplicadas, rechazadas, anterior: m.direccion?.anterior || plan,
-          } },
-          estados: { ...c.estados, montaje: 'editado' },
-        };
-      });
+      const errores = validarPropuestaMontaje(propuesta);
+      if (errores.length) throw new Error(errores.join('; '));
+      setPropuestaPendiente({ propuesta, version });
+      setDecisionesSeleccionadas(propuesta.decisiones.map((_, i) => i));
     } catch (e) { setDireccionError(errMsg(e)); } finally { setDireccionBusy(false); }
+  };
+
+  const aplicarDireccionSeleccionada = () => {
+    if (!propuestaPendiente || !plan || propuestaDesactualizada) {
+      setDireccionError('El montaje cambió desde que la IA propuso estos ajustes. Volvé a pedir la dirección.');
+      return;
+    }
+    const version = propuestaPendiente.version;
+    const propuesta: PropuestaMontaje = {
+      ...propuestaPendiente.propuesta,
+      decisiones: propuestaPendiente.propuesta.decisiones.filter((_, i) => decisionesSeleccionadas.includes(i)),
+    };
+    if (!propuesta.decisiones.length) return;
+    setComercial((c) => {
+      const m = c.montaje as MontajeState | undefined;
+      // Protección adicional al aplicar: updater de React puede ejecutarse después del click.
+      if (!m || JSON.stringify(m.plan) !== version) return c;
+      const { plan: nuevo, aplicadas, rechazadas } = aplicarPropuestaMontaje(m.plan, propuesta);
+      return {
+        ...c,
+        montaje: { ...m, plan: nuevo, direccion: {
+          diagnostico: propuesta.diagnostico, aplicadas, rechazadas,
+          anterior: m.plan, versionAplicada: JSON.stringify(nuevo),
+        } },
+        estados: { ...c.estados, montaje: 'editado' },
+      };
+    });
+    setPropuestaPendiente(null);
   };
 
   const volverAntesDeDireccion = () => setComercial((c) => {
     const m = c.montaje as MontajeState | undefined;
-    if (!m?.direccion?.anterior) return c;
+    if (!m?.direccion?.anterior || (m.direccion.versionAplicada && JSON.stringify(m.plan) !== m.direccion.versionAplicada)) return c;
     const { direccion: _fuera, ...resto } = m;
     return { ...c, montaje: { ...resto, plan: m.direccion.anterior }, estados: { ...c.estados, montaje: 'editado' } };
   });
@@ -169,7 +207,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     const seleccionada = hay.find((x) => x.escenaN === cueEscena) || hay[hay.length > 1 ? 1 : 0];
     if (!seleccionada) return c;
     const cuando = hay[0]?.escenaN === seleccionada.escenaN ? 'inicio' as const : 'antes' as const;
-    const musicCues = [...(m.plan.musicCues || []), { escenaN: seleccionada.escenaN, cuando, durSec: 0.4, nivel: 0, motivo: 'pausa manual' }];
+    const musicCues = [...(m.plan.musicCues || []), { escenaN: seleccionada.escenaN, ...(seleccionada.clipId ? { clipId: seleccionada.clipId } : {}), origen: 'manual' as const, cuando, durSec: 0.4, nivel: 0, motivo: 'pausa manual' }];
     return { ...c, montaje: { ...m, plan: { ...m.plan, musicCues } }, estados: { ...c.estados, montaje: 'editado' } };
   });
 
@@ -402,8 +440,37 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
               <button className="rodaje-var" type="button" disabled={direccionBusy || armando || rendering || !conClip} onClick={() => void dirigirConIA()}>
                 {direccionBusy ? <Loader2 size={14} className="paso-spin" /> : <Clapperboard size={14} />} {direccionBusy ? 'Analizando escenas…' : 'Proponer dirección con IA'}
               </button>
-              {montaje?.direccion && <button className="rodaje-var" type="button" onClick={volverAntesDeDireccion} disabled={direccionBusy || armando}>Deshacer dirección IA</button>}
+              {montaje?.direccion && <button className="rodaje-var" type="button" onClick={volverAntesDeDireccion}
+                disabled={direccionBusy || armando || direccionDesactualizada}
+                title={direccionDesactualizada ? 'El montaje ya tiene ediciones posteriores; deshacer todo las perdería. Editá las automatizaciones individualmente.' : 'Restaurar el plan previo'}>Deshacer dirección IA</button>}
             </div>
+            {propuestaPendiente && (
+              <div className="paso-card" style={{ marginTop: 10 }}>
+                <div className="paso-card-h">Borrador de dirección · todavía NO aplicado</div>
+                <p className="mont-sil">{propuestaPendiente.propuesta.diagnostico}</p>
+                {propuestaPendiente.propuesta.decisiones.map((d, i) => (
+                  <label key={i} className="mont-sil" style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
+                    <input type="checkbox" checked={decisionesSeleccionadas.includes(i)}
+                      disabled={propuestaDesactualizada}
+                      onChange={(e) => setDecisionesSeleccionadas((prev) => e.target.checked ? [...prev, i] : prev.filter((n) => n !== i))} />
+                    <span>Escena #{d.escenaN} · {d.recurso} ({d.cuando}{d.offsetSec != null ? `, +${d.offsetSec}s` : ''}) — {d.motivo}</span>
+                  </label>
+                ))}
+                {previsualizacionDireccion && <div className="mont-sil" style={{ marginTop: 8 }}>
+                  Vista previa de cambios: {previsualizacionDireccion.aplicadas.length} aplicables · {previsualizacionDireccion.rechazadas.length} rechazados.
+                  {previsualizacionDireccion.rechazadas.map((aviso, i) => <div key={i}>No aplicable: {aviso}</div>)}
+                </div>}
+                {propuestaDesactualizada && <p className="paso-error">El plan cambió mientras se analizaba. Esta propuesta está desactualizada: descartala y generá otra.</p>}
+                <div className="veo-chips" style={{ marginTop: 10 }}>
+                  <button type="button" className="rodaje-var" onClick={() => setPropuestaPendiente(null)}>Descartar borrador</button>
+                  <button type="button" className="rodaje-var" onClick={aplicarDireccionSeleccionada}
+                    disabled={propuestaDesactualizada || !decisionesSeleccionadas.length || !previsualizacionDireccion?.aplicadas.length}>
+                    Aplicar seleccionadas ({previsualizacionDireccion?.aplicadas.length || 0})
+                  </button>
+                </div>
+              </div>
+            )}
+            {direccionDesactualizada && <p className="mont-sil">Hubo ajustes posteriores a la dirección IA. Deshacer todo se deshabilitó para protegerlos.</p>}
             {montaje?.direccion && (
               <div style={{ marginTop: 10 }}>
                 <div className="mont-sil"><strong>Diagnóstico:</strong> {montaje.direccion.diagnostico}</div>
