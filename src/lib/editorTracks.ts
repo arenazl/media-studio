@@ -3,7 +3,7 @@
 // testeable — sin IA, sin red. NO inventa datos: si el comercial no tiene storyboard/montaje, cada
 // pista vuelve vacía (estado honesto) en vez de rellenarse con ejemplos.
 import type { Comercial } from './comercial';
-import { storyboardToMontaje, sceneStarts, totalDuration, transitionDur, type MezclaPista, type MontajePlan, type MontajeState, type PistaAudio, type Transicion } from './montajePlan';
+import { storyboardToMontaje, sceneStarts, totalDuration, transitionDur, idInstancia, type MezclaPista, type MontajePlan, type MontajeState, type PistaAudio, type Transicion } from './montajePlan';
 import { MUSIC_TRACKS } from './music';
 import { NOMBRE_EFECTO } from './editorLibrary';
 
@@ -123,7 +123,7 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
   const sceneClips: EditorClip[] = plan.scenes.map((s, i) => {
     const esMockup = !!s.src && mockups.has(s.src);
     return {
-      id: s.clipId || `video-${s.escenaN}${plan.scenes.filter((x) => x.escenaN === s.escenaN).length > 1 ? '-'+i : ''}`,
+      id: idInstancia(plan, s, i),
       label: esMockup ? `Escena ${s.escenaN} · ${nombreMockup(s.src) || s.screen || 'mockup'}` : `Escena ${s.escenaN}`,
       startSec: starts[i],
       durSec: Math.max(0.1, s.out - s.in),

@@ -8,7 +8,7 @@ import { API_BASE } from '../config';
 import { errMsg, runMolde, PasoEmpty, type PasoProps } from './pasoKit';
 import { estadoDelPaso } from '../lib/pasoEstado';
 import { mediaKitParaMolde } from '../lib/mediaKit';
-import { totalDuration, type MontajeState, type MontajePlan } from '../lib/montajePlan';
+import { totalDuration, idInstancia, type MontajeState, type MontajePlan } from '../lib/montajePlan';
 import { armarBase, materialDe, mockupsDe, tomaPresentadora } from '../lib/armarMontaje';
 import { aplicarVariante, variantesDisponibles } from '../lib/variantesMontaje';
 import { VOZ_LOCUTOR, fraseDeCierre, asegurarLocutor } from '../lib/locutorCierre';
@@ -132,7 +132,9 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     setDireccionBusy(true); setDireccionError('');
     try {
       const version = JSON.stringify(plan);
-      const escenas = plan.scenes.filter((sc) => !!sc.src).map((sc) => ({
+      const escenas = plan.scenes.map((sc, i) => ({
+        ...sc, clipId: idInstancia(plan, sc, i),
+      })).filter((sc) => !!sc.src).map((sc) => ({
         escenaN: sc.escenaN, clipId: sc.clipId, rol: sc.rol || '',
         // No enviar URLs arbitrarias al LLM: sólo la evidencia editorial ya disponible.
         dialogo: sc.dialogo || '', durSec: +(sc.out - sc.in).toFixed(2),
@@ -193,7 +195,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     return { ...c, montaje: { ...resto, plan: m.direccion.anterior }, estados: { ...c.estados, montaje: 'editado' } };
   });
 
-  const [cueEscena, setCueEscena] = useState<number>(0);
+  const [cueClipId, setCueClipId] = useState<string>('');
   const editarCue = (index: number, cambio: Partial<NonNullable<MontajePlan['musicCues']>[number]>) => setComercial((c) => {
     const m = c.montaje as MontajeState | undefined;
     if (!m) return c;
@@ -204,10 +206,10 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
     const m = c.montaje as MontajeState | undefined;
     if (!m?.plan.music?.src || !m.plan.scenes.length) return c;
     const hay = m.plan.scenes.filter((x) => x.src);
-    const seleccionada = hay.find((x) => x.escenaN === cueEscena) || hay[hay.length > 1 ? 1 : 0];
+    const seleccionada = hay.find((x) => idInstancia(m.plan, x, m.plan.scenes.indexOf(x)) === cueClipId) || hay[hay.length > 1 ? 1 : 0];
     if (!seleccionada) return c;
     const cuando = hay[0]?.escenaN === seleccionada.escenaN ? 'inicio' as const : 'antes' as const;
-    const musicCues = [...(m.plan.musicCues || []), { escenaN: seleccionada.escenaN, ...(seleccionada.clipId ? { clipId: seleccionada.clipId } : {}), origen: 'manual' as const, cuando, durSec: 0.4, nivel: 0, motivo: 'pausa manual' }];
+    const musicCues = [...(m.plan.musicCues || []), { escenaN: seleccionada.escenaN, clipId: idInstancia(m.plan, seleccionada, m.plan.scenes.indexOf(seleccionada)), origen: 'manual' as const, cuando, durSec: 0.4, nivel: 0, motivo: 'pausa manual' }];
     return { ...c, montaje: { ...m, plan: { ...m.plan, musicCues } }, estados: { ...c.estados, montaje: 'editado' } };
   });
 
@@ -480,8 +482,10 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
             )}
             {plan.music?.src && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10, alignItems: 'center' }}>
               <span className="mont-sil">Pausa manual antes de:</span>
-              <select aria-label="Escena donde insertar pausa" className="mont-select" value={cueEscena || plan.scenes.find((_, i) => i > 0)?.escenaN || plan.scenes[0]?.escenaN || 0} onChange={(e) => setCueEscena(Number(e.target.value))}>
-                {plan.scenes.filter((s) => s.src).map((s) => <option key={s.escenaN} value={s.escenaN}>Escena #{s.escenaN} · {s.rol || 'video'}</option>)}
+              <select aria-label="Instancia donde insertar pausa" className="mont-select"
+                value={cueClipId || (plan.scenes.filter((s) => s.src)[1] || plan.scenes.find((s) => s.src))?.clipId || (plan.scenes.filter((s) => s.src)[1] || plan.scenes.find((s) => s.src) ? idInstancia(plan, (plan.scenes.filter((s) => s.src)[1] || plan.scenes.find((s) => s.src))!, plan.scenes.indexOf((plan.scenes.filter((s) => s.src)[1] || plan.scenes.find((s) => s.src))!)) : '')}
+                onChange={(e) => setCueClipId(e.target.value)}>
+                {plan.scenes.map((s, i) => s.src ? <option key={idInstancia(plan, s, i)} value={idInstancia(plan, s, i)}>Escena #{s.escenaN} · toma {i + 1} · {s.rol || 'video'}</option> : null)}
               </select>
               <button type="button" className="rodaje-var" onClick={agregarPausa}>Añadir pausa de música</button>
             </div>}

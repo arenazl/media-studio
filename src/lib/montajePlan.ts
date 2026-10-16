@@ -212,6 +212,14 @@ export function storyboardToMontaje(comercial: Comercial): MontajePlan {
   };
 }
 
+// Antes de persistir un clip antiguo, usar una identidad determinística. Dos tomas
+// provenientes de la misma escena del storyboard nunca comparten la misma instancia.
+export function idInstancia(plan: Pick<MontajePlan, 'scenes'>, s: MontajeScene, i: number): string {
+  if (s.clipId) return s.clipId;
+  const repetida = plan.scenes.some((x, j) => j !== i && x.escenaN === s.escenaN);
+  return `video-${s.escenaN}${repetida ? `-${i}` : ''}`;
+}
+
 // inicio ABSOLUTO de cada escena en el timeline final (acumula dur - transición, como el xfade).
 export function sceneStarts(plan: MontajePlan): number[] {
   const starts: number[] = [];

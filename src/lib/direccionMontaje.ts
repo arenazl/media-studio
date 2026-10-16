@@ -1,6 +1,6 @@
 // Director publicitario: vocabulario cerrado, ejecución pura y anclajes estables a escenas.
 // La IA sólo PROPONE. Este compilador valida y aplica acciones que el render realmente conoce.
-import { sceneStarts, silenceRanges, totalDuration, type MontajePlan, type MusicCue } from './montajePlan';
+import { sceneStarts, silenceRanges, totalDuration, idInstancia, type MontajePlan, type MusicCue } from './montajePlan';
 
 export type RecursoMontaje = 'music_drop' | 'music_dip' | 'music_lift' | 'cut' | 'dissolve' | 'show_face' | 'sfx_off';
 export interface DecisionMontaje {
@@ -45,7 +45,7 @@ export function validarPropuestaMontaje(value: unknown): string[] {
 export function aplicarPropuestaMontaje(base: MontajePlan, propuesta: PropuestaMontaje): ResultadoDireccion {
   const errores = validarPropuestaMontaje(propuesta);
   if (errores.length) throw new Error(errores.join('; '));
-  const scenes = base.scenes.map((s) => ({ ...s, inserts: s.inserts?.map((ins) => ({ ...ins })) }));
+  const scenes = base.scenes.map((s, i) => ({ ...s, clipId: idInstancia(base, s, i), inserts: s.inserts?.map((ins) => ({ ...ins })) }));
   const aplicadas: DecisionMontaje[] = [];
   const rechazadas: string[] = [];
   const cues: MusicCue[] = [...(base.musicCues || [])]; // preservar pausas manuales y automatizaciones anteriores
@@ -94,7 +94,7 @@ export function intervalosMusica(plan: MontajePlan): IntervaloMusica[] {
   const starts = sceneStarts(plan);
   const total = totalDuration(plan) + (plan.endCard?.durSec || 0);
   const fromCue = (plan.musicCues || []).flatMap((cue) => {
-    const i = plan.scenes.findIndex((s) => cue.clipId ? s.clipId === cue.clipId : s.escenaN === cue.escenaN);
+    const i = plan.scenes.findIndex((s, j) => cue.clipId ? idInstancia(plan, s, j) === cue.clipId : s.escenaN === cue.escenaN);
     if (i < 0 || !plan.scenes[i].src) return [];
     const t = cue.cuando === 'final' ? starts[i] + plan.scenes[i].out - plan.scenes[i].in : starts[i] + (cue.offsetSec || 0);
     const desde = cue.cuando === 'antes' || cue.cuando === 'final' ? t - cue.durSec : t;
