@@ -123,7 +123,7 @@ export function buildEditorTimeline(comercial: Comercial | undefined): EditorTim
   const sceneClips: EditorClip[] = plan.scenes.map((s, i) => {
     const esMockup = !!s.src && mockups.has(s.src);
     return {
-      id: `video-${s.escenaN}`,
+      id: s.clipId || `video-${s.escenaN}${plan.scenes.filter((x) => x.escenaN === s.escenaN).length > 1 ? '-'+i : ''}`,
       label: esMockup ? `Escena ${s.escenaN} · ${nombreMockup(s.src) || s.screen || 'mockup'}` : `Escena ${s.escenaN}`,
       startSec: starts[i],
       durSec: Math.max(0.1, s.out - s.in),

@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - feat/director-montaje-publicitario
+      - master
+      - feat/director-montaje-v11-audiovisual
   pull_request:
     paths:
       - "src/**"

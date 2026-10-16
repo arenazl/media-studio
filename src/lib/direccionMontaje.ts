@@ -6,6 +6,9 @@ export type RecursoMontaje = 'music_drop' | 'music_dip' | 'music_lift' | 'cut' |
 export interface DecisionMontaje {
   recurso: RecursoMontaje;
   escenaN: number;
+  clipId?: string;
+  offsetSec?: number; // instante relativo al inicio visible de la instancia
+  insertId?: string; // para retirar UN inserto, nunca todos por accidente
   cuando: 'antes' | 'inicio' | 'final';
   durSec: number;
   motivo: string;
@@ -31,6 +34,9 @@ export function validarPropuestaMontaje(value: unknown): string[] {
     if (!Number.isInteger(x?.escenaN) || x.escenaN < 1) errores.push(`decisiones[${i}].escenaN inválido`);
     if (!QUANDOS.has(x?.cuando)) errores.push(`decisiones[${i}].cuando inválido`);
     if (typeof x?.durSec !== 'number' || !Number.isFinite(x.durSec) || x.durSec < 0 || x.durSec > 1.5) errores.push(`decisiones[${i}].durSec debe estar entre 0 y 1.5`);
+    if (x?.offsetSec != null && (typeof x.offsetSec !== 'number' || !Number.isFinite(x.offsetSec) || x.offsetSec < 0)) errores.push(`decisiones[${i}].offsetSec inválido`);
+    if (x?.clipId != null && (typeof x.clipId !== 'string' || !x.clipId.trim())) errores.push(`decisiones[${i}].clipId inválido`);
+    if (x?.insertId != null && (typeof x.insertId !== 'string' || !x.insertId.trim())) errores.push(`decisiones[${i}].insertId inválido`);
     if (!x?.motivo || typeof x.motivo !== 'string' || x.motivo.length > 180) errores.push(`decisiones[${i}].motivo requerido, máximo 180 caracteres`);
   });
   return errores;
@@ -42,26 +48,33 @@ export function aplicarPropuestaMontaje(base: MontajePlan, propuesta: PropuestaM
   const scenes = base.scenes.map((s) => ({ ...s, inserts: s.inserts?.map((ins) => ({ ...ins })) }));
   const aplicadas: DecisionMontaje[] = [];
   const rechazadas: string[] = [];
-  const cues: MusicCue[] = [];
+  const cues: MusicCue[] = [...(base.musicCues || [])]; // preservar pausas manuales y automatizaciones anteriores
   let sfx = base.sfx?.map((s) => ({ ...s }));
   const starts = sceneStarts(base);
   propuesta.decisiones.forEach((d) => {
-    const i = scenes.findIndex((s) => s.escenaN === d.escenaN);
+    const i = scenes.findIndex((s) => d.clipId ? s.clipId === d.clipId : s.escenaN === d.escenaN);
     if (i < 0 || !scenes[i].src) { rechazadas.push(`Escena ${d.escenaN} sin clip disponible: ${d.recurso}`); return; }
     if (d.recurso in MUSIC_LEVEL) {
       if (!base.music?.src) { rechazadas.push(`Sin música: ${d.recurso}`); return; }
       const dur = limite(d.durSec, 0.1, 1.5);
       const inicio = starts[i];
-      if (d.cuando === 'antes' && inicio < dur) { rechazadas.push(`No hay tiempo antes de escena ${d.escenaN}`); return; }
-      cues.push({ escenaN: d.escenaN, cuando: d.cuando, durSec: dur, nivel: MUSIC_LEVEL[d.recurso]!, motivo: d.motivo });
+      const sceneDur = Math.max(0, scenes[i].out - scenes[i].in);
+      if (d.offsetSec != null && d.offsetSec > sceneDur) { rechazadas.push(`Instante fuera de escena ${d.escenaN}`); return; }
+      const ancla = inicio + (d.offsetSec || 0);
+      if (d.cuando === 'antes' && ancla < dur) { rechazadas.push(`No hay tiempo antes de escena ${d.escenaN}`); return; }
+      cues.push({ escenaN: d.escenaN, ...(scenes[i].clipId ? { clipId: scenes[i].clipId } : {}), ...(d.offsetSec != null ? { offsetSec: d.offsetSec } : {}), origen: 'ia', cuando: d.cuando, durSec: dur, nivel: MUSIC_LEVEL[d.recurso]!, motivo: d.motivo });
     } else if (d.recurso === 'cut' || d.recurso === 'dissolve') {
       // La transición está guardada en la escena ANTERIOR al corte que se quiere tratar.
       const idx = d.cuando === 'final' ? i : i - 1;
       if (idx < 0 || idx >= scenes.length - 1) { rechazadas.push(`No hay corte adyacente a escena ${d.escenaN}`); return; }
       scenes[idx].transition = d.recurso === 'cut' ? 'cut' : 'crossfade';
     } else if (d.recurso === 'show_face') {
-      if (!scenes[i].inserts?.length) { rechazadas.push(`Escena ${d.escenaN} sin insertos que retirar`); return; }
-      delete scenes[i].inserts;
+      const insertos = scenes[i].inserts || [];
+      if (!insertos.length) { rechazadas.push(`Escena ${d.escenaN} sin insertos que retirar`); return; }
+      if (!d.insertId && insertos.length > 1) { rechazadas.push(`Escena ${d.escenaN} tiene varios insertos: hay que indicar insertId`); return; }
+      const elegido = d.insertId ? insertos.findIndex((ins) => ins.id === d.insertId) : 0;
+      if (elegido < 0) { rechazadas.push(`Inserto inexistente en escena ${d.escenaN}`); return; }
+      scenes[i].inserts = insertos.filter((_, k) => k !== elegido);
     } else if (d.recurso === 'sfx_off') {
       const end = starts[i] + Math.max(0, scenes[i].out - scenes[i].in);
       const a = sfx?.length || 0;
@@ -80,9 +93,9 @@ export function intervalosMusica(plan: MontajePlan): IntervaloMusica[] {
   const starts = sceneStarts(plan);
   const total = totalDuration(plan) + (plan.endCard?.durSec || 0);
   const fromCue = (plan.musicCues || []).flatMap((cue) => {
-    const i = plan.scenes.findIndex((s) => s.escenaN === cue.escenaN);
+    const i = plan.scenes.findIndex((s) => cue.clipId ? s.clipId === cue.clipId : s.escenaN === cue.escenaN);
     if (i < 0 || !plan.scenes[i].src) return [];
-    const t = cue.cuando === 'final' ? starts[i] + plan.scenes[i].out - plan.scenes[i].in : starts[i];
+    const t = cue.cuando === 'final' ? starts[i] + plan.scenes[i].out - plan.scenes[i].in : starts[i] + (cue.offsetSec || 0);
     const desde = cue.cuando === 'antes' || cue.cuando === 'final' ? t - cue.durSec : t;
     const hasta = desde + cue.durSec;
     return [{ desde: limite(r3(desde), 0, total), hasta: limite(r3(hasta), 0, total), nivel: cue.nivel, fade: 0.07 }];

@@ -11,7 +11,7 @@ export type Transicion = 'cut' | 'fade' | 'crossfade' | 'wipe' | 'zoom';
 // ── Montaje v2 (montajista + motor Remotion) — todo OPCIONAL: un plan sin estos campos renderiza como antes ──
 export interface PalabraTiempo { text: string; start: number; end: number }   // segundos, relativos al CLIP CRUDO
 export type TarjetaInserto = 'semaforo' | 'tramite' | 'mapa' | 'dashboard';
-export interface InsertoPantalla { atSec: number; durSec: number; src: string; nombre?: string; tarjeta?: TarjetaInserto; video?: boolean; fadeIn?: number; fadeOut?: number }   // video: el inserto es el mockup animado de la app (clip), no una captura   // atSec relativo al clip crudo; con `tarjeta`, se dibuja la tarjeta diseñada en vez de una captura
+export interface InsertoPantalla { id?: string; atSec: number; durSec: number; src: string; nombre?: string; tarjeta?: TarjetaInserto; video?: boolean; fadeIn?: number; fadeOut?: number }   // video: el inserto es el mockup animado de la app (clip), no una captura   // atSec relativo al clip crudo; con `tarjeta`, se dibuja la tarjeta diseñada en vez de una captura
 // tipo de cierre (2026-10-12): 'logo' = placa grande · 'pantalla' = mockup de la pantalla clave + logo · 'presentadora' =
 // clip de una persona diciendo el cierre + logo. `videoSrc` es el mockup o el clip; sin él, cae en la placa grande.
 export type TipoCierre = 'logo' | 'pantalla' | 'presentadora';
@@ -41,6 +41,7 @@ export interface PlanMockup {
 
 export interface MontajeScene {
   escenaN: number;
+  clipId?: string;             // instancia única de timeline; escenaN sigue referenciando el storyboard
   src: string;                 // fileRef RELATIVO de la toma activa (public_id de saveAsset)
   in: number; out: number;     // trim dentro del clip crudo
   audio: 'keep' | 'mute';      // keep = mezcla el diálogo lip-synced del clip; mute = b-roll sucio
@@ -63,7 +64,7 @@ export interface MontajeScene {
 }
 
 // Una decisión se ancla a una escena, no a segundos absolutos: sigue su sitio cuando la timeline cambia.
-export type MusicCue = { escenaN: number; cuando: 'antes' | 'inicio' | 'final'; durSec: number; nivel: number; motivo?: string };
+export type MusicCue = { escenaN: number; clipId?: string; offsetSec?: number; origen?: 'ia' | 'manual'; cuando: 'antes' | 'inicio' | 'final'; durSec: number; nivel: number; motivo?: string };
 
 export interface MontajePlan {
   width: number; height: number; fps: number;
@@ -247,8 +248,25 @@ export function duckRanges(plan: MontajePlan, voiceDur?: number): [number, numbe
   const starts = sceneStarts(plan);
   const ranges: [number, number][] = [];
   plan.scenes.forEach((s, i) => {
-    if (s.audio === 'keep' && s.dialogo && s.dialogo.trim()) {
-      ranges.push([starts[i], starts[i] + Math.max(0, s.out - s.in)]);
+    if (s.audio !== 'keep') return;
+    const dur = Math.max(0, s.out - s.in);
+    // Las palabras de ASR son relativas al video original. Detectar tramos vocales
+    // reales, sin mantener la música apagada durante todo el plano.
+    const words = (s.words || [])
+      .filter((w) => Number.isFinite(w.start) && Number.isFinite(w.end) && w.end > w.start && w.end > s.in && w.start < s.out)
+      .map((w) => [Math.max(0, w.start - s.in), Math.min(dur, w.end - s.in)] as [number, number])
+      .sort((a,b) => a[0] - b[0]);
+    if (words.length) {
+      let a = words[0][0], b = words[0][1];
+      const flush = () => ranges.push([Math.max(0, starts[i] + a - 0.12), Math.min(starts[i] + dur, starts[i] + b + 0.22)]);
+      for (const [ws, we] of words.slice(1)) {
+        if (ws - b <= 0.36) b = Math.max(b, we);
+        else { flush(); a = ws; b = we; }
+      }
+      flush();
+    } else if (s.dialogo?.trim()) {
+      // Planes históricos sin ASR mantienen el comportamiento existente.
+      ranges.push([starts[i], starts[i] + dur]);
     }
   });
   if (plan.voice) {

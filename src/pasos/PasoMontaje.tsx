@@ -323,7 +323,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       setComercial((c) => {
         const m = c.montaje as MontajeState | undefined;
         const exps = [...(m?.exports || []), { fileRef: d.fileRef, createdAt: Date.now() }];
-        return { ...c, montaje: { plan: m?.plan || plan, exports: exps }, estados: { ...c.estados, montaje: 'aprobado' } };
+        return { ...c, montaje: { ...m, plan: m?.plan || plan, exports: exps }, estados: { ...c.estados, montaje: 'aprobado' } };
       });
     } catch (e) { setError(errMsg(e)); } finally { setRendering(false); }
   };

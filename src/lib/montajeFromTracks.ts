@@ -28,6 +28,7 @@ const clipsDe = (tracks: EditorTrack[], id: string) => tracks.find((t) => t.id =
 // (mockups), las palabras con tiempo y la captura. Ahora se parte de la base y se pisa sólo lo editado.
 export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): MontajePlan {
   // índice de escenas base por escenaN → PRIMERA ocurrencia (fuente de fallback para campos de escena).
+  const basePorClipId = new Map((base.scenes || []).filter((s) => s.clipId).map((s) => [s.clipId!, s] as const));
   const baseScenePorN = new Map<number, MontajeScene>();
   for (const s of base.scenes) if (!baseScenePorN.has(s.escenaN)) baseScenePorN.set(s.escenaN, s);
 
@@ -39,7 +40,7 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
     .sort((a, b) => a.startSec - b.startSec);
   const scenes: MontajeScene[] = videoClips.map((c, i) => {
     const escenaN = c.escenaN ?? i + 1;
-    const baseScene = baseScenePorN.get(escenaN);
+    const baseScene = basePorClipId.get(c.id) || baseScenePorN.get(escenaN);
     const inSec = c.srcIn ?? 0;
     const esUltimo = i === videoClips.length - 1;
     // la transición marca hacia el SIGUIENTE clip; el último no tiene (como en el render). Si el editor no la cambió
@@ -49,6 +50,7 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
     return {
       ...(baseScene || {}),   // acercamientos, insertos, palabras, captura, placa, efecto: lo que el clip no modela
       escenaN,
+      clipId: c.id,
       src: c.fileRef || baseScene?.src || '',
       in: inSec,
       out: inSec + c.durSec,
@@ -96,6 +98,15 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
   // ── placa final ← su clip en la pista de video (duración ajustable); si se borró, el reel termina sin placa ──
   const placa = clipsDe(tracks, 'video').find(esPlaca);
   const endCard = base.endCard ? (placa ? { ...base.endCard, durSec: r3(placa.durSec) } : (hay('video') ? undefined : base.endCard)) : undefined;
+
+  // Las cues nuevas se anclan a la instancia exacta; las legacy siguen por escenaN.
+  // Si se partió un clip, la cue acompaña la primera mitad, nunca otra copia.
+  const musicCues = (base.musicCues || []).flatMap((cue) => {
+    if (!cue.clipId) return scenes.some((s) => s.escenaN === cue.escenaN) ? [cue] : [];
+    if (scenes.some((s) => s.clipId === cue.clipId)) return [cue];
+    const firstHalf = scenes.find((s) => s.clipId === `${cue.clipId}-a`);
+    return firstHalf ? [{ ...cue, clipId: firstHalf.clipId }] : [];
+  });
 
   // ── silences ← los de base cuyo `antesDeEscena` siga existiendo en las scenes resultantes ──
   const escenasVivas = new Set(scenes.map((s) => s.escenaN));
@@ -148,7 +159,7 @@ export function tracksToMontaje(tracks: EditorTrack[], base: MontajePlan): Monta
   return {
     ...base,   // placa final, estilo de marca, motor de render, kit, cta: el editor no los toca
     width: base.width, height: base.height, fps: base.fps,
-    scenes, silences, texts, voice, music, ...(sfx?.length ? { sfx } : {}),
+    scenes, silences, musicCues, texts, voice, music, ...(sfx?.length ? { sfx } : {}),
     logo: base.logo,
     endCard,
     mezcla: Object.keys(mezcla).length ? mezcla : undefined,
