@@ -37,6 +37,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
   // Una propuesta es sólo un borrador. La IA jamás persiste un montaje sin aprobación explícita.
   const [propuestaPendiente, setPropuestaPendiente] = useState<{ propuesta: PropuestaMontaje; version: string } | null>(null);
   const [decisionesSeleccionadas, setDecisionesSeleccionadas] = useState<number[]>([]);
+  const [vistaComparacion, setVistaComparacion] = useState<'antes' | 'despues'>('despues');
   const [error, setError] = useState('');
   const qa = comercial?.qa ?? null;   // C9: el QA vive en el comercial (persiste); antes era useState y se perdía al salir del paso
   const [qaBusy, setQaBusy] = useState(false);
@@ -182,6 +183,7 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
       if (errores.length) throw new Error(errores.join('; '));
       setPropuestaPendiente({ propuesta, version });
       setDecisionesSeleccionadas(propuesta.decisiones.map((_, i) => i));
+      setVistaComparacion('despues');
     } catch (e) { setDireccionError(errMsg(e)); } finally { setDireccionBusy(false); }
   };
 
@@ -507,6 +509,20 @@ export default function PasoMontaje({ project, reelId, comercial, setComercial, 
                   Vista previa de cambios: {previsualizacionDireccion.aplicadas.length} aplicables · {previsualizacionDireccion.rechazadas.length} rechazados.
                   {previsualizacionDireccion.rechazadas.map((aviso, i) => <div key={i}>No aplicable: {aviso}</div>)}
                 </div>}
+                {previsualizacionDireccion && previsualizacionDireccion.aplicadas.length > 0 && (
+                  <div style={{ marginTop: 10 }}>
+                    <div className="mont-sil"><strong>Comparar Player antes / después</strong> · las dos vistas usan el render real de Remotion. No se guardan cambios al reproducir.</div>
+                    <div className="veo-chips" style={{ marginBottom: 8 }}>
+                      <button type="button" className="rodaje-var" aria-pressed={vistaComparacion === 'antes'} onClick={() => setVistaComparacion('antes')}>Antes (original)</button>
+                      <button type="button" className="rodaje-var" aria-pressed={vistaComparacion === 'despues'} onClick={() => setVistaComparacion('despues')}>Después (propuesta)</button>
+                    </div>
+                    <div style={{ maxWidth: 360 }}>
+                      <Suspense fallback={<div className="mont-sil">Cargando reproductor…</div>}>
+                        <PlayerMontaje key={vistaComparacion} plan={vistaComparacion === 'antes' ? plan! : previsualizacionDireccion.plan} />
+                      </Suspense>
+                    </div>
+                  </div>
+                )}
                 {propuestaDesactualizada && <p className="paso-error">El plan cambió mientras se analizaba. Esta propuesta está desactualizada: descartala y generá otra.</p>}
                 <div className="veo-chips" style={{ marginTop: 10 }}>
                   <button type="button" className="rodaje-var" onClick={() => setPropuestaPendiente(null)}>Descartar borrador</button>
