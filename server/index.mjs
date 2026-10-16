@@ -63,6 +63,7 @@ import { armarPedido, leerRespuesta, CONTRATO_VERSION } from './contratoMateriaP
 import { transcribirArchivo } from './transcribir.mjs';
 import { resolverClipLocal, segundoDeMuestra } from './montageEvidence.mjs';
 import { auditarRenderLocal } from './renderQa.mjs';
+const _cacheEvidenciaVisual = new Map(); // sólo descripciones, nunca imágenes
 import { sintetizar, MODELO_VOZ } from './vozEleven.mjs';
 
 // .env LOCAL (sin dependencias ni flag): carga claves (ELEVENLABS_API_KEY, etc.) antes de leer process.env.
@@ -2047,9 +2048,18 @@ ${src}`;
         const file = resolverClipLocal(STORAGE_DIR, e.fileRef);
         const id = String(e.clipId || '');
         if (!file || !fs.existsSync(file)) { avisos.push(`Escena ${e.escenaN}: clip no disponible en storage local`); continue; }
-        const stat = fs.statSync(file);
+        const rootReal = fs.realpathSync(STORAGE_DIR);
+        const fileReal = fs.realpathSync(file);
+        const relReal = path.relative(rootReal, fileReal);
+        if (!relReal || relReal === '..' || relReal.startsWith('..' + path.sep) || path.isAbsolute(relReal)) {
+          avisos.push(`Escena ${e.escenaN}: ruta fuera de storage`); continue;
+        }
+        const stat = fs.statSync(fileReal);
         if (!stat.isFile() || stat.size > 300 * 1024 * 1024) { avisos.push(`Escena ${e.escenaN}: archivo no apto para análisis`); continue; }
         const segundo = segundoDeMuestra(e);
+        const cacheKey = _sha('sha256').update(fileReal + ':' + stat.size + ':' + stat.mtimeMs + ':' + segundo).digest('hex');
+        const yaAnalizado = _cacheEvidenciaVisual.get(cacheKey);
+        if (yaAnalizado) { evidencia.push({ ...yaAnalizado, clipId: id, escenaN: e.escenaN, segundo: Math.round((segundo - (Number(e.in) || 0)) * 100) / 100 }); continue; }
         const fotograma = path.join(STORAGE_DIR, `.evidencia-${_sha('sha256').update(file + String(Date.now()) + Math.random()).digest('hex')}.jpg`);
         try {
           await runFfmpeg(['-y', '-ss', String(segundo), '-i', file, '-frames:v', '1', '-q:v', '4', fotograma]);
@@ -2060,8 +2070,12 @@ ${src}`;
           });
           const parsed = extractJson(text);
           const descripcion = String(parsed?.descripcion || '').trim().slice(0, 240);
-          if (descripcion) evidencia.push({ clipId: id, escenaN: e.escenaN, segundo: Math.round((segundo - (Number(e.in) || 0)) * 100) / 100,
-            descripcion, caraVisible: parsed?.caraVisible === true, interfazVisible: parsed?.interfazVisible === true });
+          if (descripcion) {
+            const observacion = { descripcion, caraVisible: parsed?.caraVisible === true, interfazVisible: parsed?.interfazVisible === true };
+            _cacheEvidenciaVisual.set(cacheKey, observacion);
+            if (_cacheEvidenciaVisual.size > 100) _cacheEvidenciaVisual.delete(_cacheEvidenciaVisual.keys().next().value);
+            evidencia.push({ clipId: id, escenaN: e.escenaN, segundo: Math.round((segundo - (Number(e.in) || 0)) * 100) / 100, ...observacion });
+          }
           else avisos.push(`Escena ${e.escenaN}: respuesta visual vacía`);
         } catch (err) {
           avisos.push(`Escena ${e.escenaN}: no se pudo analizar fotograma (${err instanceof Error ? err.message.slice(0, 130) : 'error'})`);
@@ -2077,6 +2091,8 @@ ${src}`;
       const file = resolverClipLocal(STORAGE_DIR, body.fileRef);
       if (!file) return json(res, 400, { error: 'fileRef inválido' });
       if (!fs.existsSync(file)) return json(res, 404, { error: 'El MP4 no está disponible en el almacenamiento local' });
+      const relReal = path.relative(fs.realpathSync(STORAGE_DIR), fs.realpathSync(file));
+      if (!relReal || relReal === '..' || relReal.startsWith('..' + path.sep) || path.isAbsolute(relReal)) return json(res, 403, { error: 'ruta fuera de storage' });
       try { return json(res, 200, { fileRef: body.fileRef, ...(await auditarRenderLocal(file)) }); }
       catch (err) { return json(res, 502, { error: err instanceof Error ? err.message : 'No se pudo auditar' }); }
     }
